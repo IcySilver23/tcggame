@@ -1,0 +1,406 @@
+import { db, nowIso, getMeta, setMeta, logActivity } from '../lib/db'
+import { round2, valueOf } from './market'
+import { fetchPriceCharting } from './pricesources'
+
+// ---------------------------------------------------------------------------
+// Sealed catalog for EVERY set. WotC sets get boosters + 36-pack displays;
+// modern sets get the full line (booster, bundle, ETB, display). Prices come
+// from PriceCharting's real sealed listings (the same token already used for
+// graded comps), falling back to a derived estimate until that product's
+// lookup lands. The backfill paces itself at PC's 1-call/second limit.
+// ---------------------------------------------------------------------------
+
+const DISPLAY_PACKS = 36
+const BUNDLE_PACKS = 6
+const ETB_PACKS = 9
+
+type EraProducts = { kinds: { kind: string; name: string; msrp: number; packs: number }[] }
+
+function seriesEra(series: string, releaseDate: string): 'wotc' | 'modern' | 'none' {
+  const year = Number((releaseDate || '').slice(0, 4))
+  if (year >= 2011) return 'modern'
+  if (year >= 1998 && year <= 2010) return 'wotc'
+  // Series-name fallbacks for odd rows without dates.
+  const s = series.toLowerCase()
+  if (/(sword|scarlet|sun & moon|xy|black & white)/.test(s)) return 'modern'
+  if (/(base|jungle|fossil|neo|gym|e-card|ex|team rocket|diamond|platinum|heartgold|legendary|call of legends|pop|wizards)/.test(s)) return 'wotc'
+  return 'none'
+}
+
+function isSpecialSet(setId: string): boolean {
+  // Half sets (sv3pt5, swsh4.5,…) and promo-ish sets don't get displays.
+  return setId.includes('.5') || setId.endsWith('pt5') || /(p|sm\d+p)$/.test(setId) === false && /(mcp|swshp|smp|xyp|dpp|hgssp|bwp|xy\d*p|sm\d*p)$/.test(setId)
+}
+
+function promoLike(setId: string): boolean {
+  return /(^|)(mcp|swshp|smp|xyp|pop\d*|bwp|dpp|hgssp)$/.test(setId) || setId.endsWith('p') && setId.length <= 6
+}
+
+export function productsForSet(setId: string, setName: string, series: string, releaseDate: string): EraProducts['kinds'] {
+  if (promoLike(setId)) return []
+  const era = seriesEra(series, releaseDate)
+  if (era === 'none') return []
+  const year = Number((releaseDate || '').slice(0, 4))
+  const boosterMsrp = year >= 2020 ? 4.49 : year >= 2011 ? 3.99 : 3.29
+  const etbMsrp = year >= 2020 ? 54.99 : year >= 2011 ? 39.99 : 0
+  const kinds: EraProducts['kinds'] = [
+    { kind: 'booster', name: `${setName} Booster Pack`, msrp: boosterMsrp, packs: 1 },
+  ]
+  if (era === 'wotc') {
+    kinds.push({ kind: 'display', name: `${setName} Booster Display (36 packs)`, msrp: round2(boosterMsrp * DISPLAY_PACKS), packs: DISPLAY_PACKS })
+  } else {
+    const special = setId.includes('.5') || setId.endsWith('pt5')
+    if (!special) kinds.push({ kind: 'bundle', name: `${setName} Booster Bundle`, msrp: 26.99, packs: BUNDLE_PACKS })
+    kinds.push({ kind: 'etb', name: `${setName} Elite Trainer Box`, msrp: etbMsrp, packs: ETB_PACKS })
+    if (!special) kinds.push({ kind: 'display', name: `${setName} Booster Display (36 packs)`, msrp: round2(boosterMsrp * DISPLAY_PACKS), packs: DISPLAY_PACKS })
+  }
+  return kinds
+}
+
+/** Seed pack_products for every synced set that lacks products (INSERT OR IGNORE keeps existing rows). */
+export function ensureFullCatalog(): number {
+  const sets = db
+    .prepare(
+      `SELECT s.id, s.name, s.series, s.release_date,
+              (SELECT COUNT(*) FROM cards c WHERE c.set_id = s.id) AS n
+       FROM sets s WHERE s.id IN (SELECT DISTINCT set_id FROM cards)`,
+    )
+    .all() as { id: string; name: string; series: string; release_date: string; n: number }[]
+  const insert = db.prepare(
+    `INSERT OR IGNORE INTO pack_products (id, set_id, name, kind, msrp, market_price, packs, cards_per_pack, release_date, description)
+     VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, NULL)`,
+  )
+  let added = 0
+  const tx = db.transaction(() => {
+    for (const s of sets) {
+      if (s.n === 0) continue // no synced cards → nothing to rip
+      for (const k of productsForSet(s.id, s.name, s.series, s.release_date)) {
+        const r = insert.run(`${s.id}-${k.kind}`, s.id, k.name, k.kind, k.msrp, k.packs, 10, s.release_date)
+        added += r.changes
+      }
+    }
+  })
+  tx()
+  return added
+}
+
+// ---------------------------------------------------------------------------
+// Pricing: sealed_prices holds real lookups; pack_products.market_price is
+// refreshed from it. Fallback = derived per-pack value from the set's pulls.
+// ---------------------------------------------------------------------------
+
+type SealedPriceRow = { market: number; source: string; retrieved_at: string }
+
+// ---------------------------------------------------------------------------
+// Out-of-print appreciation. Real sealed product leaves print roughly 12–24
+// months after a set's release, and boxes only climb from there — supply
+// shrinks while collectors keep ripping. The curve below models the real
+// shape: slow growth while in print, inflection at OOP, strongest gains in
+// the first years, then a long taper (vintage boxes keep compounding, but
+// modestly — their price is already high).
+// ---------------------------------------------------------------------------
+
+const PRINT_RUN_MONTHS = 24
+
+/** Months since this set's product left print (≥0 = out of print). */
+export function monthsOutOfPrint(releaseDate: string, kind: string): number {
+  const release = new Date(releaseDate)
+  if (Number.isNaN(release.getTime())) return 0
+  // Special/half sets get shorter print runs — they exist to be scalped.
+  const runMonths = kind === 'special' ? 10 : PRINT_RUN_MONTHS
+  const eop = new Date(release)
+  eop.setMonth(eop.getMonth() + runMonths)
+  return Math.max(0, (Date.now() - eop.getTime()) / (1000 * 60 * 60 * 24 * 30.44))
+}
+
+/**
+ * Appreciation multiplier of market value over retail-derived value for a
+ * product that has been out of print for `m` months. In-print products (m=0)
+ * sit at retail; the curve then climbs, strongest in the first years and
+ * tapering toward a per-kind ceiling: packs get ripped so they appreciate
+ * least, sealed displays are the investor grade and appreciate most.
+ * Booster lands ~2.1× at 1yr OOP, ~3× at 2yr, ~4.6× at 5yr, capped at 6×.
+ */
+export function oopMultiplier(m: number, kind = 'booster'): number {
+  if (m <= 0) return 1
+  const cap = kind === 'booster' ? 6 : kind === 'bundle' ? 8 : kind === 'etb' ? 10 : 12
+  return 1 + (cap - 1) * (1 - Math.exp(-m / 48))
+}
+
+export function priceDetail(productId: string): {
+  market: number
+  source: 'pricecharting' | 'estimated'
+  oopMonths: number
+  oop: boolean
+  multiplier: number
+  status: 'in print' | 'out of print'
+} {
+  const row = db
+    .prepare(`SELECT set_id, kind, msrp FROM pack_products WHERE id = ?`)
+    .get(productId) as { set_id: string; kind: string; msrp: number } | undefined
+  if (!row) return { market: 0, source: 'estimated', oopMonths: 0, oop: false, multiplier: 1, status: 'in print' }
+  const release = db
+    .prepare(`SELECT release_date FROM sets WHERE id = ?`)
+    .get(row.set_id) as { release_date: string } | undefined
+  const m = release ? monthsOutOfPrint(release.release_date, row.kind) : 0
+  const mult = oopMultiplier(m, row.kind)
+  const stored = storedPrice(productId)
+  if (stored && stored.source === 'pricecharting' && stored.market > 0) {
+    return { market: round2(stored.market), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+  }
+  return { market: derivedPrice(row.set_id, row.kind), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+}
+
+function storedPrice(productId: string): SealedPriceRow | null {
+  return db
+    .prepare(`SELECT market, source, retrieved_at FROM sealed_prices WHERE product_id = ?`)
+    .get(productId) as SealedPriceRow | null
+}
+
+export function derivedPrice(setId: string, kind: string): number {
+  // Realistic per-pack value from the set's actual pull table: weighted average
+  // of a pack (5 commons + 3 uncommons + 1 holo + 1 hit), hits weighted heavy —
+  // sealed boxes trade on their chase cards.
+  const cacheKey = setId + '|' + kind
+  const cached = derivedCache.get(cacheKey)
+  if (cached !== undefined) return cached
+  const slots = db
+    .prepare(`SELECT slot, card_id, weight FROM pack_product_cards WHERE pack_product_id = ?`)
+    .all(`${setId}-booster`) as { slot: string; card_id: string; weight: number }[]
+  const avg = (s: string) => {
+    const rows = slots.filter((r) => r.slot === s)
+    if (rows.length === 0) return 0
+    return rows.reduce((a, r) => a + valueOf(r.card_id) * r.weight, 0)
+  }
+  const perPack = 5 * avg('common') + 3 * avg('uncommon') + avg('holo') + avg('hit') * 1.6
+  if (perPack <= 0) return msrpFallback(setId, kind)
+  // Anchor every kind to the booster EV, then scale with pack count. Real sealed
+  // boxes trade BELOW per-pack × count (dealers discount the rip-risk), with ETBs
+  // holding value best (exclusive promos) and raw boxes discounting hardest.
+  const packs = kind === 'booster' ? 1 : kind === 'bundle' ? BUNDLE_PACKS : kind === 'etb' ? ETB_PACKS : DISPLAY_PACKS
+  const cap = kind === 'booster' ? 30 : kind === 'bundle' ? 90 : kind === 'etb' ? 350 : 700
+  const boxFactor = kind === 'booster' ? 1 : kind === 'bundle' ? 1.0 : kind === 'etb' ? 0.92 : 0.8
+  // Out-of-print appreciation: sealed only gets rarer after the print run ends.
+  const release = db.prepare(`SELECT release_date FROM sets WHERE id = ?`).get(setId) as { release_date: string } | undefined
+  const oop = release ? oopMultiplier(monthsOutOfPrint(release.release_date, kind), kind) : 1
+  const est = Math.min(perPack * packs * boxFactor, cap * oop) * oop
+  const floor = kind === 'booster' ? 2.5 : kind === 'bundle' ? 18 : kind === 'etb' ? 32 : 90
+  const result = round2(Math.max(floor, est))
+  derivedCache.set(cacheKey, result)
+  return result
+}
+
+// Memoized per set+kind — `valueOf` hits the DB per card, and the shop route
+// prices the whole 500-product catalog per request. Cleared when a pull table
+// is rebuilt (values change).
+const derivedCache = new Map<string, number>()
+
+export function invalidateDerivedPrices(setId: string) {
+  for (const k of derivedCache.keys()) if (k.startsWith(setId + '|')) derivedCache.delete(k)
+}
+
+function msrpFallback(setId: string, kind: string): number {
+  const row = db.prepare(`SELECT msrp FROM pack_products WHERE id = ?`).get(`${setId}-${kind}`) as { msrp: number } | undefined
+  return round2(row?.msrp ?? 4.49)
+}
+
+/** The live price of a product: stored real lookup → derived estimate. */
+export function priceOf(productId: string): { market: number; source: 'pricecharting' | 'estimated' } {
+  const d = priceDetail(productId)
+  return { market: d.market, source: d.source }
+}
+
+// PC sealed queries: their catalog titles use human set names.
+function pcSealedQuery(setName: string, kind: string): string {
+  const suffix = kind === 'booster' ? 'Booster Pack' : kind === 'display' ? 'Booster Box' : kind === 'etb' ? 'Elite Trainer Box' : 'Booster Bundle'
+  return `Pokemon ${setName} ${suffix}`
+}
+
+function scoreSealed(title: string, setName: string, kind: string): number {
+  const t = title.toLowerCase()
+  const set = setName.toLowerCase()
+  if (!t.includes(set)) return -1
+  let score = 1
+  const want = kind === 'booster' ? ['booster pack', 'booster'] : kind === 'display' ? ['booster box'] : kind === 'etb' ? ['elite trainer box'] : ['booster bundle']
+  for (const w of want) if (t.includes(w)) score += 3
+  // Reject sealed products of other kinds.
+  const rejects = kind === 'booster' ? ['box', 'bundle', 'etb', 'elite', 'display'] : kind === 'display' ? ['pack', 'bundle', 'etb', 'elite', 'theme'] : kind === 'etb' ? ['booster box', 'booster pack', 'bundle', 'theme'] : ['booster box', 'booster pack', 'etb', 'elite', 'theme']
+  for (const r of rejects) if (t.includes(r)) score -= 4
+  if (/first edition|1st edition|shadowless/.test(t)) score -= 2 // keep the common printing
+  return score
+}
+
+async function lookupSealed(setName: string, kind: string): Promise<number | null> {
+  const envToken = process.env.PRICECHARTING_TOKEN
+  const row = envToken && envToken.trim() ? envToken : (db.prepare(`SELECT value FROM settings WHERE key = 'pricechartingToken'`).get() as { value: string } | undefined)?.value
+  const token = row && row.trim() ? row.trim() : null
+  if (!token) return null
+  const q = pcSealedQuery(setName, kind)
+  const searchUrl = `https://www.pricecharting.com/api/products?t=${encodeURIComponent(token)}&q=${encodeURIComponent(q)}`
+  await sleep(1100)
+  const search = await fetchJson<{ status: string; products?: { id: string; 'product-name': string; 'console-name': string }[] }>(searchUrl)
+  if (search.status !== 'success' || !search.products?.length) return null
+  const ranked = search.products
+    .filter((p) => /pokemon/i.test(p['console-name']))
+    .map((p) => ({ p, score: scoreSealed(p['product-name'], setName, kind) }))
+    .filter((x) => x.score >= 2)
+    .sort((a, b) => b.score - a.score)
+  const best = ranked[0]?.p
+  if (!best) return null
+  await sleep(1100)
+  const product = await fetchJson<{ status: string; 'loose-price'?: number }>(`https://www.pricecharting.com/api/product?t=${encodeURIComponent(token)}&id=${best.id}`)
+  if (product.status !== 'success' || product['loose-price'] == null) return null
+  return Math.round(product['loose-price']) / 100
+}
+
+const insertSealed = db.prepare(
+  `INSERT INTO sealed_prices (product_id, market, source, retrieved_at) VALUES (?, ?, 'pricecharting', ?)
+   ON CONFLICT(product_id) DO UPDATE SET market = excluded.market, source = 'pricecharting', retrieved_at = excluded.retrieved_at`,
+)
+
+export async function refreshSealedPrice(productId: string): Promise<'pricecharting' | 'unchanged'> {
+  const p = db.prepare(`SELECT set_id, kind, msrp FROM pack_products WHERE id = ?`).get(productId) as { set_id: string; kind: string; msrp: number } | undefined
+  if (!p) return 'unchanged'
+  const setName = (db.prepare(`SELECT name FROM sets WHERE id = ?`).get(p.set_id) as { name: string } | undefined)?.name
+  if (!setName) return 'unchanged'
+  const derived = derivedPrice(p.set_id, p.kind)
+  try {
+    const price = await lookupSealed(setName, p.kind)
+    if (price == null || price <= 0) return 'unchanged'
+    // Sanity: reject wild mismatches (>30x the derived estimate) — wrong product.
+    if (price > Math.max(derived * 30, 500)) return 'unchanged'
+    insertSealed.run(productId, price, nowIso())
+    db.prepare(`UPDATE pack_products SET market_price = ? WHERE id = ?`).run(round2(price), productId)
+    return 'pricecharting'
+  } catch {
+    return 'unchanged'
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((r) => setTimeout(r, ms))
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return (await res.json()) as T
+}
+
+// ---------------------------------------------------------------------------
+// Selling sealed stock — dealers rip, investors sell. The market pays what
+// the product is worth today (appreciation included), minus a dealer fee.
+// ---------------------------------------------------------------------------
+
+export function sellSealed(productId: string, qty: number): { ok: true; units: number; unitPrice: number; gross: number; fee: number; proceeds: number; basis: number; profit: number } | { ok: false; error: string } {
+  const n = Math.max(1, Math.floor(qty))
+  // Sealed stock is stored in lot rows (quantity per row, per-unit cost) —
+  // walk rows FIFO, deplete the last one partially if needed.
+  const rows = db
+    .prepare(`SELECT id, quantity, cost FROM sealed_inventory WHERE product_id = ? ORDER BY acquired_at ASC`)
+    .all(productId) as { id: number; quantity: number; cost: number }[]
+  let remaining = n
+  let units = 0
+  let basis = 0
+  const dels: number[] = []
+  const decs: { id: number; left: number }[] = []
+  for (const r of rows) {
+    if (remaining <= 0) break
+    const take = Math.min(remaining, r.quantity)
+    units += take
+    basis += take * r.cost
+    remaining -= take
+    if (take === r.quantity) dels.push(r.id)
+    else decs.push({ id: r.id, left: r.quantity - take })
+  }
+  if (units === 0) return { ok: false, error: 'No sealed stock of that product' }
+
+  const unitPrice = priceOf(productId).market
+  const gross = round2(unitPrice * units)
+  const fee = round2(gross * 0.1)
+  const proceeds = round2(gross - fee)
+  basis = round2(basis)
+  const profit = round2(proceeds - basis)
+
+  const name = (db.prepare(`SELECT name FROM pack_products WHERE id = ?`).get(productId) as { name: string } | undefined)?.name ?? productId
+  const del = db.prepare(`DELETE FROM sealed_inventory WHERE id = ?`)
+  const dec = db.prepare(`UPDATE sealed_inventory SET quantity = ? WHERE id = ?`)
+  const insertSale = db.prepare(
+    `INSERT INTO sale_history (card_id, variant, condition, quantity, sale_price, cost_basis, fee, profit, buyer, sale_type, sold_at)
+     VALUES (?, NULL, 'Sealed', ?, ?, ?, ?, ?, 'Local collector', 'sealed', ?)`,
+  )
+  db.transaction(() => {
+    for (const id of dels) del.run(id)
+    for (const d of decs) dec.run(d.left, d.id)
+    insertSale.run(productId, units, proceeds, basis, fee, profit, nowIso())
+    db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(proceeds)
+    logActivity('sale', `Sold ${units}× ${name} for $${proceeds.toFixed(2)} after 10% fee${profit >= 0 ? ` (+$${profit.toFixed(2)} vs cost)` : ` (−$${Math.abs(profit).toFixed(2)} vs cost)`}`, proceeds)
+  })()
+
+  return { ok: true, units, unitPrice, gross, fee, proceeds, basis, profit }
+}
+
+let backfillRunning = false
+let backfillProgress = { done: 0, total: 0, updated: 0 }
+
+export function backfillStatus() {
+  return { running: backfillRunning, ...backfillProgress, configured: sealedTokenConfigured() }
+}
+
+function sealedTokenConfigured(): boolean {
+  if (process.env.PRICECHARTING_TOKEN && process.env.PRICECHARTING_TOKEN.trim()) return true
+  const row = db.prepare(`SELECT value FROM settings WHERE key = 'pricechartingToken'`).get() as { value: string } | undefined
+  return Boolean(row?.value && row.value.trim())
+}
+
+/**
+ * Fetch real sealed prices for products that have none (or are stale >30 days).
+ * Paced for PriceCharting's 1 req/sec — run in the background on boot.
+ */
+export async function backfillSealedPrices(maxProducts = 400): Promise<void> {
+  if (backfillRunning) return
+  if (!sealedTokenConfigured()) return
+  backfillRunning = true
+  try {
+    const rows = db
+      .prepare(
+        `SELECT p.id FROM pack_products p
+         LEFT JOIN sealed_prices sp ON sp.product_id = p.id
+         WHERE sp.product_id IS NULL OR sp.retrieved_at < datetime('now', '-30 days')
+         ORDER BY p.release_date DESC LIMIT ?`,
+      )
+      .all(maxProducts) as { id: string }[]
+    backfillProgress = { done: 0, total: rows.length, updated: 0 }
+    for (const r of rows) {
+      const res = await refreshSealedPrice(r.id)
+      backfillProgress.done++
+      if (res === 'pricecharting') backfillProgress.updated++
+    }
+    setMeta('sealedBackfilledAt', nowIso())
+    console.log(`[sealed] backfill complete: ${backfillProgress.updated}/${backfillProgress.total} real sealed prices`)
+  } finally {
+    backfillRunning = false
+  }
+}
+
+/** Kick the backfill without awaiting — used on boot. */
+export function startSealedBackfill() {
+  ensureFullCatalog()
+  void backfillSealedPrices().catch((e) => console.warn('[sealed] backfill failed:', e instanceof Error ? e.message : e))
+}
+
+// Boot-time table creation is handled by schema.sql; lazily create for older DBs here.
+export function ensureSealedTable() {
+  try {
+    db.prepare(`SELECT 1 FROM sealed_prices LIMIT 1`).get()
+  } catch {
+    db.exec(`CREATE TABLE IF NOT EXISTS sealed_prices (
+      product_id TEXT PRIMARY KEY,
+      market REAL NOT NULL,
+      source TEXT NOT NULL,
+      retrieved_at TEXT NOT NULL
+    )`)
+  }
+}
+
+void getMeta
