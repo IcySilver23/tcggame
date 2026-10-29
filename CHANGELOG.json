@@ -1,0 +1,989 @@
+{
+  "entries": [
+    {
+      "version": "0.6.0",
+      "date": "2026-10-29",
+      "title": "Now it looks like a game",
+      "features": [
+        "'It should be a different UI similar to other Pokémon fangames.' The whole app was reskinned out of dashboard mode into fangame chrome — through the token system, so one palette still restyles all 38 screens. NIGHT (dark, the default): a navy sky with a faint grid, slate panels with bright blue outlines and hard bottom edges. DAY (light): the TCG Pocket blue-to-white wash with white dialogue-box cards outlined in navy ink. The switch lives in the top bar and in Settings → Appearance, persists to localStorage, and flips the first paint. Buttons speak the battle-menu language now: a 2px ink outline, a hard bottom edge that presses down under the cursor, a rounded body — Pokémon yellow for primary, a real red fill for danger, and a new btn-red / btn-orange / btn-green / btn-blue / btn-cyan set for actions that deserve a game button (the rip's 'Tear it open' is red, 'View pull history' is blue). The header is the PKMN LAB bar: a floating rounded bar with a Pokéball drawn in pure CSS — no image asset, so it survives the packaged exe — the screen name as a pill tab, and DAY / CASH / NET WORTH as outlined pill counters like the ₽ money chip; the sidebar carries the same ball over the brand, rounded nav rows with outlined icon wells, and a yellow active pill stamped in ink. Tabs and filter chips became the segmented pill group, tables got zebra rows and a heavier header rule, card tiles lift behind a yellow selector outline on hover, modals and toasts are dialogue boxes, and every screen eases in on route change (opacity only — a transform would make the fading screen the containing block for any position:fixed child).",
+        "'Make every menu less cluttered, look way better, and just overhaul the ui to look way cleaner and more like a game.' Button walls collapsed to one action plus a ⋯ menu that names what each choice actually does: the Inventory bulk bar keeps LIST ALL AT MARKET up front and moves Grade / Protect / Reprice / Clear into the menu, every Pack Shop card keeps BUY & OPEN · price and puts keep-sealed plus the 10-pack lot behind ⋯, and the Card Shop box row keeps + Fill with Sell to dealer / Empty in the menu. Search, sort, counts and view controls now ride one toolbar per screen with the browse and density toggles grouped at the right, and the nav itself was regrouped — the deal venues (Pawn / Yard / Flea / Estate / Local / BidBay / Live) got their own DEALS section instead of hiding under MARKET, and Storage & Auctions moved into BUSINESS. A contrast probe walking every text node across 17 routes in BOTH themes at the strict 4.5:1 threshold — sidebar and topbar included — reports zero flags; it earned its keep by catching and driving fixes to the faint greys in both palettes, the light-theme gold and green, the chrome label grey, and links / the day counter onto their own readable blue so the chrome blue could stay dark. tsc and vite build green; the exe was rebuilt with this bundle and passed its headless smoke test (v0.6.0 + SPA)."
+      ]
+    },
+    {
+      "version": "0.5.99",
+      "date": "2026-10-28",
+      "title": "Real packs, real rip",
+      "features": [
+        "'The packs themselves should have the art of the actual pack so it feels like you are really ripping the pack.' Every sealed product now carries its REAL wrapper art — matched from TCGplayer's sealed catalog (one fetch per set, then only for new sets) and rendered full-size on the tear pack, so you're literally pulling down the top of a Surging Sparks booster. The rip splits the artwork along the tear line: the top strip (with its slice of the real pack) peels away while the bottom half stays in your hand. Products with no catalog listing keep the foil pack they had.",
+        "'Card backs should be the official Pokémon card backs.' Every reveal now turns from the official blue-swirl Pokémon TCG card back (bundled into the build — no network needed, works in the packaged exe), replacing the custom TCG LIFE card back. The pack's hue still drives the aura, rays and glow around big pulls.",
+        "Pack Battles and Live Shopping inherit the same real pack art through the shared tear component — every rip in the game looks the same."
+      ]
+    },
+    {
+      "version": "0.5.98",
+      "date": "2026-10-28",
+      "title": "The full ceremony",
+      "features": [
+        "'Make the animation for opening packs a lot better.' Rebuilt from the foil up. THE PACK: it floats on idle, the shimmer actually drifts, it leans toward your cursor like you're holding it up for inspection, and pulling down drags a glowing tear line through the foil that crackles as it goes — the rip throws 16 sparks and 12 tumbling foil shards that arc out and fall under gravity behind a white flash, instead of a flat pop. THE REVEAL: cards no longer fade in already-face-up. The back swings onto the stage and holds its breath, turns over in 3D (back → front, with the flip swish landing exactly on the turn), then sits with its value while the number counts up and the beat lands — and the timing is tiered, so a $0.12 common is done in 1.3s while a $150+ pull holds a 1.25s pause before it turns and lingers 1.3s after, because the anticipation IS the pull. EPICTY scales with the pull: aura bloom, spinning ray halo, a landing flash and tier-colored card glow (blue/gold/pink/violet) for super/epic/massive/ghost, plus a new whoosh voice in audio.ts distinct from the landing stinger. THE PAYOFF: every landed value counts up (races and settles), hit banners rise in, the summary cells stagger in 42ms apart and the session total counts up too. Skip animation and prefers-reduced-motion still collapse all of it to instant. Verified with tsc and vite build, then live on a scratch copy of the real save: a 60ms DOM sampler recorded the whole stage machine firing on schedule (back 400ms → flip 460ms → value count-up → 480ms beat, repeated across all 7 cards), screenshots of the pack, the flip landing and the summary, and a clean console across three full pack openings."
+      ]
+    },
+    {
+      "version": "0.5.97",
+      "date": "2026-10-08",
+      "title": "Own the building",
+      "features": [
+        "'Build the rent-vs-buy decision for the shop: rent that creeps with revenue, or a mortgage line to own the building outright.' Both halves shipped. TENANTS: the landlord now reads the walk-in books every 5 game-days — revenue up 10%+ and rent rises 15%, a 15% slump eases it 8% back toward the tier base, flat books leave it alone — hard-capped at 3× the base so a location can squeeze but never break, and the review lands after the day is quoted so a new rate always bites from the next game-day. The shop header and the Money tab show the live rate, the base, the cap, the crept-from delta and the next review date. OWNERS: the buy card prices the building at 400× base rent (hole-in-the-wall $2,400 · storefront $9,000 · flagship $28,000), 25% down and the rest on a 0.15%/game-day mortgage drafting 0.35% of principal daily — the down payment is principal (never deductible), each draft books a mortgage line in the P&L that tax auto-deducts, and the Today panel swaps the rent roll for the mortgage roll. Because the deed is an asset that cancels its own debt, buying nets to exactly zero on net worth and every payment is pure gain; the mortgage stays out of the unsecured credit line, the interest accrual and the finance panel (extra principal still repays by loan id). Pay the last dollar and the shop reports OWNED OUTRIGHT — $0 rent, no reviews, no drafts, forever. Verified by a 33-check isolated harness (raise/cap/ease/flat/cadence, refused buy leaves cash and the deed untouched, price/down/principal/daily math, drafts with zero stock, P&L + Today rolls + tax deductibility, net-worth neutrality, payoff clears and stops drafting), then end-to-end on the real rig: leased a flagship, saw the crept-from header, clicked Buy (cash −$7,000, net worth unchanged at $117,000), paid $5,000 extra (24% paid, $16,000 left), forced a draft through the live tick (−$73.50, $49.50 of it principal), and paid it off (balance 0, net worth = cash + $28,000 deed), with the P&L reading '🏠 Mortgage 2 entries $-123.58', the tax note 'rent · mortgage · payroll · interest', the day-clock 'Mortgage draft · done · known out -$73.50' and a clean console. Two bugs found and fixed on the way: /api/state 500'd on a save with no shop (the deed query assumed a row — now MAX()), and the day-clock's known-out line printed a literal double dollar sign. tsc, vite build and the reset-trap suite all green."
+      ]
+    },
+    {
+      "version": "0.5.96",
+      "date": "2026-10-07",
+      "title": "Cash on every row",
+      "features": [
+        "'Show my current cash next to each battle picker row so affordability is visible at a glance.' Every product row now carries a live you-have line under its stake — the same cash the chip filters against — colored by the comparison: green when the stake fits what you're holding, red with the exact gap when it doesn't (you have $540.00 · short $2.17). Verified on the rig by parsing all 506 rendered rows against their computed colors: zero mismatches in either direction, 145 green at $540 cash — and flipping the affordable-only chip filters to exactly those 145, so the glance, the count, and the chip are one number. The line rides the state poll like the chip label and only sits out while state is still loading. Typecheck and build green, console clean."
+      ]
+    },
+    {
+      "version": "0.5.95",
+      "date": "2026-10-07",
+      "title": "Only what I can afford",
+      "features": [
+        "'Add an affordable only chip to the battle picker that hides products whose stake exceeds my current cash.' The picker's chip row gained 💵 Affordable only · under $X — the label reads your live cash off the state poll, and ON the list drops every product whose stake (the same fallback chain the rows display and the sort charges) is more cash than you hold. Verified on the rig: 506 of 506 drops to 148 of 506 at $540 with the maximum visible stake $520.80 and zero rows over; at $2 cash it bottoms out at 0 of 506 and says so — 'Nothing you can afford under $2.00 — flip the chip off to browse the full catalog.' — instead of a silent blank column, and the count chip tracks every state. The chip also disarms what it hides: arm the $151,584 Holon display (rival picked, battle bar live), flip the chip on, and the selection clears so no unaffordable stake sits under the Battle button — the rival stays picked. Typecheck, reset-trap, and build green, console clean across all four states."
+      ]
+    },
+    {
+      "version": "0.5.94",
+      "date": "2026-10-07",
+      "title": "Employees with lives",
+      "features": [
+        "'Employees with lives — staff request specific days off, get poached by the rival across the street at 1.2× wage, train up quality stars with experience, and occasionally quit in a huff you have one conversation to defuse.' All four land as one day-keyed life pass over the roster (staffLife gate, pruned like the candidate weeks): every employee now carries mood and xp. Mood drifts daily against the market wage for their stars — underpaid bleeds up to −1/day, fair pay drips back +0.3, premium pay +0.5, a day off actually taken +3, a refused ask −10 and an unanswered one −0.6/day. xp comes from the work itself: a sourced lot 6, a grading submission 8, an attributed register sale 1 — crossing 60/180/380/700 trains a star (📈 in the feed; the wage is untouched, so trained stars are leverage you cash in later). Days off are requested for a SPECIFIC game-day — the next one — and granting one puts them off the clock (buyer/grader skip their tick, the counter drops out of the boost: verified ×1.18 vs ×1.30 with the helper out), refusing costs mood and is remembered. The rival, once open, slips ONE offer at a time at 1.2× wage on a 3-game-day fuse: match, and their wage and payroll ratchet to the offer; let it ride, and they're gone by your hand or by the fuse. And a miserable employee (mood ≤20, chance rising as it falls) files a huff with exactly ONE conversation: hear them out — the raise they named or the day they asked for, mood to 70 — say no, or let the 2-game-day fuse rot, and they walk. Verified on the rig with 46/46 mechanics checks covering every resolve path and both expiries.",
+        "The Staff panel is where it lands: three conversation banners in the DemandBanner shape — 💢 the huff with the grievance verbatim and its countdown, ⚖️ the rival offer with match/let-go, 🌴 the named day with grant/refuse — plus per-row XP-to-next-star (0/380 XP to 4★), a mood meter line, an 🏖 off-today badge with off the clock today in the stat line, and a faint market wage under anyone paid less than their stars fetch, so the underpayment that feeds huffs is visible before it erupts. All six paths were clicked through the real panel on the rig — grant, refuse (−10 mood), match (wage ratchets, payroll follows), let them go, hear them out, say no (they walk) — each landing its toast, banner removal, and activity-feed line with a clean console; typecheck, reset-trap, and build green."
+      ]
+    },
+    {
+      "version": "0.5.93",
+      "date": "2026-10-05",
+      "title": "Affordable first",
+      "features": [
+        "'Make the battle picker lead with affordable modern products instead of five-figure out-of-print boxes.' Two orderings were lying. The server listed products ORDER BY msrp — which puts out-of-print boxes first within every price tier (the B&W bundle at $5,556 leads every in-print bundle, vintage displays and ETBs ahead of everything in print), and every consumer that renders the list raw inherited it: the stream and break product selects showed exactly that OOP-first order. And the battle picker's 'Sort: Stake low→high' actually sorted by market_price, not the stake it displays and charges. listBattlableProducts now sorts the final list by the real stake, cheapest first, with newest-set tie-breaks — verified on the rig: the raw list and the stream select both lead $4.49 modern boosters, the first row above $2,000 sits at index 258 of 506, and the five-figure vintage displays ($151k) are the last rows in the list. The battle picker sorts by p.stake so the label, the display, and the charge are the same number, with the server's modern-first order preserved inside every price tie. Typecheck and build green, console clean on the rig."
+      ]
+    },
+    {
+      "version": "0.5.92",
+      "date": "2026-10-05",
+      "title": "The whole box",
+      "features": [
+        "'In pack battles the packs are wrong — the bundle says 2 packs but there should be 6, the booster display is 36 but you only get 3, and however many are actually in an ETB is not what you get.' The battle ripped a fixed fraction of every product (bundle 2, ETB 3, display 3 — leftover from when stakes were priced as a ripped share) while the products themselves said 6/9/36. Every battle now rips the WHOLE box, per side — the catalog's pack count is the source of truth and the picker prints it ('BUNDLE · both sides rip the whole box — 6 packs a side') — and the stake is the whole product price because that's exactly the cardboard that opens. The per-pack economics are untouched: whole box ÷ every card in it = per-pack price ÷ cards per pack, so cost basis per card is identical to before, pots and grudge doubling scale with the stake, and rival nerve gating grew brackets so ETB-sized stakes sit at nerve − 0.05 and only true whale pots at nerve − 0.2 (grudge rematch locks, kept-pulls, and the decline flavor all unchanged). Verified live on the rig across every size: bundle 6 packs/60 cards/$26.99 in 0.33s, ETB 9/90/$54.99, display 36/360/$161.64 in 0.97s, two full battles driven through the UI with correct verdict math and a clean console.",
+        "The same frozen 2/3 counts lived in tournament rounds — the bracket now rips the whole box too (a bundle final opens all 6 packs, the ETB championship all 9), NPC-vs-NPC simulations included, while entries stay the flat $25/$60 and per-card cost basis stays honest. And because a display battle is now 360 cards a side, the card-by-card reveal beat compresses to keep a whole box near a minute of ceremony (measured 471ms/card against the 458ms target) — booster duels keep their original 1.1s cadence untouched, and Skip is always one click away."
+      ]
+    },
+    {
+      "version": "0.5.91",
+      "date": "2026-10-05",
+      "title": "The lab actually delivers",
+      "features": [
+        "'Make the Grading page show the reveal ceremony instead of silently discarding grades that resolve during its 20s poll' — that poll hit /api/grading/pending, which resolves due grades server-side and hands each verdict back EXACTLY ONCE, then kept only g.pending and dropped g.revealed. Any grade that came back while you were sitting on the Grading page was destroyed the moment it existed: no ceremony, no toast, nothing — the card simply appeared slabbed in the lists later. (Its sibling endpoint /api/inventory also resolves grades silently, so whichever call reads first spends the verdict — on the Grading page, its own poll was always first, and always the dropper.) The page now asks the lab first, and every fresh verdict is toasted and queued: batch resolutions play one at a time — close the first reveal and the next follows immediately — with a seen-set guard so the 20s re-poll can never re-open a closed ceremony. 'SEE MY COLLECTION' jumps to the Inventory view.",
+        "The ceremony itself is now one implementation instead of two: GradeRevealModal and the GRADE_BADGE label map moved to components.tsx, and both Inventory and Grading mount it. Inventory's behavior is preserved exactly — its once-per-verdict guard, the 400ms backdrop open-flush grace, and the tab jump to raw cards all still apply (its previous modal was a nested component; the shared one is top-level, so it also survives the remount audit). Verified live on the rig with forced verdicts: two batched grades pop back-to-back on the Grading page, no reopen across a full poll cycle, the secondary button navigates, Inventory plays the same ceremony on mount, NICE and backdrop both close it, no zombie reopen after reload, console clean, and hover arming intact."
+      ]
+    },
+    {
+      "version": "0.5.90",
+      "date": "2026-10-03",
+      "title": "The remount audit",
+      "features": [
+        "Follow-up to the Inventory menu fix: every view in the game was audited for the same nested-component remount pattern — components defined inside another component and mounted as JSX get a fresh type identity on every parent render, so React remounts them (and any open state, scroll, focus, or in-flight click) every tick. Two passes were used: a forward scan for nested component definitions and an inverse scan that matches every capitalized JSX mount against its definition site, across App, components, and all view files. The only other offender was the Pack Battles rip ceremony: its two pull columns were a nested component that remounted both sides every ~1.1 seconds while the auto-play cadence advanced — the card tiles rebuilt under the cursor each beat, image loads restarted, and clicks on a card to inspect it mid-animation could land on a node that had just been swapped out. The columns are now direct render calls with stable DOM for the whole ceremony. Everything else in the codebase already mounts nested-free (the nine Inventory pickers were fixed in 0.5.89); the inverse audit reports zero remaining nested mounts, and typecheck, reset-trap, and build are green."
+      ]
+    },
+    {
+      "version": "0.5.89",
+      "date": "2026-10-03",
+      "title": "Menus that stay put",
+      "features": [
+        "'The grading menu in inventory keeps closing' — every picker in Inventory (⚖ Grade, 🛡 Auth, protect, bulk grade/reprice/protect, the grading reveal) was a component defined INSIDE the view, so its type identity changed on every re-render: React remounted an open menu every time the state poll landed, rebuilding the DOM under the cursor. In-flight clicks were dropped on the old node, scroll position and mid-submit progress reset, and — worst — an impatient second click racing the open-flush landed on the backdrop that had just appeared and bounced the menu shut the instant it opened, which is exactly the open-close flicker that made the menu feel like it kept closing and re-opening. The modals are now stable render calls (same DOM node across polls — verified by stamping an open menu's backdrop and watching it survive consecutive state ticks), the bulk-submit progress and reprice slider moved up into the view so they persist through a poll, and every backdrop close now runs through a 400ms grace window that ignores the tail of the opening gesture — a double-click can no longer close what it just opened, while ordinary backdrop clicks still close normally.",
+        "The grading reveal ceremony got the same once-only discipline the auth ceremony already has: it now pops exactly once per verdict (guarded by inventory id) no matter how many times Inventory's load() runs after actions, and it asks the lab for reveals BEFORE /api/inventory resolves them away — previously that call spent the verdict first, so the ceremony only fired in a race window and re-armed unpredictably otherwise. Typecheck and reset-trap green; verified live on the rig — menus hold through polls, backdrop close works outside the grace window, bulk grade modal opens with state intact, and no console errors from the new bundle."
+      ]
+    },
+    {
+      "version": "0.5.88",
+      "date": "2026-10-03",
+      "title": "Hover comes to the inventory — and the tick that finally sleeps",
+      "features": [
+        "'Card hover should work in the inventory' — it worked in every other view but this one: SlabCard never forwarded the card id to its image renders, so without an id CardImg never armed the zoom. SlabCard now passes cardId to BOTH of its renders (the raw fallback and the slab well), and all three inventory call sites hand it the row's card id — so the flat table, By-set group rows, the comfortable VirtualGrid cells, and list density all get the same hover-to-zoom preview and click-to-open card modal as the rest of the app. Verified across all four surfaces on the rig: thumbs armed (100/100 flat, 200/200 By-set, 200/200 list, 200/200 VirtualGrid), enter shows the preview with the card name, leave clears it, click opens the modal, Escape closes it.",
+        "While verifying on a big rig save (3.7M price records) the server turned out to be hiding three real bugs — two silent perf/data killers and one that could wedge it entirely. RESALE DEALS DIED ON ARRIVAL: ensureOpenDeal wrote expires_at in SQLite's datetime format ('2026-10-03 20:26') while every reader compares against ISO ('2026-10-03T20:26:00.000Z') — same-day string comparison puts the space before the 'T', so every deal was already expired the tick it was created. The resale inbox never filled, and because no open deal survived, nearly every /api/state re-ran sampleLotCards's ORDER BY RANDOM() join across 3.7M price records (1.1s of sync CPU per poll). The same bug truncated sponsor offers at UTC midnight (a '48h' offer never saw day two); both writers now stamp ISO. SAVE BACKUPS COULD STACK AND WEDGE THE SERVER: the day-key is only marked after a backup resolves, so while one was starved the 20s tick spawned another snapshot every pass — each stacked pass re-inspecting every file in the directory with 5s busy timeouts (0-byte torn files each threw 'no such table'), driving the event loop to 99% CPU inside inspectSnapshot until the server stopped answering. snapshot() now holds a single in-flight promise (concurrent callers queue onto one copy — two simultaneous manual backups serialize and both succeed), inspect rejects torn files by size before sqlite ever opens them and gives locked files a 250ms busy timeout instead of 5s, and prune is stat-only so a piled-up directory can't turn keep-3 into hundreds of sqlite opens — torn residue is dropped first so it can never squat a keep slot. The backup itself now copies 1024 pages per event-loop turn instead of better-sqlite3's 100: a 639MB stress save snapshots end-to-end in ~5.6 seconds under live browser load (it was 7.5 minutes and still going), with cash/inventory verified in the response and keep-3 prune holding. THE 2.6-SECOND TICK: every latest-price lookup pins card_id+kind and needs rows newest-first, but idx_prices_lookup has variant sitting between kind and retrieved_at — so search, auction-lot spawning and friends paid a per-card temp B-tree across millions of rows on every call, as synchronous CPU inside request handlers. New covering index idx_prices_latest (card_id, kind, retrieved_at DESC, market): cards search 2.6s → 190ms, auction-lot spawn 2.9s → 170ms, /api/state 9-21s → 0.5-3s under the same live load. Reset-trap and typecheck all green."
+      ]
+    },
+    {
+      "version": "0.5.87",
+      "date": "2026-10-03",
+      "title": "Absolutely everything resets",
+      "features": [
+        "'The PSA special didn't reset upon reset' — correct, and it was the symptom of a wipe that only ever knew about the tables it had been told about. THE ROOT CAUSE: the reset wiped meta with a BLACKLIST of keys, and psarush:state (the whole live event — quota used, backlog, end time) simply wasn't on it, so the special survived a fresh start. Meta is now wiped by KEEP-LIST instead: every key that is not config (sync checkpoints, API quotas, price pipelines, feed cadence, migration stamps, UI prefs — 27 keys on the live save) is deleted, so state keys added by any future feature can never outlive a reset again. The live save went 91 meta keys → 27, psarush:state/npcWave/rolled/drainDay included.",
+        "The wipe itself grew from ~46 tables to 97 — everything except the card database (sets, cards, prices, pack products) and the config layer (settings table: API keys, day length). Newly wiped: the PSA rush and every event/world feed (flea markets, live shows, card shows, forum, incoming deliveries, reprint shocks, market digests), the player's businesses and holdings (shop + cases/consignments/ledger, franchise + managers, storage units and the cards inside them — those used to survive as ghost rows pointing at deleted inventory — lockers, vault policy, bulk boxes, grab bags, supplies), money records (bank loans, finance credit score back to 600, tax filings/payments, sales-tax remittances, net-worth history, achievements), eBay shipments, sealed-futures loans, buylist wants, rival shop/cases/sales, estate buyout listings, and the set-demand cohort oscillators. Table deletes are existence-checked (a save predating a feature must not break reset), the wipe keeps the child-before-parent discipline everywhere, and the Settings confirm now says exactly what happens. The trap regression test grew with it: 97 tables seeded and asserted zero, meta keep-list equality, finance re-seeded to defaults, the armed pawn trap proving the old order throws, and double-run idempotence. Verified end-to-end on a copy of the live save: HTTP reset returns ok, every table to zero, meta down to the 27 keepers, cash $1,000, day 1."
+      ]
+    },
+    {
+      "version": "0.5.86",
+      "date": "2026-10-03",
+      "title": "Reset, for real this time",
+      "features": [
+        "'Cash did not reset when resetting save' — hunted down and fixed, plus two more reset bugs found along the way. THE FAILING CHAIN: the wipe deleted pawn_shelf and pawn_loans AFTER the big early `DELETE FROM inventory`, but pawn_loans.inventory_id references inventory without a cascade — so on any save with an open pawn loan (or a ticket on the shelf) that delete threw FOREIGN KEY, the one-transaction wipe rolled back completely, and the save came back untouched: cash the same, day counter un-stamped, everything else intact. The chain now goes shelf → loans → inventory, all before the inventory wipe, and the loan-book tables' own parent/child order is corrected too. SECOND BUG: the wipe cleared resale_deal_cards but never resale_deals itself, so deal rows survived every reset as dead 'open' listings. THIRD: failure was silent — the endpoint 500ed with a bare FK error and the client toasted a generic 'see the server log'; the wipe now lives in server/services/savereset.ts with every statement annotated, so the endpoint returns the exact statement that broke ('reset stopped at \"DELETE FROM yard_sales\" — … — nothing was changed'), the server logs it under [reset-save], and Settings shows the real message instead of swallowing it. One retry rides along for a transient busy/locked file. Verified three ways: the new trap-save regression test (server/scripts/reset-trap.ts — seeds every child-before-parent chain the wipe touches, proves the OLD order throws on the armed trap, then resetSave commits: 44 wiped tables at zero, cash $1,000, day-1 stamps, one Main Collection binder, card database and authDiscountPct untouched, second run idempotent), a forced mid-wipe failure against a copy of the live save (annotated 500, rollback proven — cash and created_at unchanged), and the live-save reset itself (pawn chain included) landing on $1,000/day 1.",
+        "Ship-time data loss guard, same family of bug — and it caught a real loss: the backup that actually runs (build-exe.sh step 5, before `rm -rf release`) copied only tcglife.db, but taskkill -F never runs a clean SQLite close, so since the last checkpoint everything the player did lives only in tcglife.db-wal — the main-file-only cp archived a stale image and the rm then destroyed the WAL with it (this ship cost one session's world-state: NPC auction/flea seeds only — cash, collection, and the day counter were identical on both sides, and the daily gates re-arm on the next boot's catch-up tick). Both backup sites now fold the WAL into the main file with wal_checkpoint(TRUNCATE) first (refusing to back up if the fold fails) and carry any WAL/SHM residue alongside so a restore can put it back."
+      ]
+    },
+    {
+      "version": "0.5.85",
+      "date": "2026-10-03",
+      "title": "The line, live on your dashboard",
+      "features": [
+        "The PSA rush is now interactive from the Home dashboard: while the special runs, a live event card sits right under the KPIs — a per-second countdown to the doors closing, the slab-premium badge (decaying as the quota fills), and the quota rendered as a two-tone race bar: the NPC horde's share in red, yours in yellow, with the split spelled out ('23/40 · 4 yours · 19 eaten by the scene') plus slots-left and the current queue drag. The 🏷 Rush-eligible cards button drops you on Grading pre-filtered to the cards the $10 line is the play for — a one-shot store flag so the destination view lands with the filter already on, and the same filter stays available as a manual chip on Grading ('rush-eligible ✓', with quota telemetry in its tooltip) that toggles between the full candidate list and the special-only picks. To make 'rush-eligible' mean something, the advice engine now lets the open special join the best-service comparison: the $10 tier was invisible to candidates before (the list only knew the three standard services and refused anything under $15), so the rush's actual sweet spot — $8–15 raw cardboard — never appeared. During a rush the candidates pool floor drops to the special's minimum and every card weighs the line against standard/express/premium; grails still route to express/premium where the grade bias earns it. Verified on the rig: Home card with live countdown and quota bar, shortcut → Grading landing pre-filtered (7 of 8 candidates, express grail excluded), and the chip toggling back to 8 of 8.",
+        "Ride-along: /api/grading/rush now carries minRawValue (the special's raw floor) so every surface agrees on what 'eligible' means, and the generic .bar/.fill/.mt4 styles exist at last — the grade-distribution bars, shop bin stock bars, and any progress track were rendering invisible because those rules only existed scoped to .syncbar."
+      ]
+    },
+    {
+      "version": "0.5.84",
+      "date": "2026-10-02",
+      "title": "The scene has taste",
+      "features": [
+        "Roadmap line 148 (macro six): population & meta drift — the scene itself changes over months. Three engines share one module (demographics.ts). POPULATION: each era carries a slow mean-reverting taste multiplier (0.82–1.35) walked once per game-day, with a permanent hold-forever creep on vintage — as the old guard's era climbs, vintage prices rise while vintage SUPPLY thins (the marketplace feed thins vintage lots by eraSupply, feed never starves, composition just shifts to newer cardboard). META BOOMS: every game-day the hobby may catch fire — a pop star's Charizard photo, a viral nostalgia rewatch, the chase hit going viral on card-Tok — lifting an era's demand 8–26% at peak (chase cards catch the full wave, bulk rides along at 40%) for 6–16 game-days with decay through the life, spawn and cool lines in the feed. SET DEMAND PROFILES: every set's long-term value profile (chase vs bulk) emerges from two SIMULATED collector cohorts instead of a fixed curve — chase hunters on a ~57 game-day rhythm and set completists on ~89, each set with its own phase, walked daily toward their oscillators with noise into set_demand (demand/tilt/trend). Cards price through regimes.factor as pop × boom × (chase/mean or build/mean), so a set's chase-vs-bulk split is a living thing; out-of-print sealed curves scale by the same demand (0.65 chase/0.35 bulk — rip vehicles track the hits) while in-print product stays at retail. The Market view gains a scene strip: live boom headlines with peak/decay countdown, era taste chips (vintage says so when supply is thinning), and hottest/coldest sets by demand with trend arrows. Verified on the rig (35/35): the walk's bounds and day guard, boom spawn/expiry with chase reacting harder than bulk, exact factor composition, OOP scaling vs in-print retail, supply thinning with the feed fallback, and cohort evolution math.",
+        "Ride-along: estimates.ts now exports eraOf/Era as the single definition of vintage/mid/modern the scene shares, and /api/market/scene serves the strip alongside the existing regime and seasonal endpoints."
+      ]
+    },
+    {
+      "version": "0.5.83",
+      "date": "2026-10-02",
+      "title": "The futures desk opens",
+      "features": [
+        "Roadmap line 150: the secondary market for sealed. Sealed boxes now trade like commodities and condition is the whole spread. Every lot carries a condition — buys stamp case-fresh, and fresh units trade ABOVE market (+10%) while worn trade BELOW (−10%), with the spread decaying to ±2% by two years out of print (on vintage boxes survivorship is already in the comp). Shelf wear is real: 8% per game-day a fresh lot slips a grade (escrowed collateral is immune — the vault doesn't scuff), so the premium is a perishable asset. The damage dock is worn stock's second chance: re-wrap for 10% of unit value and the crew hands you a fresh box at your original basis, or dump worn stock at its worn price (the 10% dealer fee rides inside). The loan desk lends against sealed inventory the way banks lend against gold: post units as collateral (they move to the vault — no ripping, no selling, tagged escrow), borrow up to 60% of their WORN value at 0.6%/game-day compounded with no fixed term, redeem units early at pro-rata principal, settle in full, or walk away — the bank keeps the boxes, sells them at the dock, and mails any surplus. When the unpaid balance outgrows the boxes (135% overhang) the whole ticket re-prices to 0.9%/game-day with a warning logged. The Inventory sealed tab is rebuilt around the desk: a futures explainer, the loan-desk panel with active tickets (redeem input, settle, forfeit), Fresh/Worn price columns with per-row P&L, worn ×N and 🏦 vault ×N badges, and POST ALL. Every dollar sits on the books: net worth prices sealed at condition and subtracts loan balances, insurance appraises at condition, and rip/sell all refuse escrowed stock with a pointer to the desk. Along the way one shipped-bug fix: posting mixed fresh+worn stock as collateral no longer merges it into one mislabeled vault lot — escrow keeps one lot per condition, and redeem/settle hand every box home in the condition it was posted in.",
+        "Ride-along: the sealed sell endpoint is condition-aware (SELL FRESH / DUMP buttons target their grade), /api/pulls/summary reports sealed per condition, and the state payload's sealed value and debt figures run through the same futures math as the ledger."
+      ]
+    },
+    {
+      "version": "0.5.82",
+      "date": "2026-10-02",
+      "title": "Everyone's in the line",
+      "features": [
+        "The PSA rush is now a race. Once per game-day during an active special, an NPC wave joins the queue — Marcus, Buylist Betty, Parking-lot Paul, Denise, the Discord mod, and the rest of the named scene, growing daily as word spreads (day N: ~3N±2 slots) — and they eat REAL quota plus add to the very backlog the player waits in. Feed chatter logs each wave with named collectors, remaining slots, and the current queue cost, and the banner telemetry splits the quota: '23/40 used · 4 yours' makes the race legible, with 'quota GONE — the scene ate the line' when the horde wins. The slab premium is now a genuine supply curve instead of a toggle: it decays linearly from +12% toward the +6% hangover floor as the quota fills (the line IS the incoming slab supply), and through the backlog hangover it fades from +6% to nothing as the queue drains. Along the way two shipped-bug fixes: the backlog multiplier (0.5 game-days per submission, as the 0.5.81 changelog already advertised) is now actually applied to quoted turnarounds and wave chatter, and the hangover drain is guarded per game-day instead of per 15-second tick (a rush ending while you slept no longer clears the queue instantly). Verified on the rig (14/14): wave sizing and daily escalation, quota exhaustion by NPCs alone, one-wave-per-day guard, premium decay curve and hangover fade, drain guard, and the banner telemetry.",
+        "Ride-along: back-log chatter and banner queue figures now share one backlogDelayDays() source of truth."
+      ]
+    },
+    {
+      "version": "0.5.81",
+      "date": "2026-10-02",
+      "title": "The lines go around the block",
+      "features": [
+        "Roadmap line 136: grading pediment events. The 🏷️ PSA special spawns at random (~6% per game-day when idle — unlike the fixed seasonal calendar, the lab does what it wants) and runs 4–7 days. During the rush: a $10-per-card special tier appears in the Grading service list (min raw $8 — even bulk gets a shot at cardboard immortality), every submission's turnaround inflates by a live backlog counter (0.5 game-days per submission, capped at 20 — quoted ETAs across ALL services shift, and the Grading banner spells out the queue's cost), a 40-slot quota rations the special (a 'only N slots left' warning at 10, and at 0 the tier vanishes and the line is announced cut), and graded cards price at a +12% slab premium on every pricing surface that reads gradedPriceOf — live comps and estimated fallbacks alike. When the rush ends the party doesn't: a backlog hangover keeps turnaround dead and slabs at +6% while the queue drains 2 submissions per game-day. Two plays, both mechanical: submit cheap into the quota and eat the wait, or hold slabs and sell into the premium while the lab grinds. Verified on the rig: idle neutrality, spawn roll, special pricing/turnaround, quota burn + backlog growth on submission, standard-tier submissions inheriting the delay (measured in game-days), premium flowing through gradedPriceOf, quota exhaustion hiding the tier, and hangover premium/drain. Grading view carries the live banner (special state, quota, premium, queue, arbitrage explainer) and /api/grading/rush exposes the section.",
+        "Ride-along: listServices() and submitForGrading() now share the rush-adjusted turnaround math (previously the quoted days and the actual due-date math could drift once events touched either)."
+      ]
+    },
+    {
+      "version": "0.5.80",
+      "date": "2026-10-02",
+      "title": "The agents clock in",
+      "features": [
+        "Roadmap line: wishlist agents & price sniping. Arm any wishlisted card with a 🤖 standing auto-buy: a per-card price cap (defaulting to the card's 🔔 alert target if you've set one) and an exact condition (NM/LP/MP). Once per game-day the overnight sweep walks the buy surfaces — marketplace feed listings and BidBay single lots — and auto-buys the cheapest qualifying lot at or under cap, debiting cash, consuming the listing, scheduling the delivery on the game clock (exact same pipeline as a hand buy: market vias ride the market feed, BidBay vias ride ebay), and logging one 🤖 activity line with the seller, price, cap, and ETA. Discipline rails: a global per-order cash cap (default $250, adjustable $1–$50k, GET/POST /api/wishlist/agents/cap) bounds every single buy AND the whole sweep's budget — one sweep spends at most the cap; one buy per agent per sweep; vault shelf checks honored (a full shelf refuses the buy, same as a hand buy); agents buy LISTED lots only and never pay distributor market price; validation refuses arming without a cap, sub-$0.50 caps, off-whitelist conditions, and non-wishlisted cards. UI: the Wishlist header gains the agents line (N on duty · cap/order), a 🤖 Sweep now button, a 💵 Cash cap editor, an On-duty panel with per-agent badges, and per-row 🤖 Arm/ON buttons in both densities (armed rows show the green 'Auto-buy NM at ≤ $X — sweeps once a game-day' line). Verified on the rig: 18/18 scenario checks (arm guards, market buy with exact total/cash/delivery, sweep idempotence, per-order cap blocking an over-cap BidBay lot, cap raise letting it through, ebay via on delivery, disarm) plus the once-per-game-day tick guard (second tick same day is a no-op) and the full UI pass.",
+        "Ride-along: the Wishlist view now loads its agents panel through the same load() (no stale state after arming/disarming), and the wishlist API response carries the agent fields so both list densities render armed state without a second fetch."
+      ]
+    },
+    {
+      "version": "0.5.79",
+      "date": "2026-10-02",
+      "title": "The community scene",
+      "fix": "Waiting-verdict badges so lab results are never missed now that reveals don't auto-pop: /api/state gained a counters object (arrived auth tickets + finished grading jobs), the sidebar's Inventory row shows a yellow badge with the combined total, and the 🛡 Authentication / Grading tab chips badge their own remaining counts. Updates ride the existing 15-second state poll — no new endpoint. Verified on the rig: sidebar badge shows the combined total while off-view, in-view chips show their per-tab counts on the state tick, and mid-session verdicts badge the chips without any modal ambush.",
+      "fix2": "Fixed the authentication panel's reopen loop: with more than one lab verdict waiting, the arrived-verdict reveal modal popped again immediately after every Close — the auto-pop lived inside the view's load(), and arrived tickets stay listed in /api/auth until a reveal spends them, so each refresh found the next ticket and re-opened a modal mid-action. The verdict-landed-while-you-were-away ceremony now runs once on view mount only; additional waiting verdicts surface as manual 🟢 'Open the envelope' reveals from the 🛡 Authentication tab's in-lab list, which already existed. Verified on the rig with two arrived tickets: one ceremony pop on mount, Close keeps it closed, the second reveals manually and stays closed.",
+      "features": [
+        "Roadmap line 146 is live: the positive half of the social layer. The 🫂 Community forum carries a 0–100 standing score you earn three ways — post a pull from your collection (the room prices pulls by story, not market: warmth 1–5🔥 scales with cost basis and favorites flex harder), answer newbie questions (3 per game-day, +1 each), and write a guide (1 per game-day, +1+warmth from the guide pool). Standing unlocks real privileges around town: at 10, group-buys (co-fund one of four board cards — Lugia, Beauty, Charizard, Typhlosion — with 3–6 collectors, your share debited up front, the card lands in your binder on the game clock at the FULL lot basis, one buy in flight at a time, organizing one earns standing too); at 25, estate first-refusal (when an estate listing is about to spawn, the heirs DM you first — one DM per game-day, a 1-game-day exclusive window before everyone else sees the board); at 40, ship-first trade trust (Trading Post partners mail their card before you mail yours — mechanically a +2 effective trader-reputation floor, the escrow anxiety ends). The street bleeds in: while a scam-accusation suspicion flag is up, ALL forum rep gains halve and the forum shows a red warning that it reads the gossip. Tiers run lurker → regular → known → trusted → pillar with unlock toasts at each perk threshold; the view shows the rep meter with a next-perk marker, the perk ladder with OPEN states, the group-buy board with in-flight lots and ETAs, and the thread feed. Server: forum_posts + forum_groupbuys tables, /api/forum (+ pull/reply/guide/groupbuy), forumTick rides the market tick chain for deliveries, estatebuyout spawnSale feeds offerFirstRefusal, and trading.ts reads the rep meta directly (no import cycle). Also in this build: every sidebar tab is now always visible — locked ones render as their own 🔒 row with the exact unlock requirement, live progress (cur/goal), and the click-through lock toast, instead of one collapsed hint per section. Verified on the rig: reply cap + rep ladder, halved gains while hot (3→3.8 pull) and full after clear, group-buy refusal at rep 5, share debit, one-at-a-time guard, forced-due delivery at full-lot basis (125 lot / 125 basis), refusal metas + window scope + one-DM-per-day, ship-first flag at 40, pillar tier, rep cap at 100, and cross-connection /api/forum visibility; UI pass confirmed the nav rows and the Community view end-to-end.",
+        "Completion pass on the same build (found by auditing the feature end-to-end): estate first-refusal is now real instead of just a DM — /api/estate-sales listings carry a `refusal` flag during the window (gated at rep 25, scoped to the DM'd lot, and cleared with the metas by the estate tick once the sale is bought, taken, or expired), the Estate board shows a 📩 first-refusal banner on that listing, and the heirs' negotiation floor softens by 4 points while they hold the lot for you. Ship-first's rep read dropped its once-per-process cache — a cached value would have pinned the perk to rep-at-boot until relaunch; every proposeTrade now reads forum:rep fresh. The unused held_for_groupbuy inventory column was dropped before it ever reached a schema-fresh install. Verified on the rig: refusal flag false at rep 24, true only on the DM'd listing at 25, false again after clearing, and the banner rendering on the Delgado heirs' panel."
+      ]
+    },
+    {
+      "version": "0.5.78",
+      "date": "2026-10-01",
+      "title": "One slider, a hundred asks",
+      "features": [
+        "Bulk repricing — the last bulk action the selection bar couldn't do. Pick any cards and the ↻ REPRICE button opens a nudge modal: a ±50% slider with −25/−10/−5/+5/+10/+25 presets, a live asking-total preview (before → after) and a cost-basis check that warns how many picked cards would dip under their own basis at this nudge. Only actual marketplace listings move (status 'listed' with a stamped ask) — local posts, shop cases, consignments, and live auction lots are skipped and counted in the result, since they reprice on their own surfaces; prices clamp at a penny and the feed logs one line ('Repriced 12 listings down 10% — asking $X total (was $Y). N skipped.'). Server endpoint /api/inventory/reprice-bulk clamps the percentage, moves everything in one transaction, and refuses 0% nudges with 'already sits at its target price'. Verified on the rig: mixed pick of 3 listed + 1 bare + 1 local post moves exactly the 3 (totals to the cent), ±50% clamp and +51 rejection, penny floor, 0% and empty-pick refusals."
+      ]
+    },
+    {
+      "version": "0.5.77",
+      "date": "2026-10-01",
+      "title": "Grammar of the gutter",
+      "features": [
+        "Fixed the accusation quote when no named burned card exists on the ledger: the street line no longer reads 'The a card you sold me came back counterfeit' — with no card name the NPC now says 'That card you sold me came back counterfeit' (client quote and server activity line both), and the conviction verdict gets its own no-name variant. Found and fixed alongside a real schema bug the fix exposed: auth_accusations.card_name was NOT NULL, so a no-name case could not even be filed — the column is now nullable in schema-fresh installs and an in-place rebuild relaxes it for existing saves (0.5.76 saves that hit the crash during spawn were leaving the case unfilable). Verified on the rig: no-name spawn persists, the street panel renders 'That card you sold me came back counterfeit', and named-card cases keep the original 'The <card>' phrasing."
+      ]
+    },
+    {
+      "version": "0.5.76",
+      "date": "2026-10-01",
+      "title": "The street has opinions",
+      "features": [
+        "Roadmap line 146 is live: the counterfeit economy's social layer. Once a fake has been through your hands (a USPA burn or a $1 buylist wall sale), fake-trade notoriety rises — capped at 3 — and while you're hot, 1-in-4 game-days can surface a scam accusation: a named NPC (Marcus, the Discord mod with screenshots, a Buylist Betty follower, Parking-lot Paul, Denise from Marketplace) claims a card you sold them came back counterfeit and the trade groups vote by tomorrow. Your defense is the paper trail you built: the complete kit (+2), USPA jackets on the binder (+1 per 3, cap 4), and lifetime documented fakes caught (+1 per 2, cap 4) — the vote reads the trail as it stands when they vote, so authenticating cards during the open window can still clear the case. Three outcomes: CLEARED (evidence ≥5 — the thread locks, the accuser's account gets the warning, shop reputation +1), MISTRIAL (coin-flip — the thread goes 50/50 and everyone gets tired), or CONVICTED — the street discounts your unvetted raws by an extra 10% on top of the standard haircut on every pricing surface, shop walk-ins get harder to please (reputation −3), and the suspicion window lasts 3 game days, during which a red line in the 🛡 Authentication tab warns you. The conviction tail is wired through the shared pricing core (valueOfRow mirrors the auth-side discount so Inventory values, BidBay, the dealer desk and buylist offers all move together). A new 'The street' panel shows the open case with its evidence meter, your notoriety, the suspicion window, and the case history with verdicts; everything is exposed via /api/auth and gated behind the first burn so new players never see it. Verified on the rig: notoriety gate, spawn-on-hot, fresh-case protection, cleared-on-evidence (live score), conviction coin-flip, suspicion flag set/clear, the exact 0.8947 conviction-haircut ratio on inventory rows, and the notoriety cap."
+      ]
+    },
+    {
+      "version": "0.5.75",
+      "date": "2026-10-01",
+      "title": "The label on the box",
+      "features": [
+        "Single-kit buyers now learn the desk exists before they hit the wall. Every toolkit Buy button carries a desk-unlock hint: the AuthPicker strip reads 'Buy $40 · unlocks the desk' with a tooltip spelling out that the $8 desk review only opens when the COMPLETE kit (🔦 ⚖️) is on the bench — and says 'this is the last piece' only when it is actually the last piece (the AuthTab panel now carries the same last-piece logic). The AuthTab toolkit intro teaches the rule outright: the complete kit is what opens the desk review — half a kit is half a vetting. A freshness fix rides along, found in the UI pass: buying a tool inside an open AuthPicker now refreshes that picker's desk-state badge (previously it kept the stale locked state until closed and reopened). Verified on the rig: both Buy buttons show no last-piece claim with an empty bench, last-piece-only on the second buy, and voucher + open desk appearing in the same modal after a scan without a close/reopen."
+      ]
+    },
+    {
+      "version": "0.5.74",
+      "date": "2026-10-01",
+      "title": "Half a kit is half a vetting",
+      "features": [
+        "The USPA Desk Review got tuned for less clear-cut value, on both levers. The miss rate is up from 45% to 55% — the skim is now decisively worse than the express jacket's 30%, cheap because you did the vetting, not because it is careful — and the gate now demands the COMPLETE kit: both the 🔦 blacklight and the ⚖️ precision scale on the bench, each having read the card clean. The old single-tool gate was the real exploit: a blacklight-only vouch leaves a ~13% posterior fake on a hot card (the blacklight alone misses a quarter of fakes), which made the $8 desk a laundering machine for anyone who bought half the toolkit; full-kit paperwork carries a ~4.7% posterior instead, and the $100 kit is the desk's true entry fee. Net effect: the desk stays the right budget play on vouched mid-value cards (expected burn ~$6.5 on a $250 hot card vs $67 saved by skipping forensic), but the crossover where forensic's certainty wins moved down to roughly a $2,600 card, single-tool players are sent back to the express jacket, and the certified-fake jackpot shrank from ~5.8% to ~2.6% per submission. Client states now distinguish kit-incomplete (desk closed — it fast-tracks the complete kit only) from readings-missing (run the free scan), and the AuthPicker's tip says the complete kit's clean readings open the desk. Verified on the rig: 55% in the services list, half-kit refusal names the missing tool, full-kit vouched submissions flow to verdicts, flagged and missing-reading refusals unchanged, and deskReading reads vouched before submission and partial after the verdict spends the readings."
+      ]
+    },
+    {
+      "version": "0.5.73",
+      "date": "2026-10-01",
+      "title": "Paperwork walks the binder",
+      "features": [
+        "The free eye-ball scan no longer serializes behind a single card. Untargeted sweeps skip cards already in the lab — a card waiting on its verdict used to own the scan slot forever, so the paperwork for card #2 could not even be filed until card #1 came back. The AuthPicker's scan now targets the card you opened it from, so a binder of unvetted buys can be papered top-down while the lab works, and the sweep (still the default when no card is named) walks down the at-risk list as verdicts free up the top. Targeted scans refuse what they should, each with its reason: cards at the lab (its verdict is the paperwork), slabs, known counterfeits, already-jacketed cards, cards gone from the binder, and anything under the $75 fake line — fakes don't bother with cheap cardboard, the market doesn't haircut it, and rolling instrument false-alarms on a card that cannot be fake would permanently lock its desk review for no reason. Verified on the rig: sweep walks A→B→C as each enters the lab, targeted scans file per-card readings that reach the deskReading payload, and every refusal carries its message."
+      ]
+    },
+    {
+      "version": "0.5.72",
+      "date": "2026-10-01",
+      "title": "Vouched at the desk",
+      "features": [
+        "The USPA desk gained a budget lane: Desk Review, an $8 one-day verdict for cards whose owned toolkit instruments have all read them clean. It needs every owned instrument to have a reading on file and every reading to vouch — a flagged card closes the desk entirely (the desk does not fast-track paperwork its own instruments dispute), and missing readings just get told to run the free scan. The catch is priced in: the desk misses 45% of the clever fakes your instruments already missed, worse than the express jacket — cheap because you did half the vetting, not because it is careful. The AuthPicker shows the desk locked with a reason (no paperwork / disputed) instead of a submit button, a voucher badge when your kit clears the card, and the service rows carry a per-service miss-rate badge; the reveal flow (including the certified-fake walk on a missed fake) is shared with the other tiers, instrument readings are spent when a verdict lands, and the eligibility check ships both as a submit-time guard and a public deskReading field on inventory rows (vouched/flagged/partial) that never touches the hidden flag. Verified on the rig: gate blocks and opens per paperwork state, eligible submissions flow to a verdict, ineligible attempts get the refusal message without charge, and the reveal path still clears the reading ledger."
+      ]
+    },
+    {
+      "version": "0.5.71",
+      "date": "2026-10-01",
+      "title": "Read it under the light",
+      "features": [
+        "The authentication desk gained a toolkit: two one-time gear purchases — the $40 🔦 UV blacklight and the $60 ⚖️ precision scale — that put real instrument readings under the free eye-ball scan. Each reading is correlated with the card's hidden flag at the instrument's own reliability (the blacklight flags ~75% of fakes with an 8% false alarm, the scale ~70% with a 12% one), so the kit narrows the question and never answers it — the lab still decides. Readings roll once per card and stick to it, the way an instrument doesn't change its mind when you walk it back to the desk — which also closes the spam hole: re-running the free scan can't average its way into a verdict. Buy from the 🛡 Authentication tab's toolkit panel or right inside the AuthPicker; owned tools ride along in the picker and their readings join the scan toast; spent readings are cleared when a verdict lands or a fake is sold off the training wall, and reset wipes clear the kit with the rest of the auth metas. Verified on the rig: purchases debit cash once, readings persist per card across rescans, the fake/genuine reading split matches the reliability bands, and verdict cleanup clears the ledger."
+      ]
+    },
+    {
+      "version": "0.5.70",
+      "date": "2026-10-01",
+      "title": "Why everyone pays it",
+      "features": [
+        "The vintage authentication meta — the roadmap's sight-unseen risk, now real: high-value buys (raw value $75+) can arrive COUNTERFEIT, and the flag is hidden. Every wide-buy channel rolls its own risk at acquisition — parking-lot deals, flea bins, dealer lots, mystery boxes, locker hauls, driveways, and estate whales all roll far harder than storefronts ($75 card ≈ 7–10% fake; $250+ from the wild west up to 30–45%) — but the only tells are the 🐟 the Local Deals feed already shows and the market's own nervousness: unauthenticated raws sell at a 5% haircut on every pricing surface (Inventory values, BidBay, the dealer desk), and grading labs refuse high-value raws without the jacket, which also seals the grade-a-fake-into-a-slab laundering hole. The United Slab Protectors of America (USPA) desk lives in Inventory → 🛡 Authentication: a free eye-ball scan gives band hints and never a verdict; $15 express jackets miss 30% of clever fakes, $45 advanced misses ~8%, and the $75 forensic panel never misses — verdicts arrive on the game clock like grading, and a missed fake gets CERTIFIED AUTHENTIC (the market finds out eventually). The burn is the tuition: a confirmed counterfeit is worth $1 to the buylist training wall and nothing anywhere else — no listing, flipping, pawning, or consignment — with basis booked as overhead, the first burn logging 'THIS is why everyone pays for authentication', stats tracking jackets/fakes/basis-lost, and a ✅ AUTH / 🃏 FAKE / unvetted badge line on every raw card. Local Deals keeps its pre-rolled instant-tell fakes (the corner test there is still free); everything else is the lab. Wired through 7 acquisition services, the shared pricing core, the buylist offer engine, the grading desk, and the market tick; existing saves migrate on boot, fresh saves get the columns in schema.sql"
+      ]
+    },
+    {
+      "version": "0.5.69",
+      "date": "2026-10-01",
+      "title": "The drumroll in the dark",
+      "features": [
+        "Estate buyouts learned suspense: the photo's glimpse cards still show their real cards at real conditions, but the cards behind them are now face-down — the API serves a ??? face, a per-archetype NM-value band (junk drawer $0.05–$2.50, mixed box $0.10–$25, whale $1–$400), and no condition at all until you pay. Every face-down card rolls its condition at the buy() ceremony (once, permanently, stamped into estate_sale_cards) and its price settles at a per-card NM anchor × the condition multiplier; the reveal modal plays the drumroll — each inherited card sits with a spinning NM→DM face and the band as its price until its turn comes, then locks in colored by what it rolled (faster as the stack thins). Glimpse cards never roll; the caption under the photo now says exactly how many cards are rolling behind it. The economics didn't move: face-down rows are priced at the archetype's expected condition multiplier while hidden, so listings cost what they always did — the roll is pure variance, the heirs price the dream and the binder delivers the truth. Legacy pre-0.5.69 listings join the game via a one-time backfill that stamps their anchors from their own pinned prices; existing saves migrate on boot, fresh saves get the columns in schema.sql. Verified on the rig: API hides conditions, buy rolls and persists, second read never re-rolls"
+      ]
+    },
+    {
+      "version": "0.5.68",
+      "date": "2026-10-01",
+      "title": "One photo, one number",
+      "features": [
+        "Estate & collection buyouts — the sight-unseen whale from the roadmap: whole collections surface as single listings in a new 📑 Estate Buyouts view (unlocks at 10 sales). One photo, one number, NO card list — the photo is 2–3 real cards glimpsed from the top of the stack with a flavor line (wrist watch for scale, the taped-on penny the heirs call 'protection'), and the ask anchors to what those glimpse cards are worth plus a whole-collection blind bid. Heirs have personas that color the negotiation (Overattached, Fast Cash, Precise, Clueless — each with its own rigidity and its own way of being wrong about the estimate: the Clueless number came from a Facebook post), moods that shift when you bid respectfully, a haggling ladder of two counters to a final number with a real floor (counter anchors march to the floor, never through it), a walk-away that locks the conversation until you 🙇 apologize (once per listing, they get less patient), and accepted offers that stamp a deal price the buy endpoint honors. Collections generate in three archetypes — junk drawers, mixed boxes, and 15–45-card whales with vintage bias — from real synced cards at real prices; buying charges cash, takes the collection through the vault's make-room policy (overflow stays with the estate, cash is spent either way), and lands it at an even per-card cost basis acquired via 'estate_sale' for the portfolio. The inherited-binder reveal mirrors the estate-lot ceremony: pay first, then every card sorted rich-to-bulk with paid vs claimed vs appraises-at and a verdict. Background life: 0–1 new listings per game day, NPC collectors take slow ones after ~2 game days, listings expire after ~6; a FirstUseTip explains the rules and flips on first offer"
+      ]
+    },
+    {
+      "version": "0.5.67",
+      "date": "2026-10-01",
+      "title": "The feed has a dashboard light",
+      "features": [
+        "The S&P 500 benchmark feed got a status row in Settings — the same treatment the card price sources already had: a 'real closes' vs 'model ~10%/yr' badge matching which mode the portfolio is actually computing from, the closes cached with their date window, the last fetch attempt vs the last real success (a streak of failed attempts shows as stale instead of silently fresh), which Yahoo host served last, and a covers-save-span / catching-up badge from the same coverage check the refetch loop uses. The status reads the cache directly (no fetch on open), and the refresh loop now stamps an explicit ok-flag plus serving host so 'attempted recently' and 'actually got data' are finally distinguishable"
+      ]
+    },
+    {
+      "version": "0.5.66",
+      "date": "2026-10-01",
+      "title": "The index, for real",
+      "features": [
+        "The portfolio's S&P comparison stopped being a textbook average: the benchmark now fetches real ^GSPC daily closes from Yahoo Finance's public chart endpoint (no key; query1 → query2 cascade, 15s timeout) into a benchmark_cache SQLite table and computes the index line and the 'if it had been the S&P' what-if from what the index actually did across the save's span — anchored at the last close on or before the save's start, because money 'in from day one' buys at that close. The cache covers the whole save span (creation + every net-worth snapshot, plus a weekend-proof buffer), tops up twice a day on the same cadence as the other price syncs with a five-minute retry after failures, and upserts idempotently so restarts never double-write. When the feed is dry the view honestly says so: the chart legend reads 'S&P 500 (real closes)' vs the labeled 'S&P what-if (~10%/yr)' model, the panel note names the source and anchor date, and spSource in the API tells them apart. Verified both paths live on the rig — cache-empty boot serves the labeled model, the first successful fetch flips the same endpoint to real closes (index 99.82 vs the model's 100.0 over the test span, matching the actual Sep 30 → Oct 1 dip)"
+      ]
+    },
+    {
+      "version": "0.5.65",
+      "date": "2026-10-01",
+      "title": "The accountant's view",
+      "features": [
+        "Collection portfolio — the collection as an investment account: a new 📈 Portfolio view under COLLECT reports deployed capital (every cost basis still held), paper value (live market per status — listed at ask, graded at slab comps, raw at condition pricing), realized profit from the sale ledger, and total return with the money-weighted truth: a Modified Dietz over dated buy/sell flows against net-worth snapshots, so a lucky win on small money can't dress up a big base (falls back to the simple accounting return until two snapshots exist). A benchmark chart normalizes your cardboard and an S&P what-if (~10%/yr) to 100 at the first snapshot, and an 'If it had been the S&P' panel puts the same money at the index average — with the 🥇/📉 verdict and the accountant's suspicion. Per-era and per-set ROI tables (deployed → now → P/L → ROI, sortable by ROI, dollars, and value), best/worst position cards, and an income line for shop-ledger business income (cases, bulk, bags, consignment, shows). GET /api/portfolio backs it all; numbers verified against raw SQL on the rig"
+      ]
+    },
+    {
+      "version": "0.5.64",
+      "date": "2026-09-30",
+      "title": "ETAs are promises now",
+      "features": [
+        "Remote purchases actually take the days the listing advertises: NPC Market buys schedule the card for its stated eta_days (1–10 game-days), buy-direct distributor orders ride one game-day on the truck, and BidBay snipes land in 1–2 game-days — cash leaves at purchase, the card admits to the vault when the parcel is due, and a full shelf holds it on the doorstep (vault admission retries each tick under the storage policy). All arrivals ride the game-day clock (12h or 24h per save setting). In-person buys — shop floor, conventions, estate lots, yard sales — stay instant because you walk out with the card. A new Inventory 📦 In transit tab lists every parcel with seller, channel, condition and a live game-day ETA; the Market card ETA now reads 'N game-days'; and the POST /api/market/deliver-due hook lets the client force the doorbell. Verified end-to-end on the rig: buy → in transit row with correct ETA → forced due → landed in the vault as a collection card. Also: BidBay seller-side transit was still a pre-clock relic (25/45/80 real seconds — parcels 'delivered' before the buyer finished paying); economy = 2 game-days, standard = 1, priority = half, scaled by the day-length setting"
+      ]
+    },
+    {
+      "version": "0.5.63",
+      "date": "2026-09-30",
+      "title": "Your clock, your call",
+      "features": [
+        "Game day length is now a Settings option (Settings → Game pace): 12h — two game-days per real day, the default since v0.5.61 — or 24h — the classic pre-0.5.61 cadence rolling once per real day at 00:00 UTC. The choice is per save, takes effect at the next boundary, and everything follows it automatically because every day calculation reads one settings-backed accessor: the header day clock and DAY counter, the once-per-game-day gates (which stamp plain date keys again at 24h), grading/pawn/war/rotation durations, the client's ETA formatting, and the rebalanced 12h-era costs now stretch or halve with the same dial — at 24h a game-day costs twice the 12h-tuned amounts and grading takes twice the wall time, which is the original pre-rebalance economy exactly. Verified both modes live: the switch is instant via Settings chips or the API, boundaries and day numbers re-derive correctly in each, bad values are refused, and the pace panel's copy updates with the choice"
+      ]
+    },
+    {
+      "version": "0.5.62",
+      "date": "2026-09-30",
+      "title": "The 12h clock pays half rent",
+      "features": [
+        "Daily costs rebalanced for the 12h game-day so real-world daily pressure stays where it was tuned: shop rents halve ($6 / $22.50 / $70 per game-day for hole-in-the-wall / storefront / flagship), franchise rents halve ($6 / $18 / $70 / $170), staff wages halve (buyer $4.50, grader $5.50, counter $2.50 base — manager and district/regional ladder wages too), business-loan and overdraft interest halves (0.6% / 1% / 1.75% by credit score, 2.5% overdraft), pawn-loan interest halves to 0.75% per game-day, the bare-card wear chance halves, and the disaster roll runs at half odds per game-day — twice the rolls, same real-day cost. One-time boot migration halves every stored wage (shop employees, franchise managers, the district and regional manager rows) and loan rate on saves that predate the switch, flag-guarded and idempotent — verified old-scale values halve exactly once and are untouched on rerun. Weekly bills (insurance, lockers, vault), Monday reports, taxes, and the real-world syncs stay on the real calendar, so the weekly squeeze is unchanged"
+      ]
+    },
+    {
+      "version": "0.5.61",
+      "date": "2026-09-30",
+      "title": "Two days a day",
+      "features": [
+        "A game day is now 12 real hours instead of 24: the clock rolls at 00:00 and 12:00 UTC, so every real-world day holds two game-days and the whole daily heartbeat runs twice as fast — rent, payroll, loan interest, franchise rents, the condition-wear and disaster rolls, the save snapshot, achievements, and the morning-after day recap all fire at each boundary, the header day clock fills twice per day and the header DAY counter moves twice as fast, and grading turnarounds halve in wall-clock terms (express is back overnight; a standard 3–6 game-day job returns in 36–72h). All day math derives from one new shared clock module (server + client) — boundary, day number (day 1 = the game-day containing the save's creation), and day-key helpers — replacing the per-file UTC-date math; once-per-day gates now stamp a date-plus-half key ('2026-09-30-pm') and old date-only stamps read as their 00:00 boundary so a save's first afternoon re-rolls exactly once. Weekly bills (insurance, lockers, vault), Monday reports, month-end taxes, quarterly charges, the holiday calendar, rival war calendars, and the real-world price/catalog syncs deliberately stay on the real calendar — the 12h clock is the pace of daily life, not of the world's weekly scaffolding. Verified with boundary unit tests (11:59 vs 12:00 UTC split, day numbers across a boundary, legacy key parsing) and live on the rig: gates stamped '-pm', express 18h ETA reads ~2 game-days, standard stamped 3.6 game-days, daybar fraction correct"
+      ]
+    },
+    {
+      "version": "0.5.60",
+      "date": "2026-09-30",
+      "title": "Grading ETA tells the truth",
+      "features": [
+        "The Inventory tab's at-the-grading-company row showed a submit-time relic: it still divided the remaining time by the old 20-second game-day that the great clock unification retired, so a real 1–2 day express job rendered as '~5535 game-days' (30.7 hours ÷ 20,000ms). The row now uses real UTC days like the Grading page, with the same hour/minute countdown formatting as the reveal gets close — the stored due date was always correct, only the display divided by a dead constant"
+      ]
+    },
+    {
+      "version": "0.5.59",
+      "date": "2026-09-30",
+      "title": "A reset rewinds the calendar",
+      "features": [
+        "Resetting a save now rewinds the day counter to day 1: created_at IS the day number (day 1 = its UTC date), so reset re-stamps it to now and last_tick_at with it, so the next tick doesn't try to sim the whole rewind gap in one catch-up pass — the morning-after recap, the Today panel, and every day display agree on the fresh calendar. Daily gates come along: stale already-ran-today stamps from the pre-reset world (rolling snapshot, wear pass, disaster roll, payroll, quarterly license charge, the pending day-recap that would have posted a morning-after line about the wiped world) are cleared so the new day 1 arms them fresh instead of silently skipping rolls or posting a ghost recap. Verified on a day-13 rig save: reset lands on day 1 with $1,000 stable across ticks and the daily rolls re-armed for the new day"
+      ]
+    },
+    {
+      "version": "0.5.58",
+      "date": "2026-09-29",
+      "title": "A reset that resets",
+      "features": [
+        "Reset save died halfway on any save with a yard sale: the wipe deleted yard_sales before its own yard_sale_cards child rows, SQLite threw FOREIGN KEY constraint failed, the endpoint 500ed — and because every earlier delete had already landed, the save was left half-erased with the old cash still in it, while the client toasted success. The whole wipe now runs child-before-parent inside one transaction: three more latent orderings fixed the same way (conventions before estate_lots, streams before stream_breaks and its spots/pulls, inventory before its binder_slots and vendor_sales — vendor_sales references both inventory and vendor_tables and now goes first), a mid-wipe failure rolls everything back instead of stranding the save, cash reliably lands at $1,000, and reset recreates the fresh save's Main Collection starter binder instead of carrying over empty shells. The client shows an error toast instead of silently claiming success. Verified against a seeded trap save (yard sale, convention + estate lot + vendor table chain, stream-break chain, binder with slotted cards): reset completes, cash is $1,000 immediately and stays there across ticks, every table wipes to zero, and a second reset is clean"
+      ]
+    },
+    {
+      "version": "0.5.57",
+      "date": "2026-09-29",
+      "title": "Grids that can't lie, art that won't quit",
+      "features": [
+        "VirtualGrid reworked at the root so the collection can never overlap again: the scroll host used to carry the card grid class too, turning the whole virtual container into an auto-fill CSS grid — its spacer child collapsed into one ~188px column while the absolutely-positioned card window laid out multiple columns inside it, guaranteeing cell collisions (4 intersecting pairs measured on the live save). The host is a plain block now, the column count comes from a hidden probe grid that mirrors the density class at the real width, and — replacing the self-measuring probe cell entirely — row height is measured from the real rendered cells: the tallest cell in view sets the stride, re-measured whenever cells mount, the window resizes, or art finishes loading (an image growing its cell no longer leaves a stale pitch), and meta lines no longer wrap. Verified zero intersecting cells across every combination: comfortable/compact/list densities × flat and by-set browse × 800/965/1010/1400/1600px viewports, with per-section strides tracking their tallest cell (302/322px) and list rows holding at 66px",
+        "Missing card art got a fallback chain instead of a dead end: a transient CDN hiccup used to permanently kill that image for the session (the error state was sticky); now a failed thumbnail retries the derived pokemontcg.io URL for the same card id, then the original URL once more, before showing the error card — one flaky response no longer blanks a whole page of art"
+      ]
+    },
+    {
+      "version": "0.5.56",
+      "date": "2026-09-29",
+      "title": "Old saves heal themselves",
+      "features": [
+        "Old saves with pre-split tournament history heal themselves on boot: the owner-stamp backfill could not tell which pre-split tournament pack sessions were yours versus the NPCs' — the old session ids carried no side marker, so tournament rips stayed in the player's records (40 of 60 rows on the first save that hit it) and had to be repaired by hand from the saved bracket. The migration now does that reconstruction itself: every played bracket slot records both sides' totals and each side's packs sum to those totals in cents, so the migration matches disjoint session subsets per slot, keeps whatever the __you__ side matched as the player's, stamps the rest 'other', and skips any slot it cannot fully resolve rather than guess. Runs once per save; verified to reproduce the hand repair row-for-row on the original unrepaired backup, to leave an already-healed save untouched, and to rerun as a no-op",
+        "Build fix: the installer smoke test was leaving its factory-fresh save in release/data after its own comment said it was deleted — every build since the leak began archived a junk 158MB 'played save' with zero inventory and could boot the game on a fresh $1,000. The smoke save is now actually removed; the played save is archived exactly once before the rebuild"
+      ]
+    },
+    {
+      "version": "0.5.55",
+      "date": "2026-09-29",
+      "title": "Papercuts, ironed",
+      "features": [
+        "Pack Battles stopped crushing its two pickers at mid width: below ~820px of window the rival picker and product picker stack vertically (the same breakpoint rule every other two-column grid already had), and inside each row the rival's record badge stack and the product's stake column no longer shrink — at 965px wide the stake column keeps its 46px instead of clipping",
+        "The buylist offer sheet is now a pinned quote: selling sends along what the sheet showed, and if the shop's sheet moved in between (weekly want rotation, a copy re-graded) the sale is refused with the fresh number named instead of quietly paying different cents; the success toast reads the register total rather than the sheet, and a refused sale keeps your picks and refreshes the sheet",
+        "The buylist shop card no longer contradicts itself: 'pays ~75% cash · credit leg pays +8%' describes the credit bonus as the bonus it is, and 'no credit held' replaces the old 'no credit' that sat under a line advertising credit",
+        "Press Enter actually tears the pack now — the foil's keyboard hint used to require tabbing to focus the pack first; Enter works anywhere on pack openings, live-show reveal modals, and your duel-stage pack in battles (the rival's choreographed rip stays un-triggerable)"
+      ]
+    },
+    {
+      "version": "0.5.54",
+      "date": "2026-09-29",
+      "title": "Your pulls are yours",
+      "features": [
+        "Pull History stopped claiming other people's cardboard: the always-on live wing writes every NPC host rip into pull_history, and battle opponents and tournament NPC matches rip there too — but the record endpoints read the whole table, so a fresh save that had opened one $4.49 pack showed 'ALL-TIME BEST PULL $413.66' and 'BEST PACK ON RECORD $625.94' from NPC shows the player never touched. Every rip row now carries an owner stamp ('player' or 'other'), Pull History, the all-time best pull, the best-pack banner, and the session cards read player rows only, and existing saves get their history backfilled by session-id shape (1,107 NPC rows stamped on the test rig, zero false positives)",
+        "Ownership rules: NPC live-show rips, packs NPC winners ripped on stream, team-break spot pulls, battle opponents' sides, and tournament NPC matches are world-log only; your own opens, your own-channel stream rips, your own tournament and battle rips, and rip-it-or-ship-it packs YOU won and chose to rip on stream all stay yours"
+      ]
+    },
+    {
+      "version": "0.5.53",
+      "date": "2026-09-29",
+      "title": "Everything in register",
+      "features": [
+        "Fixed the card density bug for real: VirtualGrid now measures itself in place — a hidden probe cell mounted inside its own column, remeasured on every resize — so virtualized rows stay in register at any window width. The old hardcoded constants were wrong at real widths (rows drifted 263px apart under ~230px cards, compact claimed a fake 5 columns), which showed up as overlapping cards and blank bands in Collection, Set Detail, and Inventory",
+        "Pack battle pricing stopped charging for cardboard nobody rips: versus stakes are now the ripped share of the product (1 pack of a booster box run, 3 of a bundle, 9 of an ETB) instead of the full sealed price — a Surging Sparks booster stakes $4.49 a side, not $130+ — and both sides always rip the same product",
+        "Tournament entries are flat now: the Mini Invitational costs $25 and the Grand Slam $60, period. The old math staked 1.5x a randomly-picked ETB from every synced set, so entering could cost anywhere from $80 to $450 and each round ripped a different random product",
+        "The Buylist is rebuilt: shop picker cards show each store's flat rate and credit bonus, the want list shows what they'd actually pay per card, and the offer sheet got real column headers (Card / Market / They pay / %) with aligned rows, pick-all, and the SELL / SHOP tabs — no more flat wall of cluttered rows",
+        "Storage and Auctions is unlocked from the start (it was gated behind 5 sales for no good reason — you need storage space long before your 5th sale), and the capacity strip now appears below 60% full instead of waiting until 75%"
+      ]
+    },
+    {
+      "version": "0.5.52",
+      "date": "2026-09-28",
+      "title": "Show your work",
+      "features": [
+        "Every deal badge now shows its work: a 'priced vs LP' (or MP/HP/NM) trust line sits under each Market badge, and BidBay badges carry 'vs {condition}' inline — so a condition-anchored comparison is explicit instead of implied",
+        "Hover a trust line and it names where the anchor comes from — live TCGplayer market, PriceCharting, Cardmarket trend, the simulated market, a comparable-based estimate, or real PSA comps for graded lots"
+      ]
+    },
+    {
+      "version": "0.5.51",
+      "date": "2026-09-28",
+      "title": "The badges tell the truth",
+      "features": [
+        "Deal labels stopped lying about condition: the Market page anchored every listing against an NM price no matter the card's condition, so a fairly-priced LP (0.8×) read 'BELOW MARKET' and a fair HP (0.5×) read '🔥 BELOW MARKET −50%' — the anchors now apply the same condition multipliers the listings are priced with, so a badge means what it says",
+        "BidBay's NPC hunt had the same lie baked in: LP/MP stock priced off the NM market manufactured fake DEALs (fair MP asks reading '−35% DEAL') and fake MARKETs on overpriced LPs — spawn pricing and stored anchors are condition-aware now, and legacy rows re-anchor to the card's current real market at read time",
+        "Audited the rest of the scene: convention dealer tables, the estate floor, and Local Deals already anchored condition-aware — those badges were honest and are untouched"
+      ]
+    },
+    {
+      "version": "0.5.50",
+      "date": "2026-09-28",
+      "title": "No secrets about the clock",
+      "features": [
+        "New 'Game pace' panel in Settings lays out exactly what one game day means for every system: rent and payroll at midnight UTC, daily interest, wear and disaster rolls stamped at midnight, the once-a-day save snapshot (with your last one), weekly bills on their own draft clocks, grading turnaround in real days, and the day-recap line — plus an explicit note that the real-world data syncs run on their own schedules, not game days",
+        "The panel shows YOUR numbers where it can — your actual shop rent and tier, your last snapshot moment — so pace is transparent rather than described"
+      ]
+    },
+    {
+      "version": "0.5.49",
+      "date": "2026-09-28",
+      "title": "Grading runs on the real clock",
+      "features": [
+        "Grading turnaround now runs on REAL game days — the same UTC days rent, payroll, wear, snapshots, and the header day clock gate on. Express is genuinely 1–2 days and Standard genuinely 3–6; the old build used a pre-unification 20-seconds-per-day relic, so '2 game days' finished in about a minute while the day clock barely moved",
+        "The 'Back in' column now reads honestly: game-days at range, then hours, then minutes as your slab approaches the mailbox — legacy in-flight submissions still resolve exactly as before"
+      ]
+    },
+    {
+      "version": "0.5.48",
+      "date": "2026-09-28",
+      "title": "The buzzer steal",
+      "features": [
+        "SNIPE: in the final 2 seconds of a sudden-death lot the BID button becomes a red ⚡ SNIPE — fire it and you take the lot OUTRIGHT at current + $1, no NPC counter-bid; that's the reaction play the real rooms reward. Too early and it lands as a normal bid (the window hadn't opened), too late and the hammer's already down — race-guarded against the 2.5s server heartbeat so a heartbeat-late snipe cleanly loses",
+        "The Today panel has moved off the Home dashboard: the day-clock hover dropdown is now the only Today surface, refreshed on every hover (the panel was doing double duty with the dropdown since v0.5.44)"
+      ]
+    },
+    {
+      "version": "0.5.47",
+      "date": "2026-09-28",
+      "title": "Real sudden death",
+      "features": [
+        "$1 sudden death rebuilt to the real format: ONE card on screen at a time — $1 opens, a hard 6–10 second clock that no bid can extend, and at 0:01 the card is gone. Cards run cheap-to-rich so the rip's hit closes the sequence as the climax; you blink, you lose it (the old build put the whole pack on the block at once with rolling-hammer extensions)",
+        "Room heat is capped in DOLLARS, not multiples: the chase tops out a few dollars over market on commons and roughly $10–30 over on the grail — bids past that line just don't land, and NPC snipers obey the same ceiling (verified: commons at $0.89 market war'd to $2; a $3.50 card went $8 after 7 bids; zero over-cap sales across a full sequence)",
+        "A $1 opener always finds a taker — passed lots don't exist in this format — and the room runs on its own 2.5-second server heartbeat so 6–10 second lots actually live and die in real time"
+      ]
+    },
+    {
+      "version": "0.5.46",
+      "date": "2026-09-28",
+      "title": "The catalog ships with the game",
+      "features": [
+        "A 14MB offline catalog seed (all 176 sets, ~20,600 cards, the latest real price for every card) now ships inside the installer and absorbs into any save on boot in seconds — fresh installs start fully stocked with real prices, and saves caught mid-crawl (API outages had been leaving sets undone, forcing a fresh crawl on every restart) top up instantly with zero API requests",
+        "The API stays for what it's actually for: a weekly delta pass brings new releases and changed sets, and the daily owned/wishlist price refresh keeps your cards current — the endless boot-time re-crawl is gone",
+        "Sealed pricing fix: in-print sets now sell at retail (MSRP) instead of chase-card expected value — 30th Celebration packs were pricing at the $30 EV cap against a real $4.49 shelf price; the pull-EV estimate only takes over once a set is actually out of print, so collector appreciation still works (151, Crown Zenith, Base, Celebrations unchanged)"
+      ]
+    },
+    {
+      "version": "0.5.45",
+      "date": "2026-09-28",
+      "title": "The morning after",
+      "features": [
+        "A day-recap line lands in the activity feed at every UTC midnight rollover: what fired, what each roll cost, and the new day number — '🌅 Day 12 begins. shop rent -$45.00 ✓ · loan interest -$2.01 ✓ · disaster roll didn't roll. Day cost: -$47.01.' — so the morning-after view lives in the feed, not just in the Today panel's checkboxes",
+        "The recap keeps a rolling snapshot of the Today panel through the day and posts the final picture once after rollover (before the new day's systems stamp over it), posts nothing when the save sat closed for days, and never duplicates"
+      ]
+    },
+    {
+      "version": "0.5.44",
+      "date": "2026-09-28",
+      "title": "Hover the day",
+      "features": [
+        "The header day clock is now a hover dropdown: resting on the DAY chip (or the final-hour ROLLS IN countdown) opens a mini Today panel — every roll due at midnight with its checked-off state, amounts in red, the weekly watch list, and the day's known-out total, refreshed on every hover so the checkboxes are honest even across midnight",
+        "The dropdown's 'Full Today panel →' button hops straight to the Home dashboard, and the countdown in the dropdown header always agrees with the chip above it"
+      ]
+    },
+    {
+      "version": "0.5.43",
+      "date": "2026-09-28",
+      "title": "Every channel is a real show",
+      "features": [
+        "The seven channels now run their real formats end to end: tapping a channel swaps the FULL room — host header, chat, and that format's rails — not just a banner, so a $1 sudden-death room is all $1 lots, the mystery channel is all boxes, and the break rooms are all boards",
+        "Every channel rips its own product like real channels: the $1 rooms run the cheapest boosters on the shelf (a buck a card has to make sense), the vintage auction room rips the priciest, and the break / rip-it-or-ship-it / mystery rooms take a mid-tier modern product",
+        "A dedicated mystery-box channel is born: SlabDaddyDee's room becomes sealed boxes where a hit-bearing rip becomes a PREMIUM box (the hit buried under half the bulk) with a standard filler box alongside — every rip is buyable, nothing bleeds onto the rails",
+        "Format taglines in the show's welcome chat and LIVE feed lines ('every card $1 — sudden death, no mercy'), format names on every channel chip and tooltip, and page copy that names the whole format roster"
+      ]
+    },
+    {
+      "version": "0.5.42",
+      "date": "2026-09-28",
+      "title": "The last hour warning",
+      "features": [
+        "The header day clock now warns before midnight UTC: in the final hour the DAY chip flips to a live ROLLS IN m:ss countdown with a slow amber breathing glow, and the last 10 minutes escalate to a fast red pulse with a red-haloed progress bar — rent, condition wear, disasters, and the save snapshot never land unseen",
+        "The countdown targets the same midnight as the Home Today panel (the two agree to the minute), and the countdown tooltip names what's about to fire and points at the Today panel"
+      ]
+    },
+    {
+      "version": "0.5.41",
+      "date": "2026-09-28",
+      "title": "Know what's coming",
+      "features": [
+        "New Today panel on the Home dashboard: every roll that lands at the next UTC midnight in one list — shop rent with its amount (and the waiver when the cases sit empty), staff payroll, daily loan interest, the save snapshot, condition wear, and the disaster roll — each row checked off ✅ and struck through the moment it fires, on the same day-keys the systems themselves write",
+        "A weekly watch list below the dailies: the insurance premium with its next draft, locker rent, the vault rider, and franchise-store rent plus wages — so the bills that don't land at midnight still have a place on the board",
+        "Panel header counts down to the next roll (the same midnight the day clock runs toward) and totals the day's known out across every pending row with a dollar amount"
+      ]
+    },
+    {
+      "version": "0.5.40",
+      "date": "2026-09-28",
+      "title": "Nobody sleeps, nothing closes",
+      "features": [
+        "The live wing is always on: every host runs a channel around the clock — seven rooms live at once, mid-rip whenever you open the page (was: two 3-hour windows a week, one show at a time). Rooms wrap and re-arm themselves, so the lineup rolls over constantly and never goes dark",
+        "Rips run at ~90s across all rooms — drops flash, hammers roll, and mystery piles open continuously across the whole platform, not just in the room you're watching",
+        "The Auction House has constant influx: the house keeps a rolling floor of ~10 live lots (target wobbles 7–13 so the room breathes), spawning up to two per tick with tighter windows — something is always starting and something is always about to hammer, on every visit",
+        "New CHANNELS lineup bar on the Live page: every live room as a chip with viewers, rip progress, and a live dot — one click hops to another host's room, and the whole thing is visible on every visit"
+      ]
+    },
+    {
+      "version": "0.5.39",
+      "date": "2026-09-28",
+      "title": "Watch the day turn",
+      "features": [
+        "New top-right day clock: DAY n sits beside cash in the header with a progress bar that fills through the day — you can see the next daily roll (rent, condition wear, disasters, and your save snapshot) coming, instead of it landing unseen while you read a table",
+        "The bar ticks locally every 15s and the tooltip counts down to midnight UTC (the hour every daily system gates on); day 1 is the UTC day the save was created"
+      ]
+    },
+    {
+      "version": "0.5.38",
+      "date": "2026-09-28",
+      "title": "The 6 AM crew",
+      "features": [
+        "Weekend flea markets: flat-price junk bins (25¢, 50¢, $1, $2, $5) where every card costs the bin price and a few are real cards that don't belong — the 25¢-for-a-shadowless fantasy, with comps that are honest, verifiable app prices",
+        "The grounds open at 6 AM and the NPC pickers are already there: every game tick they take 1–12 of the best remaining cards (highest value first, with a casual hand), so bins visibly drain while you read the table — the score you're chewing on can vanish next tick",
+        "Per-bin heat counter shows how many 20×+ cards are still buried, and when a picker pulls a real score the feed tells you exactly what you missed — FOMO is the mechanic",
+        "Digging is one blind card per click, revealed after you commit, logged to a Your Digs scrapbook with the multiple; Condition Wars rides along silently — the bin never shows the copy's sub-grade, your eye stays the edge"
+      ]
+    },
+    {
+      "version": "0.5.37",
+      "date": "2026-09-28",
+      "title": "Condition Wars",
+      "features": [
+        "The hidden copy war goes public: every raw copy now rolls a fourth sub-stat — the print line, the row of ink dots across the artwork — and 92% of copies strike clean while a cursed few carry a below-the-eye-line smudge that caps any grade",
+        "Condition comps: card detail now shows what the MARKET pays for your exact copy — band value, this-copy value, and a drifted comp window — because two NM copies of the same card are not the same card and buyers know it",
+        "Sub-grade drift: once a copy's read is published (listed, stocked in a case, or offered to a buylist) buyers pay the copy's sub-grade, ±8% around the band — a clean strike earns a premium, a snow-capped edge sells at a discount. Unseen copies still price at the band: the information IS the value",
+        "The eye trains on looks now, not just grading results: every inspect counts (90 points to master, grades teach double), and your read persists per copy as its public face — plus a plain-language verdict (dead-centered, heavy whitening, visible print line) with the ± error shown"
+      ]
+    },
+    {
+      "version": "0.5.36",
+      "date": "2026-09-28",
+      "title": "The save that can't be lost twice",
+      "features": [
+        "Rolling in-app save backups: the game photographs its entire save — cash, collection, sealed, every history — once per game day and keeps the last three, so a save-ruining mistake now costs you back to yesterday instead of everything",
+        "New Settings → Save backups panel: the snapshot list shows each save's moment (cash, cards, sealed, size), a 📸 Snapshot now button, and one-click Restore with a confirm dialog that tells you exactly what you're rewinding to",
+        "Restores run on sqlite's own online-backup API — no locks, no restart, the game just continues from the snapshot's moment — and every restore first parks a safety copy of your current world, so even a restore can itself be undone",
+        "Snapshots are plain single-file databases (portable, openable in any SQLite browser) and live in data/backups next to the save"
+      ]
+    },
+    {
+      "version": "0.5.35",
+      "date": "2026-09-27",
+      "title": "Insured for what it's worth",
+      "features": [
+        "Fixed the insurance appraisal pricing sim-market cards at $0: the appraiser only read TCGplayer rows, so a collection held while external price APIs were dry (everything priced by the simulated market, the same numbers the shop grid shows) appraised to nothing and every weekly premium collapsed to $0/wk",
+        "The appraisal now walks the full price ladder per card — TCGplayer → PriceCharting → eBay → Cardmarket → simulated — so premiums track what your cards are actually worth at any price tier, and claim-victim selection and wear-loss math ride the same ladder (a sim-priced card can finally be a real claim)",
+        "Verified on a copy of a real save: 60 mostly sim-priced cards now appraise at ~$600 instead of $0 — Starter $0.63/wk, Collector $0.98/wk, Museum $1.40/wk"
+      ]
+    },
+    {
+      "version": "0.5.34",
+      "date": "2026-09-27",
+      "title": "The whole box, ripped",
+      "features": [
+        "Booster bundles, ETBs, and displays open every pack in the box — a bundle is 6 real rips, a display 36, not one lonely pack at box price (the old code charged you for the box and handed you a single pack, a 6–36× value laundering)",
+        "Each pack in the box gets its own pull-history session, so the best-pack-total record stays an honest per-pack number — a 36-pack display can't fake-beat the record with one giant sum (the ceremony compares the best single pack of the box)",
+        "The ceremony announces the box: the foil reads 6 packs · 60 cards, the summary shows the full card count against the box price, and Inventory's button says OPEN BOX · 6 packs instead of OPEN 1"
+      ]
+    },
+    {
+      "version": "0.5.33",
+      "date": "2026-09-27",
+      "title": "Best pack ever",
+      "features": [
+        "A second chase joins the record books: the best single-PACK total (the whole rip's worth, not just its top card) — beat it and the ceremony wears its own 📦 BEST PACK EVER banner in violet with a violet edge glow, the summary adds a struck-through BEST PACK BEFORE stat, and quiet sessions show the standing record instead",
+        "The two chases stack: a pack that sets both records runs the gold and violet glows together and flies both banners — verified live at +611% ROI",
+        "Every rip surface chases both records: Pack Battles duels and tournament rounds (with per-pack totals straight from the server, so a bundle can't smuggle a two-pack sum in), and Live Shopping stream rips and mystery piles",
+        "The bars come from one endpoint now: /api/pulls/best returns the card record and the best session total (sessions are one pack everywhere — battles and tournaments roll one session id per rip), each fetched BEFORE the open so a session can't beat itself",
+        "Pack Shop's BUY 1 & OPEN now hands its purchase to the full ceremony — it opens server-side first, so records could fall with no ceremony to see them; the handoff survives React StrictMode's double-mount"
+      ]
+    },
+    {
+      "version": "0.5.32",
+      "date": "2026-09-27",
+      "title": "Records fall everywhere",
+      "features": [
+        "Pack Battles joins the record chase: a pull on YOUR side of the duel that beats your all-time best fires the full celebration — the tear stage's edges catch the gold glow and the 👑 NEW BEST PULL banner names the card that did it, in both Versus duels and tournament rounds (the rival's packs never steal your moment)",
+        "Live Shopping rips can make history too: a rip-it-or-ship-it win the host rips on stream, or a mystery pile you paid for, glows the compact tear overlay and banners the record before the reveal lands",
+        "The bar is read before the rip on every surface — the server writes battle/rip pulls during the call itself, so the record is fetched first (the same ordering bug the Pack Opening ceremony had was waiting in both new paths)",
+        "Honest negatives stay silent: verified that rips under the bar ($1.09 best) produce no banner, no glow — the celebration only exists for the record moment"
+      ]
+    },
+    {
+      "version": "0.5.31",
+      "date": "2026-09-27",
+      "title": "The record has a home",
+      "features": [
+        "The all-time best pull is a permanent fixture now: Pull History opens with a gold-crowned ALL-TIME BEST PULL panel (card art, name, rarity, set, pull date, and the record value), and the Home dashboard's Collector record carries a compact 👑 Best pull on record row right between your KPIs and the gainers — both link to the card detail like every other card surface",
+        "The record endpoint grew up: /api/pulls/best now joins card name, image, set, rarity, and pull date instead of just an id and a number",
+        "Fixed the router eating another hidden view: #/pulls-history — the destination of the ceremony summary's View pull history button — has been bouncing home since v0.5.6's unknown-view guard, same shape as the #/opening fix"
+      ]
+    },
+    {
+      "version": "0.5.30",
+      "date": "2026-09-26",
+      "title": "The record run",
+      "features": [
+        "Beating your best pull on record is a moment now: the screen edges catch a pulsing gold fire the instant the record card reveals, a 👑 NEW BEST PULL banner names the number, and the session summary strikes through your old PREVIOUS BEST while the record card wears a 👑 BEST crown and a gold halo of its own",
+        "The comparison is honest by construction: the all-time best is read before the pack is opened (the server writes the session's pulls during the open call, so any later fetch would compare the session against itself), and ordinary sessions that don't beat the record show nothing at all — the flourish only exists for the record moment",
+        "New /api/pulls/best endpoint backs the chase — the all-time single-card record lives in pull_history and now has a UI that cares about it"
+      ]
+    },
+    {
+      "version": "0.5.29",
+      "date": "2026-09-26",
+      "title": "The rip has a voice",
+      "features": [
+        "The ceremony sounds like cardboard now — all synthesized in WebAudio, zero audio files: the foil crinkles while you pull the tear line (friction scales with how fast you pull), the rip gives way with a bright tear-and-give sweep, a two-note chime rings under the spark burst, and every reveal lands its own stinger scaled to the pull — a bright ding for hits, a two-note fanfare for HUGE, a boom-and-arpeggio for MASSIVE pulls (ordinary commons stay silent so the reveal keeps its calm)",
+        "The duel gets the treatment too: Pack Battles fires the resolution stinger at both-packs-open, scaled to your side's total — a win with a hit in it sounds like one",
+        "New Ceremony sound toggle in Settings (muted state remembers per browser), and every voice no-ops cleanly when muted — muted players get the exact same ceremony, just silent"
+      ]
+    },
+    {
+      "version": "0.5.28",
+      "date": "2026-09-26",
+      "title": "Every rip is a ceremony",
+      "features": [
+        "The interactive tear-open pack is one shared component now, and every rip in the game goes through it: Pack Battles puts both packs on the table — you tear yours (pointer or keyboard), the rival's rips itself open a beat later, then the duel resolves; Live Shopping rip-ship wins and mystery piles land a compact tear overlay before the reveal modal, so the host's pull is something you open, not a list that appears",
+        "Battles and Live Shopping packs wear their set's real symbol too (Battles already carried symbol_url; the live-show serializer now joins it from the sets table), so a rip reads the same on every surface",
+        "Skip paths everywhere: Space or double-click skips the duel tear, skip-animation mode auto-rips Pack Opening packs, and the Live overlay obeys the same TearPack interactions as everywhere else"
+      ]
+    },
+    {
+      "version": "0.5.27",
+      "date": "2026-09-26",
+      "title": "Set foil & sparks",
+      "features": [
+        "The tear ceremony learned three tricks: the pack is focusable and rips on Enter or Space (proper role, aria-label, and a yellow focus ring — the ceremony is keyboard-complete), every set's foil carries its own symbol as the pack art (emoji fallback when a symbol image is missing) with a deterministic per-set accent glow, and the finished rip throws a 16-spark burst in the house palette before the first card flies",
+        "Same set, same look: the pack hue is hashed from the set name, so a 30th Celebration pack reads differently from a Pitch Black one at a glance — and always the same way"
+      ]
+    },
+    {
+      "version": "0.5.26",
+      "date": "2026-09-26",
+      "title": "Rip it yourself",
+      "features": [
+        "The pack opening is interactive now: before any card reveals, the foil pack exists on screen — hold it and pull down to tear it open, a glowing tear line riding your pointer with the crimped top peeling as you go; release past the middle and the rip finishes with a flourish, let go early and the foil snaps back shut. A Tear it open button does the pulling for you, and Skip-animation players get their packs auto-ripped",
+        "The game window is a normal taskbar citizen again: the app icon lives on the taskbar where players expect it, minimize minimizes, and X quits for real (stopping the server) — the tray icon stays on as a convenience for bringing a buried window back, not as a hiding place. Deep-linking to the pack-opening ceremony works again too: the router's unknown-view guard has been bouncing #/opening home since v0.5.6, so Buy 1 & OPEN opened your pack server-side and dumped you on Home",
+        "Fixed the Pack Shop's BUY 1 & OPEN flow landing on the ceremony (see above) — the reveal, summary, and pull history were all intact, just unreachable from the button that promised them"
+      ]
+    },
+    {
+      "version": "0.5.25",
+      "date": "2026-09-26",
+      "title": "The unwatched till",
+      "features": [
+        "Dead hours are real now: the shop keeps a pulse after close (the closer rings stragglers, night traffic up from a near-zero 0.02×), and \"unwatched\" finally means unwatched — the skim keys to the wall-clock night band (21:00–06:00, ramping from close to deep night) instead of the traffic curve, which made 2am the only hour anyone could ever skim and left the mechanic firing in practice never. Cheap managers now skim a real 1–2% of gross at night, and the satellite till audit finally has something to catch",
+        "Loyalty reshaped to pay honestly: a checked-out manager leaks (up to 1.3×, and doesn't watch their own till) while well-paid loyalty buys a flat honesty floor — the old curve quietly rewarded keeping managers underpaid, since skimming only ever pays the owner back half",
+        "Fixed: the same local Sunday could pay the district or regional office twice — the weekly payroll guards keyed their once-per-day marker on the UTC day while the is-it-Sunday check read the local day, and every local Sunday spans two UTC dates (invisible in normal play, the night-sampling audit hit it weekly)",
+        "Fixed a stray per-skim console.log that fired in production",
+        "Doors tuned under the honest clock: walk-in base 0.06 → 0.08 and storefront rent $45 → $36/day, because the old sim numbers were measured at a permanent 18:30 peak pin — sim-audited, a fair-managed 3-door chain compounds at +$26/day with the full-day clock (per-door +$36–41), and the franchise audit now shows the real honesty gradient (1★ 1.7% skim → 5★ 0%)",
+        "The sims tell the truth about time now: SIM_HOUR=fullday spans the whole clock each simulated day (with a genuine late-night slice), and both sim:empire and sim:franchise run it"
+      ]
+    },
+    {
+      "version": "0.5.24",
+      "date": "2026-09-26",
+      "title": "The chain pays",
+      "features": [
+        "Raise demands anchor to the market ladder now: a busy manager asks within reach of what their stars are actually worth (capped at 1.3× market, tapering as headroom runs out) — the old ask-anything game ratcheted a fair-run 3-door chain's payroll up ~45% in two months and turned decent management into a −$108/day drain",
+        "Loyalty pays in traffic, not just trust: loyal managers pull up to +20% more regulars (was +10%), so an attentive owner's doors gross ~$107/day against ~$93 under neglect — the sim now shows the honest trade-off: grant every raise and the chain compounds at +$39/day; ignore every ask and you keep ~$58/day but bleed 37 resignations a run and ~15% of door traffic",
+        "The management layer got lighter: the district ladder dropped to $15–42/day (was $18–55) and regional to $24–64 (was $30–82), so offices on a 3-door chain cost ~$92/day instead of $131, and satellite doors tick busier (walk-in base 0.05 → 0.06)",
+        "New full-empire audit `npm run sim:empire` (flagship + 3 satellites + DM + regional, built through the real gates): it plays the owner side of the raise game — attentive (grant everything) or negligent (ignore everything) — reads office costs from the ledger instead of end-of-run state, and counts 🚪 walkouts; the audit found the drain, this patch is the fix, and the audit confirms the fix"
+      ]
+    },
+    {
+      "version": "0.5.23",
+      "date": "2026-09-26",
+      "title": "Pro at work",
+      "features": [
+        "Manager quality pulls real traffic now: the regulars-come-to-see-a-pro draw widened from ±12% to ±25% across the 1★–5★ band — a 5★ manager out-earns a 1★ by ~$22/day, more than covering the wage ladder, and a cheap hire visibly drags the door",
+        "Storefront satellites tuned to the break-even band: a well-run store nets about +$8–29/day by manager quality (sim-audited average +$16/day), instead of the old spread where quality barely mattered and every store landed within a few dollars of the same line",
+        "sim:franchise reports honest per-store net/day now (the old summary divided a whole run's drift by one day), and cross-band runs prove stocking strategy: mid-band stock carries the store, dollar-bin filler loses ~$55/day under the same rent"
+      ]
+    },
+    {
+      "version": "0.5.22",
+      "date": "2026-09-26",
+      "title": "The audit bench",
+      "features": [
+        "Two new economy audits beside the rival sim: `npm run sim:franchise` replays the real chainTick across manager qualities (sales/day, skim%, rent+wage burden per ★), and `npm run sim:resale` plays a scripted flipper through the real deal flow (deal volume, expiry, ask-vs-value, instant-flip ROI) — both on throwaway database copies with the same isolation guarantees (bootstrap-first temp home, refusal guards, boot-file mirroring)",
+        "Fixed resale lot valuation: the deal generator sampled ANY price row for a card — including simulated-market rows — while the game realizes prices from TCGplayer data, so holo-only promos were valued at a fraction of what they actually pay (a measured 2.4× windfall on instant flips; audit ROI fell from an impossible +346% to the intended edge at +75%)",
+        "Resale lots now book their real condition: asks were discounted for LP/MP/HP copies but every card was stored as NM, quietly laundering worn cardboard into near-mint dealer payouts"
+      ]
+    },
+    {
+      "version": "0.5.21",
+      "date": "2026-09-26",
+      "title": "Nerve of steel",
+      "features": [
+        "Outlasting a price war pays: when a war expires on the calendar — you held your prices, never matched, never flinched — the shop earns +2 reputation and the feed names it (\"the block watched you hold your nerve through the whole fight\")",
+        "The blink pays nothing: a rival that folds early surrenders the word-of-mouth to no one, so the three war outs now carry real trade-offs — wait for rep, match for traffic, buy for the block",
+        "Simulator hardening (found the hard way): the sim's temp-home redirect now happens before any database import (the old ordering silently ran sims against the real save), with a refusal guard, a `sim:rival` bootstrap that mirrors the boot files, and cross-run feed leakage cleaned"
+      ]
+    },
+    {
+      "version": "0.5.20",
+      "date": "2026-09-26",
+      "title": "Funded to fight",
+      "features": [
+        "Price wars start funded: the rival's owner drops a $60 war chest in the register when a war is declared, and the fight now runs to its planned end on the calendar instead of collapsing into an early fold",
+        "The blink is a last resort now, not the routine exit: the fold threshold dropped to a truly dry till ($60 → $25) with half the old odds — a 30-day simulation went from 89% of wars ending in blinks to 0%, with 90-day runs at 4%",
+        "Wars last the same length as before (~5 days); there are just more of them, because a funded rival stays feisty — the same per-war drama, more often, and tills end healthier (30-day floor $122 vs $0)"
+      ]
+    },
+    {
+      "version": "0.5.19",
+      "date": "2026-09-26",
+      "title": "The ledger and the stake",
+      "features": [
+        "The rival's till can't owe money anymore: wages stop mattering when the wallet is empty (a 90-day simulation ran broke rivals into −$1,900 of debt under the old math)",
+        "A broke, humbled rival with empty cases gets an owner stake — the owner dips into savings (up to 3 times) to restock and keep the comeback arc alive, instead of deadlocking forever with no cash to restock and no stock to sell",
+        "Fixed the humility bar: the comeback target is the rival's PRE-blink reputation now, not the post-retreat number — a blink used to start a \"comeback\" that was already finished (avg 0.6 days under the flag)",
+        "New headless simulator (server/scripts/rival-sim.ts): replays the real rivalTick() across whole simulated days on a throwaway database copy — the audit harness that found all three of the above"
+      ]
+    },
+    {
+      "version": "0.5.18",
+      "date": "2026-09-26",
+      "title": "Humble pie",
+      "features": [
+        "The rival has a comeback arc now: after blinking first it eats humble pie — no new wars, and its fresh stock prices to sell (≈1.02× market instead of ≈1.22×) — while a reputation point a day (when the till can breathe) rebuilds toward its old pride",
+        "When the rep recovers, the humility lifts with a 😤 feed warning: \"the till recovered, the rep rebuilt, and your window displays are being sized up again\" — a blinked-out rival isn't a beaten one",
+        "The rival panel carries a 🩹 humbled badge while the peace lasts, and buying the rival out clears the state with everything else"
+      ]
+    },
+    {
+      "version": "0.5.17",
+      "date": "2026-09-26",
+      "title": "The right cardboard",
+      "features": [
+        "War-price memory is keyed by card instead of database row: a blink restore (or a war expiring) can no longer nudge the ask of a different card the rival restocked into a freed slot mid-war — rows get reused, the cardboard doesn't",
+        "The restore also heals whole-stock dupes: every row of the war's card walks back to its pre-war ask together, while rows genuinely sold mid-war still miss it"
+      ]
+    },
+    {
+      "version": "0.5.16",
+      "date": "2026-09-26",
+      "title": "The till runs dry",
+      "features": [
+        "The rival can blink first now: when its till runs dry mid-war, the cuts come off its cases (walked back to their pre-war prices), the war ends early, and the block notices the retreat — −2 reputation and a 🏳️ feed line. Starving them out is finally a strategy, not just a slogan",
+        "Wars now remember their pre-war prices: when a war naturally expires the rival walks its cuts back up instead of quietly selling at war prices forever, and rows it sold mid-fight simply miss the restore",
+        "The war banner tells you the third way out — \"starve it and they'll blink first, match the cuts and meet them in the mud, or buy the block\""
+      ]
+    },
+    {
+      "version": "0.5.15",
+      "date": "2026-09-26",
+      "title": "Meet them in the mud",
+      "features": [
+        "New ⚔️ Match their price button in the rival's war banner: one click reprices every contested case down to the rival's number — the margin goes, the walk-ins stay — and the war ends at parity (the war feed always promised \"match them and lose margin\"; now there's a button that actually does it)",
+        "\"Undercuts you\" badges clear at parity: a rival case only carries the badge while its ask sits under both the market and your live price on the same card, so a matched shelf reads as peace, not war",
+        "Matching when nothing is contested (or no rival stands across the street) answers honestly instead of pretending — the button never raises your prices to \"match\""
+      ]
+    },
+    {
+      "version": "0.5.14",
+      "date": "2026-09-26",
+      "title": "The war that finally ended",
+      "features": [
+        "Price wars across the street actually end now: an expired war stands down on the next day-tick with the \"restocked at sane prices\" feed line — the war-over check was logically unreachable, so a declared war used to run forever",
+        "The rival's till is honest again: restocking from it debits what the stock costs (the daily write-back was clobbering the restock purchase, handing the rival free inventory and an endless war chest)",
+        "The rival block audited end-to-end on live saves: wars only fire when the rival can actually undercut one of your cased cards, walk-in poaching deepens while a war runs (and vanishes when they close), the buyout escalates ×1.25 per lowball up to 3× their book, and buying the block books the fixtures-and-goodwill premium as overhead"
+      ]
+    },
+    {
+      "version": "0.5.13",
+      "date": "2026-09-25",
+      "title": "The overflow & the bill",
+      "features": [
+        "Vault slots now prioritize: your most valuable slabs ride the glass first, and the overflow — slabs beyond the rider's 25 slots — sleeps at home where disasters can reach it (a break-in that finds the vault stocked now tells you exactly how many overflow slabs are still exposed)",
+        "The Storage page warns the moment slabs exceed vault coverage — \"2 slabs beyond the vault slots sleep at home\" — and the Insurance panel names which side every slab sleeps on",
+        "New 🛡 protection rollup on the weekly P&L: insurance premium + locker rent + vault rider in one line, so the price of safety is finally a number you can read at a glance",
+        "The Sunday business digest carries the week's protection cost too — a pure protector with no shop still gets their 🛡 line"
+      ]
+    },
+    {
+      "version": "0.5.12",
+      "date": "2026-09-25",
+      "title": "The collector's floor",
+      "features": [
+        "Auto-scrap gets a value floor: set a dollar amount and cards worth more than it are collector cardboard, not filler — never sold for room, no matter how full the shelf gets (0 = no floor, the old behavior)",
+        "The floor editor lives right under the overflow policy on the Storage page, with a live badge showing the active floor and a one-click clear",
+        "The ♻️ pre-flight hint turns into a red ⚠️ warning when the floor blocks a buy — \"the $5 floor blocks this buy — nothing scrapable left at that line\" — so the refusal is explained before you click, and the server still refuses honestly",
+        "Feed lines for the floor change and the overflow-policy switch now mention the floor when one is set"
+      ]
+    },
+    {
+      "version": "0.5.11",
+      "date": "2026-09-25",
+      "title": "No surprises at the scrap pile",
+      "features": [
+        "When auto-scrap is on and a buy would have to sell spares to fit, the buy button now says so before you click it: a gold ♻️ pre-flight line under the price — \"♻️ this buy scraps 1 spare card (~$4.48–$6.06)\" — with a live read of the real scrap pool",
+        "The hint appears on Market listings, buylist shop shelves, and Local Deals cards, and stays silent when there's room or the policy is set to refuse — it only speaks when clicking would actually cost you cardboard"
+      ]
+    },
+    {
+      "version": "0.5.10",
+      "date": "2026-09-25",
+      "title": "The overflow policy",
+      "features": [
+        "New choice on the Storage page — ♻️ When the shelf is full: Refuse the buy (the old behavior: deliveries bounce, nothing you own is touched) or Auto-scrap for room (your cheapest spare bulk sells to the scrap dealer at 8¢ on the dollar until the delivery fits)",
+        "Auto-scrap honors the policy on Market buys, shop shelves, Local deals, and Trades — pack rips, resale lots, estate lots, and storage hauls make room the same way, and the feed records every auto-scrap with the cash it paid you",
+        "Favorites are always spared, and so is anything spoken for: binder pockets, shop cases, bulk boxes, grab bags, and franchise shelves are excluded from the scrap pool — if only protected cards remain, the delivery is refused with an honest \"not even the scrap pile could make room\"",
+        "The scrap rate is now one shared constant — a haul sort and an overflow scrap always pay the same street rate"
+      ]
+    },
+    {
+      "version": "0.5.9",
+      "date": "2026-09-25",
+      "title": "The vault & the watchman",
+      "features": [
+        "The 🏆 vault rider now pays off in the insurance system too: slabs stored off-site are immune to the whole disaster roll — roof leaks, coffee spills, attic heat, and break-ins all pass them by (a break-in that finds the vault stocked says so in the feed)",
+        "Each rented locker adds a $0.75/wk storage surcharge to the insurance premium draft (more doors, more watch) — the surcharge shows in the weekly line, the draft feed entry, and the Insurance panel",
+        "Fixed the disaster clock: the daily 3% disaster roll was actually rolling every 20-second tick (the once-per-day guard was never written) — now it rolls once per game day, the day is consumed even when nothing is exposed to the rolled event, and forced diagnostic rolls can't fish for juicier targets"
+      ]
+    },
+    {
+      "version": "0.5.8",
+      "date": "2026-09-25",
+      "title": "The full-shelf early warning",
+      "features": [
+        "Collection and Inventory now carry a capacity strip once your shelf crosses 75% full — amber while there's still room (\"📦 Shelf filling up — 75/100 raw cards stored\"), red and shouting when it's full, so the first refused buy is never a surprise",
+        "The strip names the slab rack too when the vault or dresser spots are maxed, and carries a 🗄 Rent a locker → shortcut straight to the Storage & Auctions locker desk"
+      ]
+    },
+    {
+      "version": "0.5.7",
+      "date": "2026-09-25",
+      "title": "Storage & the vault",
+      "features": [
+        "Your collection has a roof: the bedroom shelf holds 100 raw cards free, and every acquisition path — packs, market buys, shop shelves, parking-lot deals, resale lots, estate lots, trades, and storage-unit hauls — checks the racks before the cash moves",
+        "Rent storage lockers at the facility (Small 5×5 +100 slots $15/mo · Medium 10×10 +250 $30/mo · Large 10×20 +600 $55/mo, billed weekly with a first month up front) and turn them back in when you downsize — only when they're empty",
+        "Graded slabs don't stack: two live on the dresser free, and the 🏆 vault rider policy ($12/mo) rents 25 insured slots under camera and glass — slabs in hauls go straight back under the blanket without it",
+        "A full shelf refuses deliveries instead of losing them: market buys bounce with the count (\"200/200 cards stored\"), pack rips leave the overflow in the wrapper, haul sorts scrap what the racks can't take — and a warning in the feed tells you exactly what got left behind",
+        "The Storage page (now Storage & Auctions) opens with a live capacity meter for raw cards and slabs, the locker rental desk, and the vault rider policy — rent drafts land in the feed and the weekly P&L"
+      ]
+    },
+    {
+      "version": "0.5.6",
+      "date": "2026-09-25",
+      "title": "The polish pass",
+      "features": [
+        "Buylist sales now count toward unlocks, achievements, and your sales record — they were silently never written to the books (the \"Make 3 sales\" counter ignored every NPC-shop sale)",
+        "Fixed a routing bug where the vendor-table stock API was shadowed by the booth-detail route — stocking your convention table or show booth never worked and always answered \"No show running\"",
+        "Stale or mistyped links (old bookmarks, #/ebay, #/set with no set picked) now bounce home with a toast instead of a silent blank page",
+        "The BidBay To-ship queue refreshes live — a sale that lands while you watch the page no longer waits for a navigate-away to appear"
+      ]
+    },
+    {
+      "version": "0.5.5",
+      "date": "2026-09-25",
+      "title": "Shipping & condition disputes",
+      "features": [
+        "A BidBay sale isn't money until it ships: every sold order waits in the new To-ship queue — pick 📬 Economy / 📦 Standard / 🚚 Priority postage (real costs booked to overhead) and pack from your actual supplies stock",
+        "Ship it bare and the buyer's corner test decides your fate — damaged-arrival disputes refund the buyer IN FULL and the card never comes back",
+        "📷 Pack-out photos + decent packing are your evidence: win a dispute and payout releases minus a goodwill fee; lose one and the 1★ lands in your feedback rating",
+        "Economy parcels with no tracking can vanish entirely — bubble mailers join the Supplies shop as the fourth stock item"
+      ]
+    },
+    {
+      "version": "0.5.4",
+      "date": "2026-09-24",
+      "title": "Unlock quest counters",
+      "features": [
+        "The sidebar's 🔒 next-goal hints now show live progress — \"🔒 Make 5 sales 2/5\" — counting up as you play until the lock opens",
+        "Cash goals track your saved dollars and follower goals your stream following, each updating live with the same 15-second heartbeat as the rest of the game"
+      ]
+    },
+    {
+      "version": "0.5.3",
+      "date": "2026-09-24",
+      "title": "What's New panel",
+      "features": [
+        "In-game changelog — the sidebar's ✨ What's New row (with a badge when you haven't caught up) opens the version history so returning players can see everything added since their last session",
+        "Seen-tracking is per save: catch up once and the badge clears, and every future update re-badges itself"
+      ]
+    },
+    {
+      "version": "0.5.2",
+      "date": "2026-09-24",
+      "title": "Next-unlock hints",
+      "features": [
+        "Locked views now advertise themselves — one subtle 🔒 row per sidebar section names the nearest goal there (\"Make 5 sales\", \"Save $400\", \"Gather 5 followers\") with the target view in the tooltip",
+        "Hints advance live as you play and vanish when a section is fully unlocked"
+      ]
+    },
+    {
+      "version": "0.5.1",
+      "date": "2026-09-24",
+      "title": "Organized sidebar & progressive unlocks",
+      "features": [
+        "The nav is regrouped into six clean sections (COLLECT · MARKET · EVENTS · BUSINESS · PLAY · SYSTEM) with every surface sorted into place — the duplicated BUSINESS header is gone",
+        "New saves ease in: Pawn/Yard unlock at 3 sales, Local Deals/Storage at 5, BidBay at 8, Live Shopping at 12, Card Shop/Resale Desk at $500/$400 saved, Stream at 5 followers",
+        "🔓 unlock toasts celebrate each first reveal; veterans see everything immediately"
+      ]
+    },
+    {
+      "version": "0.5.0",
+      "date": "2026-09-24",
+      "title": "Facebook Marketplace & Craigslist",
+      "features": [
+        "🪧 Local Deals — the wild west: NPC listings at 0.4×–3.5× market with 🐟 counterfeit tells, named parking-lot meetups, ~1-in-8 no-shows both directions",
+        "Counterfeit risk: skip the in-person corner test and a fake is yours forever (buylist shops take them for a dollar); $15 on-the-lot inspection removes the risk",
+        "Sell from your binder with your own post — midnight 🌙 lowballs included; every deal is cash, no fees, no paper trail"
+      ]
+    },
+    {
+      "version": "0.4.9",
+      "date": "2026-09-23",
+      "title": "Card shows as an attendee — the floor",
+      "features": [
+        "Every NPC dealer table has a person with a mood (😄 → 😠) driving hidden rigidity, patience, and their buy offers on your binder",
+        "Haggle: meet their floor for a handshake, land close for a midpoint counter, lowball a grump and the table goes cold for the show",
+        "Sell for cash or +8% store credit (silos per dealer), push once for more, or drop cards in PSA's 📦 grade-and-go box from the floor"
+      ]
+    },
+    {
+      "version": "0.4.8",
+      "date": "2026-09-23",
+      "title": "Insurance",
+      "features": [
+        "Three policies (Starter/Collector/Museum) with weekly premiums sized to your live appraisal — raw cards, slabs, and sealed",
+        "A ~3% daily chance of roof leaks, coffee spills, attic heat waves, or break-ins: raw slips a condition step, slabs drop a grade, thieves take slabs outright",
+        "7-day waiting periods, lapse & grace rules, itemized claims — and the accountant flags uninsured collections"
+      ]
+    },
+    {
+      "version": "0.4.7",
+      "date": "2026-09-23",
+      "title": "Starting tutorial",
+      "features": [
+        "A five-step welcome walkthrough for fresh saves — the $1,000 loop, collecting, grading, the hunt surfaces, the empire",
+        "Finishing or skipping flips a per-save flag so it never nags; Settings can replay it; resetting your save resets the tour"
+      ]
+    },
+    {
+      "version": "0.4.6",
+      "date": "2026-09-22",
+      "title": "Hover-to-zoom everywhere",
+      "features": [
+        "Every card image in the game zooms on hover with a floating preview and opens the full detail modal on click — Collection, Market, BidBay, Pawn, Buylist, Grading, Wishlist, Binders, hauls, peeks, lots, Home strips, Set pages, reveals, and live rooms"
+      ]
+    }
+  ]
+}

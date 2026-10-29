@@ -1,0 +1,768 @@
+/* --- Palettes ---------------------------------------------------------------
+   Styled after Pokémon fangame / TCG-Pocket chrome: patterned night skies,
+   translucent slate panels with bright outlines in dark, and white cards with
+   navy ink outlines (a dialogue box) in light. Every rule below reads tokens
+   only, so the switch restyles all 38 screens. -- */
+:root{
+  --bg:#0d1230;--panel:#1a2247;--panel2:#232d58;--panel3:#2c3870;
+  --border:#42539c;--border-soft:#2c3869;
+  --panel-hi:rgba(255,255,255,.05);--focus:#6f9bff;
+  --text:#eef2ff;--text-dim:#aebbe8;--text-faint:#8d9bd4;
+  --navy:#0a1024;  --blue:#5a86ea;--blue-soft:#1b2450;--blue-text:#9dbcff;
+  /* Chrome (nav column) stays deep navy in dark, royal in light. */
+  --chrome-a:#16265f;--chrome-b:#0a1233;--chrome-panel:#1e3070;--chrome-panel2:#26408c;--chrome-line:#3a56a8;
+  --chrome-dim:#aebbe8;--chrome-faint:#8fa0dd;
+  --yellow:#ffcb05;--yellow-line:#c79a00;--yellow-dim:#8f7100;
+  --logo:#ffcb05;
+  /* The fangame action palette — FIGHT red, BAG orange, PKMN green, RUN blue. */
+  --red-btn:#d93b3b;--orange-btn:#e08a2e;--green-btn:#2f9e56;--blue-btn:#3b6fd4;--cyan-btn:#2e9bd4;
+  --gold:#ffcb05;--gold-soft:#c9a227;
+  --green:#5fd68a;--red:#ff7b7b;--amber:#fbbf24;--amber-bg:#fbbf241a;
+  --violet:#c4b5fd;--magenta:#f0abfc;--cyan:#7dd3fc;
+  --on-yellow:#141414;
+  --yellow-soft:rgba(255,203,5,.14);--row-hover:rgba(255,255,255,.05);
+  --edge:#070b22;--track:#232d58;--img-bg:#0c1130;--img-stripe:#101637;
+  --topbar:#161e42ee;--scroll:#3a4880;--backdrop:#04061ac7;
+  /* Hex-grid night sky, like a fangame save/menu screen. */
+  --bg-pattern:radial-gradient(circle at 50% 0,rgba(74,110,220,.16),transparent 60%),repeating-linear-gradient(0deg,transparent 0 26px,rgba(120,150,255,.05) 26px 27px),repeating-linear-gradient(90deg,transparent 0 26px,rgba(120,150,255,.05) 26px 27px);
+  --radius:16px;--shadow:0 12px 30px rgba(3,6,20,.5)
+}
+:root[data-theme="light"]{
+  --bg:#e8f0fd;--panel:#ffffff;--panel2:#f2f6ff;--panel3:#e4ecff;
+  --border:#22346b;--border-soft:#c9d8f7;
+  --panel-hi:rgba(18,39,95,.035);--focus:#2e6ad1;
+  --text:#17224a;--text-dim:#3f4f84;--text-faint:#5b6b9c;
+  --navy:#12275f;--blue:#2e6ad1;--blue-soft:#e7effd;--blue-text:#2e6ad1;
+  --chrome-a:#17309b;--chrome-b:#12275f;--chrome-panel:#17309b;--chrome-panel2:#21409f;--chrome-line:#2c4cc0;
+  --chrome-dim:#bcc9f6;--chrome-faint:#94a6e8;
+  --yellow:#ffcb05;--yellow-line:#c79a00;--yellow-dim:#8f7100;
+  --logo:#12275f;
+  --red-btn:#d5342a;--orange-btn:#c96a12;--green-btn:#0b7c44;--blue-btn:#2e6ad1;--cyan-btn:#0369a1;
+  --gold:#7d6200;--gold-soft:#6f5514;
+  --green:#0b7c44;--red:#d5342a;--amber:#a16207;--amber-bg:#fef3c7;
+  --violet:#7c3aed;--magenta:#a21caf;--cyan:#0369a1;
+  --on-yellow:#17224a;
+  --yellow-soft:#fff5cf;--row-hover:#eef4ff;
+  --edge:#1b2a54;--track:#e2ebff;--img-bg:#e9edf9;--img-stripe:#e3e8f7;
+  --topbar:#fffffff2;--scroll:#b9c2dd;--backdrop:rgba(18,39,95,.55);
+  /* Soft TCG-Pocket sky: white cards floating on a blue-to-white wash. */
+  --bg-pattern:linear-gradient(180deg,#dce9ff 0%,#eef4ff 42%,#ffffff 100%);
+  --radius:18px;--shadow:0 12px 28px rgba(18,39,95,.16)
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0;background-color:var(--bg);background-image:var(--bg-pattern);background-attachment:fixed;color:var(--text);font-family:"Trebuchet MS","Segoe UI",ui-sans-serif,system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+::selection{background:#ffcb0540}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:.2px;color:var(--text)}
+h1{font-size:22px}
+h2{font-size:17px}
+h3{font-size:14px;letter-spacing:.4px}
+/* Screen titles read as game-UI headers: uppercase, spaced, flagged by a
+   yellow marker bar so every screen opens with the same beat. */
+.page-head h1{position:relative;padding-left:16px;text-transform:uppercase;letter-spacing:1.7px;font-size:21px;font-weight:850}
+.page-head h1::before{content:"";position:absolute;left:0;top:.1em;bottom:.06em;width:6px;border-radius:3px;background:var(--yellow)}
+.page-head h2{position:relative;padding-left:15px;text-transform:uppercase;letter-spacing:1.1px;font-size:15px}
+.page-head h2::before{content:"";position:absolute;left:0;top:.08em;bottom:.06em;width:5px;border-radius:2px;background:var(--yellow)}
+p{margin:0}
+/* Fangame keys: 2px ink outline, hard bottom edge, rounded body — the
+   FIGHT / BAG / PKMN / RUN button language. */
+button{font:inherit;color:var(--text);background:var(--panel2);border:2px solid var(--edge);border-radius:12px;padding:7px 15px;font-weight:800;letter-spacing:.3px;cursor:pointer;box-shadow:0 3px 0 var(--edge);transition:background .15s,border-color .15s,transform .08s,box-shadow .08s}
+button:hover{background:var(--panel3);transform:translateY(-1px);box-shadow:0 4px 0 var(--edge)}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:0 3px 0 var(--edge)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button.primary{background:var(--yellow);border-color:var(--edge);color:var(--on-yellow);font-weight:850;letter-spacing:.5px;box-shadow:0 3px 0 var(--yellow-dim)}
+button.primary:hover{background:#ffd83e;border-color:var(--edge);transform:translateY(-1px);box-shadow:0 4px 0 var(--yellow-dim)}
+button.primary:active{transform:translateY(2px);box-shadow:0 1px 0 var(--yellow-dim)}
+button.ghost{background:transparent;box-shadow:none;border-color:transparent;color:var(--text-dim);font-weight:650}
+button.ghost:hover{background:var(--panel2);border-color:var(--border);color:var(--text)}
+button.danger{background:var(--red-btn);border-color:var(--edge);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--red-btn) 50%,#000)}
+button.danger:hover{background:color-mix(in srgb,var(--red-btn) 86%,#fff);border-color:var(--edge);color:#fff}
+/* Battle-menu colour set — use where an action deserves a game button. */
+button.btn-red{background:var(--red-btn);border-color:var(--edge);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--red-btn) 50%,#000)}
+button.btn-orange{background:var(--orange-btn);border-color:var(--edge);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--orange-btn) 50%,#000)}
+button.btn-green{background:var(--green-btn);border-color:var(--edge);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--green-btn) 50%,#000)}
+button.btn-blue{background:var(--blue-btn);border-color:var(--edge);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--blue-btn) 50%,#000)}
+button.btn-cyan{background:var(--cyan-btn);border-color:var(--edge);color:#fff;box-shadow:0 3px 0 color-mix(in srgb,var(--cyan-btn) 50%,#000)}
+button.btn-red:hover,button.btn-orange:hover,button.btn-green:hover,button.btn-blue:hover,button.btn-cyan:hover{color:#fff;border-color:var(--edge);filter:brightness(1.08)}
+button.small{padding:4px 11px;font-size:12px;border-radius:10px;box-shadow:0 2px 0 var(--edge)}
+input,select{font:inherit;background:var(--panel2);border:2px solid var(--border);color:var(--text);border-radius:12px;padding:7px 11px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
+input::placeholder{color:var(--text-faint)}
+.app{display:flex;height:100vh;overflow:hidden}
+/* TCG-blue chrome: the nav column stays dark so the play surface reads as paper. */
+.sidebar{width:220px;min-width:220px;background:linear-gradient(180deg,var(--chrome-a),var(--chrome-b));display:flex;flex-direction:column;padding:14px 12px;gap:2px;overflow-y:auto;color:#fff;--text:#ffffff;--text-dim:var(--chrome-dim);--text-faint:var(--chrome-faint);--panel:var(--chrome-panel);--panel2:var(--chrome-panel2);--border:var(--chrome-line);--border-soft:var(--chrome-line);--edge:#060c24}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 6px 12px;border-bottom:2px solid rgba(255,255,255,.12);margin-bottom:8px}
+.brand h1{font-size:17px;letter-spacing:2.5px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.brand .accent{color:var(--yellow)}
+.brand .tag{font-size:9.5px;color:var(--text-faint);letter-spacing:1.6px;text-transform:uppercase}
+/* Pokéball mark — pure CSS, no image asset (survives the packaged exe). */
+.pokeball{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #060c24;background:radial-gradient(circle at 50% 50%,#fff 0 3px,#060c24 3px 5px,transparent 5px),linear-gradient(180deg,var(--red-btn) 0 44%,#060c24 44% 56%,#f6f8ff 56% 100%);box-shadow:0 2px 0 rgba(0,0,0,.4)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:12px;color:var(--text-dim);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:700;font-size:13px;letter-spacing:.2px;border:2px solid transparent;transition:background .12s,color .12s,transform .12s}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateX(2px)}
+.nav-item.active{background:var(--yellow);color:var(--on-yellow);font-weight:850;border-color:#060c24;box-shadow:0 3px 0 rgba(4,8,26,.7)}
+.nav-item.active:hover{background:var(--yellow);color:var(--on-yellow)}
+.nav-item .ico{width:26px;height:26px;flex:none;display:grid;place-items:center;font-size:12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);border-radius:9px;line-height:1}
+.nav-item.active .ico{background:rgba(0,0,0,.18);border-color:transparent}
+.nav-label{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-section{margin:14px 0 4px;padding:6px 10px 4px;font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-faint);font-weight:800;border-top:2px solid rgba(255,255,255,.09)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+/* The fangame header: a floating rounded bar with the ball mark on the left,
+   the screen name as a pill tab, and currency-style counters on the right. */
+.topbar{display:flex;align-items:center;gap:14px;margin:10px 14px 0;padding:8px 16px;background:var(--panel);border:2px solid var(--edge);border-radius:16px;box-shadow:0 4px 0 var(--edge);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.topbar .logo-mini{display:inline-flex;align-items:center;gap:9px;font-weight:850;letter-spacing:2px;color:var(--text);font-size:13px;text-transform:uppercase;white-space:nowrap}
+.topbar .logo-mini::before{content:"";width:20px;height:20px;flex:none;border-radius:50%;border:2px solid var(--edge);background:radial-gradient(circle at 50% 50%,#fff 0 2.5px,var(--edge) 2.5px 4.5px,transparent 4.5px),linear-gradient(180deg,var(--red-btn) 0 44%,var(--edge) 44% 56%,#f6f8ff 56% 100%)}
+.crumb-sep{color:var(--text-faint);opacity:.55}
+/* Screen name rides as a pill tab, like a fangame header's active section. */
+.crumb{color:var(--text);font-weight:850;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--panel2);border:2px solid var(--edge);border-radius:999px;padding:5px 15px;box-shadow:0 2px 0 var(--edge)}
+/* HUD readouts: pill counters, tabular figures — the fangame's money chip. */
+.stat-strip{display:flex;gap:0;margin-left:auto;align-items:center}
+.stat{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:3px 14px;margin-left:10px;line-height:1.25;background:var(--panel2);border:2px solid var(--edge);border-radius:999px;box-shadow:0 2px 0 var(--edge)}
+.stat .lbl{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-faint);font-weight:800}
+.stat .val{font-size:14.5px;font-weight:850;font-variant-numeric:tabular-nums}
+.stat.hero .val{color:var(--gold);font-size:16px;font-weight:900}
+/* Day clock: DAY n + progress bar toward the next game day (midnight UTC). */
+.stat.dayclock{align-items:flex-end;min-width:74px}
+.stat.dayclock .val{color:var(--accent,var(--blue-text))}
+.stat.dayclock .daybar{width:74px;height:5px;background:var(--track);border:1px solid var(--border-soft);border-radius:3px;overflow:hidden;margin-top:3px}
+.stat.dayclock .dayfill{height:100%;background:var(--accent,var(--blue));border-radius:3px;transition:width .5s}
+/* Final hour before UTC midnight: amber breathing glow; last 10 min: fast red pulse */
+.stat.dayclock.finalhour .val{color:#f0b429;animation:dayglow 2.4s ease-in-out infinite}
+.stat.dayclock.finalhour .dayfill{background:#f0b429}
+.stat.dayclock.finalhour .daybar{box-shadow:0 0 6px rgba(240,180,41,.45)}
+@keyframes dayglow{0%,100%{opacity:1;text-shadow:0 0 2px rgba(240,180,41,.25)}50%{opacity:.72;text-shadow:0 0 9px rgba(240,180,41,.85)}}
+.stat.dayclock.urgent .val{color:#e0644d;animation:dayurgent 1s ease-in-out infinite}
+.stat.dayclock.urgent .dayfill{background:#e0644d}
+.stat.dayclock.urgent .daybar{box-shadow:0 0 7px rgba(224,100,77,.6)}
+@keyframes dayurgent{0%,100%{opacity:1;text-shadow:0 0 3px rgba(224,100,77,.4)}50%{opacity:.55;text-shadow:0 0 12px rgba(224,100,77,1)}}
+/* Day-clock hover dropdown: mini Today panel under the header chip */
+.daydrop{position:absolute;top:calc(100% + 8px);right:0;z-index:90;width:280px;background:var(--panel);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);cursor:default;text-align:left}
+.daydrop-head{display:flex;justify-content:space-between;align-items:baseline;gap:10;margin-bottom:4px}
+.content{flex:1;overflow-y:auto;padding:22px}
+.syncbar{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-dim);padding:6px 22px;background:var(--blue-soft);border-bottom:1px solid var(--border-soft)}
+.syncbar .bar{flex:1;height:5px;background:var(--track);border-radius:3px;overflow:hidden}
+.syncbar .fill{height:100%;background:var(--blue);transition:width .4s}
+/* Generic progress track + fill — grading distribution, shop bin stock, and the
+   PSA quota bar set their own height inline; without these the track was
+   transparent and the fill collapsed to zero. */
+.bar{background:var(--track);border:1px solid var(--border-soft);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--blue);transition:width .4s}
+.panel{background:linear-gradient(180deg,var(--panel-hi),transparent 56%),var(--panel);border:2px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:0 3px 0 var(--edge)}
+.panel+.panel{margin-top:16px}
+.panel h2{margin:0 0 11px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:850;letter-spacing:.9px;text-transform:uppercase;padding-bottom:9px;border-bottom:2px solid var(--border-soft)}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.page-head .sub{color:var(--text-dim);font-size:13px;margin-top:5px;max-width:78ch;line-height:1.45}
+.grid{display:grid;gap:14px}
+.grid.cols4{grid-template-columns:repeat(4,1fr)}
+.grid.cols3{grid-template-columns:repeat(3,1fr)}
+.grid.cols2{grid-template-columns:repeat(2,1fr)}
+@media (max-width: 1100px){.grid.cols4,.grid.cols3{grid-template-columns:repeat(2,1fr)}
+}
+/* Two pickers side by side crush below ~820px of content — rival names wrap
+   one word per line and stat columns clip. Stack them, like cols3/cols4 do. */
+@media (max-width: 820px){.grid.cols2{grid-template-columns:1fr}
+}
+.stack{display:flex;flex-direction:column;gap:8px}
+.kpi{background:linear-gradient(180deg,var(--panel-hi),transparent 60%),var(--panel);border:2px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:0 3px 0 var(--edge)}
+.kpi .lbl{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);font-weight:750}
+.kpi .val{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
+.kpi .note{font-size:11px;color:var(--text-dim);margin-top:3px}
+
+/* Segmented pill bar — the fangame header's L ⬤ R tab group. */
+.tab-bar{display:flex;gap:3px;background:var(--panel3);border:2px solid var(--edge);border-radius:999px;padding:4px;width:fit-content;box-shadow:0 3px 0 var(--edge)}
+.tab{background:transparent;border:none;border-radius:999px;padding:6px 16px;font-size:12.5px;font-weight:750;letter-spacing:.3px;color:var(--text-dim);box-shadow:none}
+.tab:hover{background:var(--panel2);color:var(--text);transform:none;border-color:transparent}
+.tab.on{background:var(--yellow);color:var(--on-yellow);box-shadow:inset 0 -2px 0 var(--yellow-dim);font-weight:850}
+.tab-badge{margin-left:6px;font-size:10px;font-weight:700;background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:0 6px;color:var(--text-faint)}
+.tab.on .tab-badge{color:var(--on-yellow);border-color:color-mix(in srgb,var(--on-yellow) 30%,transparent);background:var(--panel)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+
+/* density modes — comfortable is the default above */
+.card-grid.density-compact{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px}
+.card-grid.density-compact .card-cell{padding:7px;gap:5px}
+.card-grid.density-compact .card-meta .nm{font-size:11.5px}
+.card-grid.density-compact .card-meta .st{font-size:10px}
+.card-grid.density-compact .badge{font-size:9px;padding:1px 5px}
+
+/* list mode: one row per card, thumbnail + text side by side — maximum rows per screen */
+.card-grid.density-list{display:flex;flex-direction:column;gap:0}
+.card-grid.density-list .card-cell{flex-direction:row;align-items:center;gap:12px;padding:6px 10px;border-radius:0;border-left:none;border-right:none;border-top:none}
+.card-grid.density-list .card-cell:first-child{border-top-left-radius:10px;border-top-right-radius:10px;border-top:1px solid var(--border-soft)}
+.card-grid.density-list .card-cell:last-child{border-bottom-left-radius:10px;border-bottom-right-radius:10px}
+.card-grid.density-list .card-img-wrap{width:38px;flex:0 0 38px;aspect-ratio:245/342;border-radius:5px}
+.card-grid.density-list .card-meta{flex-direction:row;align-items:center;flex:1;gap:12px;min-width:0}
+.card-grid.density-list .card-meta .nm{font-size:13px;flex:0 1 260px}
+.card-grid.density-list .card-meta .st{flex:1;font-size:11.5px}
+.card-grid.density-list .card-meta .card-row-between{flex:0 0 auto;gap:8px}
+.card-cell{background:var(--panel);border:2px solid var(--border-soft);border-radius:14px;padding:10px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column;gap:8px;box-shadow:0 2px 0 var(--edge)}
+/* Uniform cell height: meta lines never wrap (the art's aspect ratio sets
+   the height) — wrapped lines made some cells taller and virtual rows
+   collide. Long text ellipsizes instead. */
+.card-grid .card-meta .nm,.card-grid .card-meta .st{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-grid .card-meta{min-width:0}
+.card-cell:hover{transform:translateY(-3px);border-color:var(--yellow);box-shadow:0 5px 0 var(--edge),var(--shadow)}
+.card-cell.silhouette{opacity:.45;filter:grayscale(.6)}
+.card-img-wrap{position:relative;border-radius:8px;overflow:hidden;background:var(--img-bg);aspect-ratio:245 / 342}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.card-img-wrap .img-loading{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:11px}
+.card-img-wrap .img-error{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;color:var(--text-faint);font-size:11px;text-align:center;padding:8px;background:repeating-linear-gradient(45deg,var(--img-bg),var(--img-bg) 8px,var(--img-stripe) 8px,var(--img-stripe) 16px)}
+.card-img-wrap .qty-badge{position:absolute;top:6px;right:6px;background:var(--navy);border:1px solid var(--navy);color:var(--yellow);font-weight:700;font-size:11px;border-radius:7px;padding:1px 7px}
+/* Live-shopping room thumbnails (auction/drop/sudden/RIOS rails) */
+.card-img-wrap.live-thumb{flex:0 0 72px;width:72px;align-self:flex-start}
+.card-img-wrap.live-thumb-sm{flex:0 0 52px;width:52px;align-self:flex-start}
+/* Sealed-pack placeholder for rip-it-or-ship-it lots */
+.sealed-thumb{flex:0 0 72px;width:72px;aspect-ratio:245/342;border-radius:8px;background:repeating-linear-gradient(135deg,var(--panel3),var(--panel3) 10px,var(--panel2) 10px,var(--panel2) 20px);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:30px}
+/* Compact row thumbnail (BidBay listings/hunts/hammer history) */
+.card-img-wrap.row-thumb{flex:0 0 44px;width:44px;border-radius:6px}
+/* Live-room hover-to-zoom thumbnails + the floating preview */
+.card-img-wrap.zoomable{cursor:zoom-in}
+.zoom-preview{position:fixed;z-index:60;width:200px;pointer-events:none;background:var(--panel,#141826);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.55);overflow:hidden}
+.zoom-preview-art{position:relative;width:100%;aspect-ratio:245/342;background:var(--img-bg)}
+.zoom-preview-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* HIT-CAM — full-screen pull-art moment */
+.hitcam{position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse at center, rgba(30,16,2,0.94) 0%, rgba(8,6,3,0.985) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;animation:hitcam-in 0.35s ease-out}
+@keyframes hitcam-in{from{opacity:0;transform:scale(1.12)}to{opacity:1;transform:scale(1)}}
+.hitcam-tag{font-weight:800;font-size:20px;letter-spacing:3px;color:#ffb347;text-shadow:0 0 24px rgba(255,140,0,0.8);animation:hitcam-pulse 1.1s ease-in-out infinite}
+@keyframes hitcam-pulse{0%,100%{opacity:1}50%{opacity:0.55}}
+.hitcam-glow{position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle, rgba(255,170,60,0.22) 0%, transparent 65%);pointer-events:none}
+.hitcam-card{width:300px;filter:drop-shadow(0 0 42px rgba(255,160,40,0.55));animation:hitcam-card 0.5s cubic-bezier(0.2,1.4,0.4,1)}
+@keyframes hitcam-card{from{transform:translateY(30px) scale(0.86);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.hitcam-name{font-size:26px;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.8)}
+.hitcam-value{font-size:15px;color:#ffb347;font-weight:600}
+.hitcam-chat{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;max-width:640px;margin-top:6px;font-size:13px;color:#ffd9a0}
+.hitcam-chat span{animation:hitcam-chat 1.4s ease-in-out infinite alternate}
+.hitcam-chat span:nth-child(2n){animation-delay:0.35s}
+.hitcam-chat span:nth-child(3n){animation-delay:0.7s}
+@keyframes hitcam-chat{from{opacity:0.35;transform:translateY(0)}to{opacity:1;transform:translateY(-3px)}}
+.hitcam-btn{margin-top:14px;background:#ff9d2e;border-color:#ff9d2e;color:#1a1206;font-weight:700}
+.hitcam-btn:hover{background:#ffb347}
+.card-img-wrap .fav-badge{position:absolute;top:6px;left:6px;font-size:12px}
+
+/* --- Graded slabs (real PSA case: red-framed label on TOP, frosted silver
+       case walls, card floating in a dark well below) --- */
+.psa-slab{position:relative;aspect-ratio:100/172;border-radius:7px;background:linear-gradient(160deg,#8d939c,#5d636d 30%,#3f444d 70%,#767c86);padding:3%;display:flex;flex-direction:column;box-shadow:0 2px 10px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.14),inset 0 0 26px rgba(0,0,0,.4);container-type:inline-size}
+.psa-label{position:relative;background:#fff;border:.8cqw solid #d1292f;border-radius:3px;padding:2cqw 2.6cqw 1.6cqw;display:flex;flex-direction:column;gap:.6cqw;box-shadow:0 1px 3px rgba(0,0,0,.45);min-height:0}
+.psa-main{display:flex;gap:2cqw;min-height:0}
+.psa-setlines{flex:1;min-width:0;display:flex;flex-direction:column;gap:.4cqw}
+.psa-set{font-size:6.4cqw;font-weight:750;color:#0b0b0b;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.psa-rank{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:.4cqw;line-height:1.1}
+.psa-cardno{font-size:6cqw;font-weight:750;color:#0b0b0b}
+.psa-word{font-size:6.6cqw;font-weight:800;color:#0b0b0b;letter-spacing:.3px}
+.psa-num{font-size:12.5cqw;font-weight:850;color:#0b0b0b;font-variant-numeric:tabular-nums;line-height:1}
+.psa-foot{display:flex;align-items:flex-end;gap:2cqw;margin-top:.8cqw}
+.psa-barcode{flex:1;height:5.5cqw;min-width:0;fill:#111}
+.psa-logo{font-size:7.5cqw;font-weight:900;font-style:italic;letter-spacing:-.5px;line-height:1}
+.psa-cert{font-size:4.8cqw;font-weight:650;color:#111;font-variant-numeric:tabular-nums;white-space:nowrap}
+.psa-well{flex:1;min-height:0;margin:2.5% 3% 3%;background:radial-gradient(120% 90% at 50% 30%,#23262c,#101216 70%);border-radius:3px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 16px rgba(0,0,0,.7)}
+.psa-well .card-img-wrap{height:96%;aspect-ratio:245/342;max-width:96%;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+.psa-glare{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.05) 24%,rgba(255,255,255,0) 46%);mix-blend-mode:screen}
+@container (max-width:86px){.psa-set:not(:first-child),.psa-word,.psa-cert,.psa-cardno{display:none}.psa-num{font-size:11cqw}} /* thumbs: one set line + grade only */
+
+/* --- Slab certifier panel (CardDetail): a mini reproduction of the label --- */
+.cert-mini{flex:0 0 108px;min-width:0;background:#fff;border:2px solid #d1292f;border-radius:3px;padding:6px 7px 5px;display:flex;flex-direction:column;gap:2px;box-shadow:0 1px 3px rgba(0,0,0,.35);overflow:hidden}
+.cert-mini-lines{display:flex;flex-direction:column;min-width:0}
+.cert-mini-lines span{font-size:8px;font-weight:750;color:#0b0b0b;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cert-mini-rank{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+.cert-mini-rank span{font-size:8px;font-weight:750;color:#0b0b0b}
+.cert-mini-rank b{font-size:16px;font-weight:850;color:#0b0b0b;line-height:1}
+.cert-mini-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:4px;margin-top:1px}
+.cert-mini-logo{font-size:10px;font-weight:900;font-style:italic;letter-spacing:-.3px;line-height:1}
+.cert-mini-cert{font-size:7.5px;font-weight:650;color:#111;font-variant-numeric:tabular-nums}
+.card-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.card-meta .nm{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta .st{color:var(--text-faint);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-row-between{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:750;letter-spacing:.7px;padding:2.5px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--border);color:var(--text-dim);text-transform:uppercase;white-space:nowrap}
+/* Long verdict badges (gate / table-rent advice) read as one phrase — never wrap to one word per line. */
+.badge.below,.badge.at,.badge.above{white-space:nowrap}
+.badge.rare{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 45%,transparent);background:color-mix(in srgb,var(--violet) 10%,transparent)}
+.badge.hit{color:var(--magenta);border-color:color-mix(in srgb,var(--magenta) 45%,transparent);background:color-mix(in srgb,var(--magenta) 12%,transparent)}
+.badge.live{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent)}
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:livePulse 1.6s ease-in-out infinite;flex:none}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.35}}
+.live-room-grid{display:grid;grid-template-columns:1fr 260px}
+@media (max-width: 760px){.live-room-grid{grid-template-columns:1fr}.live-room-grid > div:last-child{border-left:none;border-top:1px solid var(--border);max-height:260px}}
+.badge.est{color:var(--text-dim);border-color:var(--border)}
+.badge.model{color:var(--gold-soft);border-color:color-mix(in srgb,var(--gold-soft) 45%,transparent);background:color-mix(in srgb,var(--gold-soft) 10%,transparent);font-style:italic}
+.badge.sim{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 45%,transparent);background:color-mix(in srgb,var(--cyan) 10%,transparent)}
+.price.model-est{color:var(--text-dim);font-style:italic}
+.price.model-est .cur{opacity:.7}
+.badge.warn{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent);background:var(--amber-bg)}
+.badge.below{color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent);background:color-mix(in srgb,var(--green) 10%,transparent)}
+.badge.above{color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent);background:color-mix(in srgb,var(--red) 10%,transparent)}
+.badge.at{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 45%,transparent);background:color-mix(in srgb,var(--blue) 10%,transparent)}
+.price{font-weight:700;font-variant-numeric:tabular-nums}
+.price .cur{color:var(--text-faint);font-size:.75em;font-weight:500;margin-right:1px}
+.delta-up{color:var(--green)}
+.delta-down{color:var(--red)}
+.table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.table th{text-align:left;font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-faint);font-weight:800;padding:8px 10px;border-bottom:2px solid var(--border)}
+.table td{padding:9px 10px;border-bottom:1px solid var(--border-soft)}
+.table tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--panel2) 60%,transparent)}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:var(--row-hover)}
+.table .num{text-align:right;font-variant-numeric:tabular-nums}
+/* One toolbar surface per screen: search, sort, counts and view controls all
+   ride the same bar instead of floating as loose controls. Views that already
+   sit inside a panel drop the box (see the neutralizer below). */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;background:var(--panel);border:2px solid var(--border);border-radius:14px;padding:9px 11px;box-shadow:0 3px 0 var(--edge)}
+.panel .filter-row,.set-section .filter-row,.modal .filter-row{background:transparent;border:none;box-shadow:none;padding:0;margin-bottom:10px}
+.filter-row input,.filter-row select{height:34px;border-radius:11px}
+.filter-row input[type=search]{min-width:200px;flex:1;max-width:360px}
+.filter-row select{max-width:200px}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 12px;border-radius:999px;border:2px solid var(--edge);color:var(--text-dim);cursor:pointer;background:var(--panel2);font-weight:750;box-shadow:0 2px 0 var(--edge);transition:background .12s,border-color .12s,color .12s,transform .08s,box-shadow .08s}
+.chip:hover{border-color:var(--edge);color:var(--text);transform:translateY(-1px);box-shadow:0 3px 0 var(--edge)}
+.chip.on{background:var(--yellow);border-color:var(--edge);color:var(--on-yellow);font-weight:850;letter-spacing:.3px;box-shadow:0 2px 0 var(--yellow-dim);transform:none}
+.chip-badge{margin-left:6px;background:var(--yellow);color:var(--on-yellow);font-size:9.5px;font-weight:750;border-radius:9px;padding:0 6px;line-height:1.6;vertical-align:1px}
+.nav-badge{margin-left:auto;background:var(--yellow);color:var(--on-yellow);font-size:10px;font-weight:750;border-radius:9px;padding:1px 7px;line-height:1.5}
+
+/* Set-grouped browse — collapsible sections with sticky headers */
+.set-sections{display:flex;flex-direction:column;gap:12px}
+.set-section{border:2px solid var(--border);border-radius:var(--radius);background:var(--panel);overflow:clip;box-shadow:0 3px 0 var(--edge)}
+.set-section-head{display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--panel2);border-bottom:1px solid var(--border-soft);position:sticky;top:0;z-index:5}
+.set-section-toggle{background:none;border:none;padding:0;font-weight:650;font-size:13.5px;color:var(--text);cursor:pointer;letter-spacing:.2px}
+.set-section-toggle:hover{color:var(--blue)}
+.set-section-caret{color:var(--text-faint);display:inline-block;width:12px}
+.set-section-stats{color:var(--text-dim);font-size:11.5px;margin-left:auto;white-space:nowrap}
+.set-section-actions{flex:0 0 auto}
+.set-section-actions button{padding:2px 9px;font-size:10.5px}
+.set-section-body{padding:12px 14px}
+.inv-group-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--border-soft)}
+.inv-group-row:last-child{border-bottom:none}
+.set-section-body .card-grid{margin-top:0}
+.modal-backdrop{position:fixed;top:0;right:0;bottom:0;left:0;background:var(--backdrop);display:flex;align-items:center;justify-content:center;z-index:60;padding:30px;animation:fadeIn .15s ease-out}
+.modal{background:var(--panel);border:3px solid var(--edge);border-top:4px solid var(--yellow);border-radius:20px;width:min(1060px,96vw);max-height:92vh;overflow-y:auto;padding:22px;box-shadow:var(--shadow);animation:popIn .18s ease-out}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)}
+/* The rip ceremony keeps a night stage — a Pokémon-blue spotlight the pack
+   sits in. Scoped tokens keep every label, button and stat on it legible. */
+.po-stage{position:relative;border-radius:16px;border:1.5px solid #1f3a7a;background:radial-gradient(ellipse at 50% 34%,#1a3168 0%,#0c1a41 50%,#060d24 100%);min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;overflow:hidden;-webkit-user-select:none;user-select:none;color:#fff;--text:#ffffff;--text-dim:#aebbe4;--text-faint:#8090c2;--panel:#12234f;--panel2:#1a3068;--panel3:#152a5c;--border:#22407e;--border-soft:#1b3464;--yellow-dim:#ffcb05;--gold:#ffcb05}
+.po-pack-shell{position:relative;display:flex;justify-content:center;animation:packFloat 5.2s ease-in-out infinite}
+.po-pack-shell.held{animation-play-state:paused}
+@keyframes packFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.po-pack{width:240px;aspect-ratio:66/100;border-radius:12px;cursor:pointer;position:relative;background:linear-gradient(160deg,#1d3a86,#0d1c42);border:1.5px solid #2f57a8;box-shadow:0 18px 50px #04091c80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .25s ease-out,box-shadow .3s}
+.po-pack:hover{--sc:1.04}
+.po-pack .pack-foil{position:absolute;inset:0;border-radius:11px;overflow:hidden;pointer-events:none;background:linear-gradient(115deg,transparent 30%,hsl(var(--bh,45) 92% 72% / .16) 44%,hsl(calc(var(--bh,45) + 65) 92% 76% / .2) 52%,transparent 66%);background-size:300% 100%;mix-blend-mode:screen;animation:foilDrift 5.5s ease-in-out infinite}
+@keyframes foilDrift{0%,100%{background-position:10% 50%}50%{background-position:90% 50%}}
+.po-pack .pack-logo{width:84px;height:84px;object-fit:contain;opacity:.95}
+.po-pack .pack-name{font-weight:700;font-size:15px;color:var(--yellow);letter-spacing:.5px;text-align:center;padding:0 14px}
+.po-pack .pack-sub{font-size:11px;color:var(--text-dim)}
+.po-pack .tear-hint{position:absolute;bottom:14px;font-size:11px;color:var(--text-faint);animation:pulse 1.8s infinite}
+.po-reveal{position:relative;perspective:1200px;display:flex;flex-direction:column;align-items:center;gap:14px}
+/* --- Reveal ceremony: the back swings in, holds its breath, flips --- */
+.po-flip-wrap{position:relative;width:min(400px,60vw);aspect-ratio:245/342;perspective:1300px;animation:backIn .36s cubic-bezier(.2,.9,.25,1.08) both}
+.po-flip-wrap.snap{animation-duration:.1s}
+@keyframes backIn{0%{opacity:0;transform:translateY(48px) rotateX(-26deg) scale(.92)}to{opacity:1;transform:none}}
+.po-flipper{position:absolute;inset:0;transform-style:preserve-3d;transition:transform var(--flipdur,.55s) cubic-bezier(.25,.8,.25,1)}
+.po-flip-wrap.flipped .po-flipper{transform:rotateY(180deg)}
+.po-flip-wrap.snap .po-flipper{transition-duration:.16s}
+.po-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;overflow:hidden;box-shadow:0 24px 80px #000000a6}
+.po-front{transform:rotateY(180deg)}
+.po-front .card-img-wrap{position:absolute;inset:0;height:100%;aspect-ratio:auto;border-radius:14px}
+.po-front img{width:100%;height:100%;object-fit:cover}
+.po-back{background:radial-gradient(ellipse at 50% 28%,hsl(var(--bh,215) 50% 34% / .85),transparent 72%),repeating-linear-gradient(135deg,#1a2135 0 9px,#151b2a 9px 18px),#10141f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:1px solid #39445c}
+.po-back:after{content:"";position:absolute;inset:10px;border:2px solid hsl(var(--bh,215) 75% 62% / .45);border-radius:9px;pointer-events:none;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.12) 46%,transparent 62%);background-size:320% 100%;animation:foilDrift 3.4s linear infinite}
+.po-back-emblem{width:88px;height:88px;object-fit:contain;filter:drop-shadow(0 6px 18px #0009);z-index:1}
+.po-back-emoji{font-size:56px;line-height:1;filter:drop-shadow(0 6px 18px #0009);z-index:1}
+.po-back-word{font-size:11px;font-weight:800;letter-spacing:5px;color:hsl(var(--bh,215) 80% 72% / .9);z-index:1;text-shadow:0 0 14px hsl(var(--bh,215) 90% 60% / .5)}
+/* The official Pokémon card back (bundled locally — no network, works in the
+   packaged exe). Its own artwork carries the branding, so only the foil
+   sheen stays as an overlay; the hue border is dropped for the real print. */
+.po-back.po-back-real{background:#0a1330;border-color:#0a1428}
+.po-back.po-back-real:after{inset:0;border:none;border-radius:inherit;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.15) 46%,transparent 62%);background-size:320% 100%;animation:foilDrift 3.4s linear infinite}
+.po-back-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.po-aura{position:absolute;left:50%;top:50%;width:135%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;animation:auraBloom var(--hold,400ms) ease-out var(--swing,320ms) forwards,auraBreathe 1.7s ease-in-out infinite calc(var(--swing,320ms) + var(--hold,400ms))}
+@keyframes auraBloom{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+@keyframes auraBreathe{0%,100%{opacity:.65}50%{opacity:1}}
+.po-flip-wrap[data-tier="super"] .po-aura{background:radial-gradient(circle,rgba(59,130,246,.4) 0%,rgba(59,130,246,.12) 46%,transparent 70%)}
+.po-flip-wrap[data-tier="epic"] .po-aura{background:radial-gradient(circle,rgba(255,203,5,.38) 0%,rgba(255,203,5,.12) 46%,transparent 70%)}
+.po-flip-wrap[data-tier="massive"] .po-aura{background:radial-gradient(circle,rgba(240,171,252,.42) 0%,rgba(255,203,5,.14) 48%,transparent 72%)}
+.po-flip-wrap[data-tier="ghost"] .po-aura{background:radial-gradient(circle,rgba(167,139,250,.42) 0%,rgba(167,139,250,.12) 46%,transparent 70%)}
+.po-rays{position:absolute;left:50%;top:50%;width:175%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;background:conic-gradient(from 0deg,transparent 0 16deg,hsl(var(--bh,45) 95% 62% / .17) 16deg 23deg,transparent 23deg 40deg,transparent 40deg 56deg,hsl(var(--bh,45) 95% 62% / .17) 56deg 63deg,transparent 63deg 80deg,transparent 80deg 96deg,hsl(var(--bh,45) 95% 62% / .17) 96deg 103deg,transparent 103deg 120deg,transparent 120deg 136deg,hsl(var(--bh,45) 95% 62% / .17) 136deg 143deg,transparent 143deg 160deg,transparent 160deg 176deg,hsl(var(--bh,45) 95% 62% / .17) 176deg 183deg,transparent 183deg 200deg,transparent 200deg 216deg,hsl(var(--bh,45) 95% 62% / .17) 216deg 223deg,transparent 223deg 240deg,transparent 240deg 256deg,hsl(var(--bh,45) 95% 62% / .17) 256deg 263deg,transparent 263deg 280deg,transparent 280deg 296deg,hsl(var(--bh,45) 95% 62% / .17) 296deg 303deg,transparent 303deg 320deg,transparent 320deg 336deg,hsl(var(--bh,45) 95% 62% / .17) 336deg 343deg,transparent 343deg 360deg);-webkit-mask:radial-gradient(closest-side,transparent 42%,#000 66%,transparent 100%);mask:radial-gradient(closest-side,transparent 42%,#000 66%,transparent 100%);opacity:0}
+.po-flip-wrap.flipped .po-rays{animation:raysIn .7s ease-out forwards,raySpin 18s linear infinite .7s}
+@keyframes raysIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+@keyframes raySpin{to{transform:translate(-50%,-50%) scale(1) rotate(360deg)}}
+.po-flash{position:absolute;left:50%;top:50%;width:135%;aspect-ratio:1;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,hsl(var(--bh,45) 95% 72% / .55) 32%,transparent 66%);animation:burstPop .55s ease-out both}
+@keyframes burstPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}20%{opacity:1}to{opacity:0;transform:translate(-50%,-50%) scale(1.9)}}
+.po-flip-wrap.flipped[data-tier="super"] .po-front{box-shadow:0 24px 80px #000000a6,0 0 44px 12px #3b82f666}
+.po-flip-wrap.flipped[data-tier="epic"] .po-front{box-shadow:0 24px 80px #000000a6,0 0 60px 18px #ffcb0559,0 0 140px 40px #ffcb052e}
+.po-flip-wrap.flipped[data-tier="massive"] .po-front{box-shadow:0 24px 80px #000000a6,0 0 70px 22px #f0abfc66,0 0 150px 44px #ffcb054d}
+.po-flip-wrap.flipped[data-tier="ghost"] .po-front{box-shadow:0 24px 80px #000000a6,0 0 60px 18px #a78bfa66,0 0 140px 40px #a78bfa2e}
+.po-slotgrid{display:flex;flex-direction:column;align-items:center;gap:10px}
+.po-progress{display:flex;gap:8px}
+.po-progress .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.4)}
+.po-progress .dot.shown{background:var(--yellow);border-color:var(--yellow)}
+.po-progress .dot.hit-shown{background:#f0abfc;border-color:#f0abfc}
+.po-value{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.po-reveal .po-value{animation:popIn .32s ease-out both}
+.po-banner{font-size:15px;font-weight:800;letter-spacing:2px;color:var(--yellow);animation:riseIn .5s ease-out both;text-align:center}
+.po-banner.massive{color:#f0abfc;font-size:18px;text-shadow:0 0 24px rgba(240,171,252,.5)}
+.po-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+.po-summary-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:900px}
+.po-summary-cell{width:108px;text-align:center;animation:riseIn .45s ease-out calc(var(--i,0) * 42ms) both}
+.po-summary-cell .val{font-size:11px;color:var(--text-dim)}
+.po-summary-cell .v{font-size:12px;font-weight:700;color:var(--yellow)}
+@keyframes glowPulse{0%,to{opacity:.75}
+50%{opacity:1}
+}
+@keyframes fadeIn{0%{opacity:0}
+to{opacity:1}
+}
+@keyframes popIn{0%{opacity:0;transform:scale(.96) translateY(8px)}
+to{opacity:1;transform:none}
+}
+@keyframes pulse{0%,to{opacity:.5}
+50%{opacity:1}
+}
+@keyframes riseIn{0%{opacity:0;transform:translateY(14px)}
+to{opacity:1;transform:none}
+}
+.toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:100}
+.toast{background:var(--panel);border:2px solid var(--edge);border-left:5px solid var(--blue);border-radius:12px;padding:10px 14px;font-size:13px;font-weight:750;max-width:340px;box-shadow:0 3px 0 var(--edge),var(--shadow);animation:riseIn .2s ease-out}
+.toast.good{border-color:color-mix(in srgb,var(--green) 55%,transparent);border-left-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--panel))}
+.toast.bad{border-color:color-mix(in srgb,var(--red) 55%,transparent);border-left-color:var(--red);background:color-mix(in srgb,var(--red) 8%,var(--panel))}
+.empty{color:var(--text-faint);text-align:center;padding:34px 18px;font-weight:650;border:1.5px dashed var(--border);border-radius:14px;background:color-mix(in srgb,var(--panel) 55%,transparent)}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--yellow);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}
+}
+.footer-note{color:var(--text-faint);font-size:11px;margin-top:18px;line-height:1.6}
+a{color:var(--blue-text);text-decoration:none}
+a:hover{text-decoration:underline}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--panel2);border:1px solid var(--border-soft);padding:2px 6px;border-radius:6px}
+.section-gap{margin-top:22px}
+.muted{color:var(--text-dim)}
+.faint{color:var(--text-faint)}
+
+/* Route change: the incoming screen eases in so navigation reads as a scene
+   cut rather than a jump. Opacity only — a transform here would make this
+   element the containing block for any position:fixed child during the fade. */
+.screen{animation:screenIn .22s ease-out}
+@keyframes screenIn{from{opacity:0}to{opacity:1}}
+.small{font-size:12px}
+.right{text-align:right}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.mt4{margin-top:4px}
+.mt8{margin-top:8px}
+.mt14{margin-top:14px}
+.mt22{margin-top:22px}
+.mb8{margin-bottom:8px}
+.mb14{margin-bottom:14px}
+.binder-book{display:flex;align-items:center;gap:10px;background:linear-gradient(160deg,var(--panel),var(--panel2));border:1.5px solid var(--border);border-top:5px solid var(--accent, var(--yellow));border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.binder-page{flex:1;min-width:0;animation:pageTurn .28s ease-out}
+@keyframes pageTurn{0%{opacity:.3;transform:rotateY(-6deg)}
+to{opacity:1;transform:none}
+}
+.binder-pockets{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.binder-pocket{position:relative;border-radius:10px;min-height:190px;border:1.5px solid var(--border-soft);background:var(--panel2);overflow:hidden}
+.binder-pocket.empty{display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:22px;cursor:pointer;background:repeating-linear-gradient(45deg,var(--panel2),var(--panel2) 10px,var(--panel3) 10px,var(--panel3) 20px);min-height:190px}
+.binder-pocket.empty.move-target:hover{outline:2px dashed var(--accent, var(--yellow));color:var(--accent)}
+.binder-pocket.filled{cursor:pointer;padding:8px;transition:transform .15s}
+.binder-pocket.filled:hover{transform:translateY(-2px)}
+.binder-pocket-label{display:flex;justify-content:space-between;align-items:baseline;gap:6px;margin-top:6px}
+.binder-pocket-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.binder-pocket-value{font-size:11px;color:var(--gold);font-weight:800;font-variant-numeric:tabular-nums}
+.binder-pocket-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.binder-pocket.filled:hover .binder-pocket-actions{opacity:1}
+.binder-pocket-actions button{background:var(--panel);border-color:var(--border);color:var(--text);box-shadow:0 1px 0 var(--edge)}
+.binder-flip{font-size:26px;padding:18px 12px;border-radius:12px;line-height:1}
+.binder-flip:disabled{opacity:.25}
+.binder-pocket.drag-source .binder-drag-handle{opacity:.35;filter:grayscale(.7)}
+.binder-pocket.drag-over{outline:2px dashed var(--accent, var(--yellow));outline-offset:-2px;background:color-mix(in srgb,var(--accent, var(--yellow)) 12%,transparent)}
+.binder-pocket.drag-over:after{content:"⬇";position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--accent, var(--yellow));text-shadow:0 2px 8px rgba(0,0,0,.8);pointer-events:none}
+.binder-drag-handle{cursor:grab;display:block}
+.binder-drag-handle:active{cursor:grabbing}
+.binder-drag-handle img{-webkit-user-drag:none;pointer-events:none;-webkit-user-select:none;user-select:none}
+.binder-flip.drag-over{color:var(--accent, var(--yellow));border-color:var(--accent, var(--yellow));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent, var(--yellow)) 40%,transparent)}
+.binder-page-num{text-align:center;color:var(--text-faint);font-size:11px;margin-top:12px;letter-spacing:1.5px;text-transform:uppercase}
+.trade-swap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.trade-arrow{color:var(--yellow);font-size:20px;align-self:center}
+.trade-bubble{background:var(--panel2);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:8px;padding:8px 12px;font-size:13px}
+.trade-maker{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+@media (max-width: 900px){.trade-maker{grid-template-columns:1fr}
+}
+.trade-trader{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid transparent;transition:background .12s}
+.trade-trader:hover{background:var(--panel2)}
+.trade-trader.sel{background:#ffcb0512;border-color:#ffcb0559}
+.trade-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.trade-card{background:var(--panel2);border:1px solid var(--border-soft);border-radius:9px;overflow:hidden;cursor:pointer;transition:transform .1s,border-color .1s}
+.trade-card:hover{transform:translateY(-2px);border-color:var(--border)}
+.trade-card img{width:100%;display:block;background:var(--img-bg);min-height:60px}
+.conv-booth{display:flex;flex-direction:column;gap:2px}
+.conv-booth:hover{border-color:var(--border)}
+.conv-item{transition:transform .1s}
+.conv-item:hover{transform:translateY(-2px)}
+.lot-timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;padding:2px 8px;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap}
+.lot-timer.cool{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 45%,transparent)}
+.lot-timer.hot{color:var(--yellow);border-color:#ffcb0573}
+.lot-timer.frenzy{color:var(--red);border-color:#ff5d5d80;animation:lotPulse 1.2s infinite}
+@keyframes lotPulse{0%,to{opacity:1}
+50%{opacity:.55}
+}
+
+
+/* ------------------------------------------------------------- pack battles */
+
+.battle-chat .chat-box {
+  margin-top: 6px;
+  height: 320px;
+  overflow-y: auto;
+  background: var(--panel2);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.battle-chat .chat-line {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.35;
+  animation: chatIn 0.18s ease-out;
+}
+
+.battle-chat .chat-avatar { font-size: 14px; }
+.battle-chat .chat-line b { color: var(--text-dim); font-weight: 650; }
+.battle-chat .chat-line span { color: var(--text); }
+
+@keyframes chatIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------------------- Streaming room ---------------------------- */
+
+.stream-badge {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  animation: streamPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes streamPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.stream-viewers {
+  font-weight: 800;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.stream-donation {
+  border: 1px solid var(--yellow);
+  background: color-mix(in srgb, var(--yellow) 10%, transparent);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.chat-line.donation b {
+  color: var(--yellow);
+}
+
+.chat-line.system {
+  opacity: 0.85;
+  font-style: italic;
+}
+
+.stream-sponsor-chip {
+  display: inline-block;
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* --------------------- 1st Edition ghost pulls --------------------- */
+
+.ghost-banner {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.po-summary-cell {
+  position: relative;
+}
+
+.po-summary-cell .ghost-tag {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: 2;
+  background: rgba(20, 20, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.shop-vintage-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--yellow-dim);
+  border: 1px solid var(--yellow-line);
+  border-radius: 4px;
+  padding: 0 4px;
+  vertical-align: middle;
+}
+
+/* --------------------- Out-of-print sealed appreciation --------------------- */
+
+.badge.oop{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,transparent);background:var(--amber-bg)}
+
+/* ------------------------------ Event calendar ------------------------------ */
+.cal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line, var(--border));
+  border-radius: 10px;
+  background: var(--panel-2, var(--panel));
+}
+.cal-row.live {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 18px rgba(255, 122, 24, 0.12);
+  background: rgba(255, 122, 24, 0.06);
+}
+.cal-when {
+  width: 58px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+  padding-right: 10px;
+}
+.cal-day { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+.cal-time { font-size: 12px; font-weight: 650; margin-top: 2px; }
+.cal-icon { font-size: 20px; width: 26px; text-align: center; }
+
+/* ------------------------------ List-control kit ------------------------------ */
+.filter-row .list-search { min-width: 200px; flex: 1; max-width: 380px; }
+.filter-row .list-sort { min-width: 170px; }
+.filter-row .result-count { white-space: nowrap; }
+
+/* ------------------------------ Starting tutorial ------------------------------ */
+.tut-backdrop{position:fixed;inset:0;background:var(--backdrop);display:flex;align-items:center;justify-content:center;z-index:70;padding:24px;animation:fadeIn .18s ease-out}
+.tut-card{background:var(--panel);border:1.5px solid var(--border);border-radius:18px;width:min(560px,94vw);max-height:92vh;overflow-y:auto;padding:28px 30px;box-shadow:var(--shadow);animation:popIn .2s ease-out;position:relative}
+.tut-card::before{content:'';position:absolute;top:0;left:24px;right:24px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--yellow),transparent)}
+.tut-tag{font-size:30px;line-height:1;margin-bottom:10px}
+.tut-card h2{margin:0 0 12px;font-size:22px}
+.tut-body p{margin:0 0 10px;line-height:1.55}
+.tut-dots{display:flex;gap:7px;margin:16px 0 14px}
+.tut-dots .dot{width:9px;height:9px;border-radius:50%;border:1px solid var(--border);background:transparent;padding:0;cursor:pointer}
+.tut-dots .dot.on{background:var(--yellow);border-color:var(--yellow)}
+.tut-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.nav-item.locked{opacity:.45}
+.nav-item.locked:hover{background:transparent;color:var(--text-dim)}
+.nav-item.locked .ico{font-size:11px;opacity:.8}
+.nav-item.locked{font-size:12px;font-style:italic;letter-spacing:.2px}
+.whatsnew-badge{margin-left:auto;background:var(--yellow);color:#17224a;font-size:10px;font-weight:750;border-radius:9px;padding:1px 7px;line-height:1.5}
+.lock-progress{margin-left:auto;font-style:normal;font-variant-numeric:tabular-nums;font-size:10.5px;font-weight:700;letter-spacing:.4px;opacity:.95;color:var(--yellow)}
+.lock-label{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.25}
+.nav-req{font-size:10px;font-weight:450;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* --- Interactive tear-open pack -------------------------------------- */
+.po-pack{touch-action:none}
+.po-pack.ripping{cursor:grabbing;animation:tug .13s linear infinite}
+@keyframes tug{0%,100%{transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateX(calc(var(--tn,0) * -2.5px))}50%{transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateX(calc(var(--tn,0) * 2.5px))}}
+.po-pack .pack-top{position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(135deg,#24407e 0 7px,#1a3060 7px 14px);background-size:contain;background-position:center;background-repeat:no-repeat;clip-path:polygon(0 0,100% 0,100% calc(var(--tn,0) * 100%),50% calc(var(--tn,0) * 100% + 9px),0 calc(var(--tn,0) * 100%));transform-origin:top center;transition:clip-path .08s ease-out,transform .18s ease-out}
+.po-pack .pack-tearline{position:absolute;left:5%;right:5%;height:2px;z-index:3;background:linear-gradient(90deg,transparent,#ffcb05cc,#ffcb05,#ffcb05cc,transparent);box-shadow:0 0 14px 2px #ffcb0566;opacity:0;transition:opacity .2s}
+.po-pack.ripping .pack-tearline,.po-pack.po-pack-torn .pack-tearline{opacity:1}
+.po-pack.po-pack-torn{animation:packRip .5s ease-in both}
+.po-pack.po-pack-torn .pack-top{animation:topFly .5s cubic-bezier(.25,.75,.3,1) both}
+@keyframes topFly{0%{transform:translateY(0) rotate(0)}45%{opacity:1}to{transform:translateY(-34px) rotate(-9deg);opacity:0}}
+@keyframes packRip{0%{transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(1)}30%{transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(1.05) rotate(-2deg)}100%{transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(1.2) rotate(3deg);opacity:0;filter:brightness(1.7)}}
+.rip-flash{position:absolute;left:50%;top:42%;width:300px;height:300px;pointer-events:none;z-index:4;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,hsl(var(--bh,45) 95% 70% / .5) 34%,transparent 68%);animation:burstPop .55s ease-out both}
+.po-pack .pack-logo{font-size:60px;line-height:1.2;filter:drop-shadow(0 6px 18px #0008)}
+
+/* --- Real wrapper art ---------------------------------------------------
+   When the product has TCGplayer art the pack shows its ACTUAL wrapper
+   photo (contained, so the real crimped seals stay in frame) and the rip
+   splits that art along the tear line: .pack-art keeps everything BELOW the
+   line, .pack-top carries everything above it and flies off with the strip.
+   Both layers share the exact same box + background sizing, so the split is
+   seamless. ---------------------------------------------------------------- */
+.po-pack .pack-art{position:absolute;inset:0;border-radius:11px;background-size:contain;background-position:center;background-repeat:no-repeat;pointer-events:none;clip-path:inset(calc(var(--tn,0) * 100%) 0 0 0)}
+.po-pack.has-art .pack-logo,.po-pack.has-art .pack-logo-img,.po-pack.has-art .pack-name{display:none}
+.po-pack.has-art .pack-sub{position:absolute;left:0;right:0;bottom:30px;margin:0;padding:0 12px;font-size:11px;font-weight:600;color:#fffffff2;text-shadow:0 1px 4px #000}
+.po-pack.has-art .tear-hint{bottom:10px;color:#ffffffd9;text-shadow:0 1px 3px #000;max-width:94%;text-align:center}
+
+/* --- Tear ceremony polish: keyboard focus, set-symbol foil art, rip sparks --- */
+.po-pack:focus-visible{outline:2px solid var(--yellow);outline-offset:4px}
+.po-pack .pack-logo-img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 6px 18px #0008)}
+.po-sparks{position:absolute;inset:0;pointer-events:none;z-index:5}
+.po-sparks span{position:absolute;left:50%;top:42%;width:7px;height:7px;border-radius:2px;background:var(--c);opacity:0;transform:translate(-50%,-50%);box-shadow:0 0 8px 2px var(--c);animation:sparkFly .7s cubic-bezier(.15,.6,.4,1) var(--d) both}
+@keyframes sparkFly{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}12%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(120deg)}}
+.po-sparks .shard{position:absolute;left:50%;top:42%;width:11px;height:11px;border-radius:3px;background:var(--c);opacity:0;animation:shardFall 1.15s cubic-bezier(.2,.6,.4,1) var(--d) both}
+@keyframes shardFall{0%{opacity:0;transform:translate(-50%,-50%) translate(0,0) rotate(0)}12%{opacity:1}55%{opacity:1;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) rotate(var(--r))}to{opacity:0;transform:translate(-50%,-50%) translate(calc(var(--dx) * 1.4),calc(var(--dy) + 130px)) rotate(calc(var(--r) * 2.4))}}
+
+/* --- New-best-pull flourish: screen-edge glow + crowned summary cell --- */
+.record-glow{animation:recordEdge 1.6s ease-in-out infinite}
+@keyframes recordEdge{0%,100%{box-shadow:inset 0 0 60px 8px rgba(255,203,5,.16)}50%{box-shadow:inset 0 0 110px 18px rgba(255,203,5,.34)}}
+.record-glow.pack-glow{animation:recordEdgeBoth 1.6s ease-in-out infinite}
+@keyframes recordEdgeBoth{0%,100%{box-shadow:inset 0 0 60px 8px rgba(255,203,5,.16),inset 0 0 48px 6px rgba(168,110,252,.14)}50%{box-shadow:inset 0 0 110px 18px rgba(255,203,5,.34),inset 0 0 88px 14px rgba(168,110,252,.26)}}
+.pack-glow{animation:packEdge 1.6s ease-in-out infinite}
+@keyframes packEdge{0%,100%{box-shadow:inset 0 0 60px 8px rgba(168,110,252,.15)}50%{box-shadow:inset 0 0 110px 18px rgba(168,110,252,.32)}}
+.po-banner.po-banner.pack-record-banner{color:#c4a5ff;text-shadow:0 0 24px rgba(168,110,252,.5)}
+.record-cell{outline:2px solid var(--yellow);outline-offset:2px;border-radius:10px;animation:riseIn .45s ease-out calc(var(--i,0) * 42ms) both,recordCell 1.4s ease-in-out calc(var(--i,0) * 42ms + .45s) infinite}
+@keyframes recordCell{0%,100%{box-shadow:0 0 14px 2px rgba(255,203,5,.28)}50%{box-shadow:0 0 30px 7px rgba(255,203,5,.5)}}
+.record-tag{position:absolute;top:3px;right:3px;z-index:2;background:rgba(20,20,24,.88);border:1px solid var(--yellow);color:var(--yellow);font-size:9px;font-weight:800;letter-spacing:.5px;border-radius:6px;padding:1px 5px;animation:riseIn .5s ease-out both}
+
+/* --- NEW to the binder: the rip's first copy of a card you didn't own. ---
+   Springs onto the revealed card, and stamps the summary cell. ------------ */
+.po-new-tag{position:absolute;top:-12px;left:-16px;z-index:6;background:linear-gradient(135deg,#22c55e,#0ea5e9);color:#04140a;font-size:13px;font-weight:800;letter-spacing:1.5px;padding:4px 12px;border-radius:999px;box-shadow:0 4px 18px #22c55e66;transform:rotate(-9deg);animation:newTagPop .45s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes newTagPop{0%{transform:rotate(-9deg) scale(0)}60%{transform:rotate(-9deg) scale(1.12)}100%{transform:rotate(-9deg) scale(1)}}
+.po-summary-cell .new-tag{position:absolute;top:3px;left:3px;z-index:2;background:linear-gradient(135deg,#22c55e,#0ea5e9);color:#04140a;font-size:8px;font-weight:800;letter-spacing:.5px;border-radius:6px;padding:1px 5px;animation:riseIn .5s ease-out both}
+.po-summary-cell:has(.new-tag) .ghost-tag{top:19px}
+
+/* --- Theme switch (top bar) --- */
+.theme-toggle{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:2px solid var(--edge);border-radius:999px;padding:6px 13px 6px 9px;font-size:12px;font-weight:800;color:var(--text);box-shadow:0 2px 0 var(--edge);margin-left:4px;flex:none}
+.theme-toggle:hover{border-color:var(--blue);color:var(--text)}
+.theme-toggle .knob{font-size:14px;line-height:1;color:var(--gold)}
+.theme-toggle .lbl{letter-spacing:.4px}
+
+/* --- Overflow menu (⋯): one control per row instead of a wall of buttons --- */
+.ovf-trigger{min-width:32px;padding:4px 9px;font-size:14px;font-weight:800;letter-spacing:1.5px;line-height:1.2;color:var(--text-dim);background:var(--panel);border:1.5px solid var(--border);border-radius:9px;box-shadow:0 2px 0 var(--edge)}
+.ovf-trigger:hover{background:var(--panel2);border-color:var(--blue);color:var(--text)}
+.ovf-menu{position:fixed;z-index:130;min-width:206px;max-width:300px;background:var(--panel);border:2px solid var(--edge);border-radius:14px;padding:6px;display:flex;flex-direction:column;gap:2px;box-shadow:0 4px 0 var(--edge),var(--shadow);animation:popIn .12s ease-out}
+.ovf-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;background:transparent;border:none;box-shadow:none;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:650;color:var(--text);line-height:1.3;transition:background .12s}
+.ovf-item:hover{background:var(--yellow-soft);color:var(--text)}
+.ovf-item.lead{background:var(--blue-soft);font-weight:750}
+.ovf-item.lead:hover{background:color-mix(in srgb,var(--blue) 14%,var(--panel))}
+.ovf-item em{font-style:normal;font-size:10.5px;font-weight:500;color:var(--text-faint)}
+.ovf-item:disabled{opacity:.42;cursor:not-allowed;background:transparent}
+/* Bare checkbox + caption used by the density modes */
+.pick-box{display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--text-dim);font-size:12px;font-weight:650}
+.pick-box input{margin:0;padding:0;width:15px;height:15px;accent-color:var(--blue)}
+
+/* --- The ceremony without the theatrics --- */
+@media (prefers-reduced-motion:reduce){
+  .po-pack-shell,.po-pack,.po-pack .pack-foil,.po-pack.ripping,.pack-top,.po-sparks span,.rip-flash,.po-flip-wrap,.po-back:after,.po-aura,.po-rays,.po-flash,.po-summary-cell,.po-banner,.po-value,.po-new-tag,.ovf-menu,.screen{animation:none!important}
+  button:hover,.chip:hover,.nav-item:hover,.card-cell:hover{transform:none}
+  .po-flipper{transition-duration:.01ms!important}
+  .po-flip-wrap.flipped .po-rays{opacity:.5}
+}

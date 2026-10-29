@@ -1,0 +1,25 @@
+node_modules/
+dist/
+dist-server/
+data/
+release/
+*.log
+.vite/
+
+# local saves, backups and sqlite sidecars
+saves/
+*.db
+*.db-shm
+*.db-wal
+
+# scratch: sandboxes, UI-test runs, profiling artifacts
+.sandbox/
+tmp-uitest/
+prof/
+prof-*.cjs
+
+# downloaded build tooling (build-exe.sh re-fetches UPX on demand)
+tools/
+
+# Freebuff workspace metadata
+.freebuff/
