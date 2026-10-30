@@ -1248,9 +1248,9 @@ export function section(showId?: number) {
   // The old schedule slots live on only as flavor — there is no 'next show'
   // because there is never dead air.
   const channels = db.prepare(
-    `SELECT ls.id, ls.host_id, ls.product_name, ls.rips_done, ls.rips_planned, ls.peak_viewers, ls.end_at, ls.best_card_value, ls.best_card_name
+    `SELECT ls.id, ls.host_id, ls.product_id, ls.product_name, ls.rips_done, ls.rips_planned, ls.peak_viewers, ls.end_at, ls.best_card_value, ls.best_card_name
      FROM live_shows ls WHERE ls.status = 'live' ORDER BY ls.peak_viewers DESC`,
-  ).all() as { id: number; host_id: number; product_name: string; rips_done: number; rips_planned: number; peak_viewers: number; end_at: string; best_card_value: number | null; best_card_name: string | null }[]
+  ).all() as { id: number; host_id: number; product_id: string | null; product_name: string; rips_done: number; rips_planned: number; peak_viewers: number; end_at: string; best_card_value: number | null; best_card_name: string | null }[]
 
   // The room to render: the requested channel when the player has hopped to
   // one (full room switch — header, chat, and format rails), else the newest
@@ -1316,6 +1316,7 @@ export function section(showId?: number) {
         followers: h?.followers ?? 0,
         integrity: h?.integrity ?? 0.5,
         product: c.product_name,
+        image: productArt(c.product_id),
         rips: { done: c.rips_done, planned: c.rips_planned },
         viewers: Math.round((TERMS.viewersBase + Math.sqrt(h?.followers ?? 100) * 6) * walkInMultiplier()),
         peakViewers: c.peak_viewers,

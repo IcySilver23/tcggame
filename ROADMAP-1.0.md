@@ -55,23 +55,33 @@ Ordered for the one-at-a-time pace. Each row is one reviewable chunk.
 
 ### Phase 1 — DEALS (the priority)
 
-- [ ] **1.0 Deals hub** — one DEALS screen with the seven venues as sub-views behind a
+- [x] **1.0 Deals hub** — one DEALS screen with the seven venues as sub-views behind a
   segmented control, plus a shared "where is this worth more?" strip that compares a
   card's ask across every venue at once. This is the container everything else lands in,
   and it's where consolidation starts paying off: one place to shop the whole underground.
-- [ ] **2.0 BidBay** — biggest, most-used venue first.
-- [ ] **3.0 Local Deals** — the messaging/meetup shape, counterfeit risk made visible.
-- [ ] **4.0 Pawn Shop** — the loan clock becomes the centerpiece instead of a footnote.
-- [ ] **5.0 Estate Buyouts** — negotiation first, reveal second.
-- [ ] **6.0 Yard Sales + Flea Markets** — siblings; they share the "in-person bargain"
+- [x] **2.0 BidBay** — biggest, most-used venue first.
+- [x] **3.0 Local Deals** — the messaging/meetup shape, counterfeit risk made visible.
+- [x] **4.0 Pawn Shop** — the loan clock becomes the centerpiece instead of a footnote.
+- [x] **5.0 Estate Buyouts** — negotiation first, reveal second.
+- [x] **6.0 Yard Sales + Flea Markets** — siblings; they share the "in-person bargain"
   DNA and should be built together so the difference between them is obvious.
-- [ ] **7.0 Live Shopping** — largest server surface, most polished already; last so it
+- [x] **7.0 Live Shopping** — largest server surface, most polished already; last so it
   inherits the patterns the other six establish.
 
 **Exit test for the phase:** you can open each venue and name what you're there to do in
 one sentence, and you can't confuse two of them.
 
+**Status: Phase 1 built.** All seven venues have their verb-shaped screens — BidBay is an
+eBay marketplace (undercut), Local Deals a Marketplace thread (meet), Pawn the Gold
+Exchange counter with loan tickets as the object (hock), Estate the negotiation table with
+the reveal ceremony (gamble), Yard Sales the driveway tables (read), Flea Markets the
+timed bins (dig), Live Shopping the Whatnot room (pounce). Uncommitted on disk at the
+time of writing; the exit test is the next live review, not this line.
+
 ### Phase 2 — Consolidate the rest
+
+**Next up: 8.0 Collection hub** — the first consolidation, and the template the Market,
+Events and Inventory folds copy.
 
 Fold the remaining screens so the sidebar stops being a wall. Same principle as DEALS:
 fewer doors, deeper rooms.

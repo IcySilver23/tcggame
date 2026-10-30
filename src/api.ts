@@ -49,9 +49,13 @@ export const api = {
   insuranceCancel: () => post<{ ok: boolean; error?: string }>('/api/insurance/cancel', {}),
 
   local: () => req<LocalFeedRow[]>('/api/local'),
-  localMine: () => req<MyLocalListing[]>('/api/local/mine'),
+  localMine: () => req<{ listings: MyLocalListing[]; sold: MyLocalSale[] }>('/api/local/mine'),
   localMeet: (id: number, offer?: number) => post<LocalMeetResult>('/api/local/meet', { id, offer }),
   localList: (inventoryId: number, ask: number) => post<{ ok: boolean; error?: string }>('/api/local/list', { inventoryId, ask }),
+  localListSealed: (productId: string, ask: number) =>
+    post<{ ok: boolean; error?: string }>('/api/local/list-sealed', { productId, ask }),
+  localListBundle: (inventoryIds: number[], ask: number) =>
+    post<{ ok: boolean; error?: string }>('/api/local/list-bundle', { inventoryIds, ask }),
   localCancel: (id: number) => post<{ ok: boolean; error?: string }>('/api/local/cancel', { id }),
   localAccept: (id: number, buyer: string, amount?: number) => post<LocalMeetResult>('/api/local/accept', { id, buyer, amount }),
   localSellFake: (inventoryId: number) => post<{ ok: boolean; error?: string; paid?: number }>('/api/local/sell-fake', { inventoryId }),
@@ -562,13 +566,27 @@ export type FloorOffersResponse = { ok: boolean; error?: string; booth?: { id: n
 export type FloorSellResult = { ok: boolean; error?: string; sold?: boolean; paid?: number; credit?: boolean; card?: string; message?: string; souredNow?: boolean }
 
 // ---- Local deals: Facebook Marketplace & Craigslist ------------------------
+/** What a local listing can be — the feed carries all five. */
+export type LocalKind = 'card' | 'sealed' | 'bundle' | 'mystery_slab' | 'mystery_box'
+
 export type LocalFeedRow = {
   id: number
-  cardId: string
+  kind: LocalKind
+  kindLabel: string
+  cardId: string | null
   name: string
+  /** Direct image URL — wrapper art for sealed, first card of a lot. */
   image: string | null
+  /** When set, the client derives the art from this card id instead. */
+  imageCardId: string | null
   condition: string
   setName: string | null
+  /** Supporting line: 'Booster pack · 36 packs', '6 cards · contents listed'. */
+  detail: string | null
+  /** Disclosed only for a card lot — never for a mystery. */
+  contents: { name: string; condition: string }[] | null
+  /** 'mkt' = live market value; 'est' = estimate of undisclosed contents. */
+  anchorLabel: 'mkt' | 'est'
   ask: number
   anchor: number
   seller: string
@@ -582,19 +600,52 @@ export type LocalFeedRow = {
   ghosted: boolean
 }
 export type LocalMessage = { kind: 'full' | 'lowball' | 'ghost' | 'meeting'; buyer: string; amount: number | null; note: string }
-export type MyLocalListing = {
+/** A listing an NPC took off your hands while you were playing. */
+export type MyLocalSale = {
   id: number
   name: string
+  kind: LocalKind
+  kindLabel: string
+  paid: number
+  buyer: string
+  at: string
+}
+export type MyLocalListing = {
+  id: number
+  kind: LocalKind
+  kindLabel: string
+  name: string
   image: string | null
+  imageCardId: string | null
   condition: string
+  detail: string | null
+  contents: { name: string; condition: string }[] | null
   ask: number
   postedAt: string
   expiresAt: string
-  inventoryId: number
+  inventoryId: number | null
   messages: LocalMessage[]
 }
+/** What a blind buy actually contained — sent only at the meet, so the UI can
+ *  stage the unboxing rather than burying the reveal in a text line. */
+export type LocalRevealCard = {
+  cardId: string
+  name: string
+  image: string | null
+  set: string | null
+  rarity: string | null
+  condition: string
+  value: number
+  grade?: string
+}
+export type LocalReveal = {
+  kind: 'mystery_slab' | 'mystery_box'
+  paid: number
+  total: number
+  items: LocalRevealCard[]
+}
 export type LocalMeetResult =
-  | { ok: true; outcome: 'bought'; paid: number; card: string; inspected: 'genuine' | 'fake'; basis: number }
+  | { ok: true; outcome: 'bought'; paid: number; card: string; inspected: 'genuine' | 'fake'; basis: number; reveal?: LocalReveal }
   | { ok: true; outcome: 'ghosted'; message: string }
   | { ok: true; outcome: 'sold_elsewhere'; message: string }
   | { ok: true; outcome: 'counter'; counter: number; card: string; message: string }
@@ -2935,7 +2986,7 @@ export type FleaMarketRow = {
   bins: FleaBin[]
 }
 
-export type FleaDigResult = { name: string; condition: string; paid: number; trueMarket: number; stolen: boolean; at: string }
+export type FleaDigResult = { name: string; condition: string; paid: number; trueMarket: number; stolen: boolean; at: string; cardId?: string }
 
 export type FleaSection = {
   terms: { binPrices: number[]; scoreChance: number; opensHour: number; windowHours: [number, number] }
@@ -3052,6 +3103,7 @@ export type LiveChannel = {
   followers: number
   integrity: number
   product: string
+  image: string | null
   rips: { done: number; planned: number }
   viewers: number
   peakViewers: number

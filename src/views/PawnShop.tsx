@@ -1,19 +1,107 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { gameDayMsFor } from '../lib/gameday'
 import type { PawnSection, PawnQuoteRow } from '../api'
 import { useStore } from '../store'
 import { CardImg, EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
 
+// ---------------------------------------------------------------------------
+// 💠 THE GOLD EXCHANGE — rebuilt as "a counter with a clock" (roadmap 4.0).
+//
+// The verb here is HOCK: cash now against a card you intend to get back. So
+// the screen's main object is the ticket in your pocket and the clock running
+// on it — the quotes are the counter you walk up to *after* you know what a
+// loan costs. Mechanics are untouched: same /api/pawn payload, same three
+// actions (sell, hock, redeem), same case and history.
+// ---------------------------------------------------------------------------
+
 function daysLeft(dueAt: string, hours: 12 | 24 = 12): number {
   return Math.ceil((new Date(dueAt).getTime() - Date.now()) / gameDayMsFor(hours))
 }
+
+const dayLabel = (d: string) =>
+  new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+
+/** A number too small to print must not print as nothing — a pawn shop runs on cents. */
+const money = (n: number) => (n > 0 && n < 0.01 ? '<$0.01' : fmtUsd(n))
+
+// --- the clock: one ticket per active loan ----------------------------------
+
+function Ticket({
+  l,
+  days,
+  rateDaily,
+  busy,
+  onRedeem,
+}: {
+  l: PawnSection['loans'][number]
+  days: number
+  rateDaily: number
+  busy: boolean
+  onRedeem: () => void
+}) {
+  const dl = daysLeft(l.due_at)
+  const late = dl <= 0
+  const soon = !late && dl <= 3
+  // Term used up — the meter is how much of the 30 days you have already burned.
+  const used = Math.max(0, Math.min(1, (days - Math.max(0, dl)) / days))
+  const perDay = l.principal * rateDaily
+  return (
+    <article className={`pw-ticket ${late ? 'late' : soon ? 'soon' : ''}`}>
+      <div className="pw-ticket-stub" aria-hidden>
+        <span className="pw-ticket-no">#{l.id}</span>
+        <span className="pw-ticket-sep" />
+        <span className="pw-ticket-date">{dayLabel(l.issued_at)}</span>
+      </div>
+
+      <div className="pw-ticket-body">
+        <div className="pw-ticket-top">
+          <b title={l.card}>{l.card}</b>
+          <span className={`pw-clock ${late ? 'late' : soon ? 'soon' : ''}`}>
+            {late ? '⚠ due now' : `${dl}d left`}
+          </span>
+        </div>
+
+        <div
+          className="pw-meter"
+          title={`${Math.round(used * 100)}% of the ${days}-day window used`}
+          role="img"
+          aria-label={`${Math.round(used * 100)}% of the loan window used`}
+        >
+          <i style={{ width: `${used * 100}%` }} />
+        </div>
+
+        <div className="pw-ticket-facts">
+          <span>hocked <b>{fmtUsd(l.principal)}</b></span>
+          <span className="pw-grow">
+            interest <b>+{money(l.interest)}</b>
+            <em>≈{money(perDay)}/day</em>
+          </span>
+          <span>payoff today <b className="pw-due">{fmtUsd(l.total)}</b></span>
+          <span className="faint">due {dayLabel(l.due_at)}</span>
+        </div>
+      </div>
+
+      <div className="pw-ticket-act">
+        <button className="primary" disabled={busy} onClick={onRedeem} title="Pay principal plus interest — the card goes straight back in the binder">
+          Redeem
+        </button>
+        <span className="pw-ticket-pay">{fmtUsd(l.total)}</span>
+        {late && <span className="pw-ticket-warn">It's in the case — buy it back below</span>}
+      </div>
+    </article>
+  )
+}
+
+// --- the view ---------------------------------------------------------------
 
 export function PawnShopView() {
   const { toast, refreshState, openCard } = useStore()
   const [data, setData] = useState<PawnSection | null>(null)
   const [busy, setBusy] = useState(false)
   const [hockAmt, setHockAmt] = useState<Record<number, string>>({})
+  const [filter, setFilter] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
 
   const load = () => api.pawn().then(setData).catch(() => {})
   useEffect(() => { load() }, [])
@@ -30,14 +118,38 @@ export function PawnShopView() {
     }
   }
 
+  const terms = data?.terms
+  const loans = data?.loans ?? []
+  const quotes = data?.quotes ?? []
+  const shelf = data?.shelf
+
+  const shown = useMemo(() => {
+    const needle = filter.trim().toLowerCase()
+    return needle ? quotes.filter((q) => q.name.toLowerCase().includes(needle)) : quotes
+  }, [quotes, filter])
+
+  const owedToday = loans.reduce((a, l) => a + l.total, 0)
+  const nextDue = loans.length > 0 ? Math.min(...loans.map((l) => daysLeft(l.due_at))) : 0
+
   return (
-    <div>
+    <div className="pw">
       <div className="page-head">
         <div>
           <h1>💠 The Gold Exchange</h1>
-          <div className="sub">Instant cash, no questions. Sell outright at a fire-sale quote, or hock a card as collateral — 30 game-days, 0.75% a day. The ticket is in your pocket, not the books.</div>
+          <div className="sub">Instant cash, no questions. Sell outright, or leave the card as collateral and walk out with a ticket.</div>
         </div>
       </div>
+
+      {/* The shop sign — the four numbers every decision on this page is made against. */}
+      {terms && (
+        <div className="pw-sign" aria-label="Counter terms">
+          <span><b>{(terms.rateDaily * 100).toFixed(2)}%</b><em>per game-day</em></span>
+          <span><b>{terms.days}</b><em>game-days to pay</em></span>
+          <span><b>40%</b><em>of fire-sale, hocked</em></span>
+          <span><b>{terms.graceDays}</b><em>days grace, then default</em></span>
+          <span><b>{terms.shelfMarkup}×</b><em>if you default</em></span>
+        </div>
+      )}
 
       <FirstUseTip surface="pawn">
         <TipList
@@ -52,115 +164,192 @@ export function PawnShopView() {
         />
       </FirstUseTip>
 
-      {data && data.loans.length > 0 && (
-        <div className="panel mb14">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <b>🎫 Your tickets</b>
-            <span className="small muted">{data.loans.length} active · {fmtUsd(data.loans.reduce((a, l) => a + l.total, 0))} owed if redeemed today</span>
+      {/* --- THE CLOCK ---------------------------------------------------- */}
+      <section className="pw-clockwall" aria-label="Your pawn tickets">
+        <div className="pw-clockbar">
+          <span className="pw-clockbar-ico" aria-hidden>{loans.length > 0 ? '⏰' : '🎫'}</span>
+          <div className="pw-clockbar-txt">
+            <b>{loans.length > 0 ? `${loans.length} ticket${loans.length === 1 ? '' : 's'} in your pocket` : 'No tickets in your pocket'}</b>
+            <span className="faint small">
+              {loans.length > 0
+                ? `${fmtUsd(data?.outstanding ?? 0)} borrowed · next due in ${nextDue}d · interest compounds every game-day`
+                : 'Hock a card from the counter and the clock starts — 30 game-days to get it back.'}
+            </span>
           </div>
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {data.loans.map((l) => {
-              const dl = daysLeft(l.due_at)
-              const late = dl <= 0
+          {loans.length > 0 && (
+            <div className="pw-clockbar-owed">
+              <span>owed today</span>
+              <b>{fmtUsd(owedToday)}</b>
+            </div>
+          )}
+        </div>
+
+        {loans.length > 0 && (
+          <div className="pw-tickets">
+            {loans
+              .slice()
+              .sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime())
+              .map((l) => (
+                <Ticket
+                  key={l.id}
+                  l={l}
+                  days={terms?.days ?? 30}
+                  rateDaily={terms?.rateDaily ?? 0.0075}
+                  busy={busy}
+                  onRedeem={() => run(() => api.pawnPayoff(l.id), (r) => `Redeemed for ${fmtUsd(r.paid ?? 0)} — card's back in the binder.`)}
+                />
+              ))}
+          </div>
+        )}
+      </section>
+
+      {/* --- THE COUNTER -------------------------------------------------- */}
+      <section className="panel mb14 pw-counter" aria-label="The counter">
+        <div className="pw-counter-head">
+          <b>🪙 The counter</b>
+          <label className="pw-filter">
+            <input
+              className="input"
+              placeholder="Find a card to move…"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              aria-label="Filter your cards"
+            />
+          </label>
+          <span className="small muted">
+            {shown.length === quotes.length ? `${quotes.length} cards on the shelf` : `${shown.length} of ${quotes.length} cards`}
+          </span>
+        </div>
+
+        <div className="pw-counter-legend">
+          <span className="pw-legend sell">💵 <b>Sell</b> — instant cash on the glass, gone forever · the cut is printed on every card</span>
+          <span className="pw-legend hock">🔑 <b>Hock</b> — up to 40% of fire-sale, {terms?.days ?? 30} days, card comes home</span>
+        </div>
+
+        {shown.length === 0 ? (
+          quotes.length === 0 ? (
+            <EmptyState icon="💠" text="Nothing in your collection to quote" sub="Pull cards, win auctions, or hit the buylist — then walk in." />
+          ) : (
+            <EmptyState icon="🔍" text="No card by that name" sub="The counter quotes everything you own — clear the search to see it all." />
+          )
+        ) : (
+          <div className="pw-quotes">
+            {shown.slice(0, 30).map((q: PawnQuoteRow) => {
+              const sellPct = q.market > 0 ? Math.round((q.cashNow / q.market) * 100) : 0
+              const hockPct = q.market > 0 ? Math.round((q.loanMax / q.market) * 100) : 0
               return (
-                <div key={l.id} className="row small" style={{ gap: 8, padding: '6px 10px', background: 'var(--panel2)', borderRadius: 6, flexWrap: 'wrap' }}>
-                  <b style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.card}</b>
-                  <span className="faint">principal {fmtUsd(l.principal)}</span>
-                  <span className="faint">interest so far {fmtUsd(l.interest)}</span>
-                  <b style={{ color: late ? 'var(--red)' : dl <= 3 ? 'var(--yellow)' : undefined }}>
-                    {late ? '⚠ DUE — the case has it' : `${dl}d left`}
-                  </b>
-                  <b>payoff {fmtUsd(l.total)}</b>
-                  <button className="primary small" disabled={busy} onClick={() => run(() => api.pawnPayoff(l.id), (r) => `Redeemed for ${fmtUsd(r.paid ?? 0)} — card's back in the binder.`)}>Redeem</button>
+                <div key={q.inventoryId} className="pw-quote">
+                  <CardImg src={q.image} alt={q.name} className="pw-quote-img" cardId={q.cardId} />
+
+                  <div className="pw-quote-name">
+                    <b onClick={() => openCard(q.cardId)} title={q.name}>{q.name}</b>
+                    <span className="faint">
+                      {q.condition}{q.gradedGrade ? ` · ${q.gradedGrade}` : ''} · mkt {fmtUsd(q.market)}
+                    </span>
+                  </div>
+
+                  <div className="pw-quote-opts">
+                    <button
+                      className="pw-opt sell"
+                      disabled={busy}
+                      title="Cash on the glass — the card leaves your collection for good"
+                      onClick={() => run(() => api.pawnSell(q.inventoryId), (r) => `Sold for ${fmtUsd(r.paid ?? 0)} cash — no questions asked.`)}
+                    >
+                      <span>Sell now</span>
+                      <b>{fmtUsd(q.cashNow)}</b>
+                      <em>{sellPct}% of market</em>
+                    </button>
+
+                    <div className="pw-opt hock">
+                      <span>Hock</span>
+                      <div className="pw-hock-row">
+                        <input
+                          className="input"
+                          inputMode="decimal"
+                          placeholder={String(Math.floor(q.loanMax))}
+                          value={hockAmt[q.inventoryId] ?? ''}
+                          aria-label={`Loan amount against ${q.name}`}
+                          onChange={(e) => setHockAmt((h) => ({ ...h, [q.inventoryId]: e.target.value }))}
+                        />
+                        <button
+                          className="primary"
+                          disabled={busy}
+                          title={`Leave the card as collateral for up to ${fmtUsd(q.loanMax)}`}
+                          onClick={() => {
+                            const amt = Number(hockAmt[q.inventoryId])
+                            run(() => api.pawnHock(q.inventoryId, Number.isFinite(amt) && amt > 0 ? amt : undefined), (r) => `Hocked for ${fmtUsd(r.principal ?? 0)} — ${terms?.days ?? 30} days on the ticket.`)
+                          }}
+                        >
+                          Take loan
+                        </button>
+                      </div>
+                      <em>up to {fmtUsd(q.loanMax)} · {hockPct}% of market</em>
+                    </div>
+                  </div>
                 </div>
               )
             })}
           </div>
-        </div>
-      )}
-
-      <div className="panel mb14">
-        <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
-          <b>The counter</b>
-          <span className="small muted">
-            fire-sale ≈ 75% of market · cash quote = 40% of that · hock = 40%, 0.75%/game-day, {data?.terms.days ?? 30} game-days
-            {data && data.activeLoans > 0 && <> · {data.activeLoans} card{data.activeLoans === 1 ? '' : 's'} in the case</>}
-          </span>
-        </div>
-
-        {(data?.quotes ?? []).length === 0 ? (
-          <EmptyState icon="💠" text="Nothing in your collection to quote" sub="Pull cards, win auctions, or hit the buylist — then walk in." />
-        ) : (
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {(data?.quotes ?? []).slice(0, 25).map((q: PawnQuoteRow) => (
-              <div key={q.inventoryId} className="row small" style={{ gap: 8, padding: '5px 8px' }}>
-                <CardImg src={q.image} alt={q.name} className="row-thumb" cardId={q.cardId} />
-                <span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }} onClick={() => openCard(q.cardId)}>
-                  {q.name} <span className="faint">· {q.condition}{q.gradedGrade ? ` · ${q.gradedGrade}` : ''}</span>
-                </span>
-                <span className="faint" style={{ width: 74, textAlign: 'right' }}>{fmtUsd(q.market)}</span>
-                <b style={{ width: 84, textAlign: 'right', color: 'var(--gold)' }}>{fmtUsd(q.cashNow)} cash</b>
-                <span className="faint" style={{ width: 86, textAlign: 'right' }}>hock {fmtUsd(q.loanMax)}</span>
-                <input
-                  className="input"
-                  style={{ width: 78 }}
-                  inputMode="decimal"
-                  placeholder={String(Math.floor(q.loanMax))}
-                  value={hockAmt[q.inventoryId] ?? ''}
-                  onChange={(e) => setHockAmt((h) => ({ ...h, [q.inventoryId]: e.target.value }))}
-                />
-                <button className="ghost small" disabled={busy} title={`Leave the card as collateral for up to ${fmtUsd(q.loanMax)}`} onClick={() => {
-                  const amt = Number(hockAmt[q.inventoryId])
-                  run(() => api.pawnHock(q.inventoryId, Number.isFinite(amt) && amt > 0 ? amt : undefined), (r) => `Hocked for ${fmtUsd(r.principal ?? 0)} — 30 days on the ticket.`)
-                }}>hock</button>
-                <button className="primary small" disabled={busy} title="Sell it outright, cash now, gone forever" onClick={() =>
-                  run(() => api.pawnSell(q.inventoryId), (r) => `Sold for ${fmtUsd(r.paid ?? 0)} cash — no questions asked.`)
-                }>sell</button>
-              </div>
-            ))}
-          </div>
         )}
-      </div>
+      </section>
 
-      {data && data.shelf.rows.length > 0 && (
-        <div className="panel mb14">
-          <div className="row" style={{ justifyContent: 'space-between' }}>
+      {/* --- THE CASE ----------------------------------------------------- */}
+      {shelf && shelf.rows.length > 0 && (
+        <section className="panel mb14 pw-case" aria-label="The case">
+          <div className="pw-case-head">
             <b>🔒 The case</b>
-            <span className="small muted">defaulted cards, 25% over what was owed{data.shelf.mineCount > 0 && <> · <b style={{ color: 'var(--gold)' }}>{data.shelf.mineCount} of them are yours</b></>}</span>
+            <span className="small muted">
+              defaulted tickets · {terms?.shelfMarkup ?? 1.25}× what was owed · first come, first served
+              {shelf.mineCount > 0 && <> · <b className="pw-mine">{shelf.mineCount} of them are yours</b></>}
+            </span>
           </div>
-          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {data.shelf.rows.map((r) => (
-              <div key={r.id} className="row small" style={{ gap: 8, padding: '5px 8px' }}>
-                <span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }} onClick={() => openCard(r.cardId)}>
-                  {r.name} {r.mine && <span className="badge hit">yours</span>}
-                </span>
-                <span className="faint" style={{ width: 74, textAlign: 'right' }}>{fmtUsd(r.market)}</span>
-                <b style={{ width: 84, textAlign: 'right' }}>{fmtUsd(r.ask)}</b>
-                <button className="small primary" disabled={busy} onClick={() => run(() => api.pawnBuyBack(r.id), (r2) => `Bought it back for ${fmtUsd(r2.paid ?? 0)} — the house always wins the vig.`)}>
-                  {r.mine ? 'buy back' : 'buy'}
+          <div className="pw-case-grid">
+            {shelf.rows.map((r) => (
+              <article key={r.id} className={`pw-case-item ${r.mine ? 'mine' : ''}`}>
+                <div className="pw-case-name">
+                  <b title={r.name}>{r.name}</b>
+                  {r.mine && <span className="badge hit">yours</span>}
+                </div>
+                <div className="pw-case-figs">
+                  <span className="faint">mkt {fmtUsd(r.market)}</span>
+                  <b>{fmtUsd(r.ask)}</b>
+                </div>
+                <button
+                  className="primary small"
+                  disabled={busy}
+                  title={r.mine ? 'Buy your own card back — the house always wins the vig' : 'Anyone can take it at this ask'}
+                  onClick={() => run(() => api.pawnBuyBack(r.id), (r2) => `${r.mine ? 'Bought it back' : 'Bought it'} for ${fmtUsd(r2.paid ?? 0)} — out of the case and into the binder.`)}
+                >
+                  {r.mine ? 'Buy back' : 'Buy'}
                 </button>
-              </div>
+              </article>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
+      {/* --- HISTORY ------------------------------------------------------ */}
       {data && data.history.length > 0 && (
-        <div className="panel">
-          <b className="small">Ticket history</b>
-          <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {data.history.slice(0, 12).map((h) => (
-              <div key={h.id} className="row small" style={{ gap: 8 }}>
-                <span className="faint">{new Date(h.issued_at).toLocaleDateString()}</span>
-                <span style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.card}</span>
-                <span className="faint">{fmtUsd(h.principal)} hocked</span>
-                {h.status === 'repaid' && <span style={{ color: 'var(--green)' }}>redeemed {fmtUsd(h.repaid_amount ?? h.total)}</span>}
-                {h.status === 'defaulted' && <span style={{ color: 'var(--red)' }}>defaulted at {fmtUsd(h.total)}</span>}
-                {h.status === 'active' && <b>live · {fmtUsd(h.total)}</b>}
-              </div>
-            ))}
-          </div>
-        </div>
+        <section className="panel pw-history" aria-label="Ticket history">
+          <button className="pw-history-head" onClick={() => setShowHistory((v) => !v)} aria-expanded={showHistory}>
+            <b>🧾 Ticket history</b>
+            <span className="faint small">{data.history.length} records · {showHistory ? 'hide ▴' : 'show ▾'}</span>
+          </button>
+          {showHistory && (
+            <div className="pw-history-rows">
+              {data.history.slice(0, 20).map((h) => (
+                <div key={h.id} className="pw-history-row">
+                  <span className="faint">{new Date(h.issued_at).toLocaleDateString()}</span>
+                  <span className="pw-history-card">{h.card}</span>
+                  <span className="faint">{fmtUsd(h.principal)} hocked</span>
+                  {h.status === 'repaid' && <span className="pw-ok">redeemed {fmtUsd(h.repaid_amount ?? h.total)}</span>}
+                  {h.status === 'defaulted' && <span className="pw-bad">defaulted at {fmtUsd(h.total)}</span>}
+                  {h.status === 'active' && <b>live · {fmtUsd(h.total)}</b>}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </div>
   )

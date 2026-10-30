@@ -134,7 +134,10 @@ export function CardImg({ src, alt, className, wrapProps, cardId }: { src: strin
   // URL once more (covers transient CDN/rate-limit failures). Exhausting the
   // chain shows the error card; one flaky response no longer kills the art
   // for the session.
-  const derived = cardId && src ? derivedTcgUrl(cardId) : null
+  // cardId can stand alone (the flea reveal has nothing else), so it may not
+  // be gated on src — with src null the chain came out empty and every
+  // cardId-only thumbnail rendered "Image unavailable".
+  const derived = cardId ? derivedTcgUrl(cardId) : null
   const chain = useMemo(() => {
     const arr: string[] = []
     if (src) arr.push(src)

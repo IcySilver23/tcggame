@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS inventory (
 -- ghost you, and the too-good deals bite (counterfeits, local.ts).
 CREATE TABLE IF NOT EXISTS local_listings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  card_id TEXT NOT NULL REFERENCES cards(id),
+  card_id TEXT REFERENCES cards(id),        -- NULL for non-card items (sealed, bundle, mystery)
   variant TEXT NOT NULL DEFAULT 'normal',
   condition TEXT NOT NULL DEFAULT 'NM',
   ask REAL NOT NULL,
@@ -129,7 +129,19 @@ CREATE TABLE IF NOT EXISTS local_listings (
   ghosted INTEGER NOT NULL DEFAULT 0,
   is_fake INTEGER NOT NULL DEFAULT 0, -- rolled at spawn, hidden until inspected
   sold INTEGER NOT NULL DEFAULT 0,
-  sold_at TEXT
+  sold_at TEXT,
+  -- A listing is any sellable thing, not just raw cardboard:
+  --   card         → card_id + variant + condition
+  --   sealed       → item_ref = pack_products.id (pack / bundle / ETB / box)
+  --   bundle       → item_json = [{card_id, condition}] the lot you get
+  --   mystery_slab → item_json = the rolled slab, hidden until the meet
+  --   mystery_box  → item_json = the rolled contents, hidden until the meet
+  -- The contents of a mystery are rolled AT POST TIME and stored — the anchor
+  -- is then the real value of what is inside, so a too-good ask is honestly
+  -- detectable while the contents stay undisclosed.
+  kind TEXT NOT NULL DEFAULT 'card',
+  item_ref TEXT,
+  item_json TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_local_live ON local_listings (sold, expires_at);
 CREATE INDEX IF NOT EXISTS idx_inv_card ON inventory (card_id);

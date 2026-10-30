@@ -662,7 +662,7 @@ app.get('/api/supplies', (c) => c.json({ stock: supplies.stockLevels(), wear: su
 // ---------------------------------------------------------------------------
 
 app.get('/api/local', (c) => c.json(local.feed()))
-app.get('/api/local/mine', (c) => c.json(local.myListings()))
+app.get('/api/local/mine', (c) => c.json({ listings: local.myListings(), sold: local.mineSales() }))
 app.post('/api/local/meet', async (c) => {
   const body = await c.req.json<{ id: number; offer?: number }>()
   return c.json(local.meet(Number(body.id), body.offer != null ? Number(body.offer) : undefined))
@@ -670,6 +670,16 @@ app.post('/api/local/meet', async (c) => {
 app.post('/api/local/list', async (c) => {
   const body = await c.req.json<{ inventoryId: number; ask: number }>()
   const r = local.listMine(Number(body.inventoryId), Number(body.ask))
+  return c.json(r, r.ok ? 200 : 400)
+})
+app.post('/api/local/list-sealed', async (c) => {
+  const body = await c.req.json<{ productId: string; ask: number }>()
+  const r = local.listSealed(String(body.productId), Number(body.ask))
+  return c.json(r, r.ok ? 200 : 400)
+})
+app.post('/api/local/list-bundle', async (c) => {
+  const body = await c.req.json<{ inventoryIds: number[]; ask: number }>()
+  const r = local.listBundle((body.inventoryIds ?? []).map(Number), Number(body.ask))
   return c.json(r, r.ok ? 200 : 400)
 })
 app.post('/api/local/cancel', async (c) => {

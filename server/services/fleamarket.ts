@@ -72,10 +72,28 @@ const GROUNDS = [
 ]
 
 const BIN_LABELS = [
-  'CARDS 25¢ EACH', 'vintage bin — make an offer we said flat', 'foreign & misc',
-  'commons box — fill a bag $2', 'baseball too, sorry', 'the good bin (per grandpa)',
-  'ripped pack leftovers', 'papers & postcards & cards?', '50¢ bin, prices firm-ish',
+  'vintage bin — make an offer we said flat', 'foreign & misc',
+  'baseball too, sorry', 'the good bin (per grandpa)',
+  'ripped pack leftovers', 'papers & postcards & cards?',
+  'estate leftovers, still in the shoebox', 'no sleeves, no mercy',
 ]
+
+// The label is written ON the box next to the price sign, so it may never name
+// a different price than the bin charges — a 25¢ sign over a $1.00 bin reads
+// as a bug. Neutral flavor pairs with any bin; price-named lines only spawn on
+// their own price.
+const PRICE_BIN_LABELS: Record<number, string[]> = {
+  0.25: ['CARDS 25¢ EACH', 'quarter bin — dig deep', '25¢ a card, all day'],
+  0.5: ['50¢ bin, prices firm-ish', 'half-buck cards', "two for a dollar (that's 50¢)"],
+  1: ['dollar bin — flat', 'everything a buck', 'one dollar each, no haggling'],
+  2: ['commons box — fill a bag $2', 'two-buck table', '$2 each, take it or leave it'],
+  5: ['the five dollar bin', '$5 a card — the serious box', 'five-buck pull'],
+}
+
+function binLabel(price: number): string {
+  const priced = PRICE_BIN_LABELS[price]
+  return priced?.length && Math.random() < 0.5 ? pick(priced) : pick(BIN_LABELS)
+}
 
 // ---------------------------------------------------------------------------
 // Spawning — weekend markets that open at 6 AM
@@ -133,7 +151,7 @@ function createMarket() {
     const used = new Set<string>()
     for (let b = 0; b < binN; b++) {
       const price = pick(TERMS.binPrices)
-      const label = pick(BIN_LABELS)
+      const label = binLabel(price)
       const binId = db
         .prepare(`INSERT INTO flea_bins (market_id, price, label, created_at) VALUES (?, ?, ?, ?)`)
         .run(marketId, price, label, createdAt).lastInsertRowid as number
@@ -215,12 +233,14 @@ function recentDigs(): DigRow[] {
 }
 
 type DigRow = { name: string; condition: Condition; paid: number; trueMarket: number; stolen: boolean; at: string }
+/** The reveal needs art; cardId is presentation only and changes no mechanic. */
+type DigResult = DigRow & { cardId: string }
 
 // ---------------------------------------------------------------------------
 // The dig — buy one blind card from a bin at the flat price
 // ---------------------------------------------------------------------------
 
-export function dig(binId: number): { ok: true; card: DigRow } | { ok: false; error: string } {
+export function dig(binId: number): { ok: true; card: DigResult } | { ok: false; error: string } {
   const bin = db.prepare(`SELECT * FROM flea_bins WHERE id = ?`).get(binId) as { id: number; market_id: number; price: number; label: string } | undefined
   if (!bin) return { ok: false, error: 'No such bin.' }
   const market = db.prepare(`SELECT * FROM flea_markets WHERE id = ? AND status = 'live'`).get(bin.market_id) as MarketRow | undefined
@@ -265,7 +285,7 @@ export function dig(binId: number): { ok: true; card: DigRow } | { ok: false; er
       : `🛒 Flea dig: ${row.name} (${row.condition}) for $${paid.toFixed(2)} — comps ~$${row.true_market.toFixed(2)}.`,
     -paid,
   )
-  return { ok: true, card: { name: row.name, condition: row.condition, paid, trueMarket: row.true_market, stolen: false, at } }
+  return { ok: true, card: { name: row.name, condition: row.condition, paid, trueMarket: row.true_market, stolen: false, at, cardId: row.card_id } }
 }
 
 // ---------------------------------------------------------------------------

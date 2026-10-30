@@ -22,26 +22,20 @@ import { ForumView } from './views/Forum'
 import { ConventionView } from './views/Convention'
 import { StorageUnitsView } from './views/StorageUnits'
 import { BuylistView } from './views/Buylist'
-import { PawnShopView } from './views/PawnShop'
-import { YardSalesView } from './views/YardSales'
-import { FleaMarketView } from './views/FleaMarket'
-import { EstateSalesView } from './views/EstateSales'
-import { LocalDealsView } from './views/LocalDeals'
+import { DealsView, DEAL_VENUES, DEALS_GATE, dealVenueLabel } from './views/Deals'
 import { CardShowsView } from './views/CardShows'
 import { CalendarView } from './views/Calendar'
 import { AuctionView } from './views/Auctions'
 import { PackBattlesView } from './views/PackBattles'
 import { StreamView } from './views/Stream'
 import { ResaleView } from './views/Resale'
-import { BidBayView } from './views/BidBay'
-import { LiveShoppingView } from './views/LiveShopping'
 import { ShopView } from './views/Shop'
 import { CardDetailModal } from './views/CardDetail'
 import { StartingTutorial } from './views/Tutorial'
 import { ChangelogModal, useWhatsNewBadge } from './views/WhatsNew'
 
 export type ViewId =
-  | 'home' | 'collection' | 'portfolio' | 'sets' | 'set' | 'binders' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'convention' | 'shows' | 'calendar' | 'auctions' | 'battles' | 'stream'  | 'resale' | 'shop' | 'bidbay' | 'storage' | 'buylist' | 'pawn' | 'yard' | 'flea' | 'local' | 'estate' | 'wishlist' | 'settings' | 'pulls-history' | 'achievements' | 'live'
+  | 'home' | 'collection' | 'portfolio' | 'sets' | 'set' | 'binders' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'convention' | 'shows' | 'calendar'  | 'auctions' | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'buylist' | 'wishlist' | 'settings' | 'pulls-history' | 'achievements'
 
 type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean } }
 type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
@@ -61,13 +55,11 @@ const NAV: NavEntry[] = [
   { id: 'trade', label: 'Trading Post', icon: '🔁', section: '' },
   { id: 'forum', label: 'Community', icon: '🫂', section: '' },
   { id: 'buylist', label: 'Buylist', icon: '🧾', section: '' },
-  { id: 'pawn', label: 'Pawn Shop', icon: '💠', section: 'DEALS', locked: (s) => s.progress.salesCount >= 3, hint: 'Make 3 sales', goal: 3 },
-  { id: 'yard', label: 'Yard Sales', icon: '🛗', section: '', locked: (s) => s.progress.salesCount >= 3, hint: 'Make 3 sales', goal: 3 },
-  { id: 'flea', label: 'Flea Markets', icon: '🛒', section: '', locked: (s) => s.progress.salesCount >= 6, hint: 'Make 6 sales', goal: 6 },
-  { id: 'estate', label: 'Estate Buyouts', icon: '📑', section: '', locked: (s) => s.progress.salesCount >= 10, hint: 'Make 10 sales', goal: 10 },
-  { id: 'local', label: 'Local Deals', icon: '🪧', section: '', locked: (s) => s.progress.salesCount >= 5, hint: 'Make 5 sales', goal: 5 },
-  { id: 'bidbay', label: 'BidBay', icon: '🌐', section: '', locked: (s) => s.progress.salesCount >= 8, hint: 'Make 8 sales', goal: 8 },
-  { id: 'live', label: 'Live Shopping', icon: '📺', section: '', locked: (s) => s.progress.salesCount >= 12, hint: 'Make 12 sales', goal: 12 },
+  // One door for seven venues (roadmap 1.0). The gate is the EARLIEST venue
+  // gate, so the hub can never open onto an empty shell — unlocking it always
+  // unlocks the Pawn Shop with it. The venues' own gates live in DEAL_VENUES
+  // and print on the tabs inside.
+  { id: 'deals', label: 'Deals', icon: '🏷', section: 'DEALS', locked: (s) => s.progress.salesCount >= DEALS_GATE, hint: `Make ${DEALS_GATE} sales`, goal: DEALS_GATE },
   { id: 'convention', label: 'Conventions', icon: '🎪', section: 'EVENTS' },
   { id: 'shows', label: 'Card Shows', icon: '🏟', section: '' },
   { id: 'calendar', label: 'Calendar', icon: '📅', section: '' },
@@ -218,7 +210,14 @@ export default function App() {
   // from popstate; the render is derived, so a plain reload also works.
   const pathRoute = window.location.pathname.replace(/^\//, '')
   const hash = window.location.hash.replace('#/', '') || pathRoute
-  const [route, routeParam] = hash.split('/') as [string, string?]
+  const [rawRoute, rawParam] = hash.split('/') as [string, string?]
+  // The seven venues used to be routes of their own, and the feed still
+  // carries hrefs pointing at them — 200 rows in an existing save say #/live
+  // alone. Old links normalize into the hub rather than falling through to
+  // "page not found — headed home".
+  const legacyVenue = DEAL_VENUES.some((v) => v.id === rawRoute)
+  const route = legacyVenue ? 'deals' : rawRoute
+  const routeParam = legacyVenue ? rawRoute : rawParam
   const view = (route || 'home') as ViewId
 
   useEffect(() => {
@@ -291,6 +290,7 @@ export default function App() {
     : view === 'pulls-history' ? 'Pull History'
     : view === 'opening' ? 'Pack Opening'
     : viewLocked ? 'Home'
+    : view === 'deals' ? dealVenueLabel(routeParam) ?? 'Deals'
     : NAV.find((n) => n.id === view)?.label ?? 'TCG Life'
 
   return (
@@ -408,19 +408,13 @@ export default function App() {
               {view === 'convention' && <ConventionView />}
               {view === 'storage' && <StorageUnitsView />}
               {view === 'buylist' && <BuylistView />}
-              {view === 'pawn' && <PawnShopView />}
-              {view === 'yard' && <YardSalesView />}
-              {view === 'flea' && <FleaMarketView />}
-              {view === 'estate' && <EstateSalesView />}
-              {view === 'local' && <LocalDealsView />}
+              {view === 'deals' && <DealsView venue={routeParam} />}
               {view === 'shows' && <CardShowsView />}
               {view === 'calendar' && <CalendarView />}
               {view === 'auctions' && <AuctionView />}
               {view === 'battles' && <PackBattlesView />}
               {view === 'stream' && <StreamView />}
               {view === 'resale' && <ResaleView />}
-              {view === 'bidbay' && <BidBayView />}
-              {view === 'live' && <LiveShoppingView />}
               {view === 'shop' && <ShopView />}
               {view === 'wishlist' && <WishlistView />}
               {view === 'settings' && <SettingsView />}
