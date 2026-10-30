@@ -4,18 +4,16 @@ import { gameDayMsFor } from './lib/gameday'
 import { fmtUsd } from './components'
 import { api, type TodayResponse, type TodayRoll } from './api'
 import { HomePage } from './views/Home'
-import { CollectionView } from './views/Collection'
+import { CollectionHubView, collectionModeLabel } from './views/CollectionHub'
 import { PortfolioView } from './views/Portfolio'
-import { SetsGalleryView, SetDetailView } from './views/SetDetail'
+import { SetDetailView } from './views/SetDetail'
 import { MarketView } from './views/Market'
 import { PacksView } from './views/Packs'
 import { PackOpeningView } from './views/PackOpening'
 import { InventoryView } from './views/Inventory'
-import { WishlistView } from './views/Wishlist'
 import { SettingsView } from './views/Settings'
 import { AchievementsView } from './views/Achievements'
 import { PullHistoryView } from './views/PullHistory'
-import { BindersView } from './views/Binders'
 import { GradingView } from './views/Grading'
 import { TradeView } from './views/Trade'
 import { ForumView } from './views/Forum'
@@ -35,7 +33,7 @@ import { StartingTutorial } from './views/Tutorial'
 import { ChangelogModal, useWhatsNewBadge } from './views/WhatsNew'
 
 export type ViewId =
-  | 'home' | 'collection' | 'portfolio' | 'sets' | 'set' | 'binders' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'convention' | 'shows' | 'calendar'  | 'auctions' | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'buylist' | 'wishlist' | 'settings' | 'pulls-history' | 'achievements'
+  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'convention' | 'shows' | 'calendar'  | 'auctions' | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'buylist' | 'settings' | 'pulls-history' | 'achievements'
 
 type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean } }
 type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
@@ -44,9 +42,8 @@ const NAV: NavEntry[] = [
   { id: 'home', label: 'Home', icon: '◉', section: '' },
   { id: 'collection', label: 'Collection', icon: '▤', section: 'COLLECT' },
   { id: 'portfolio', label: 'Portfolio', icon: '📈', section: 'COLLECT' },
-  { id: 'binders', label: 'Binders', icon: '📔', section: '' },
-  { id: 'sets', label: 'Set Completion', icon: '🏸', section: '' },
-  { id: 'wishlist', label: 'Wishlist', icon: '★', section: '' },
+  // Binders, Set Completion and Wishlist are MODES of the Collection hub now
+  // (roadmap 8.0) — four ways of looking at the same cards, one door.
   { id: 'achievements', label: 'Achievements', icon: '🏆', section: '' },
   { id: 'grading', label: 'Grading', icon: '⚖', section: '' },
   { id: 'market', label: 'Market', icon: '⇄', section: 'MARKET' },
@@ -216,8 +213,12 @@ export default function App() {
   // alone. Old links normalize into the hub rather than falling through to
   // "page not found — headed home".
   const legacyVenue = DEAL_VENUES.some((v) => v.id === rawRoute)
-  const route = legacyVenue ? 'deals' : rawRoute
-  const routeParam = legacyVenue ? rawRoute : rawParam
+  // The same treatment for the four COLLECT screens: Binders, Set Completion
+  // and Wishlist are modes of the Collection hub now (roadmap 8.0), and the
+  // Home dashboard plus the set browser still write those old hashes.
+  const legacyCollect = rawRoute === 'binders' || rawRoute === 'sets' || rawRoute === 'wishlist'
+  const route = legacyVenue ? 'deals' : legacyCollect ? 'collection' : rawRoute
+  const routeParam = legacyVenue || legacyCollect ? rawRoute : rawParam
   const view = (route || 'home') as ViewId
 
   useEffect(() => {
@@ -291,6 +292,7 @@ export default function App() {
     : view === 'opening' ? 'Pack Opening'
     : viewLocked ? 'Home'
     : view === 'deals' ? dealVenueLabel(routeParam) ?? 'Deals'
+    : view === 'collection' ? collectionModeLabel(routeParam) ?? 'Collection'
     : NAV.find((n) => n.id === view)?.label ?? 'TCG Life'
 
   return (
@@ -392,12 +394,10 @@ export default function App() {
           {viewLocked || unknownView ? <HomePage /> : (
             <>
               {view === 'home' && <HomePage />}
-              {view === 'collection' && <CollectionView />}
+              {view === 'collection' && <CollectionHubView mode={routeParam} />}
               {view === 'portfolio' && <PortfolioView />}
-              {view === 'sets' && <SetsGalleryView />}
               {view === 'achievements' && <AchievementsView />}
               {view === 'set' && routeParam && <SetDetailView setId={routeParam} />}
-              {view === 'binders' && <BindersView />}
               {view === 'market' && <MarketView />}
               {view === 'packs' && <PacksView />}
               {view === 'opening' && <PackOpeningView />}
@@ -416,7 +416,6 @@ export default function App() {
               {view === 'stream' && <StreamView />}
               {view === 'resale' && <ResaleView />}
               {view === 'shop' && <ShopView />}
-              {view === 'wishlist' && <WishlistView />}
               {view === 'settings' && <SettingsView />}
               {view === 'pulls-history' && <PullHistoryView />}
             </>

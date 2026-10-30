@@ -80,8 +80,14 @@ time of writing; the exit test is the next live review, not this line.
 
 ### Phase 2 — Consolidate the rest
 
-**Next up: 8.0 Collection hub** — the first consolidation, and the template the Market,
-Events and Inventory folds copy.
+**Status: 8.0 Collection hub built.** Collection, Binders, Set Completion and Wishlist are
+one door with four modes (`#/collection/cards|binders|sets|wishlist`); the three old hashes
+normalize into the hub, and the COLLECT section drops from 8 rows to 4 (Collection,
+Portfolio, Achievements, Grading). It reuses the DEALS hub chrome (`.hub-bar`), which is
+now the template 9.0–11.0 inherit.
+
+**Next up: 9.0 Market hub** — Market, Auction House and Buylist as modes of one market;
+Pack Shop, Trading Post and Community keep their own doors.
 
 Fold the remaining screens so the sidebar stops being a wall. Same principle as DEALS:
 fewer doors, deeper rooms.
@@ -97,7 +103,7 @@ fewer doors, deeper rooms.
 
 32 screens → 18 doors, every one of them earning its place.
 
-- [ ] 8.0 Collection hub
+- [x] 8.0 Collection hub
 - [ ] 9.0 Market hub
 - [ ] 10.0 Events hub
 - [ ] 11.0 Inventory absorbs Storage

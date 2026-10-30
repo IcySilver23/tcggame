@@ -419,7 +419,7 @@ export function HomePage() {
             <h2 style={{ margin: 0 }}>🆕 New releases this week</h2>
             <span className="faint small">
               {state?.sync.delta?.lastRunAt && <>checked {timeAgo(state.sync.delta.lastRunAt)} · </>}
-              <button className="ghost small" onClick={() => (window.location.hash = '#/sets')}>Set completion →</button>
+              <button className="ghost small" onClick={() => (window.location.hash = '#/collection/sets')}>Set completion →</button>
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} className="mt8">

@@ -178,12 +178,13 @@ input::placeholder{color:var(--text-faint)}
 .tab.on{background:var(--yellow);color:var(--on-yellow);box-shadow:inset 0 -2px 0 var(--yellow-dim);font-weight:850}
 .tab-badge{margin-left:6px;font-size:10px;font-weight:700;background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:0 6px;color:var(--text-faint)}
 .tab.on .tab-badge{color:var(--on-yellow);border-color:color-mix(in srgb,var(--on-yellow) 30%,transparent);background:var(--panel)}
-/* ---- DEALS hub (roadmap 1.0): seven venues behind one sidebar row ---- */
-/* The bar sticks to the top of .content so you can switch venues from
-   anywhere in a long feed; the venue's own page-head sits under it. */
-.deals-bar{position:sticky;top:-22px;z-index:6;background:var(--bg);padding:14px 0 10px;margin:-14px 0 4px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;border-bottom:2px solid var(--border-soft)}
-.tab-bar.deals-tabs{width:auto;flex-wrap:wrap;gap:4px;padding:4px}
-.deals-tabs .tab{display:inline-flex;align-items:center;gap:5px;padding:6px 13px}
+/* ---- HUB chrome (roadmap 1.0 DEALS, 8.0 COLLECTION): a section that used to
+   be several sidebar rows, now one door with its modes as tabs ---- */
+/* The bar sticks to the top of .content so you can switch modes from anywhere
+   in a long feed; the mode's own page-head sits under it. */
+.deals-bar,.hub-bar{position:sticky;top:-22px;z-index:6;background:var(--bg);padding:14px 0 10px;margin:-14px 0 4px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;border-bottom:2px solid var(--border-soft)}
+.tab-bar.deals-tabs,.tab-bar.hub-tabs{width:auto;flex-wrap:wrap;gap:4px;padding:4px}
+.deals-tabs .tab,.hub-tabs .tab{display:inline-flex;align-items:center;gap:5px;padding:6px 13px}
 .deals-tabs .tab.is-locked{opacity:.55;font-style:italic;cursor:pointer}
 .deals-tabs .tab.is-locked:hover{opacity:.8;background:var(--panel2)}
 .tab-gate{font-size:10px;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:.3px;color:var(--yellow);font-style:normal;opacity:.9}
@@ -191,6 +192,13 @@ input::placeholder{color:var(--text-faint)}
 .deals-next{font-size:11.5px;font-weight:650;color:var(--text-dim);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .deals-next b{color:var(--text);font-weight:800}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+
+/* Set gallery art — the real expansion logo on the card face, logo-first with
+   the tiny set symbol as the fallback while a logo is missing or slow. */
+.set-art{position:relative;aspect-ratio:245 / 342;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(120% 90% at 50% 0%,var(--panel2),var(--img-bg) 78%)}
+.set-art img{max-width:100%;max-height:78%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.set-art .set-art-sym{max-height:64px;opacity:.85}
+.set-art .set-art-fallback{font-size:40px;opacity:.45}
 
 /* density modes — comfortable is the default above */
 .card-grid.density-compact{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px}
@@ -209,7 +217,13 @@ input::placeholder{color:var(--text-faint)}
 .card-grid.density-list .card-meta .nm{font-size:13px;flex:0 1 260px}
 .card-grid.density-list .card-meta .st{flex:1;font-size:11.5px}
 .card-grid.density-list .card-meta .card-row-between{flex:0 0 auto;gap:8px}
-.card-cell{background:var(--panel);border:2px solid var(--border-soft);border-radius:14px;padding:10px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column;gap:8px;box-shadow:0 2px 0 var(--edge)}
+/* min-width:0 is load-bearing, not tidiness: a grid track is 1fr = minmax(auto,1fr),
+   so a cell whose nowrap meta line was wider than its share used to grow that
+   track and squeeze its neighbours — the same grid rendered cards at 187px,
+   222px and 228px side by side. Zeroing the floor keeps every track equal, so
+   every card is the same size. */
+.card-cell{min-width:0;background:var(--panel);border:2px solid var(--border-soft);border-radius:14px;padding:10px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s;position:relative;display:flex;flex-direction:column;gap:8px;box-shadow:0 2px 0 var(--edge)}
+.card-grid>*{min-width:0}
 /* Uniform cell height: meta lines never wrap (the art's aspect ratio sets
    the height) — wrapped lines made some cells taller and virtual rows
    collide. Long text ellipsizes instead. */

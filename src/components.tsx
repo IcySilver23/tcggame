@@ -586,7 +586,10 @@ export function VirtualGrid<T>({
             left: 0,
             right: 0,
             display: 'grid',
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+            // minmax(0,…): a plain 1fr track floors at the cell's min-content
+            // width, so one long card name widened its whole column and the
+            // grid rendered cards at different sizes. Equal tracks, always.
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
             gap,
             alignItems: 'start',
           }}

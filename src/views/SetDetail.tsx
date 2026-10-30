@@ -4,6 +4,31 @@ import { useStore } from '../store'
 import { byNum, byStr, CardImg, Chip, DensityToggle, EmptyState, fmtUsd, matchesQuery, PriceTag, RarityBadge, SearchInput, SortSelect, VirtualGrid } from '../components'
 import type { SetDetailResponse, SetRow } from '../types'
 
+/**
+ * Set art for the gallery: the real expansion logo, with the tiny set symbol as
+ * a fallback and a card glyph after that. The gallery used to show only the
+ * 72px symbol floating in a dark box, which read as missing art.
+ */
+function SetArt({ set }: { set: SetRow }) {
+  const chain = useMemo(() => [set.logo_url, set.symbol_url].filter((u): u is string => !!u), [set.logo_url, set.symbol_url])
+  const [stage, setStage] = useState(0)
+  useEffect(() => { setStage(0) }, [set.id])
+  const url = chain[stage]
+  if (!url) return <div className="set-art"><span className="set-art-fallback" aria-hidden>🎴</span></div>
+  return (
+    <div className="set-art">
+      <img
+        key={url}
+        className={stage === 0 ? undefined : 'set-art-sym'}
+        src={url}
+        alt={set.name}
+        loading="lazy"
+        onError={() => setStage((s) => s + 1)}
+      />
+    </div>
+  )
+}
+
 export function SetsGalleryView() {
   const [sets, setSets] = useState<SetRow[]>([])
   const [q, setQ] = useState('')
@@ -70,9 +95,7 @@ export function SetsGalleryView() {
       <div className="card-grid">
         {shown.map((s) => (
           <div key={s.id} className="card-cell" onClick={() => (window.location.hash = `#/set/${s.id}`)}>
-            <div className="card-img-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#10131b' }}>
-              {s.symbol_url ? <img src={s.symbol_url} alt={s.name} style={{ width: 72, height: 72, objectFit: 'contain' }} /> : <span style={{ fontSize: 40 }}>🎴</span>}
-            </div>
+            <SetArt set={s} />
             <div className="card-meta">
               <div className="nm">{s.name}</div>
               <div className="st">{s.series} · {s.release_date}</div>
@@ -132,7 +155,7 @@ export function SetDetailView({ setId }: { setId: string }) {
     <div>
       <div className="page-head">
         <div>
-          <button className="ghost small" onClick={() => { window.location.hash = '#/sets' }}>← All sets</button>
+          <button className="ghost small" onClick={() => { window.location.hash = '#/collection/sets' }}>← All sets</button>
           <h1 style={{ marginTop: 8 }}>{data.set.name}</h1>
           <div className="sub">{data.set.series} · Released {data.set.release_date} · {data.set.total} cards</div>
         </div>

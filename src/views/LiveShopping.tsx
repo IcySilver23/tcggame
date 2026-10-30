@@ -250,7 +250,7 @@ export function LiveShoppingView() {
           </div>
 
           {channels.length === 0 ? (
-            <EmptyState icon="📺" text="Channels warming up" sub="The roster is spinning rooms up — the grid fills in as hosts go live. There is never dead air for long." />
+            <EmptyState icon="📺" text="Channels warming up" sub="The pack catalog is still seeding — rooms open the moment there are products to rip. Three rooms are always live once it lands." />
           ) : gridChannels.length === 0 ? (
             <EmptyState
               icon={tab === 'following' ? '🫥' : '🔍'}

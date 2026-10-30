@@ -408,16 +408,48 @@ function ensureLiveShows(): void {
       openAlwaysOnShow(h.id)
     } catch { /* no seed product yet (fresh save mid-sync) — next tick retries */ }
   }
+
+  // THE FLOOR. The breather below is a shuffle device, not a shutdown: when
+  // every room wraps at once (which happens — they all run 4-8h and open
+  // together), seven 40-minute cooldowns used to black out the whole wing and
+  // leave the feed saying "channels warming up" while the page promises there
+  // is never dead air. A minimum of LIVE_FLOOR rooms are always live; if the
+  // breather would take us under that, the hosts who have waited longest
+  // reopen immediately.
+  const liveCount = () => (db.prepare(`SELECT COUNT(*) n FROM live_shows WHERE status = 'live'`).get() as { n: number }).n
+  const floor = Math.min(LIVE_FLOOR, hosts.length)
+  let live = liveCount()
+  if (live >= floor) return
+  const waiting = db.prepare(
+    `SELECT h.id
+       FROM live_hosts h
+      WHERE NOT EXISTS (SELECT 1 FROM live_shows s WHERE s.host_id = h.id AND s.status = 'live')
+      ORDER BY COALESCE((SELECT MAX(s2.end_at) FROM live_shows s2 WHERE s2.host_id = h.id AND s2.status = 'done'), '') ASC`,
+  ).all() as { id: number }[]
+  for (const w of waiting) {
+    if (live >= floor) break
+    try {
+      if (openAlwaysOnShow(w.id, true)) live++
+    } catch { /* no seed product yet — the next tick retries */ }
+  }
 }
 
-function openAlwaysOnShow(hostId: number): void {
+/** Rooms that are always live, even if the breather would rather they rest. */
+const LIVE_FLOOR = 3
+
+/** How long a wrapped channel rests so the lineup shuffles instead of restarting in lockstep. */
+const BREATHER_MS = 40 * 60_000
+
+/** Opens a host's room. Returns false when the room is still on its breather. */
+function openAlwaysOnShow(hostId: number, force = false): boolean {
   const h = host(hostId)
-  if (!h) return
+  if (!h) return false
   const product = showProductFor(h)
   // A channel that just wrapped gets a short breather before reopening,
-  // so the lineup shuffles instead of everyone restarting at once.
+  // so the lineup shuffles instead of everyone restarting at once. `force`
+  // skips it — used only to keep the LIVE_FLOOR from going dark.
   const lastDone = db.prepare(`SELECT MAX(end_at) AS e FROM live_shows WHERE host_id = ? AND status = 'done'`).get(hostId) as { e: string | null }
-  if (lastDone.e && Date.now() - new Date(lastDone.e).getTime() < 40 * 60_000) return
+  if (!force && lastDone.e && nowMs() - new Date(lastDone.e).getTime() < BREATHER_MS) return false
   const hours = CHANNEL_HOURS[0] + Math.random() * (CHANNEL_HOURS[1] - CHANNEL_HOURS[0])
   const start = nowMs() - Math.random() * 40 * 60_000 // mid-rotation: rooms start slightly staggered
   const end = start + hours * 3_600_000
@@ -433,6 +465,7 @@ function openAlwaysOnShow(hostId: number): void {
     { who: pick(['slabseeker', 'wagie_gradr', 'holo_hannah', 'dextright']), avatar: pick(VIEWER_AVATARS), text: pick(AMBIENT) },
   ])
   logActivity('live', `📺 ${h.name} is LIVE — ${product.name}. ${tagline.charAt(0).toUpperCase()}${tagline.slice(1)}.`, undefined, '#/live')
+  return true
 }
 
 export function closeShow(showId: number, reason: 'natural' | 'hard-stop'): void {
@@ -841,11 +874,14 @@ export function liveShoppingTick(): void {
     }
 
     if (hardStop || (live.rips_done >= live.rips_planned && now - new Date(live.last_rip_at ?? now).getTime() > 2 * TERMS.ripIntervalMs)) {
-      // The room wraps and re-arms on the NEXT tick (ensureLiveShows) —
-      // the lineup never goes dark, channels just roll over.
       closeShow(live.id, hardStop ? 'hard-stop' : 'natural')
     }
   }
+
+  // Re-arm in THIS tick rather than the next one. A wrapped room either takes
+  // its breather (the lineup shuffles) or — if that would drop the wing under
+  // LIVE_FLOOR — reopens immediately. Either way the feed never sits empty.
+  ensureLiveShows()
 }
 
 function npcBidWars(showId: number, now: number): void {
