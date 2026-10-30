@@ -63,7 +63,7 @@ let syncRunning = false
 // killed both the pack-art backfill and the price mirror — every call came
 // back 401, so the matcher had no products to match and nothing to price. A
 // self-identifying, non-browser UA is what the mirror accepts.
-const UA = { 'User-Agent': 'TCGLife/0.6.0 (collector-sim; local card game)' }
+const UA = { 'User-Agent': 'TCGLife/0.6.1 (collector-sim; local card game)' }
 
 // --- group map -------------------------------------------------------------
 

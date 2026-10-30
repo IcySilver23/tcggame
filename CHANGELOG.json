@@ -1,6 +1,17 @@
 {
   "entries": [
     {
+      "version": "0.6.1",
+      "date": "2026-10-29",
+      "title": "The playtest pass",
+      "features": [
+        "'Fix the four first-ten-minutes bugs.' Three surfaces used to lie to a new player. The convention timer said \"0 min of active play\" whenever the hall happened to be closed — it now answers from the event calendar, so Home reads 'Weekend Flea Market · Sat 11:00 AM' and Conventions tells you how long until the doors actually open. The Pack Shop had ONE message for three different situations; it now says 'Loading the sealed catalog…' while the fetch is in flight, shows 'Couldn't load the pack shop' with a working Try again if it fails, and only claims it's waiting on a sync when the catalog is genuinely empty. The shop also shows each product's real wrapper art on all 510 rows — falling back to the set's symbol when TCGplayer never listed it — and the rip screen's generic pack art is replaced by the product you actually bought.",
+        "'Rewrite the walls of rules text on BidBay, Pawn and Local Deals into short scannable tips.' A new shared TipList turns each monologue into a dialogue-box list of one-line rules — a bold label and a single sentence each, so a first-timer can skim the mechanics of a venue in three seconds instead of reading a paragraph. BidBay's seven rules, the Pawn Shop's valuation notes and Local Deals' venue rules all went through it.",
+        "'sweep the rest of the playtest list.' The Pack Shop header no longer nags you to add a PriceCharting token when zero products are priced from real data — it just explains that everything else is derived and badged est. Consecutive '<shop> posted a new want list' lines collapse into one counted row, and a price sync that priced nothing no longer logs '0 cards now priced' into the feed. The weekly digest replaced its twice-printed 'Not enough price history yet' (on a complete 20,641-card catalog) with one honest line explaining that a card needs a week of quotes. BidBay stops showing a fake '0.0★ from 0 sales'. Collection streams pages behind a scroll sentinel — 250 at a time, filling itself the way Inventory does — instead of a 60-card 'Load more' button, and its header now reads '3,750 of 20,641' so a partial list is never mistaken for a full one. An unchanged incoming trade offer reads 'Take their offer' rather than 'Ask for $0.00'.",
+        "Pack Battles: the grudge line gets an em dash between the tag and the rematch demand, so 'GRUDGE 7.5 demands rematch: …' reads as a sentence — the rematch pill is nowrap, which used to strand the grudge tag on its own line with nothing between them. Also fixed: Home was firing the activity fetch twice on every mount."
+      ]
+    },
+    {
       "version": "0.6.0",
       "date": "2026-10-29",
       "title": "Now it looks like a game",
