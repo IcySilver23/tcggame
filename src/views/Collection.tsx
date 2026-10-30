@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
 import { CardImg, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, fmtUsd, PriceTag, RarityBadge, SetSection, VirtualGrid } from '../components'
 import type { CardRow, SetRow } from '../types'
+
+// The server caps /api/cards/search at 250 rows per request; that's also the
+// page this view streams in.
+const PAGE = 250
 
 export function CollectionView() {
   const { state, openCard, density, browse } = useStore()
@@ -15,7 +19,7 @@ export function CollectionView() {
   const [type, setType] = useState('')
   const [sort, setSort] = useState('price_desc')
   const [ownedOnly, setOwnedOnly] = useState(true)
-  const [limit, setLimit] = useState(60)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [facets, setFacets] = useState<{ rarities: { rarity: string; n: number }[]; types: string[] }>({ rarities: [], types: [] })
   const [loading, setLoading] = useState(false)
 
@@ -24,19 +28,51 @@ export function CollectionView() {
     api.facets().then(setFacets).catch(() => {})
   }, [])
 
+  // Page one — refetched (and the list replaced) whenever a filter moves.
+  // 250 is the server's per-request ceiling; further pages stream in below.
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     // 'owned' is filtered server-side so owned cards surface regardless of price rank
     const t = setTimeout(() => {
       api
-        .cardsSearch({ q, setId, rarity, type, sort, limit, offset: 0, owned: ownedOnly ? 1 : undefined })
+        .cardsSearch({ q, setId, rarity, type, sort, limit: PAGE, offset: 0, owned: ownedOnly ? 1 : undefined })
         .then((r) => { if (!cancelled) { setCards(r.cards); setTotal(r.total) } })
         .catch(() => {})
         .finally(() => { if (!cancelled) setLoading(false) })
     }, 220)
     return () => { cancelled = true; clearTimeout(t) }
-  }, [q, setId, rarity, type, sort, limit, ownedOnly])
+  }, [q, setId, rarity, type, sort, ownedOnly])
+
+  // Next page — requested by the sentinel at the bottom of the grid, so the
+  // collection fills itself the way Inventory does instead of making the
+  // player click "Load more" every 60 cards.
+  const loadMore = useCallback(() => {
+    if (loading || loadingMore) return
+    setLoadingMore(true)
+    api
+      .cardsSearch({ q, setId, rarity, type, sort, limit: PAGE, offset: cards.length, owned: ownedOnly ? 1 : undefined })
+      .then((r) => {
+        setTotal(r.total)
+        // Append only if the list is still the one we read `offset` from — a
+        // filter change may have replaced it mid-flight.
+        setCards((prev) => (prev.length === cards.length ? [...prev, ...r.cards] : prev))
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false))
+  }, [q, setId, rarity, type, sort, ownedOnly, loading, loadingMore, cards.length])
+
+  const sentinel = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const el = sentinel.current
+    if (!el || cards.length >= total) return
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) loadMore() },
+      { rootMargin: '600px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loadMore, cards.length, total])
 
   const shown = cards
 
@@ -62,7 +98,7 @@ export function CollectionView() {
         </div>
         <div className="right">
           <div className="faint small">Cards shown</div>
-          <div className="price" style={{ fontSize: 18 }}>{shown.length.toLocaleString()}</div>
+          <div className="price" style={{ fontSize: 18 }}>{shown.length.toLocaleString()}{total > shown.length ? ` of ${total.toLocaleString()}` : ''}</div>
         </div>
       </div>
 
@@ -165,12 +201,13 @@ export function CollectionView() {
         />
       )}
 
-      {browse !== 'byset' && shown.length < total && shown.length > 0 && (
-        <div style={{ textAlign: 'center', marginTop: 18 }}>
-          <button onClick={() => setLimit((l) => l + 60)}>
-            Load more ({total.toLocaleString()} total — prices load as sets sync)
-          </button>
-        </div>
+      {/* Scroll sentinel: crossing it pulls the next 250 cards. Placed after
+          whichever grid is mounted so both browse modes fill themselves. */}
+      {shown.length < total && shown.length > 0 && (
+        <div ref={sentinel} style={{ height: 1 }} aria-hidden="true" />
+      )}
+      {loadingMore && (
+        <div className="faint small" style={{ textAlign: 'center', marginTop: 14 }}>Loading more cards…</div>
       )}
     </div>
   )

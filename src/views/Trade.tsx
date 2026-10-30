@@ -204,7 +204,12 @@ function HaggleBar({ offer, onChanged }: { offer: TradeOfferRow; onChanged: () =
           {showFloorPct && <> · fairness floor {pctFloor}%</>}
         </span>
         <button className="primary small" disabled={busy || v === h.current} onClick={go}>
-          {busy ? '…' : h.incoming ? `Ask for ${fmtUsd(v)}` : v > 0 ? `Ask ${fmtUsd(v)}` : v < 0 ? `Ask to add ${fmtUsd(-v)}` : 'Accept as-is'}
+          {/* Zero on an incoming offer used to print "Ask for $0.00" — with no
+              number named, the button is simply taking their offer. */}
+          {busy ? '…'
+            : h.incoming
+              ? (v > 0 ? `Ask for ${fmtUsd(v)}` : v < 0 ? `Ask to add ${fmtUsd(-v)}` : 'Take their offer')
+              : (v > 0 ? `Ask ${fmtUsd(v)}` : v < 0 ? `Ask to add ${fmtUsd(-v)}` : 'Accept as-is')}
         </button>
       </div>
       {msg && <div className="small" style={{ marginTop: 6, fontStyle: 'italic' }}>{msg}</div>}

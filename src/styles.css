@@ -711,6 +711,14 @@ to{opacity:1;transform:none}
 .po-pack.has-art .pack-sub{position:absolute;left:0;right:0;bottom:30px;margin:0;padding:0 12px;font-size:11px;font-weight:600;color:#fffffff2;text-shadow:0 1px 4px #000}
 .po-pack.has-art .tear-hint{bottom:10px;color:#ffffffd9;text-shadow:0 1px 3px #000;max-width:94%;text-align:center}
 
+/* --- Pack Shop product art ------------------------------------------------
+   Every row shows the pack you'd be buying: the TCGplayer wrapper photo when
+   the catalog matched one, otherwise the set's symbol on a foil placeholder. */
+.pack-thumb{flex:0 0 auto;width:54px;height:72px;object-fit:contain;padding:4px;border:1px solid var(--border-soft);border-radius:8px;background:var(--panel2)}
+.pack-thumb-ph{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--panel3),var(--panel2))}
+.pack-thumb-ph img{width:30px;height:30px;object-fit:contain;opacity:.9}
+.pack-thumb-ph span{font-size:22px;line-height:1}
+
 /* --- Tear ceremony polish: keyboard focus, set-symbol foil art, rip sparks --- */
 .po-pack:focus-visible{outline:2px solid var(--yellow);outline-offset:4px}
 .po-pack .pack-logo-img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 6px 18px #0008)}

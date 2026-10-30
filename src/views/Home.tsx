@@ -1,8 +1,23 @@
 import { useEffect, useState } from 'react'
 import { api, type AchievementsStatus, type CalendarResponse, type CatalogDeltaSummary, type CollectorStats, type ConventionSummary, type MarketDigest, type NetWorthHistory, type PsaRushSection, type ShopStatsResponse } from '../api'
 import { useStore } from '../store'
-import { CardImg, Delta, EmptyState, fmtDate, fmtUsd, PriceChart, PriceTag, timeAgo, BestPullCard } from '../components'
+import { CardImg, Delta, EmptyState, fmtDate, fmtUsd, fmtWhen, fmtWait, PriceChart, PriceTag, timeAgo, BestPullCard } from '../components'
 import type { ActivityRow, CardRow, SetRow } from '../types'
+
+// The buylist tick posts one "<shop> posted a new want list" line per shop in
+// the same second — four identical-looking rows is spam, not news. Collapse a
+// consecutive run into a single counted line so the feed stays readable.
+const WANT_LIST_END = 'posted a new want list — check the buylist before you sell.'
+
+function feedRows(rows: ActivityRow[]): { row: ActivityRow; n: number }[] {
+  const out: { row: ActivityRow; n: number }[] = []
+  for (const r of rows) {
+    const last = out[out.length - 1]
+    if (r.message.endsWith(WANT_LIST_END) && last && last.row.message.endsWith(WANT_LIST_END)) last.n++
+    else out.push({ row: r, n: 1 })
+  }
+  return out
+}
 
 export function HomePage() {
   const { state, openCard, toast, setRushShortcut } = useStore()
@@ -22,7 +37,6 @@ export function HomePage() {
   const [bestPull, setBestPull] = useState<Awaited<ReturnType<typeof api.pullsBest>> | null>(null)
 
   useEffect(() => {
-    api.activity().then(setActivity).catch(() => {})
     api.activity().then(setActivity).catch(() => {})
     api.sets().then((rows) => setSetsById(Object.fromEntries(rows.map((s) => [s.id, s])))).catch(() => {})
     api.conventionSummary().then(setConv).catch(() => {})
@@ -347,10 +361,20 @@ export function HomePage() {
           <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <h2 style={{ margin: 0 }}>📰 Weekly market digest</h2>
             <span className="faint small">
-              week of {digest.week} · {digest.sampled} cards tracked
+              week of {digest.week} · {digest.sampled} card{digest.sampled === 1 ? '' : 's'} with a week of quotes
               {digest.postedAt ? ` · posted ${timeAgo(digest.postedAt)}` : ' · preview'}
             </span>
           </div>
+          {digest.gainers.length === 0 && digest.losers.length === 0 ? (
+            // One honest line instead of the same note printed under both
+            // columns — "13 cards tracked · Not enough price history yet"
+            // (twice) read like a broken catalog on a save that has all
+            // 20,641 cards.
+            <div className="faint small" style={{ marginTop: 8, lineHeight: 1.5 }}>
+              No movers to show yet — a card needs a week of quotes before it can count as a gainer or a drop, and the
+              daily price sync fills that in as it runs. Your catalog is fine; the history is still young.
+            </div>
+          ) : (
           <div className="grid cols2 mt8" style={{ gap: 12 }}>
             {(
               [
@@ -361,7 +385,7 @@ export function HomePage() {
               <div key={col.label}>
                 <div className="small" style={{ color: col.color, marginBottom: 6 }}>{col.label}</div>
                 {col.movers.length === 0 ? (
-                  <div className="faint small">Not enough price history yet.</div>
+                  <div className="faint small">No movers this week.</div>
                 ) : (
                   col.movers.slice(0, 5).map((m) => (
                     <div key={m.cardId} className="row" style={{ padding: '4px 0', gap: 8, cursor: 'pointer', borderBottom: '1px solid var(--border-soft)' }}
@@ -385,6 +409,7 @@ export function HomePage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
 
@@ -459,7 +484,11 @@ export function HomePage() {
                   <>
                     <div className="val" style={{ fontSize: 16, color: 'var(--text-dim)' }}>No show in town</div>
                     <div className="note">
-                      Next rolls in ~{conv.next.nextShowInMin} min of play
+                      {conv.next.liveNow
+                        ? 'Opening now'
+                        : conv.next.nextShowAt
+                          ? `${conv.next.nextShowTitle ?? 'Next show'} · ${fmtWhen(conv.next.nextShowAt)}`
+                          : `Next rolls in ~${fmtWait(conv.next.nextShowInMin)}`}
                       {conv.lastShow && <> · last: <b style={{ color: conv.lastShow.net >= 0 ? 'var(--green)' : 'var(--red)' }}>{conv.lastShow.net >= 0 ? '+' : '-'}{fmtUsd(Math.abs(conv.lastShow.net))}</b></>}
                     </div>
                   </>
@@ -510,7 +539,7 @@ export function HomePage() {
           <h2>Recent Activity</h2>
           {activity.length === 0 && <EmptyState icon="🕰" text="No activity yet" sub="Buy a pack, hunt the market, list a card." />}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {activity.slice(0, 7).map((a) => (
+            {feedRows(activity).slice(0, 7).map(({ row: a, n }) => (
               <div
                 key={a.id}
                 className="row"
@@ -519,7 +548,7 @@ export function HomePage() {
                 onClick={() => { if (a.href) window.location.hash = a.href.startsWith('#') ? a.href.slice(1) : a.href }}
               >
                 <span>{a.kind === 'sale' ? '💰' : a.kind === 'buy' ? '🛒' : a.kind === 'pack' ? '📦' : a.kind === 'listing' ? '🏷' : a.kind === 'release' ? '🆕' : a.kind === 'show' ? '🏟' : a.kind === 'digest' ? '📋' : a.kind === 'market' ? '📈' : a.kind === 'live' ? '📺' : a.kind === 'yard' ? '🛗' : a.kind === 'insurance' ? '🛡' : '•'}</span>
-                <span className="grow small">{a.message}</span>
+                <span className="grow small">{n > 1 ? `${n} shops posted new want lists — check the buylist before you sell.` : a.message}</span>
                 <span className="faint small">{timeAgo(a.created_at)}{a.href && <span style={{ marginLeft: 4 }}>→</span>}</span>
               </div>
             ))}

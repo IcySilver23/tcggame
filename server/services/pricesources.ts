@@ -539,12 +539,16 @@ async function runBackfill(force: boolean) {
       bf.done++
       if (bf.done % 10 === 0) setMeta('priceBackfillDone', String(bf.done))
     }
-    logActivity(
-      'system',
-      bf.lastError
-        ? `External price sync stopped early — ${bf.priced} cards priced, ${bf.total - bf.done} not checked (${bf.lastError})`
-        : `External price sync finished — ${bf.priced} cards now priced from PriceCharting/eBay.`,
-    )
+    // A run that priced nothing is not news: Settings shows the backfill's
+    // live status, and "0 cards now priced" in the feed only reads as broken.
+    if (bf.priced > 0 || bf.lastError) {
+      logActivity(
+        'system',
+        bf.lastError
+          ? `External price sync stopped early — ${bf.priced} cards priced, ${bf.total - bf.done} not checked (${bf.lastError})`
+          : `External price sync finished — ${bf.priced} cards now priced from PriceCharting/eBay.`,
+      )
+    }
   } finally {
     bf.running = false
     loopStarted = false // allow future manual/boot runs once this one completes

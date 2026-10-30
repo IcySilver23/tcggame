@@ -3,7 +3,7 @@ import { api } from '../api'
 import { gameDayMsFor } from '../lib/gameday'
 import type { PawnSection, PawnQuoteRow } from '../api'
 import { useStore } from '../store'
-import { CardImg, EmptyState, FirstUseTip, fmtUsd } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
 
 function daysLeft(dueAt: string, hours: 12 | 24 = 12): number {
   return Math.ceil((new Date(dueAt).getTime() - Date.now()) / gameDayMsFor(hours))
@@ -40,10 +40,16 @@ export function PawnShopView() {
       </div>
 
       <FirstUseTip surface="pawn">
-        The pawn math is honest and it is rough: they value your card at <b>75% of a quick dump</b>, then offer <b>40% of that</b> —
-        about 30¢ on the dollar, cash now. Or leave the card in the case and walk out with a <b>30-game-day loan</b> at <b>0.75% a day,
-        compounded</b>. Pay it off and the card comes home; miss the date and it's in the case at a 25% markup, first come first
-        served — and you can buy your own card back like any stranger. The loan appears nowhere on your net worth but your conscience.
+        <TipList
+          title="💠 The pawn math is honest — and rough"
+          items={[
+            { icon: '💵', label: 'Sell outright ≈ 30¢', text: <>they value your card at <b>75% of a quick dump</b>, then offer <b>40% of that</b> — cash now</> },
+            { icon: '🔑', label: 'Hock it instead', text: <>leave the card in the case and walk out with a <b>30-game-day loan</b> at <b>0.75% a day, compounded</b></> },
+            { icon: '✅', label: 'Pay on time', text: <>the ticket clears and the card comes home</> },
+            { icon: '⏰', label: 'Miss the date', text: <>it goes in the case at a <b>25% markup</b>, first come first served — you can buy your own card back like any stranger</> },
+            { icon: '📓', label: 'Off the books', text: <>the loan shows up nowhere on your net worth. Your conscience still knows</> },
+          ]}
+        />
       </FirstUseTip>
 
       {data && data.loans.length > 0 && (

@@ -122,6 +122,28 @@ export function nextEvent(): CalendarEvent | null {
   return upcoming(2).find((e) => new Date(e.start).getTime() > now) ?? null
 }
 
+/**
+ * The next convention window — the live one if a window is open right now,
+ * otherwise the next scheduled one. Show status reads this so "when does the
+ * next show start" is a real answer from the calendar, instead of a countdown
+ * inferred from whenever the last hall happened to close (which was 0 — i.e.
+ * meaningless — whenever the last show closed more than 45 minutes ago, or
+ * on a save that had never hosted one).
+ */
+export function nextConvention(): { start: string; end: string; title: string; live: boolean } | null {
+  const now = nowMs()
+  const next = upcoming(2)
+    .filter((e) => e.kind === 'convention' && new Date(e.end ?? e.start).getTime() > now)
+    .sort((a, b) => a.start.localeCompare(b.start))[0]
+  if (!next) return null
+  return {
+    start: next.start,
+    end: next.end ?? next.start,
+    title: next.title,
+    live: new Date(next.start).getTime() <= now,
+  }
+}
+
 function isOpen(slotId: string): boolean {
   const live = liveEvent()
   return live?.id.startsWith(slotId + '@') ?? false

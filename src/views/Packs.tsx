@@ -7,9 +7,28 @@ import type { ProductRow } from '../types'
 // WotC sets whose unlimited packs can ghost 1st Edition pulls.
 const GHOST_SETS = new Set(['base1', 'base2', 'base3', 'gym1', 'gym2', 'neo1', 'neo2', 'neo3', 'neo4', 'base5'])
 
+// The product's real wrapper art — the shop is a storefront, so every row
+// shows the pack you would actually be buying. Products TCGplayer never
+// listed fall back to their set's symbol rather than a blank cell.
+function ProductArt({ p }: { p: ProductRow }) {
+  const [broken, setBroken] = useState(false)
+  if (p.image_url && !broken) {
+    return <img className="pack-thumb" src={p.image_url} alt="" loading="lazy" onError={() => setBroken(true)} />
+  }
+  return (
+    <div className="pack-thumb pack-thumb-ph" title={p.set_name}>
+      {p.set_symbol ? <img src={p.set_symbol} alt="" loading="lazy" /> : <span aria-hidden>📦</span>}
+    </div>
+  )
+}
+
 export function PacksView() {
   const { toast, refreshState, density } = useStore()
   const [products, setProducts] = useState<ProductRow[]>([])
+  // Three distinct states, because they used to be one: the shop said "shop
+  // opens when sets finish syncing" while the fetch was still in flight, and
+  // `.catch(() => {})` left that same message up forever if it failed.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [busy, setBusy] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [kind, setKind] = useState('all')
@@ -17,7 +36,12 @@ export function PacksView() {
   const [source, setSource] = useState('all')
   const [sort, setSort] = useState('name_asc')
 
-  const load = () => api.products().then(setProducts).catch(() => {})
+  const load = () => {
+    setStatus('loading')
+    api.products()
+      .then((rows) => { setProducts(rows); setStatus('ready') })
+      .catch(() => setStatus('error'))
+  }
   useEffect(() => { load() }, [])
 
   const buy = async (p: ProductRow, qty: number, openNow: boolean) => {
@@ -107,16 +131,24 @@ export function PacksView() {
         <div>
           <h1>Pack Shop</h1>
           <div className="sub">
-            Sealed products for every synced set. Prices are real market prices (PriceCharting) where available;
-            the rest are derived from each set's actual pull value and marked estimated.
-            {products.length > 0 && ` ${realCount}/${products.length} priced from real data.`}
-            {products.length > 0 && realCount === 0 && ' Add a PriceCharting token in ⚙ Settings to convert the catalog to real market prices.'}
+            Sealed products for every synced set. Real market prices where the catalog has them — everything else is
+            derived from each set's actual pull value and badged <b>est.</b> on the row.
+            {realCount > 0 && ` ${realCount}/${products.length} priced from real data.`}
           </div>
         </div>
         <button className="ghost small" onClick={() => (window.location.hash = '#/pulls-history')}>Pull history →</button>
       </div>
 
-      {products.length === 0 ? (
+      {status === 'error' ? (
+        <EmptyState
+          icon="⚠️"
+          text="Couldn't load the pack shop"
+          sub="The product list didn't come back from the local server — your cash and inventory are untouched."
+          action={{ label: 'Try again', onClick: load }}
+        />
+      ) : status === 'loading' ? (
+        <EmptyState icon="📦" text="Loading the sealed catalog…" sub="Fetching every product for your synced sets." />
+      ) : products.length === 0 ? (
         <EmptyState icon="📦" text="Shop opens when sets finish syncing" sub="Products appear as soon as their set's cards are in the database." />
       ) : (
         <>
@@ -167,13 +199,16 @@ export function PacksView() {
           <div className={`grid ${density === 'compact' ? 'cols3' : 'cols2'}`}>
           {shown.map((p) => (
             <div key={p.id} className="panel" style={{ margin: 0 }}>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <div>
-                  <h2 style={density === 'compact' ? { fontSize: 14 } : undefined}>
-                    {p.name}
-                    {GHOST_SETS.has(p.set_id) && <span className="shop-vintage-badge" title="WotC-era print run: unlimited packs can still contain 1st Edition stamped cards">👻 1st Ed ghosts</span>}
-                  </h2>
-                  <div className="small muted">{p.set_name} · {p.packs} pack{p.packs > 1 ? 's' : ''} · {p.cards_per_pack} cards/pack</div>
+              <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="row" style={{ gap: 12, alignItems: 'flex-start' }}>
+                  <ProductArt p={p} />
+                  <div>
+                    <h2 style={density === 'compact' ? { fontSize: 14 } : undefined}>
+                      {p.name}
+                      {GHOST_SETS.has(p.set_id) && <span className="shop-vintage-badge" title="WotC-era print run: unlimited packs can still contain 1st Edition stamped cards">👻 1st Ed ghosts</span>}
+                    </h2>
+                    <div className="small muted">{p.set_name} · {p.packs} pack{p.packs > 1 ? 's' : ''} · {p.cards_per_pack} cards/pack</div>
+                  </div>
                 </div>
                 <div className="right">
                   <div className="faint small">MARKET</div>

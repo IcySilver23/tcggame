@@ -57,8 +57,13 @@ type TcgPrice = {
 let syncRunning = false
 
 // tcgcsv.com answers 401 to requests without a User-Agent header (bare Node
-// fetch sends none) — identify ourselves politely on every call.
-const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; TCGlife/0.1 collector-sim)' }
+// fetch sends none) — identify ourselves politely on every call. It now ALSO
+// 401s any UA that claims to be a plain browser: the old "Mozilla/5.0
+// (compatible; …)" string started failing on every endpoint, which silently
+// killed both the pack-art backfill and the price mirror — every call came
+// back 401, so the matcher had no products to match and nothing to price. A
+// self-identifying, non-browser UA is what the mirror accepts.
+const UA = { 'User-Agent': 'TCGLife/0.6.0 (collector-sim; local card game)' }
 
 // --- group map -------------------------------------------------------------
 

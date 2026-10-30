@@ -180,9 +180,14 @@ export function PackBattlesView() {
                     <div className="faint small">{r.style}</div>
                     <div className="faint small" style={{ marginTop: 2 }}>{r.blurb}</div>
                     {r.grudgeMatch && (
-                      <div style={{ marginTop: 4 }}>
-                        <span className="badge" style={{ color: 'var(--red)', borderColor: 'var(--red)' }} title={`Grudge ${r.grudge.toFixed(1)}/10 — next battle costs DOUBLE`}>🩸 GRUDGE {r.grudge.toFixed(1)}</span>
-                        {r.pendingProduct && <span className="badge" style={{ marginLeft: 6 }}>demands rematch: {r.pendingProduct}</span>}
+                      <div style={{ marginTop: 4, lineHeight: 1.7 }}>
+                        <span className="badge" style={{ color: 'var(--red)', borderColor: 'var(--red)' }} title={`Grudge ${r.grudge.toFixed(1)}/10 — next battle costs DOUBLE`}>🩸 GRUDGE {r.grudge.toFixed(1)}</span>{' '}
+                        {/* Plain text, not a badge: a 400px nowrap pill broke to
+                            its own line and left the grudge tag stranded (and
+                            with no separator between them the two read as one
+                            run: GRUDGE 7.5DEMANDS REMATCH:). An em dash plus
+                            normal wrapping keeps the line whole and readable. */}
+                        {r.pendingProduct && <span className="small muted">— demands rematch: {r.pendingProduct}</span>}
                       </div>
                     )}
                     {!r.grudgeMatch && r.salty && (

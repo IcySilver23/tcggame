@@ -24,6 +24,22 @@ export function fmtDate(iso: string | null | undefined): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+/** "Sat 3:00 PM" — a scheduled instant as a player-readable wall-clock time. */
+export function fmtWhen(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' })
+}
+
+/** "40 min" / "5 hr" / "1.6 days" — a wait in minutes the way a player says it. */
+export function fmtWait(min: number): string {
+  if (!Number.isFinite(min) || min < 1) return 'moments'
+  if (min < 60) return `${Math.round(min)} min`
+  const h = min / 60
+  if (h < 24) return `${Math.round(h)} hr`
+  const d = h / 24
+  return d < 10 ? `${d.toFixed(1)} days` : `${Math.round(d)} days`
+}
+
 export function timeAgo(iso: string | null | undefined): string {
   if (!iso) return '—'
   const ms = Date.now() - new Date(iso).getTime()
@@ -669,12 +685,13 @@ export function DensityToggle() {
   )
 }
 
-export function EmptyState({ icon, text, sub }: { icon: string; text: string; sub?: string }) {
+export function EmptyState({ icon, text, sub, action }: { icon: string; text: string; sub?: string; action?: { label: string; onClick: () => void } }) {
   return (
     <div className="empty">
       <div style={{ fontSize: 34, marginBottom: 8 }}>{icon}</div>
       <div>{text}</div>
       {sub && <div className="small faint" style={{ marginTop: 4 }}>{sub}</div>}
+      {action && <button className="primary" style={{ marginTop: 14 }} onClick={action.onClick}>{action.label}</button>}
     </div>
   )
 }
@@ -893,6 +910,28 @@ export function FirstUseTip({ surface, children }: { surface: 'auction' | 'resal
   return (
     <div className="faint small" style={{ marginBottom: 10, padding: '8px 10px', background: 'var(--panel2)', borderRadius: 6, border: '1px solid var(--border-soft)', lineHeight: 1.5 }}>
       {children}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// TipList — short, scannable rule lines inside a FirstUseTip.
+//
+// A paragraph of rules is a wall the player skips; the same rules as one
+// labelled line each (icon · bold lead · what it costs you) get read. Every
+// entry keeps its label under ~4 words so the eye can run down the column.
+// ---------------------------------------------------------------------------
+
+export function TipList({ title, items }: { title?: string; items: { icon: string; label: string; text: React.ReactNode }[] }) {
+  return (
+    <div style={{ display: 'grid', gap: 5 }}>
+      {title && <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 1 }}>{title}</div>}
+      {items.map((it) => (
+        <div key={it.label} style={{ display: 'flex', gap: 8, alignItems: 'baseline', lineHeight: 1.45 }}>
+          <span aria-hidden style={{ flex: '0 0 auto' }}>{it.icon}</span>
+          <span><b style={{ color: 'var(--text)' }}>{it.label}</b> — {it.text}</span>
+        </div>
+      ))}
     </div>
   )
 }

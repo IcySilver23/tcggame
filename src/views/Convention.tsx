@@ -15,7 +15,7 @@ import {
   type VendorStatus,
 } from '../api'
 import { useStore } from '../store'
-import { CardImg, DensityToggle, FirstUseTip, fmtUsd, SlabCard } from '../components'
+import { CardImg, DensityToggle, FirstUseTip, fmtUsd, fmtWhen, fmtWait, SlabCard } from '../components'
 
 const SPECIALTY_LABEL: Record<string, string> = {
   deals: 'Deal Bins',
@@ -865,7 +865,11 @@ export function ConventionView() {
           <div style={{ fontSize: 42, marginBottom: 10 }}>🗓️</div>
           <h2>No show in town right now</h2>
           <div className="faint small" style={{ marginTop: 6 }}>
-            The next convention rolls in around {status.nextShowInMin} min of active play. Watch the activity feed.
+            {status.liveNow
+              ? `${status.nextShowTitle ?? 'The next show'} is opening now — vendors are still setting up. Watch the activity feed.`
+              : status.nextShowAt
+                ? `The ${status.nextShowTitle ?? 'next convention'} opens ${fmtWhen(status.nextShowAt)} — about ${fmtWait(status.nextShowInMin)} from now. Watch the activity feed.`
+                : 'Watch the activity feed for the next show.'}
           </div>
         </div>
       </div>

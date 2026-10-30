@@ -1,5 +1,6 @@
 import { db, nowIso } from '../lib/db'
 import { valueOfRow, round2 } from './market'
+import * as schedule from './schedule'
 
 // ---------------------------------------------------------------------------
 // Per-show economics for the Home dashboard Conventions panel.
@@ -56,9 +57,23 @@ export function conventionSummary() {
         minutesLeft: Math.max(0, Math.round((new Date(show.closes_at).getTime() - Date.now()) / 60_000)),
       }
     : (() => {
+        // The calendar is the source of truth for "when's the next one" — the
+        // old last-close arithmetic answered 0 (nonsense) whenever the previous
+        // show had ended more than 45 minutes ago.
+        const next = schedule.nextConvention()
+        if (next) {
+          const ms = new Date(next.start).getTime() - schedule.nowMs()
+          return {
+            open: false as const,
+            nextShowInMin: Math.max(0, Math.round(ms / 60_000)),
+            nextShowAt: next.start,
+            nextShowTitle: next.title,
+            liveNow: next.live,
+          }
+        }
         const last = db.prepare(`SELECT MAX(closes_at) AS last FROM conventions`).get() as { last: string | null }
         const gapMin = last.last ? Math.max(0, 45 - (Date.now() - new Date(last.last).getTime()) / 60_000) : 0
-        return { open: false as const, nextShowInMin: Math.round(gapMin) }
+        return { open: false as const, nextShowInMin: Math.round(gapMin), nextShowAt: null, nextShowTitle: null, liveNow: false }
       })()
 
   // Shows you actually attended (paid entry or bought something on the floor).

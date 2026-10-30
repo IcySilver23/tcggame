@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, type LocalFeedRow, type MyLocalListing } from '../api'
 import { useStore } from '../store'
-import { CardImg, EmptyState, FirstUseTip, fmtUsd, OverflowHint } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, OverflowHint, TipList } from '../components'
 
 /**
  * Local Deals — Facebook Marketplace & Craigslist. The wild west: no fees,
@@ -112,9 +112,15 @@ export function LocalDealsView() {
       </div>
 
       <FirstUseTip surface="local">
-        <b style={{ color: 'var(--gold)' }}>🪧 The wild west.</b> Local asks are vibes — some clueless, some dreaming, some
-        scam-adjacent. A 🐟 tell means the deal is <i>too</i> good: cheap enough to be a counterfeit. Meetups ghost you (about
-        1 in 8), sellers go quiet, and there's no buyer protection — just the corners in your hand when the cash changes hands.
+        <TipList
+          title="🪧 The wild west — read this first"
+          items={[
+            { icon: '🐟', label: 'Too good = fake', text: <>a 🐟 tell means the deal is <i>too</i> good — cheap enough to be a counterfeit</> },
+            { icon: '👻', label: '1 in 8 ghost', text: <>meetups vanish and sellers go quiet; nobody owes you an explanation</> },
+            { icon: '🚫', label: 'No protection', text: <>no fees either — but once the cash changes hands it's just the corners in your hand</> },
+            { icon: '🎲', label: 'Read the ask', text: <>local prices are vibes: clueless, dreaming, or scam-adjacent</> },
+          ]}
+        />
       </FirstUseTip>
 
       <div className="chip-row mb14">

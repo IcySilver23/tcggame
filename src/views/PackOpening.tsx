@@ -165,12 +165,26 @@ export function PackOpeningView() {
     }).catch(() => {})
   }, [])
 
+  // The product list is a 250 KB payload that arrives asynchronously. The
+  // ceremony used to read it straight from state, so a fast open (the Pack
+  // Shop handoff resolves before the fetch) found no product and fell back to
+  // a generic "Booster pack" with no wrapper art. Everyone waits for it now.
+  const productsReq = useRef<Promise<ProductRow[]> | null>(null)
+  const ensureProducts = useCallback((): Promise<ProductRow[]> => {
+    if (productsReq.current) return productsReq.current
+    const req = api.products()
+      .then((rows) => { setProducts(rows); return rows })
+      .catch((e) => { productsReq.current = null; throw e })
+    productsReq.current = req
+    return req
+  }, [])
+
   useEffect(() => {
-    api.products().then(setProducts).catch(() => {})
+    ensureProducts().catch(() => {})
     loadSealed()
     const h = takeOpeningHandoff()
     if (h) setHandoff(h)
-  }, [loadSealed])
+  }, [ensureProducts, loadSealed])
 
   // Pack Shop handoff: the purchase already happened (and wrote pull
   // history), so fetch both record bars now — this is the honest "before"
@@ -178,12 +192,18 @@ export function PackOpeningView() {
   useEffect(() => {
     if (!handoff) return
     api.pullsBest().then((best) => {
-      beginCeremony(handoff.session, products.find((x) => x.id === handoff.productId), best.value, best.bestPackTotal ?? 0)
-    }).catch(() => beginCeremony(handoff.session, products.find((x) => x.id === handoff.productId), 0, 0))
+      beginCeremony(handoff.session, handoff.productId, best.value, best.bestPackTotal ?? 0)
+    }).catch(() => beginCeremony(handoff.session, handoff.productId, 0, 0))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handoff])
 
-  const beginCeremony = (s: OpenSession, product?: ProductRow, prevBest = 0, prevPack = 0) => {
+  const beginCeremony = (s: OpenSession, productId: string | undefined, prevBest = 0, prevPack = 0) => {
+    ensureProducts()
+      .catch(() => products) // a failed fetch must not block the rip itself
+      .then((rows) => runCeremony(s, rows.find((x) => x.id === productId), prevBest, prevPack))
+  }
+
+  const runCeremony = (s: OpenSession, product?: ProductRow, prevBest = 0, prevPack = 0) => {
     setSession(s)
     setQueue(s.cards)
     setIdx(0)
@@ -240,7 +260,7 @@ export function PackOpeningView() {
       // is the max of every box's perPack list.
       const perPack = opened.flatMap((s) => (s as OpenSession & { perPack?: { totalValue: number }[] }).perPack ?? [])
       const packsInBox = opened.reduce((a, s) => a + ((s as OpenSession & { packsInBox?: number }).packsInBox ?? 1), 0)
-      beginCeremony({ sessionId: opened[0].sessionId, cards, totalValue, spent, perPack, packsInBox } as OpenSession, products.find((x) => x.id === productId), best.value, best.bestPackTotal ?? 0)
+      beginCeremony({ sessionId: opened[0].sessionId, cards, totalValue, spent, perPack, packsInBox } as OpenSession, productId, best.value, best.bestPackTotal ?? 0)
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Open failed', 'bad')
     } finally {
@@ -252,7 +272,7 @@ export function PackOpeningView() {
     setBusy(productId)
     try {
       const best = await api.pullsBest().catch(() => ({ value: 0, bestPackTotal: 0 }))
-      beginCeremony(await api.openPack(productId), products.find((p) => p.id === productId), best.value, best.bestPackTotal ?? 0)
+      beginCeremony(await api.openPack(productId), productId, best.value, best.bestPackTotal ?? 0)
       loadSealed()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Open failed', 'bad')

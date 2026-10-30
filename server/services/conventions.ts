@@ -110,9 +110,27 @@ export function getActiveShow() {
 export function showStatus() {
   const show = getActiveShow()
   if (!show) {
+    // Answer from the calendar, not from the last hall's closing time: outside
+    // a window the hall is empty for a known, scheduled reason, and the next
+    // open is a real instant on the weekly rhythm.
+    const next = schedule.nextConvention()
+    if (next) {
+      // Compare against the SAME clock the calendar was built from, so a
+      // shifted dev clock can't produce a countdown measured in two timebases.
+      const ms = new Date(next.start).getTime() - schedule.nowMs()
+      return {
+        open: false as const,
+        nextShowInMin: Math.max(0, Math.round(ms / 60_000)),
+        nextShowAt: next.start,
+        nextShowTitle: next.title,
+        // Window live but the show hasn't spawned yet (the calendar tick opens
+        // it within the minute) — say that instead of counting a dead zero.
+        liveNow: next.live,
+      }
+    }
     const last = db.prepare(`SELECT MAX(closes_at) AS last FROM conventions`).get() as { last: string | null }
     const gapMin = last.last ? Math.max(0, 45 - (Date.now() - new Date(last.last).getTime()) / 60_000) : 0
-    return { open: false as const, nextShowInMin: Math.round(gapMin) }
+    return { open: false as const, nextShowInMin: Math.round(gapMin), nextShowAt: null, nextShowTitle: null, liveNow: false }
   }
   const booths = db
     .prepare(

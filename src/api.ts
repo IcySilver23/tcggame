@@ -1376,7 +1376,7 @@ export type ConventionBoothRow = {
 }
 
 export type ConventionStatus =
-  | { open: false; nextShowInMin: number }
+  | { open: false; nextShowInMin: number; nextShowAt: string | null; nextShowTitle: string | null; liveNow: boolean }
   | { open: true; show: ConventionShow; entered: boolean; minutesLeft: number; booths: ConventionBoothRow[]; totalStock: number }
 
 export type BoothItem = {
@@ -2146,7 +2146,7 @@ export type ConventionShowSummary = {
 export type ConventionSummary = {
   next:
     | { open: true; showName: string; entryFee: number; entered: boolean; minutesLeft: number }
-    | { open: false; nextShowInMin: number }
+    | { open: false; nextShowInMin: number; nextShowAt: string | null; nextShowTitle: string | null; liveNow: boolean }
   lastShow: ConventionShowSummary | null
   activeShow: ConventionShowSummary | null
   totals: { shows: number; spent: number; value: number; net: number }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, type EbayListing, type EbayMarketListing, type EbayAuction, type EbayNpcAuction } from '../api'
 import { useStore } from '../store'
-import { CardImg, FirstUseTip, fmtUsd } from '../components'
+import { CardImg, FirstUseTip, fmtUsd, TipList } from '../components'
 import { ShipSection } from './ShipBay'
 
 // ---------------------------------------------------------------------------
@@ -160,20 +160,23 @@ export function BidBayView() {
       <div className="page-head">
         <div>
           <h1>📦 BidBay</h1>
-          <div className="sub">The online storefront — list it, price it, and hope the snipers agree. {data ? `${data.feedback.avg.toFixed(1)}★ from ${data.feedback.count} sale${data.feedback.count === 1 ? '' : 's'}` : ''}</div>
+          <div className="sub">The online storefront — list it, price it, and hope the snipers agree. {data && data.feedback.count > 0 ? `${data.feedback.avg.toFixed(1)}★ from ${data.feedback.count} sale${data.feedback.count === 1 ? '' : 's'}` : ''}</div>
         </div>
       </div>
 
       <FirstUseTip surface="ebay">
-        <b style={{ color: 'var(--gold)' }}>📦 First listing?</b> Ask whatever you want per card, but the feed is full of <b>snipers</b>:
-        they only pounce on listings priced meaningfully <b>under</b> market, so overpriced cardboard just sits there collecting views.
-        BidBay takes <b>13%</b> of the hammer plus shipping (the payout lands after the envelope "arrives"), and buyers rate every purchase —
-        your <b>feedback rating</b> feeds how fast future listings sell. Hunting something specific? Hit the <b>🔔</b> on any hunt or auction
-        listing and BidBay pings your feed the moment it shows up — set a <b>max price</b> on the watch and it only pings at or under your
-        number. Want eyes faster? <b>Promote</b> a listing for a burst of featured
-        placement — but ads buy <b>attention</b>, not sales: a promoted listing still only moves if the price is right. The feed runs both
-        ways: NPC sellers list stock below, and <b>rival buyers are hunting the same deals</b> — sleep on a DEAL and it's gone. Fair warning:
-        every live listing also pulls walk-ins away from your physical shop. Same collectors, smaller hours.
+        <TipList
+          title="📦 Your first listing"
+          items={[
+            { icon: '🎯', label: 'Price to sell', text: <>snipers only pounce meaningfully <b>under</b> market — overpriced cardboard just sits there collecting views</> },
+            { icon: '💸', label: '13% + shipping', text: <>BidBay's cut of the hammer; the payout lands after the envelope "arrives"</> },
+            { icon: '⭐', label: 'Feedback compounds', text: <>buyers rate every sale, and your rating drives how fast the next listing moves</> },
+            { icon: '🔔', label: 'Watch with a max', text: <>set a max price and it only pings when the card shows up at or under your number</> },
+            { icon: '📣', label: 'Promote = eyes', text: <>ads buy attention, not sales — placement only helps if the price is right</> },
+            { icon: '⚔️', label: 'Rivals shop here too', text: <>NPCs list stock below you and rival buyers hunt the same deals — sleep on a DEAL and it's gone</> },
+            { icon: '🏪', label: 'It costs your shop', text: <>every live listing pulls walk-ins away from your storefront</> },
+          ]}
+        />
       </FirstUseTip>
 
       <div className="panel" style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
