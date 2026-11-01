@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import { gameDayEtaFor } from '../lib/gameday'
 import type { GradingReveal, GradingService, GradingPendingRow, MarketIncomingRow, SealedStockRow, SuppliesStatus, InsuranceStatus, AuthSection, AuthReveal, SealedFuturesSection } from '../api'
-import { useStore } from '../store'
+import { useStore , setOpeningHandoff } from '../store'
 import { byNum, byStr, CardImg, ConditionBadge, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, FirstUseTip, fmtUsd, GRADE_BADGE, GradeRevealModal, matchesQuery, OverflowMenu, PriceTag, SearchInput, SetSection, SlabCard, SortSelect, SourceBadge, VirtualGrid } from '../components'
 import type { MenuItem } from '../components'
 import type { InventoryRow } from '../types'
@@ -254,10 +254,13 @@ export function InventoryView() {
 
   const openSealed = async (productId: string) => {
     try {
-      await api.openPack(productId)
-      toast('Pack opened — check Pack Opening history', 'good')
+      // Ripping a bundle/ETB/display is a run of packs, so it belongs in the
+      // ceremony — the first pack comes out here, the rest follow on stage.
+      const first = await api.openBox(productId)
+      setOpeningHandoff({ session: first as unknown as import('../types').OpenSession, productId })
       await load()
       refreshState()
+      window.location.hash = '#/opening'
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Open failed', 'bad')
     }
@@ -980,10 +983,13 @@ export function InventoryView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>Inventory</h1>
-          <div className="sub">Raw cards, active listings, and sealed stock — with cost basis on everything.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🗃</span>
+          <div>
+            <h1>Inventory</h1>
+            <div className="sub">Raw cards, active listings, and sealed stock — with cost basis on everything.</div>
+          </div>
         </div>
         {selected.size > 0 && (
           <div className="row">
@@ -1181,23 +1187,23 @@ export function InventoryView() {
                     </td>
                     <td>
                       <ConditionBadge cond={i.condition} />
-                      {!i.graded_grade && i.protection && <span className="badge" title="Protected — condition holds while stored">🛡 {PROT_LABEL[i.protection]}</span>}
+                      {!i.graded_grade && i.protection && <span className="badge prot" title="Protected — condition holds while stored">🛡 {PROT_LABEL[i.protection]}</span>}
                       {!i.graded_grade && !i.protection && i.value >= 1 && i.status === 'collection' && (
-                        <span className="badge est" title="Bare — loose cards can slip a grade (and lose value) over time">bare</span>
+                        <span className="badge prot bare" title="Bare — loose cards can slip a grade (and lose value) over time">bare</span>
                       )}
-                      {i.graded_grade && <span className="badge hit">{GRADE_BADGE[i.graded_grade] ?? i.graded_grade}</span>}
+                      {i.graded_grade && <span className="badge grade">{GRADE_BADGE[i.graded_grade] ?? i.graded_grade}</span>}
                       {!i.graded_grade && i.gradingHint && (
                         <span
-                          className="badge hit"
+                          className="badge grade"
                           title={`Grade with ${i.gradingHint.serviceName}: expected profit $${i.gradingHint.expectedProfit.toFixed(2)} vs $${i.value.toFixed(2)} raw (+$${i.gradingHint.edge.toFixed(2)} edge) · ${i.gradingHint.gemChance}% gem chance${i.substatNote ? ' · this copy' : ''}${i.authBadge === 'unvetted' ? ' · authenticate first — the lab refuses unvetted raws (🛡 Authentication)' : ''}`}
                         >
                           ⚖ WORTH GRADING
                         </span>
                       )}
                       {i.substatNote && <span className="small faint" title="This copy's hidden condition — inspect it from the card detail">{i.substatNote}</span>}
-                      {i.authBadge === 'fake' && <span className="badge" style={{ borderColor: 'var(--red)', color: 'var(--red)' }} title="Confirmed counterfeit — buylist pays $1 flat (Inventory → 🛡 Authentication)">🃏 FAKE</span>}
-                      {i.authBadge === 'authenticated' && <span className="badge hit" title="USPA-authenticated — buyers stop discounting it">✅ AUTH</span>}
-                      {i.authBadge === 'unvetted' && <span className="badge est" title="High-value raw without authentication — sells at a haircut, and a counter-test can't rule a fake out">unvetted</span>}
+                      {i.authBadge === 'fake' && <span className="badge auth-fake" title="Confirmed counterfeit — buylist pays $1 flat (Inventory → 🛡 Authentication)">🃏 FAKE</span>}
+                      {i.authBadge === 'authenticated' && <span className="badge auth-ok" title="USPA-authenticated — buyers stop discounting it">✅ AUTH</span>}
+                      {i.authBadge === 'unvetted' && <span className="badge auth-unvetted" title="High-value raw without authentication — sells at a haircut, and a counter-test can't rule a fake out">unvetted</span>}
                     </td>
                     <td className="small muted">{i.set_name}</td>
                     <td className="num faint">{fmtUsd(i.cost_basis)}</td>

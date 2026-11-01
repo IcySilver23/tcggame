@@ -52,6 +52,13 @@ export function SetsGalleryView() {
       cards_desc: byNum((s) => s.total, 'desc'),
       cards_asc: byNum((s) => s.total, 'asc'),
       sync_desc: byNum(syncPct, 'desc'),
+      // Most complete first: the sets you are actually closest to finishing.
+      // Ties break on raw owned count, so a 50% slice of a 300-card set edges
+      // out a 50% slice of a 60-card one rather than flipping on row order.
+      complete_desc: (a, b) => {
+        const pct = (s: SetRow) => (s.total > 0 ? (s.owned ?? 0) / s.total : 0)
+        return pct(b) - pct(a) || (b.owned ?? 0) - (a.owned ?? 0)
+      },
     }
     return [...out].sort(sorters[sort] ?? sorters.release_desc)
   }, [sets, q, series, sort])
@@ -70,6 +77,7 @@ export function SetsGalleryView() {
           value={sort}
           onChange={setSort}
           options={[
+            { value: 'complete_desc', label: 'Sort: Most complete' },
             { value: 'release_desc', label: 'Sort: Newest first' },
             { value: 'release_asc', label: 'Sort: Oldest first' },
             { value: 'name_asc', label: 'Sort: Name A→Z' },
@@ -93,16 +101,39 @@ export function SetsGalleryView() {
         <EmptyState icon="🎴" text="No sets match" sub="Try a different name or clear the filters." />
       ) : (
       <div className="card-grid">
-        {shown.map((s) => (
+        {shown.map((s) => {
+          // The dex read: how far through THIS set you are, not how much of the
+          // catalog has synced. Secret rares count — a finished set is a
+          // finished set, master printings included.
+          const owned = s.owned ?? 0
+          const pct = s.total > 0 ? Math.min(100, (owned / s.total) * 100) : 0
+          const done = s.total > 0 && owned >= s.total
+          return (
           <div key={s.id} className="card-cell" onClick={() => (window.location.hash = `#/set/${s.id}`)}>
             <SetArt set={s} />
             <div className="card-meta">
               <div className="nm">{s.name}</div>
               <div className="st">{s.series} · {s.release_date}</div>
-              <div className="faint small">{s.cards_synced ?? 0} / {s.total} cards synced</div>
+              <div className={`set-progress ${done ? 'done' : ''}`}>
+                <div
+                  className="set-progress-bar"
+                  role="progressbar"
+                  aria-label={`${s.name} completion`}
+                  aria-valuemin={0}
+                  aria-valuemax={s.total}
+                  aria-valuenow={owned}
+                >
+                  <span style={{ width: `${pct}%` }} />
+                </div>
+                <div className="set-progress-meta">
+                  <span>{owned} of {s.total}</span>
+                  {s.ptcgo_code && <span className="set-code">{s.ptcgo_code}</span>}
+                </div>
+              </div>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
       )}
     </div>

@@ -1,6 +1,106 @@
 {
   "entries": [
     {
+      "version": "0.7.1",
+      "date": "2026-11-01",
+      "title": "Two kinds of lot",
+      "features": [
+        "Estate tables and the resale desk were the same transaction twice: an NPC seller, a lot priced under its contents, pay the ask. Estate tables now charge a 12% house premium on top of the hammer — a liquidation with a clerk and a receipt book, not a private sale. The desk stays fee-free, private and instant. Same bargain, two different deals: the desk is where you move volume, the estate table is where you go for one deep lot and pay the house for it.",
+        "The premium is charged at the counter, so the cash check now prices what you actually hand over instead of the number on the tag, and your cost basis includes it — the profit an estate lot reports is the profit you really made. Quoting one number and billing another is what made the old systems feel interchangeable.",
+        "Still open on purpose: the sell side has four doors — pawn, buylist, instant dealer and market listing — with fees from 0% to 15%, and nothing tells you which pays best. That overlap needs a comparison the player can see, not another fee tweak."
+      ]
+    },
+    {
+      "version": "0.7.0",
+      "date": "2026-11-01",
+      "title": "The desk cools down",
+      "features": [
+        "The resale desk was the best money in the game by a distance — a repeatable 26% return every time capital went round, with no risk and no waiting. Sellers now ask more for their lots (52–95% of value for collections, up from 45–85%, and similar lifts for bulk, chases and storage finds), which brings an instant flip down to roughly 18%. Still a good business, no longer the only one worth running.",
+        "Satellite shops were a trap: in thirty-day simulations, rent and wages came out over gross in almost every run, so buying a second location lost money while looking like progress. Rent is cut across every tier — the hole-in-the-wall to $4/day, storefront $11, flagship $20, region $46 — and the sim now shows healthy runs turning a profit. Weak managers still lose money, which is the intended lesson, but a competent one can now carry a door.",
+        "Honest caveat: the shop fix is a first pass. Rent was the biggest single line I could move without redesigning the sales model, and several simulated runs still finish in the red — the remaining problem is revenue per walk-in, not overhead, and that deserves its own pass rather than another blunt rent cut."
+      ]
+    },
+    {
+      "version": "0.6.9",
+      "date": "2026-11-01",
+      "title": "Quotes you can trust",
+      "features": [
+        "The dealer's offer on each card is now the offer you actually get. It used to re-roll every time the shelf was read, then roll again when you pressed Sell now, so the number on screen was decoration and reloading was a way to shop for a better price. Each card now keeps one rate for as long as it sits on your shelf — 70–92% of market, fixed until it sells.",
+        "Buying a lot you have no room for no longer charges for cards that never arrive. You pay only the prorated ask for the cards that fit on the shelf; the rest stay with the seller and the activity line tells you exactly how many did. Before, a full shelf billed you the whole ask for a partial lot.",
+        "Money labels match their arithmetic. The shelf percentage now reads \"vs cost\" because it is a return on what you paid, not the inbox's edge over an ask; the statement separates dealer proceeds from market profit instead of putting both in a column that looks the same."
+      ]
+    },
+    {
+      "version": "0.6.8",
+      "date": "2026-11-01",
+      "title": "One desk, everywhere",
+      "features": [
+        "The screens that still wore the default header now wear the desk header: a mark in a rounded chip, the screen's name in title case, and one line saying what the screen is for. Inventory, the Card Shop (both the lease picker and a running shop) and Conventions — floor, booth and the dark-hall screen between shows — are converted. The all-caps titles with the yellow bar were the tell that a screen had no identity of its own.",
+        "Tables got two fixes that were making real work harder: action buttons no longer wrap mid-word (\"Sell now\" was folding onto two lines in every narrow table), and a table's header row now stays pinned while you scroll it, so you no longer lose which column was the dealer offer.",
+        "This is the shared shell, not a per-screen redesign — the deals, cards, prices and counters inside these screens behave exactly as before. Plenty of screens still carry the old header; they convert as they get their own pass rather than in one sweep, so nothing gets a new skin it has not earned."
+      ]
+    },
+    {
+      "version": "0.6.7",
+      "date": "2026-11-01",
+      "title": "The desk gets a statement",
+      "features": [
+        "The Resale Desk is rebuilt around one standing ledger. A tape across the top — capital out, realized, unrealized, ROI — stays put no matter which lane you are in, because \"am I actually up?\" was the one question the old screen made you open a tab to answer. Lanes are now Inbox, Shelf and Statement, each with its own count.",
+        "Seller notes read like notes. Every offer shows a fan of the actual cards, ask against estimated value with an edge bar (the tick in the middle is break-even), and a countdown that turns red inside the last half hour. Looking through the lot is one tap; buying drops you straight onto the shelf with the lot already counted.",
+        "The flip table is gone — it was folding \"Sell now\" onto two lines. The shelf is cards now: real art and names, condition and days held, dealer offer next to its edge, and a banner that tells you what the dealer would pay for the whole shelf today. Stock names and art come with the shelf data itself, so it no longer fires one card lookup per row to print a label.",
+        "The Statement lays the money out as labelled rows instead of floating numbers, ending on total ROI with a line explaining what is counted. Honest caveat: the dealer's rate re-rolls every time you load the shelf, so treat the offer as today's quote rather than a price already struck."
+      ]
+    },
+    {
+      "version": "0.6.6",
+      "date": "2026-11-01",
+      "title": "A bell that actually rings",
+      "features": [
+        "There is a 🔔 in the header now. Deliveries landing, trade offers arriving and other things that want an answer show up there with an unread count, instead of only scrolling past in the activity feed while you are three screens deep in a binder. Click a row to jump straight to the screen that can act on it — a parcel opens your collection, an offer opens the Trading Post — and it marks itself read as it goes.",
+        "Deliveries were the worst offender: a parcel could land, get sorted into a binder page, and you would never know until you went looking. Every arrival now badges with the card, how many, who shipped it and how many game-days it spent on the road. Trade offers badge too, because an expired offer is a real loss rather than an inconvenience.",
+        "The panel is short on purpose: forty most recent, newest first, 'Mark all read' to clear the badge in one click, and old entries pruned so it never turns into a second activity log. It only badges things that happened after this update — the offers and parcels already waiting in an older save will not appear retroactively."
+      ]
+    },
+    {
+      "version": "0.6.5",
+      "date": "2026-11-01",
+      "title": "The peek becomes a card",
+      "features": [
+        "Buying a pile at a yard sale now tells you what you bought. The card was already landing in your binder — that part worked — but the only feedback was a toast that scrolled past while the table re-rendered, so a purchase read like nothing happened. Every table buy opens a reveal instead: the card's real art, its name, condition and quantity, paid against what it is actually worth, and the difference. A 10¢ shoebox pile turned out to be a NM Sewaddle worth 29¢ the first time it ran.",
+        "The driveway is the one venue where you buy blind, so the reveal is the receipt: it says the pile came off a table, whether you paid the sticker or talked them down, and that the card is in your binder now. Accepted offers open the same reveal as sticker buys — the peek you read on the table is the last thing you see before the card, and the seller's counter no longer ends in a line of text."
+      ]
+    },
+    {
+      "version": "0.6.4",
+      "date": "2026-11-01",
+      "title": "The parking lot",
+      "features": [
+        "Buying on Local Deals is a meetup now, not a popup. The old flow ended in a one-line dialog — 'X is yours for $20 cash' — which is a receipt, not a transaction with a stranger. It is a scene instead: you pull into the agreed lot under one streetlight, the seller's car already there with the hazards blinking, and the deal plays out in beats — ARRIVE, SMALL TALK, CASH, THE CHECK, DONE. Their line changes with what you bought (a card, a sealed box, a lot), and the narration is yours: counting the money out, taking the item, walking back to the car before the light clicks off.",
+        "The corner check is the beat that matters. Cash moves first, exactly like the real thing — then you turn the item over and the verdict lands: genuine, with clean corners and a holo that lines up under the streetlight, or the corner lifting under your thumbnail to reveal wrong stock and wrong gloss. A counterfeit ends the scene standing in the lot holding a fake you already paid for, with the paid-vs-market tally underneath so the damage is in numbers.",
+        "The other three outcomes are staged too, because they are the reason a parking lot is a risk. A ghost is an empty lot, one shopping cart, and a message that stays on Read. A card sold out from under you is a buyer already walking away with it and a shrug — 'sorry, sold it locally already.' A counter-offer happens face to face at the car, with Pay or Walk away in front of you instead of a text bubble. Selling your own post still uses the plain receipt, because there is no lot when you are the one being met."
+      ]
+    },
+    {
+      "version": "0.6.3",
+      "date": "2026-11-01",
+      "title": "The zoom reaches the Trading Post",
+      "features": [
+        "Every card on the Trading Post zooms now. The trader binder grid and the card chips in both sides of an offer were plain images — no preview on hover, and clicking them did nothing — while the same art zoomed and opened the full sheet everywhere else in the game. Both now use the standard card image, so hovering a trader's card pops the enlarged art with its name and clicking it opens the card detail. Verified on the live page: 8 of 8 binder cards and 6 of 6 offer chips armed, the hover preview naming Raikou and Xatu respectively."
+      ]
+    },
+    {
+      "version": "0.6.2",
+      "date": "2026-11-01",
+      "title": "Real prices, real packs",
+      "features": [
+        "The market wakes up with the in-game day. Price history points, the simulated market and the real re-quote of everything you own or watch now run once per game day — 12 real hours at the default pace, 24 at the slow one — instead of on a 24-hour wall-clock timer that a 12-hour day could outrun. Portfolio values, watchlist alerts and every badge that reads a comp stop being a day stale, and a failed re-quote retries in 30 minutes instead of waiting for tomorrow.",
+        "A researched floor under the price model. The comparable model valued collector pieces off the bulk cards they share a name with, which is how Tropical Wind sat at $60 and Ultimate Zone at 13 cents. Fifteen hand-checked values now override inference — Tropical Wind $829, Ultimate Zone $102, Beginning Door $12, Pikachu BW77 $12.84, Aquapolis Porygon $5.90 — each stamped with the month it was researched, so a stale number is visible instead of silent. Bulk that was already right (Sun & Moon basic energies at 20–56 cents) was left alone.",
+        "The RGB Mews are chase cards again. 30th Celebration's three phantom secret rares — Mew R, G and B, no set symbol, collector numbers R/RGB — shipped mislabelled as Commons, so they priced like bulk at 86 cents and dealt from the common slot. They are 'RGB Rare' now, carry researched values of roughly $3,450–$3,950 raw NM (late 2026, down from a ~$6,000 October peak), and roll on their own dice at about 1 in 12,000 packs per colour. A display almost never holds one, and the pack shop's chase strip finally names them.",
+        "Set completion reads like a dex. Every set in Collection → Sets carries its own bar: how many of that set's cards you own against the total including secret rares, with the set code stamped opposite and the bar going green when the set is finished. A new 'Most complete' sort floats the sets you are closest to closing to the top instead of sorting by release date.",
+        "Packs deal their real cards. The rarity ladder only knew about fifteen labels and dropped everything else — Pikachu Rare, LEGEND, Trainer Gallery, ACE SPEC, the shiny tiers — into the common pool; packs were built from Pokémon only, so Trainers and Energy could never appear; and the special slot drew flat, making a Special Illustration Rare exactly as likely as a Double Rare. Every label has its rank now, Trainers and Energy are in the pools, and hits are weighted by real tier odds (SIR ≈ 4.9% against Double Rare ≈ 21%). 30th Celebration packs close on a guaranteed one of the 30 Pikachus — 200 of 200 test packs did — and Classic Collection packs are pure 30-card reprint subset, because that is what the product is. Honest caveat: the game's ten-card packs still include a hit every time, so absolute special rates run about double the real six-card product; the ratios between tiers are what match."
+      ]
+    },
+    {
       "version": "0.6.1",
       "date": "2026-10-29",
       "title": "The playtest pass",

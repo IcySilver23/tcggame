@@ -1,8 +1,44 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
-import type { BuylistSection, BuylistOffers, BuylistShelf, BuylistShopOut } from '../api'
+import type { BuylistOfferRow, BuylistOffers, BuylistSection, BuylistShelf, BuylistShopOut } from '../api'
 import { useStore } from '../store'
-import { EmptyState, FirstUseTip, fmtUsd } from '../components'
+import { EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
+
+// ---------------------------------------------------------------------------
+// 🧾 The Buylist — the counter (roadmap: one verb per venue).
+//
+// The verb is DUMP: you walk in with a stack, a buyer flips through it, and you
+// leave with money. The old screen was a checkbox list with the total hidden
+// under it — a spreadsheet, not a counter. So the screen is a transaction:
+//
+//   • the shop rail ranks every buyer by what they'd pay for the stack you are
+//     actually holding, so "who pays most" is a glance, not six tabs;
+//   • the sheet is built with buckets (everything, wants, under $2, worn) —
+//     dumping is bulk work, so selecting 40 cards takes one click;
+//   • the receipt sits beside it the whole time: market value, what the shop
+//     keeps, the cash/credit split, and the number you walk out with.
+//
+// No mechanic changed: 55–75% base rates, want-list premiums, credit bonus
+// rates, the stale-quote guard and the shop-siloed credit are the same calls.
+// ---------------------------------------------------------------------------
+
+const round2 = (n: number) => Math.round(n * 100) / 100
+
+type Bucket = 'all' | 'wants' | 'cheap' | 'big' | 'worn'
+const BUCKETS: { id: Bucket; label: string; hint: string }[] = [
+  { id: 'all', label: 'Everything', hint: 'Every card on this shop’s sheet' },
+  { id: 'wants', label: '🔥 Wants', hint: 'Only the cards this shop is hunting — they pay a premium' },
+  { id: 'cheap', label: 'Under $2', hint: 'Bulk under $2 of market — the usual dump' },
+  { id: 'big', label: '$25+', hint: 'The big cards, where the haircut costs the most' },
+  { id: 'worn', label: 'LP or worse', hint: 'Played copies — the shop discounts these hardest' },
+]
+
+const inBucket = (o: BuylistOfferRow, b: Bucket) =>
+  b === 'all' ? true
+    : b === 'wants' ? o.want
+      : b === 'cheap' ? o.market < 2
+        : b === 'big' ? o.market >= 25
+          : o.condition !== 'NM'
 
 const SPLITS: { label: string; value: number }[] = [
   { label: 'All cash', value: 0 },
@@ -11,116 +47,105 @@ const SPLITS: { label: string; value: number }[] = [
   { label: 'All credit', value: 1 },
 ]
 
-/** One flat, honest "offer" line: market → payout, with the % visible. */
-function OfferRow({
-  name, sub, market, payout, want, picked, onToggle, onOpen,
-}: {
-  name: React.ReactNode
-  sub: string
-  market: number
-  payout: number
-  want?: boolean
-  picked?: boolean
-  onToggle?: () => void
-  onOpen?: () => void
-}) {
-  const pct = market > 0 ? Math.round((payout / market) * 100) : 0
-  return (
-    <div
-      className="row small bl-row"
-      style={{
-        gap: 10,
-        padding: '6px 10px',
-        borderRadius: 6,
-        background: picked ? 'rgba(255,203,5,0.07)' : 'transparent',
-        border: picked ? '1px solid rgba(255,203,5,0.35)' : '1px solid transparent',
-        cursor: onToggle ? 'pointer' : undefined,
-      }}
-      onClick={onToggle}
-    >
-      {onToggle != null && (
-        <input type="checkbox" checked={!!picked} onChange={onToggle} onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0 }} />
-      )}
-      <span
-        style={{ minWidth: 0, flex: '1 1 200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: onOpen ? 'pointer' : undefined }}
-        onClick={(e) => { if (onOpen) { e.stopPropagation(); onOpen() } }}
-      >
-        {name} <span className="faint">· {sub}</span>
-      </span>
-      {want && (
-        <span className="badge hit" title="On this shop's want list — they pay over their usual rate for it" style={{ flexShrink: 0 }}>🔥 want</span>
-      )}
-      <span className="faint" style={{ width: 78, textAlign: 'right', flexShrink: 0 }} title="Current market value">{fmtUsd(market)}</span>
-      <b style={{ width: 80, textAlign: 'right', flexShrink: 0 }} title="What they hand you in cash">{fmtUsd(payout)}</b>
-      <span className="faint" style={{ width: 38, textAlign: 'right', flexShrink: 0 }} title="Payout as a share of market">{pct}%</span>
-    </div>
-  )
-}
-
-/** Column header matching OfferRow's widths. */
-function OfferHead() {
-  return (
-    <div className="row small faint" style={{ gap: 10, padding: '2px 10px 6px', borderBottom: '1px solid var(--border-soft)' }}>
-      <span style={{ width: 24, flexShrink: 0 }} />
-      <span style={{ flex: '1 1 200px', minWidth: 0 }}>Card</span>
-      <span style={{ width: 78, textAlign: 'right', flexShrink: 0 }}>Market</span>
-      <span style={{ width: 80, textAlign: 'right', flexShrink: 0 }}>They pay</span>
-      <span style={{ width: 38, textAlign: 'right', flexShrink: 0 }}>%</span>
-    </div>
-  )
-}
-
 export function BuylistView() {
   const { toast, refreshState, openCard } = useStore()
   const [data, setData] = useState<BuylistSection | null>(null)
-  const [shopId, setShopId] = useState<number | null>(null)
-  const [offers, setOffers] = useState<BuylistOffers | null>(null)
+  // Every shop's sheet is fetched, not just the active one: a counter can tell
+  // you who pays most for the stack in your hands, and that comparison is the
+  // whole reason to walk to a different buyer.
+  const [sheets, setSheets] = useState<Record<number, BuylistOffers>>({})
   const [shelf, setShelf] = useState<BuylistShelf | null>(null)
+  const [shopId, setShopId] = useState<number | null>(null)
   const [picked, setPicked] = useState<Set<number>>(new Set())
   const [split, setSplit] = useState(0)
+  const [sort, setSort] = useState<'spread' | 'payout' | 'name'>('spread')
+  const [tab, setTab] = useState<'sell' | 'spend'>('sell')
   const [busy, setBusy] = useState(false)
-  const [tab, setTab] = useState<'sell' | 'shop'>('sell')
+  const [loadingSheets, setLoadingSheets] = useState(true)
 
-  const loadAll = () => api.buylist().then(setData).catch(() => {})
-  useEffect(() => { loadAll() }, [])
-  useEffect(() => {
-    if (shopId == null && data && data.shops.length > 0) setShopId(data.shops[0].id)
-  }, [data, shopId])
+  const loadSheets = async () => {
+    try {
+      const section = await api.buylist()
+      setData(section)
+      const pairs = await Promise.all(
+        section.shops.map((s) => api.buylistOffers(s.id).then((o) => [s.id, o] as const).catch(() => null)),
+      )
+      const next: Record<number, BuylistOffers> = {}
+      for (const p of pairs) if (p) next[p[0]] = p[1]
+      setSheets(next)
+      setShopId((cur) => cur ?? section.shops[0]?.id ?? null)
+    } catch { /* keep the last sheet on screen rather than blanking the counter */ }
+    finally { setLoadingSheets(false) }
+  }
+
+  useEffect(() => { loadSheets() }, [])
+
   useEffect(() => {
     if (shopId == null) return
-    setPicked(new Set())
-    api.buylistOffers(shopId).then(setOffers).catch(() => setOffers(null))
     api.buylistShelf(shopId).then(setShelf).catch(() => setShelf(null))
   }, [shopId])
 
+  // Voicing a new shop re-quotes the sheet, so a stale split/pick set can't
+  // ride along from the previous counter.
+  useEffect(() => { setPicked(new Set()) }, [shopId])
+
   const shop: BuylistShopOut | undefined = data?.shops.find((s) => s.id === shopId)
-  const pickedRows = (offers?.offers ?? []).filter((o) => picked.has(o.inventoryId))
-  const pickedCash = pickedRows.reduce((a, o) => a + o.payoutCash, 0)
-  const pickedCredit = pickedRows.reduce((a, o) => a + o.payoutCredit, 0)
-  const splitCash = pickedCash * (1 - split)
-  const splitCredit = pickedCredit * split
+  const offers: BuylistOfferRow[] = useMemo(
+    () => (shopId != null ? sheets[shopId]?.offers ?? [] : []),
+    [sheets, shopId],
+  )
+
+  const rows = useMemo(() => {
+    const arr = [...offers]
+    if (sort === 'payout') arr.sort((a, b) => b.payoutCash - a.payoutCash)
+    else if (sort === 'name') arr.sort((a, b) => a.name.localeCompare(b.name))
+    return arr
+  }, [offers, sort])
+
+  const pickedRows = useMemo(() => offers.filter((o) => picked.has(o.inventoryId)), [offers, picked])
+  const grossCash = round2(pickedRows.reduce((a, o) => a + o.payoutCash, 0))
+  const grossCredit = round2(pickedRows.reduce((a, o) => a + o.payoutCredit, 0))
+  const marketTotal = round2(pickedRows.reduce((a, o) => a + o.market, 0))
+  const cashOut = round2(grossCash * (1 - split))
+  const creditOut = round2(grossCredit * split)
+  const kept = round2(Math.max(0, marketTotal - cashOut - creditOut))
+
+  // Who pays most for what you're holding. With an empty stack the rail still
+  // answers the useful question — what each shop would pay for everything.
+  const stackTotals = useMemo(() => {
+    const shops = data?.shops ?? []
+    return shops.map((s) => {
+      const list = sheets[s.id]?.offers ?? []
+      const ids = picked.size > 0 ? picked : new Set(list.map((o) => o.inventoryId))
+      const cash = round2(list.filter((o) => ids.has(o.inventoryId)).reduce((a, o) => a + o.payoutCash, 0))
+      return { shop: s, cash }
+    }).sort((a, b) => b.cash - a.cash)
+  }, [data, sheets, picked])
+  const best = stackTotals[0]
+  const activeTotal = stackTotals.find((t) => t.shop.id === shopId)?.cash ?? 0
+  const beatBy = best && shopId !== best.shop.id ? round2(best.cash - activeTotal) : 0
+
+  const toggle = (id: number) =>
+    setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
   const doSell = async () => {
     if (shopId == null || picked.size === 0) return
     setBusy(true)
     try {
-      const r = await api.buylistSell(shopId, [...picked], split, pickedCash)
+      const r = await api.buylistSell(shopId, [...picked], split, grossCash)
       if (r.ok) {
-        // Name what the shop actually paid — the sheet is an offer, the
-        // register receipt is the truth.
         const cash = r.cash ?? 0
         const credit = r.credit ?? 0
         toast(`Sold ${picked.size} card${picked.size === 1 ? '' : 's'} — ${fmtUsd(cash)} cash${credit > 0 ? ` + ${fmtUsd(credit)} store credit` : ''}.`, 'good')
         setPicked(new Set())
         refreshState()
-        loadAll()
-        api.buylistOffers(shopId).then(setOffers).catch(() => {})
-        api.buylistShelf(shopId).then(setShelf).catch(() => {})
+        loadSheets()
+        if (shopId != null) api.buylistShelf(shopId).then(setShelf).catch(() => {})
       } else {
         // A refused stale quote isn't a failure — the shop re-checked its
         // sheet, so show the fresh numbers and keep the player's picks.
         const moved = !!r.error && r.error.includes('now offers')
-        if (moved) api.buylistOffers(shopId).then(setOffers).catch(() => {})
+        if (moved) loadSheets()
         toast(r.error ?? 'Sale failed', moved ? 'info' : 'bad')
       }
     } catch (e) {
@@ -138,7 +163,7 @@ export function BuylistView() {
       if (r.ok) {
         toast(`Bought off the shelf — ${fmtUsd(r.paid ?? 0)} ${r.method === 'credit' ? 'store credit' : 'cash'}.`, 'good')
         refreshState()
-        loadAll()
+        loadSheets()
         api.buylistShelf(shopId).then(setShelf).catch(() => {})
       } else toast(r.error ?? 'Purchase failed', 'bad')
     } catch (e) {
@@ -148,178 +173,261 @@ export function BuylistView() {
     }
   }
 
-  // Whole-collection offer header numbers, so the sheet's top line says what
-  // a full walk-out looks like before you pick anything.
-  const whole = offers?.totals
-
   return (
     <div>
       <div className="page-head">
         <div>
           <h1>🧾 The Buylist</h1>
-          <div className="sub">Shops buy your cards outright — instant cash, no listing wait, no sell fee, but they keep a cut. Pick a shop below; sell on the SELL tab, spend credit on the SHOP tab.</div>
+          <div className="sub">
+            Six shops buy outright — instant cash, no listing wait, no sell fee, and they keep a cut. Build a stack,
+            watch the receipt, take part of it in store credit if the bonus is worth it.
+          </div>
+        </div>
+        <div className="chip-row">
+          <button className={tab === 'sell' ? 'primary small' : 'small'} onClick={() => setTab('sell')}>Dump cards</button>
+          <button className={tab === 'spend' ? 'primary small' : 'small'} onClick={() => setTab('spend')}>
+            Spend credit{shop?.credit ? ` · ${fmtUsd(shop.credit)}` : ''}
+          </button>
         </div>
       </div>
 
       <FirstUseTip surface="buylist">
-        Every store pays a flat rate (55–75% of market) for anything, and a <b>want list</b> premium for the four cards it's
-        hunting. Take part of the payout as <b>store credit</b> and they pay a bonus rate on that leg — credit only spends at
-        that shop, on its own shelf. Selling to the buylist is trading margin for money today.
+        <TipList
+          title="The counter rules"
+          items={[
+            { icon: '💵', label: 'Flat rate', text: 'every buyer pays 55–75% of market — their cut is what instant money costs.' },
+            { icon: '🔥', label: 'Want lists', text: 'four cards each, paying a premium over their usual rate — sell into demand.' },
+            { icon: '🏪', label: 'Store credit', text: 'the credit leg pays a bonus rate at that shop, but only spends on that shop’s shelf.' },
+            { icon: '🧾', label: 'The receipt', text: 'the sheet is an offer; the register is the truth, so the quote is re-checked when you sell.' },
+          ]}
+        />
       </FirstUseTip>
 
-      {/* Shop picker — one compact card per shop: name, rate, credit held. */}
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'stretch' }}>
-        {(data?.shops ?? []).map((s) => (
-          <div
-            key={s.id}
-            className="panel"
-            style={{
-              margin: 0,
-              padding: '8px 12px',
-              minWidth: 168,
-              flex: '1 1 168px',
-              cursor: 'pointer',
-              borderColor: s.id === shopId ? 'var(--yellow)' : undefined,
-              background: s.id === shopId ? 'var(--panel2)' : undefined,
-            }}
-            onClick={() => setShopId(s.id)}
-          >
-            <div style={{ fontWeight: 700, fontSize: 12.5 }}>{s.name}</div>
-            <div className="small faint" style={{ marginTop: 2 }}>
-              pays ~{Math.round(s.basePct)}% cash{s.bonusRate > 0 && <> · credit leg pays +{Math.round(s.bonusRate)}%</>}
+      {!data || loadingSheets ? (
+        <EmptyState icon="🧾" text="Counting the tills…" sub="Every shop is quoting your collection." />
+      ) : tab === 'sell' ? (
+        <div className="counter">
+          {/* BUYER RAIL — ranked by what they'd pay for the stack in hand. */}
+          <div className="counter-rail">
+            <div className="counter-rail-head">
+              <span>{picked.size > 0 ? 'Who pays most for this stack' : 'Who pays most for everything'}</span>
             </div>
-            {s.credit > 0 ? (
-              <div className="small" style={{ color: 'var(--gold)', fontWeight: 700 }}>{fmtUsd(s.credit)} credit here</div>
-            ) : (
-              <div className="small faint">no credit held</div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {shop && (
-        <div className="panel mb14">
-          <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <div>
-              <b>🔥 {shop.name}'s want list</b>
-              <span className="faint small" style={{ marginLeft: 8 }}>rotates weekly — these pay over their usual rate</span>
-            </div>
-            {shop.credit > 0 && <span className="badge hit">🏪 {fmtUsd(shop.credit)} store credit here</span>}
-          </div>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-            {shop.wants.map((w) => {
-              const est = w.market * Math.min(1.15, (shop.basePct / 100) * (1 + w.premium / 100))
+            {stackTotals.map(({ shop: s, cash }) => {
+              const active = s.id === shopId
               return (
-                <div key={w.cardId} className="panel" style={{ margin: 0, padding: '8px 12px', background: 'var(--panel2)', cursor: 'pointer', minWidth: 150, flex: '0 1 auto' }} onClick={() => openCard(w.cardId)}>
-                  <div style={{ fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 210 }}>{w.name}</div>
-                  <div className="small faint" style={{ marginTop: 2 }}>
-                    {fmtUsd(w.market)} market · they'd pay <b style={{ color: 'var(--green)' }}>≈{fmtUsd(est)}</b>
-                    <span title={`Their usual ${Math.round(shop.basePct)}% rate plus the +${Math.round(w.premium)}% want premium`}> · +{Math.round(w.premium)}%</span>
-                  </div>
-                </div>
+                <button
+                  key={s.id}
+                  className={`counter-shop ${active ? 'on' : ''}`}
+                  onClick={() => setShopId(s.id)}
+                  title={s.blurb}
+                >
+                  <span className="counter-shop-name">
+                    {s.name}
+                    {best && s.id === best.shop.id && <span className="counter-best">BEST</span>}
+                  </span>
+                  <span className="counter-shop-rate">
+                    {Math.round(s.basePct)}% cash{s.bonusRate > 0 ? ` · credit +${Math.round(s.bonusRate)}%` : ''}
+                  </span>
+                  <span className="counter-shop-quote">{fmtUsd(cash)}</span>
+                  {s.credit > 0 && <span className="counter-shop-credit">{fmtUsd(s.credit)} credit</span>}
+                </button>
               )
             })}
           </div>
-        </div>
-      )}
 
-      <div className="row" style={{ gap: 6, marginBottom: 10 }}>
-        <button className={tab === 'sell' ? 'primary small' : 'small'} onClick={() => setTab('sell')}>💰 Sell to {shop?.name ?? 'the buylist'}</button>
-        <button className={tab === 'shop' ? 'primary small' : 'small'} onClick={() => setTab('shop')}>
-          🏪 Shop {shop?.credit ? `· ${fmtUsd(shop.credit)} credit` : ''} <span className="badge est" style={{ marginLeft: 4 }}>{shelf?.rows.length ?? 0}</span>
-        </button>
-      </div>
+          {/* THE SHEET — buckets first, because dumping is bulk work. */}
+          <div className="counter-main">
+            <div className="counter-wants">
+              <div className="row" style={{ justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <b>🔥 {shop?.name} is hunting</b>
+                <span className="faint small">rotates weekly · pays over their usual rate</span>
+              </div>
+              <div className="counter-wants-row">
+                {(shop?.wants ?? []).map((w) => {
+                  const est = w.market * Math.min(1.15, ((shop?.basePct ?? 0) / 100) * (1 + w.premium / 100))
+                  return (
+                    <button key={w.cardId} className="want-chip" onClick={() => openCard(w.cardId)} title={`Market ${fmtUsd(w.market)} · they pay ≈${fmtUsd(est)}`}>
+                      <b>{w.name}</b>
+                      <span>≈{fmtUsd(est)} <span className="faint">+{Math.round(w.premium)}%</span></span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
-      {tab === 'sell' ? (
-        <div className="panel mb14">
-          <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <b>Your offer sheet{offers?.shop ? <> — {offers.shop.name}</> : ''}</b>
-            {whole && (offers?.offers.length ?? 0) > 0 && (
-              <span className="small muted">whole collection: {fmtUsd(whole.cash)} cash / {fmtUsd(whole.credit)} as credit</span>
-            )}
+            <div className="counter-sheet">
+              <div className="counter-sheet-head">
+                <div className="buckets">
+                  {BUCKETS.map((b) => {
+                    const ids = offers.filter((o) => inBucket(o, b.id)).map((o) => o.inventoryId)
+                    const on = ids.length > 0 && ids.every((id) => picked.has(id))
+                    return (
+                      <button
+                        key={b.id}
+                        className={`bucket ${on ? 'on' : ''}`}
+                        title={`${b.hint} — ${ids.length} card${ids.length === 1 ? '' : 's'}`}
+                        onClick={() => setPicked(new Set(ids))}
+                      >
+                        {b.label} <span className="faint">{ids.length}</span>
+                      </button>
+                    )
+                  })}
+                  <button className="bucket ghost" onClick={() => setPicked(new Set())} disabled={picked.size === 0}>Clear</button>
+                </div>
+                <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Sort the sheet" className="list-sort">
+                  <option value="spread">Sort: Best relative deal</option>
+                  <option value="payout">Sort: Biggest payout</option>
+                  <option value="name">Sort: Name A→Z</option>
+                </select>
+              </div>
+
+              {offers.length === 0 ? (
+                <EmptyState icon="🧾" text="Nothing on your sheet they'd buy" sub="Pull cards, grade them, or wait — offers refresh with your collection." />
+              ) : (
+                <div className="sheet">
+                  <div className="sheet-head">
+                    <span />
+                    <span>Card</span>
+                    <span className="right">Market</span>
+                    <span className="right">They pay</span>
+                    <span className="right">Rate</span>
+                  </div>
+                  {rows.map((o) => {
+                    const on = picked.has(o.inventoryId)
+                    const rate = o.market > 0 ? Math.round((o.payoutCash / o.market) * 100) : 0
+                    return (
+                      <label key={o.inventoryId} className={`sheet-row ${on ? 'on' : ''}`}>
+                        <input type="checkbox" checked={on} onChange={() => toggle(o.inventoryId)} />
+                        <span className="sheet-name">
+                          <b onClick={(e) => { e.preventDefault(); openCard(o.cardId) }}>{o.name}</b>
+                          <span className="faint">
+                            {o.condition}
+                            {o.want && <span className="sheet-want">🔥 want</span>}
+                          </span>
+                        </span>
+                        <span className="right faint">{fmtUsd(o.market)}</span>
+                        <span className="right sheet-pay">{fmtUsd(o.payoutCash)}</span>
+                        <span className={`right sheet-rate ${rate < 55 ? 'low' : rate > 75 ? 'high' : ''}`} title={`${rate}% of market in cash`}>{rate}%</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
-          {(offers?.offers ?? []).length === 0 ? (
-            <EmptyState icon="🧾" text="Nothing on your sheet they'd buy" sub="Pull cards, grade them, or wait — offers refresh with your collection." />
-          ) : (
-            <div style={{ marginTop: 8 }}>
-              <OfferHead />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 }}>
-                {offers!.offers.map((o) => (
-                  <OfferRow
-                    key={o.inventoryId}
-                    name={o.name}
-                    sub={o.condition}
-                    market={o.market}
-                    payout={o.payoutCash}
-                    want={o.want}
-                    picked={picked.has(o.inventoryId)}
-                    onToggle={() =>
-                      setPicked((p) => { const n = new Set(p); if (n.has(o.inventoryId)) n.delete(o.inventoryId); else n.add(o.inventoryId); return n })
-                    }
-                    onOpen={() => openCard(o.cardId)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {/* THE RECEIPT — the number you walk out with, always visible. */}
+          <aside className="receipt">
+            <div className="receipt-head">Receipt</div>
+            <div className="receipt-line"><span>Picked</span><b>{picked.size} card{picked.size === 1 ? '' : 's'}</b></div>
+            <div className="receipt-line"><span>Market value</span><b>{fmtUsd(marketTotal)}</b></div>
+            <div className="receipt-line"><span>{shop?.name ?? 'Shop'} pays</span><b>{fmtUsd(grossCash)}</b></div>
 
-          {picked.size > 0 && (
-            <div style={{ marginTop: 12, padding: '10px 12px', background: 'var(--panel2)', borderRadius: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                <span className="small"><b>{picked.size}</b> picked · offer <b>{fmtUsd(pickedCash)}</b> cash / {fmtUsd(pickedCredit)} as credit</span>
-                <div className="row" style={{ gap: 6 }}>
-                  <button className="ghost small" onClick={() => setPicked(new Set((offers?.offers ?? []).map((o) => o.inventoryId)))}>Pick all</button>
-                  <button className="ghost small" onClick={() => setPicked(new Set())}>Clear</button>
-                </div>
-              </div>
-              <div className="row" style={{ gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                <span className="small faint">payout split:</span>
-                {SPLITS.map((s) => (
-                  <button key={s.label} className={split === s.value ? 'small primary' : 'small ghost'} onClick={() => setSplit(s.value)}>{s.label}</button>
-                ))}
-              </div>
-              <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                <span className="small">
-                  → you'd walk out with <b>{fmtUsd(splitCash)}</b> cash{splitCredit > 0 && <> + <b>{fmtUsd(splitCredit)}</b> store credit</>}
-                </span>
-                <button className="primary" disabled={busy} onClick={doSell}>Sell {picked.size} card{picked.size === 1 ? '' : 's'}</button>
+            <div className="receipt-splits">
+              <div className="faint small" style={{ marginBottom: 4 }}>PAYOUT SPLIT</div>
+              {SPLITS.map((s) => (
+                <button key={s.label} className={`split ${split === s.value ? 'on' : ''}`} onClick={() => setSplit(s.value)}>{s.label}</button>
+              ))}
+              <div className="faint small" style={{ marginTop: 4 }}>
+                Credit leg pays {shop ? `+${Math.round(shop.bonusRate)}%` : 'a bonus'} at this shop, and spends only here.
               </div>
             </div>
-          )}
+
+            <div className="receipt-total">
+              <div className="faint small">YOU WALK OUT WITH</div>
+              <div className="receipt-cash">{fmtUsd(cashOut)}</div>
+              {creditOut > 0 && <div className="receipt-credit">+ {fmtUsd(creditOut)} store credit</div>}
+            </div>
+            <div className="receipt-line"><span>The shop keeps</span><b className="faint">{fmtUsd(kept)}</b></div>
+
+            {beatBy > 0 && (
+              <div className="receipt-tip" onClick={() => best && setShopId(best.shop.id)} role="button" title={`${best?.shop.name} pays ${fmtUsd(best?.cash ?? 0)} for this stack`}>
+                💡 {best?.shop.name} pays <b>{fmtUsd(beatBy)} more</b> for this stack — switch counter.
+              </div>
+            )}
+
+            <button className="primary receipt-go" disabled={picked.size === 0 || busy} onClick={doSell}>
+              {picked.size === 0 ? 'Pick a stack' : busy ? '…' : `CASH OUT ${fmtUsd(cashOut + creditOut)}`}
+            </button>
+            <div className="faint small" style={{ marginTop: 6, lineHeight: 1.4 }}>
+              Instant — no fee, no wait. The quote is re-checked at the register in case a want rotated.
+            </div>
+          </aside>
         </div>
       ) : (
-        <div className="panel mb14">
-          {shelf && shelf.rows.length > 0 ? (
-            <>
-              <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                <b>{shelf.shop.name}'s shelf</b>
-                <span className="small muted">credit here: <b>{fmtUsd(shelf.credit)}</b> · cash works too</span>
+        <div className="counter counter-spend">
+          <div className="counter-rail">
+            <div className="counter-rail-head"><span>Spend at</span></div>
+            {(data?.shops ?? []).map((s) => (
+              <button key={s.id} className={`counter-shop ${s.id === shopId ? 'on' : ''}`} onClick={() => setShopId(s.id)} title={s.blurb}>
+                <span className="counter-shop-name">{s.name}</span>
+                <span className="counter-shop-rate">{Math.round(s.basePct)}% buylist rate</span>
+                <span className="counter-shop-quote">{fmtUsd(s.credit)}</span>
+                <span className="counter-shop-credit">store credit</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="counter-main">
+            <div className="counter-sheet">
+              <div className="counter-sheet-head">
+                <b>{shelf?.shop.name ?? shop?.name}’s shelf</b>
+                <span className="small muted">Credit here: <b>{fmtUsd(shelf?.credit ?? shop?.credit ?? 0)}</b> · cash works too</span>
               </div>
-              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {shelf.rows.map((r) => (
-                  <OfferRow
-                    key={r.id}
-                    name={r.name}
-                    sub={r.condition}
-                    market={r.market}
-                    payout={r.price}
-                    want={r.wantStock}
-                    onOpen={() => openCard(r.cardId)}
-                  />
-                ))}
-              </div>
-              {shelf.history.length > 0 && (
+              {!shelf || shelf.rows.length === 0 ? (
+                <EmptyState icon="🏪" text="The shelf is empty right now" sub="Shops restock weekly — check back after the next rotation." />
+              ) : (
+                <div className="sheet">
+                  <div className="sheet-head">
+                    <span />
+                    <span>Card</span>
+                    <span className="right">Market</span>
+                    <span className="right">Price</span>
+                    <span className="right">Buy</span>
+                  </div>
+                  {shelf.rows.map((r) => (
+                    <div key={r.id} className="sheet-row">
+                      <span />
+                      <span className="sheet-name">
+                        <b onClick={() => openCard(r.cardId)}>{r.name}</b>
+                        <span className="faint">
+                          {r.condition}
+                          {r.wantStock && <span className="sheet-want">🔥 stocked for their wants</span>}
+                        </span>
+                      </span>
+                      <span className="right faint">{fmtUsd(r.market)}</span>
+                      <span className={`right sheet-pay ${r.price < r.market * 0.95 ? 'deal' : ''}`}>{fmtUsd(r.price)}</span>
+                      <span className="right" style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                        <button className="small primary" disabled={busy || (shelf.credit < r.price)} onClick={() => doBuy(r.id, true)} title="Pay with store credit">Credit</button>
+                        <button className="small" disabled={busy} onClick={() => doBuy(r.id, false)} title="Pay cash">Cash</button>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {(shelf?.history.length ?? 0) > 0 && (
                 <div className="small faint" style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--border-soft)' }}>
-                  {shelf.history.slice(0, 5).map((h, i) => (
+                  {shelf!.history.slice(0, 5).map((h, i) => (
                     <div key={i}>{h.delta >= 0 ? '+' : ''}{fmtUsd(h.delta)} — {h.note}</div>
                   ))}
                 </div>
               )}
-            </>
-          ) : (
-            <EmptyState icon="🏪" text="The shelf is empty right now" sub="Shops restock weekly — check back after the next rotation." />
-          )}
+            </div>
+          </div>
+
+          <aside className="receipt">
+            <div className="receipt-head">Credit</div>
+            <div className="receipt-line"><span>At {shop?.name ?? 'this shop'}</span><b>{fmtUsd(shop?.credit ?? 0)}</b></div>
+            <div className="receipt-total">
+              <div className="faint small">SPENDABLE HERE</div>
+              <div className="receipt-cash">{fmtUsd(shelf?.credit ?? shop?.credit ?? 0)}</div>
+            </div>
+            <div className="faint small" style={{ lineHeight: 1.45 }}>
+              Credit is siloed to the shop that paid it. Dump a stack with part of the payout as credit and this
+              balance grows — the credit leg pays a bonus rate, which is the whole point.
+            </div>
+            <button className="primary receipt-go" onClick={() => setTab('sell')}>Build a stack to earn credit</button>
+          </aside>
         </div>
       )}
     </div>

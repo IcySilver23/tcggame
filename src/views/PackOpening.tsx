@@ -7,9 +7,9 @@ import { CardImg, EmptyState, fmtUsd, TearPack, glowClass, packHue } from '../co
 import cardBack from '../assets/card-back.png'
 import { takeOpeningHandoff } from '../store'
 import { flipSwish, hitStinger } from '../audio'
-import type { OpenSession, OpenedCard, ProductRow } from '../types'
+import type { BoxOpen, BoxPromo, OpenSession, OpenedCard, ProductRow } from '../types'
 
-type Phase = 'idle' | 'pack' | 'revealing' | 'summary'
+type Phase = 'idle' | 'promo' | 'pack' | 'revealing' | 'summary'
 type Stage = 'hold' | 'flip' | 'landed' // where the card on stage is in its ceremony
 type Tier = 'common' | 'super' | 'epic' | 'massive' | 'ghost'
 
@@ -115,6 +115,7 @@ function RevealCard({ card, tier, stage, fast, hold, flip, hue }: {
         </div>
       </div>
       {stage === 'landed' && big && <div className="po-flash" aria-hidden />}
+      {stage === 'landed' && big && <div className="po-sheen" aria-hidden />}
       {stage === 'landed' && card.isNew && <div className="po-new-tag">✨ NEW</div>}
     </div>
   )
@@ -138,12 +139,29 @@ export function PackOpeningView() {
   const reduced = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true, [])
   const [session, setSession] = useState<OpenSession | null>(null)
   const [fast, setFast] = useState(false)
+  // The summary binder pages 40 pulls at a time: a 36-pack box is 360 cards,
+  // and a 360-cell grid is a wall, not a keepsake page.
+  const [page, setPage] = useState(0)
   const [sealedStock, setSealedStock] = useState<{ product_id: string; quantity: number }[]>([])
   const [busy, setBusy] = useState<string | null>(null)
   // The tear-open ceremony: the pack exists on screen first — hold and pull
   // down (or press Enter) to rip the foil, then the card reveal begins.
-  const [pendingPack, setPendingPack] = useState<{ name: string; sub: string; cards: number; spent: number; symbol: string | null; image: string | null } | null>(null)
+  const [pendingPack, setPendingPack] = useState<{ key: string; name: string; sub: string; cards: number; spent: number; symbol: string | null; image: string | null } | null>(null)
   const [wantAuto, setWantAuto] = useState(false)
+  // A box (bundle/ETB/display) opens one wrapper at a time: every pack is its
+  // own tear and its own reveal, and the summary asks before the next one.
+  const [box, setBox] = useState<{ boxId: number; productId: string; productName: string; packsTotal: number; packsLeft: number; packIndex: number } | null>(null)
+  // The promo that shipped in the box, shown before a single wrapper opens.
+  const [promo, setPromo] = useState<BoxPromo | null>(null)
+  const [promoThen, setPromoThen] = useState<{ s: OpenSession; product?: ProductRow; prevBest: number; prevPack: number } | null>(null)
+  const [boxTotals, setBoxTotals] = useState<{ cards: number; value: number; spent: number } | null>(null)
+  // Boxes left half-open (a reload, a closed tab) are listed so the ceremony
+  // can pick the box back up at the next wrapper instead of stranding it.
+  const [openBoxList, setOpenBoxList] = useState<{ id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }[]>([])
+
+  const loadBoxes = useCallback(() => {
+    api.openBoxes().then(setOpenBoxList).catch(() => {})
+  }, [])
   // The record chase: when a pack beats your best pull on record, the screen
   // edges catch fire and the summary wears the crown. previousBest is the
   // record *before* this session (fetched when the ceremony begins), so the
@@ -170,10 +188,11 @@ export function PackOpeningView() {
   // Shop handoff resolves before the fetch) found no product and fell back to
   // a generic "Booster pack" with no wrapper art. Everyone waits for it now.
   const productsReq = useRef<Promise<ProductRow[]> | null>(null)
+  const productsRef = useRef<ProductRow[]>([])
   const ensureProducts = useCallback((): Promise<ProductRow[]> => {
     if (productsReq.current) return productsReq.current
     const req = api.products()
-      .then((rows) => { setProducts(rows); return rows })
+      .then((rows) => { productsRef.current = rows; setProducts(rows); return rows })
       .catch((e) => { productsReq.current = null; throw e })
     productsReq.current = req
     return req
@@ -182,6 +201,7 @@ export function PackOpeningView() {
   useEffect(() => {
     ensureProducts().catch(() => {})
     loadSealed()
+    loadBoxes()
     const h = takeOpeningHandoff()
     if (h) setHandoff(h)
   }, [ensureProducts, loadSealed])
@@ -200,7 +220,14 @@ export function PackOpeningView() {
   const beginCeremony = (s: OpenSession, productId: string | undefined, prevBest = 0, prevPack = 0) => {
     ensureProducts()
       .catch(() => products) // a failed fetch must not block the rip itself
-      .then((rows) => runCeremony(s, rows.find((x) => x.id === productId), prevBest, prevPack))
+      .then((rows) => {
+        const product = rows.find((x) => x.id === productId)
+        const asBox = s as OpenSession & Partial<BoxOpen>
+        // A handoff from the Pack Shop or Inventory is a whole box with
+        // wrappers still inside it — open it pack by pack.
+        if (asBox.boxId && asBox.packsTotal) beginBox(asBox as BoxOpen, product, prevBest, prevPack)
+        else runCeremony(s, product, prevBest, prevPack)
+      })
   }
 
   const runCeremony = (s: OpenSession, product?: ProductRow, prevBest = 0, prevPack = 0) => {
@@ -215,21 +242,104 @@ export function PackOpeningView() {
     setPreviousBest(prevBest)
     setPrevBestPack(prevPack ?? 0)
     setRecord(null)
+    setPage(0)
     const first = s.cards[0]
     const setName = product?.set_name ?? first?.setName ?? 'Booster pack'
-    setBackArt({ hue: packHue(product?.name ?? setName) })
-    const packsInBox = (s as OpenSession & { packsInBox?: number }).packsInBox ?? 1
+    // What comes off is a PACK: an ETB hands you nine booster wrappers, so the
+    // stage wears the set's booster art and the booster's name, never the tin.
+    const catalog = productsRef.current.length > 0 ? productsRef.current : products
+    const booster = product && product.kind !== 'booster'
+      ? catalog.find((p) => p.set_id === product.set_id && p.kind === 'booster')
+      : undefined
+    const face = booster ?? product
+    setBackArt({ hue: packHue(face?.name ?? setName) })
+    const asBox = s as OpenSession & Partial<BoxOpen>
+    const packNo = asBox.packIndex ?? 1
+    const packTotal = asBox.packsTotal ?? 1
     setPendingPack({
-      name: product?.name ?? setName,
-      sub: `${setName} · ${packsInBox > 1 ? `${packsInBox} packs · ${s.cards.length} cards` : `${s.cards.length} cards`}`,
+      key: s.sessionId,
+      name: face?.name ?? `${setName} Booster Pack`,
+      sub: packTotal > 1 ? `${setName} · pack ${packNo} of ${packTotal} · ${s.cards.length} cards` : `${setName} · ${s.cards.length} cards`,
       cards: s.cards.length,
       spent: s.spent,
-      symbol: product?.set_symbol ?? null,
-      image: product?.image_url ?? null,
+      symbol: face?.set_symbol ?? product?.set_symbol ?? null,
+      image: face?.image_url ?? null,
     })
     setWantAuto(false)
     setPhase('pack')
     refreshState()
+  }
+
+  // A box opens one wrapper at a time. The promo (when the product ships one)
+  // is shown first — it is already in your binder, because it was in the box.
+  const beginBox = (res: BoxOpen, product: ProductRow | undefined, prevBest: number, prevPack: number) => {
+    setBox({
+      boxId: res.boxId,
+      productId: res.productId,
+      productName: res.productName,
+      packsTotal: res.packsTotal,
+      packsLeft: res.packsLeft,
+      packIndex: res.packIndex,
+    })
+    setBoxTotals((t) => ({ cards: (t?.cards ?? 0) + res.cards.length, value: (t?.value ?? 0) + res.totalValue, spent: (t?.spent ?? 0) + res.spent }))
+    if (res.promo) {
+      setPromo(res.promo)
+      setPromoThen({ s: res, product, prevBest, prevPack })
+      setPhase('promo')
+      return
+    }
+    runCeremony(res, product, prevBest, prevPack)
+  }
+
+  const openNextPack = async () => {
+    if (!box || busy) return
+    setBusy('next')
+    try {
+      const res = await api.openBoxNext(box.boxId)
+      setBox({ ...box, packsLeft: res.packsLeft, packIndex: res.packIndex })
+      setBoxTotals((t) => ({ cards: (t?.cards ?? 0) + res.cards.length, value: (t?.value ?? 0) + res.totalValue, spent: (t?.spent ?? 0) + res.spent }))
+      ensureProducts().catch(() => products).then((rows) => {
+        runCeremony(res, rows.find((x) => x.id === res.productId), previousBest, prevBestPack)
+      })
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not open the next pack', 'bad')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const resumeBox = async (b: { id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }) => {
+    if (busy) return
+    setBusy('resume')
+    try {
+      const res = await api.openBoxNext(b.id)
+      setBox({
+        boxId: res.boxId,
+        productId: res.productId,
+        productName: res.productName,
+        packsTotal: res.packsTotal,
+        packsLeft: res.packsLeft,
+        packIndex: res.packIndex,
+      })
+      setBoxTotals({ cards: res.cards.length, value: res.totalValue, spent: res.spent })
+      setPromo(null)
+      setPromoThen(null)
+      ensureProducts().catch(() => products).then((rows) => {
+        runCeremony(res, rows.find((x) => x.id === res.productId), previousBest, prevBestPack)
+      })
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not reopen that box', 'bad')
+      loadBoxes()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const dismissPromo = () => {
+    const p = promoThen
+    setPromo(null)
+    setPromoThen(null)
+    if (p) runCeremony(p.s, p.product, p.prevBest, p.prevPack)
   }
 
   // Did this session's best beat the pre-session record?
@@ -250,17 +360,14 @@ export function PackOpeningView() {
     setBusy(productId)
     try {
       const best = await api.pullsBest().catch(() => ({ value: 0, bestPackTotal: 0 }))
-      const res = await api.buyProduct(productId, qty, true)
-      const opened = res.opened ?? []
-      if (opened.length === 0) { toast('Nothing opened', 'bad'); return }
-      const cards = opened.flatMap((s) => s.cards)
-      const spent = opened.reduce((a, s) => a + s.spent, 0)
-      const totalValue = opened.reduce((a, s) => a + s.totalValue, 0)
-      // Boxes report per-pack sessions; across qty boxes the best single pack
-      // is the max of every box's perPack list.
-      const perPack = opened.flatMap((s) => (s as OpenSession & { perPack?: { totalValue: number }[] }).perPack ?? [])
-      const packsInBox = opened.reduce((a, s) => a + ((s as OpenSession & { packsInBox?: number }).packsInBox ?? 1), 0)
-      beginCeremony({ sessionId: opened[0].sessionId, cards, totalValue, spent, perPack, packsInBox } as OpenSession, productId, best.value, best.bestPackTotal ?? 0)
+      const buy = await api.buyProduct(productId, qty, false)
+      if (!buy.ok) { toast('Purchase failed', 'bad'); return }
+      // The box comes off the shelf here. A bundle is 6 separate rips, an ETB
+      // 9, a display 36 — the ceremony opens them one at a time.
+      const first = await api.openBox(productId)
+      ensureProducts().catch(() => products).then((rows) => {
+        beginBox(first, rows.find((x) => x.id === productId), best.value, best.bestPackTotal ?? 0)
+      })
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Open failed', 'bad')
     } finally {
@@ -272,7 +379,10 @@ export function PackOpeningView() {
     setBusy(productId)
     try {
       const best = await api.pullsBest().catch(() => ({ value: 0, bestPackTotal: 0 }))
-      beginCeremony(await api.openPack(productId), productId, best.value, best.bestPackTotal ?? 0)
+      const first = await api.openBox(productId)
+      ensureProducts().catch(() => products).then((rows) => {
+        beginBox(first, rows.find((x) => x.id === productId), best.value, best.bestPackTotal ?? 0)
+      })
       loadSealed()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Open failed', 'bad')
@@ -316,6 +426,15 @@ export function PackOpeningView() {
   }, [phase, stage, idx, queue, timing])
 
   // The turn-over swish: exactly when the card starts flipping.
+  // Every phase starts at the top of the stage. Without this the pane keeps
+  // the previous screen's scroll — a 360-card summary leaves you thousands of
+  // pixels down, staring at the empty middle of the next pack's stage.
+  useEffect(() => {
+    const pane = document.querySelector('.content')
+    if (pane) pane.scrollTop = 0
+    window.scrollTo(0, 0)
+  }, [phase])
+
   useEffect(() => {
     if (phase !== 'revealing' || stage !== 'flip') return
     const c = queue[idx]
@@ -413,6 +532,26 @@ export function PackOpeningView() {
             {products.length === 0 && <EmptyState icon="📦" text="Shop loading…" sub="Products appear as sets sync." />}
           </div>
 
+          {openBoxList.length > 0 && (
+            <div className="panel mb14">
+              <h2>Boxes in progress</h2>
+              <div className="faint small" style={{ marginBottom: 8 }}>
+                A box opens one wrapper at a time — these still have packs inside.
+              </div>
+              {openBoxList.map((b) => (
+                <div key={b.id} className="row" style={{ justifyContent: 'space-between', border: '1px solid var(--border-soft)', borderRadius: 10, padding: '10px 12px', marginTop: 8 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <b className="small">{b.name ?? b.product_id}</b>
+                    <div className="faint small">{b.packs_left} of {b.packs_total} packs left</div>
+                  </div>
+                  <button className="primary small" disabled={busy === 'resume'} onClick={() => resumeBox(b)}>
+                    {busy === 'resume' ? 'OPENING…' : 'CONTINUE'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {sealedProducts.length > 0 && (
             <div className="panel">
               <h2>Your sealed inventory</h2>
@@ -435,16 +574,52 @@ export function PackOpeningView() {
         </div>
       )}
 
+      {phase === 'promo' && promo && (
+        <div className="po-stage po-stage-summary">
+          <div className="po-banner">★ PROMO — SEALED IN THE BOX</div>
+          <div className="faint small" style={{ maxWidth: 330, margin: '2px auto 12px', lineHeight: 1.5 }}>
+            {box?.productName ?? 'This product'} ships with {promo.name} in the box beside the packs.
+            It is already in your binder — the wrappers come next.
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+            <PromoCell cardId={promo.cardId} value={promo.value} />
+          </div>
+          <div className="po-actions">
+            <button className="primary" onClick={dismissPromo}>
+              OPEN PACK 1 OF {box?.packsTotal ?? 1}
+            </button>
+          </div>
+        </div>
+      )}
+
       {phase === 'pack' && pendingPack && (
-        <div className="po-stage">          <TearPack
-            symbolUrl={pendingPack.symbol}
-            imageUrl={pendingPack.image}
-            name={pendingPack.name}
-            sub={pendingPack.sub}
-            onTorn={finishTear}
-            autoRip={fast || wantAuto}
-            globalEnter
-          />
+        <div className="po-stage po-pack-stage" style={{ '--bh': backArt.hue } as CSSProperties}>
+          <div className="po-room" aria-hidden>
+            <div className="po-dust">
+              {Array.from({ length: 12 }).map((_, i) => <i key={i} style={{ '--d': i } as CSSProperties} />)}
+            </div>
+          </div>
+          <div className="po-pack-pill">Sealed · {pendingPack.name}</div>
+          <div className="po-pack-hero">
+            <TearPack
+              /* Key by the pack: without a remount the tear state survived from
+                 the previous rip, so the next wrapper arrived already cut open. */
+              key={pendingPack.key}
+              symbolUrl={pendingPack.symbol}
+              imageUrl={pendingPack.image}
+              name={pendingPack.name}
+              sub={pendingPack.sub}
+              onTorn={finishTear}
+              /* Only the explicit "Tear it open" button or Enter auto-rips. Fast
+                 mode is about card reveals, not about skipping the pack —
+                 binding it here auto-opened every pack for anyone who had ever
+                 pressed Skip animation, so the wrapper arrived already cut. */
+              autoRip={wantAuto}
+              globalEnter
+            />
+            <div className="po-pack-reflect" aria-hidden />
+          </div>
+          <div className="po-pack-hint">Swipe across the cut, left to right — or press Enter</div>
           <div className="faint small">{pendingPack.cards} cards inside — {fmtUsd(pendingPack.spent)}</div>
           <div className="po-actions">
             <button className="small btn-red" onClick={(e) => { e.stopPropagation(); setWantAuto(true) }}>Tear it open</button>
@@ -453,8 +628,20 @@ export function PackOpeningView() {
       )}
 
       {phase === 'revealing' && current && (
-        <div className="po-stage" onClick={advance}>
+        <div className="po-stage" data-tier={tier} onClick={advance}>
+          <div className="po-room" aria-hidden>
+            <div className="po-dust">
+              {Array.from({ length: 14 }).map((_, i) => <i key={i} style={{ '--d': i } as CSSProperties} />)}
+            </div>
+          </div>
           <div className="po-reveal">
+            {/* The rest of the pack, fanned behind the card on stage — you can
+                see how much is left in your hand, not just a dot count. */}
+            <div className="po-deck" aria-hidden>
+              {Array.from({ length: Math.min(4, Math.max(0, queue.length - idx - 1)) }).map((_, i) => (
+                <span key={i} style={{ '--k': i } as CSSProperties} />
+              ))}
+            </div>
             <RevealCard
               key={idx}
               card={current}
@@ -478,6 +665,7 @@ export function PackOpeningView() {
                 {current.value >= 150 ? '🔥 MASSIVE PULL' : current.value >= 60 ? '⭐ HUGE PULL' : '✨ HIT!'}
               </div>
             )}
+            {landed && tier !== 'common' && <div className="po-shock" data-tier={tier} aria-hidden />}
           </div>
           <div className="po-progress">
             {queue.map((_, i) => (
@@ -493,8 +681,15 @@ export function PackOpeningView() {
       )}
 
       {phase === 'summary' && session && (
-        <div className="po-stage">
-          <div className="po-banner" style={{ fontSize: 20 }}>SESSION COMPLETE</div>
+        <div className="po-stage po-stage-summary">
+          <div className="po-banner" style={{ fontSize: 20 }}>
+            {box ? `PACK ${box.packIndex} OF ${box.packsTotal} OPEN` : 'SESSION COMPLETE'}
+          </div>
+          {box && boxTotals && (
+            <div className="faint small" style={{ marginBottom: 8 }}>
+              {box.productName} · {boxTotals.cards} cards so far · {fmtUsd(boxTotals.value)} out of {fmtUsd(boxTotals.spent)}
+            </div>
+          )}
           {beatPackRecord && (
             <div className="po-banner massive pack-record-banner" style={{ marginBottom: 6 }}>📦 BEST PACK EVER — {fmtUsd(bestPackOfSession)}!</div>
           )}
@@ -521,24 +716,55 @@ export function PackOpeningView() {
               </div>
             </div>
           </div>
-          <div className="po-summary-grid mt14">
-            {session.cards.map((c, i) => (
+          {/* The pulls come off the table and into sleeves: the summary is the
+              page you just filled, not a spreadsheet of the rip. */}
+          <div className="po-binder">
+            <div className="po-summary-grid">
+            {session.cards.slice(page * 40, page * 40 + 40).map((c, i) => (
               <SummaryCell
-                key={i}
+                key={page * 40 + i}
                 card={c}
                 index={i}
                 fast={fast || reduced}
                 record={beatRecord && sessionBest != null && c.cardId === sessionBest.cardId && c.value === sessionBest.value}
               />
             ))}
+            </div>
+            <div className="po-binder-foot">
+              Pulls · page {page + 1} of {Math.max(1, Math.ceil(session.cards.length / 40))} · {session.cards.length} cards
+            </div>
+            {session.cards.length > 40 && (
+              <div className="po-binder-nav">
+                <button className="ghost small" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>← Prev page</button>
+                <button className="ghost small" disabled={(page + 1) * 40 >= session.cards.length} onClick={() => setPage((p) => p + 1)}>Next page →</button>
+              </div>
+            )}
           </div>
           <div className="po-actions">
-            <button className="primary" onClick={() => { setPhase('idle'); setSession(null) }}>OPEN MORE</button>
+            {box && box.packsLeft === 0 && <button className="ghost" onClick={loadBoxes}>Refresh boxes</button>}
+            {box && box.packsLeft > 0 ? (
+              <button className="primary" disabled={busy === 'next'} onClick={openNextPack}>
+                {busy === 'next' ? 'TEARING…' : `OPEN PACK ${box.packIndex + 1} OF ${box.packsTotal}`}
+              </button>
+            ) : (
+              <button className="primary" onClick={() => { setPhase('idle'); setSession(null); setBox(null); setPromo(null); setBoxTotals(null) }}>OPEN MORE</button>
+            )}
             <button className="btn-blue" onClick={() => (window.location.hash = '#/pulls-history')}>View pull history</button>
             <button className="ghost" onClick={() => (window.location.hash = '#/collection')}>See it in your collection</button>
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function PromoCell({ cardId, value }: { cardId: string; value: number }) {
+  const src = useCardImage(cardId)
+  return (
+    <div className="po-summary-cell promo-cell">
+      <span className="promo-tag">★ PROMO</span>
+      <CardImg src={src} alt={cardId} cardId={cardId} />
+      <div className="val">{fmtUsd(value)}</div>
     </div>
   )
 }

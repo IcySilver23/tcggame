@@ -90,6 +90,16 @@ export function deliverDue(): number {
       `📦 ${d.quantity > 1 ? `${d.quantity}× ` : ''}${name} arrived — ${d.seller ? `from ${d.seller}, ` : ''}${d.eta_days} game-day${d.eta_days === 1 ? '' : 's'} on the road.`,
       0,
     )
+    // A parcel landing is the classic "you weren't looking" event — badge it.
+    void import('./notify')
+      .then((n) => n.push(
+        'delivery',
+        `📦 ${d.quantity > 1 ? `${d.quantity}× ` : ''}${name} arrived`,
+        `${d.seller ? `From ${d.seller}. ` : ''}${d.eta_days} game-day${d.eta_days === 1 ? '' : 's'} on the road — it's in your binder.`,
+        '#/inventory',
+        `delivery:${d.id}`,
+      ))
+      .catch(() => {})
   }
   return n
 }

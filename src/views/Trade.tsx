@@ -2,7 +2,22 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import type { TradeOfferRow, TradeReply, TraderRow } from '../api'
 import { useStore } from '../store'
-import { fmtUsd } from '../components'
+import { CardImg, fmtUsd } from '../components'
+
+// ---------------------------------------------------------------------------
+// Trading Post — negotiate with collectors.
+//
+// Three jobs, three modes: the offers on the table (incoming approaches and
+// counters to your proposals), the traders you can walk up to, and the ledger
+// of how you've done against each of them.
+//
+// The old screen stacked all three as one column and rendered the ledger as a
+// five-column table (Trader · Trades · Lifetime EV · Avg / trade · Took their
+// offers) that simply ran off the right edge — the "Avg / trade" column was
+// clipped mid-number. The haggling slider also shared a line with its two
+// labels, which at this width squeezed the track to nothing. Rows and a mode
+// bar fix both without touching the negotiation maths.
+// ---------------------------------------------------------------------------
 
 /** Lifetime value won/lost trading with this NPC, colored. */
 function EvCell({ v, per }: { v: number; per?: number }) {
@@ -49,17 +64,12 @@ export function StanceChip({ stance, rep }: { stance: string; rep: number }) {
   )
 }
 
-function CardChip({ name, image, value, condition, small }: { name: string; image: string | null; value: number; condition?: string; small?: boolean }) {
+function CardChip({ cardId, name, image, value, condition }: { cardId?: string; name: string; image: string | null; value: number; condition?: string }) {
   return (
-    <div style={{ display: 'flex', gap: 10, alignItems: 'center', minWidth: 0 }}>
-      <img
-        src={image ?? ''}
-        alt={name}
-        style={{ width: small ? 38 : 52, borderRadius: 6, display: 'block', background: '#0d1017' }}
-        onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden' }}
-      />
+    <div className="offer-card-chip">
+      <CardImg src={image} alt={name} cardId={cardId} className="offer-chip-art" />
       <div style={{ minWidth: 0 }}>
-        <div className="small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 190 }}>{name}</div>
+        <div className="small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
         <div className="faint small">
           {condition ? `${condition} · ` : ''}<span style={{ color: 'var(--gold)' }}>{fmtUsd(value)}</span>
         </div>
@@ -84,7 +94,7 @@ function CounterFairness({ lineupValue, yourValue, netCash, variant = 'counter' 
       <div style={{ fontWeight: 600, marginBottom: 4 }}>⚖ Why this number</div>
       <div className="faint small">Their cards at market: <b style={{ color: 'var(--gold)' }}>${lineupValue.toFixed(2)}</b> · your card at market: ${yourValue.toFixed(2)} · {netCash > 0 ? <>they add <b style={{ color: 'var(--green)' }}>${netCash.toFixed(2)}</b></> : netCash < 0 ? <>you add ${(-netCash).toFixed(2)}</> : 'no cash moves'}</div>
       <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ flex: 1, height: 6, background: 'var(--panel-border, #2a2a35)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{ flex: 1, height: 6, background: 'var(--track, #2a2a35)', borderRadius: 3, overflow: 'hidden' }}>
           <div style={{ width: `${Math.min(100, Math.max(0, pct))}%`, height: '100%', background: color }} />
         </div>
         <b style={{ color, fontSize: 12 }}>{pct}%</b>
@@ -138,6 +148,7 @@ function HaggleBar({ offer, onChanged }: { offer: TradeOfferRow; onChanged: () =
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   useEffect(() => setVal(null), [h?.current])
+  const showTutorial = useStore((s) => (s.state ? !s.state.haggledOnce : false))
   if (!h) return null
   const v = Math.round((val ?? h.current) * 100) / 100
   const floor = h.min
@@ -171,9 +182,8 @@ function HaggleBar({ offer, onChanged }: { offer: TradeOfferRow; onChanged: () =
   // One-time negotiation tutorial: server flips `haggledOnce` on the first
   // real haggle attempt, so this block shows until the mechanics have been
   // exercised once (any outcome — even a walk teaches the lesson).
-  const showTutorial = useStore((s) => s.state ? !s.state.haggledOnce : false)
   return (
-    <div style={{ marginTop: 8, padding: '8px 10px', background: 'var(--panel2)', borderRadius: 6, border: '1px solid var(--border-soft)' }}>
+    <div className="haggle">
       {showTutorial && (
         <div className="faint small" style={{ marginBottom: 8, lineHeight: 1.5 }}>
           <b style={{ color: 'var(--gold)' }}>🤝 First time haggling?</b> Drag to name your cash number — <b style={{ color: 'var(--green)' }}>green</b> means they pay you, red means you add.
@@ -182,26 +192,28 @@ function HaggleBar({ offer, onChanged }: { offer: TradeOfferRow; onChanged: () =
           {showFloorPct && <> The slider's bottom stop is a hard fairness floor: the game never lets a counter dip below <b>90%</b> of your card's worth.</>}
         </div>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span className="small" style={{ whiteSpace: 'nowrap' }}>🤝 Haggle cash</span>
-        <input
-          type="range"
-          min={floor}
-          max={ceil}
-          step={0.05}
-          value={v}
-          disabled={busy}
-          onChange={(e) => setVal(Number(e.target.value))}
-          style={{ flex: 1, accentColor: 'var(--yellow)' }}
-        />
-        <b className="small" style={{ whiteSpace: 'nowrap', minWidth: 128, textAlign: 'right' }}>
-          {v > 0 ? <>they pay <b style={{ color: 'var(--green)' }}>{fmtUsd(v)}</b></> : v < 0 ? <>you add {fmtUsd(-v)}</> : 'no cash'}
+      {/* Label and number on one line, track on its own — sharing a row squeezed
+          the slider to nothing at this width. */}
+      <div className="haggle-row">
+        <span className="small">🤝 Haggle cash</span>
+        <b className="small">
+          {v > 0 ? <>they pay <span style={{ color: 'var(--green)' }}>{fmtUsd(v)}</span></> : v < 0 ? <>you add {fmtUsd(-v)}</> : 'no cash'}
         </b>
       </div>
-      <div className="faint small" style={{ marginTop: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <span>
+      <input
+        type="range"
+        className="haggle-slider"
+        min={floor}
+        max={ceil}
+        step={0.05}
+        value={v}
+        disabled={busy}
+        onChange={(e) => setVal(Number(e.target.value))}
+      />
+      <div className="haggle-foot">
+        <span className="faint small">
           Lands at <b style={{ color }}>{pct}%</b> of your card's worth
-          {showFloorPct && <> · fairness floor {pctFloor}%</>}
+          {showFloorPct && <> · floor {pctFloor}%</>}
         </span>
         <button className="primary small" disabled={busy || v === h.current} onClick={go}>
           {/* Zero on an incoming offer used to print "Ask for $0.00" — with no
@@ -217,16 +229,33 @@ function HaggleBar({ offer, onChanged }: { offer: TradeOfferRow; onChanged: () =
   )
 }
 
-function IncomingOffers({ offers, onChanged }: { offers: TradeOfferRow[]; onChanged: () => void }) {
+/** One offer on the table — both sides stacked, because a two-column swap bar
+ *  at this width turns into two half-width stubs. */
+function OfferCard({ o, onChanged }: { o: TradeOfferRow; onChanged: () => void }) {
   const { toast, refreshState } = useStore()
-  const [busy, setBusy] = useState<number | null>(null)
-  const [replies, setReplies] = useState<Record<number, string>>({})
+  const [busy, setBusy] = useState(false)
+  const [reply, setReply] = useState<string | null>(null)
 
-  const act = async (id: number, fn: () => Promise<{ ok: boolean; reply?: string; error?: string; improved?: boolean; bump?: number }>, what: string) => {
-    setBusy(id)
+  const isCounter = o.direction === 'outgoing'
+  const netCash = o.your_cash - o.their_cash // counters: what cash moves TO you (>0) or from you (<0)
+  // Incoming offers store their_cash as the sweetener PAID TO YOU
+  // (your_cash is always 0), so netCash would read negative there — the
+  // sign convention differs by direction. Normalize to what actually
+  // moves and in which direction:
+  const cashToYou = isCounter ? netCash : o.their_cash
+  const cashFromYou = isCounter ? -netCash : 0
+  // Value you receive: their cards plus cash in your favor. On counters
+  // the stored their_cash is the ask (money you'd owe), so use net cash —
+  // otherwise a positive ask would inflate the apparent value.
+  const theirCards = o.their_cards.reduce((a, c) => a + c.value, 0)
+  const theirTotal = theirCards + cashToYou
+  const yourValue = o.your_items.reduce((a, i) => a + i.value, 0)
+
+  const act = async (fn: () => Promise<{ ok: boolean; reply?: string; error?: string; improved?: boolean; bump?: number }>, what: string) => {
+    setBusy(true)
     try {
       const res = await fn()
-      if (res.reply) setReplies((r) => ({ ...r, [id]: res.reply! }))
+      if (res.reply) setReply(res.reply)
       if (res.ok) {
         toast(what, 'good')
         onChanged()
@@ -236,103 +265,75 @@ function IncomingOffers({ offers, onChanged }: { offers: TradeOfferRow[]; onChan
         onChanged()
       }
     } finally {
-      setBusy(null)
+      setBusy(false)
     }
   }
 
   return (
-    <div className="panel" style={{ marginBottom: 16 }}>
-      <h2 style={{ marginBottom: 4 }}>📥 Incoming offers</h2>
-      <div className="faint small" style={{ marginBottom: 10 }}>
-        Collectors who approached you. Offers expire — answered offers disappear.
+    <article className={`offer${isCounter ? ' is-counter' : ''}`}>
+      <header className="offer-head">
+        <span className="offer-avatar">{o.avatar}</span>
+        <div className="offer-who">
+          <b className="small">{o.trader_name}</b>
+          <div className="faint small">{o.handle}</div>
+        </div>
+        {isCounter ? (
+          o.their_cash > 0
+            ? <span className="badge warn" style={{ fontSize: 10, padding: '2px 8px' }}>counter — wants {fmtUsd(o.their_cash)}</span>
+            : <span className="badge live" style={{ fontSize: 10, padding: '2px 8px' }}>counter — adds {fmtUsd(-o.their_cash)}</span>
+        ) : (
+          o.rounds > 0 && <span className="badge" style={{ fontSize: 10, padding: '2px 8px' }}>improved ×{o.rounds}</span>
+        )}
+      </header>
+
+      <div className="offer-side">
+        <div className="offer-side-label">They give</div>
+        {o.their_cards.map((c) => (
+          <CardChip key={c.cardId} cardId={c.cardId} name={c.name} image={c.image} value={c.value} condition={c.condition} />
+        ))}
+        {cashToYou > 0 && <div className="small" style={{ color: 'var(--green)' }}>+ {fmtUsd(cashToYou)} cash</div>}
       </div>
-      {offers.length === 0 && <div className="faint small">No offers on the table right now. Traders approach when you're active.</div>}
-      {offers.map((o) => {
-        const isCounter = o.direction === 'outgoing'
-        const netCash = o.your_cash - o.their_cash // counters: what cash moves TO you (>0) or from you (<0)
-        // Incoming offers store their_cash as the sweetener PAID TO YOU
-        // (your_cash is always 0), so netCash would read negative there — the
-        // sign convention differs by direction. Normalize to what actually
-        // moves and in which direction:
-        const cashToYou = isCounter ? netCash : o.their_cash
-        const cashFromYou = isCounter ? -netCash : 0
-        // Value you receive: their cards plus cash in your favor. On counters
-        // the stored their_cash is the ask (money you'd owe), so use net cash —
-        // otherwise a positive ask would inflate the apparent value.
-        const theirTotal = o.their_cards.reduce((a, c) => a + c.value, 0) + cashToYou
-        const yourValue = o.your_items.reduce((a, i) => a + i.value, 0)
-        return (
-          <div key={o.id} style={{ borderTop: '1px solid var(--border-soft)', padding: '12px 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 20 }}>{o.avatar}</span>
-              <b className="small">{o.trader_name}</b>
-              <span className="faint small">{o.handle}</span>
-              {isCounter ? (
-                o.their_cash > 0 ? (
-                  <span className="badge warn" style={{ fontSize: 10, padding: '2px 8px' }}>counter — they want {fmtUsd(o.their_cash)} on top</span>
-                ) : (
-                  <span className="badge live" style={{ fontSize: 10, padding: '2px 8px' }}>counter — they'll throw in {fmtUsd(-o.their_cash)}</span>
-                )
-              ) : (
-                o.rounds > 0 && <span className="badge" style={{ fontSize: 10, padding: '2px 8px' }}>improved ×{o.rounds}</span>
-              )}
-            </div>
-            <div className="trade-swap">
-              <div>
-                <div className="nav-section" style={{ padding: 0, marginBottom: 6 }}>They give</div>
-                {o.their_cards.map((c) => (
-                  <div key={c.cardId} style={{ marginBottom: 6 }}><CardChip name={c.name} image={c.image} value={c.value} condition={c.condition} /></div>
-                ))}
-                {cashToYou > 0 && <div className="small" style={{ color: 'var(--green)' }}>+ {fmtUsd(cashToYou)} cash</div>}
-              </div>
-              <div className="trade-arrow">⇄</div>
-              <div>
-                <div className="nav-section" style={{ padding: 0, marginBottom: 6 }}>You give</div>
-                {o.your_items.map((i) => (
-                  <div key={i.inventoryId}><CardChip name={i.name} image={i.image} value={i.value} condition={i.condition} /></div>
-                ))}
-                {cashFromYou > 0 && <div className="small" style={{ color: 'var(--red)', marginTop: 4 }}>+ {fmtUsd(cashFromYou)} cash</div>}
-              </div>
-              <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                <OfferDelta total={theirTotal} anchor={yourValue} />
-                <div className="faint small">{fmtUsd(theirTotal)} vs {fmtUsd(yourValue)}</div>
-                {!replies[o.id] && (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {isCounter ? (
-                      <>
-                        <button className="primary small" disabled={busy === o.id} onClick={() => act(o.id, () => api.tradeAcceptCounter(o.id), 'Counter accepted — deal done')}>
-                          {netCash < 0 ? `Accept & pay ${fmtUsd(-netCash)}` : netCash > 0 ? `Accept & take ${fmtUsd(netCash)}` : 'Accept'}
-                        </button>
-                        <button className="small" disabled={busy === o.id} onClick={() => act(o.id, () => api.tradeDeclineCounter(o.id), 'Walked away')}>
-                          Walk away
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button className="primary small" disabled={busy === o.id} onClick={() => act(o.id, () => api.tradeAcceptIncoming(o.id), 'Trade accepted')}>
-                          Accept
-                        </button>
-                        <button className="small" disabled={busy === o.id} onClick={() => act(o.id, () => api.tradeRejectIncoming(o.id), 'Offer rejected')}>
-                          Reject
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            <CounterFairness lineupValue={o.their_cards.reduce((a, c) => a + c.value, 0)} yourValue={o.your_items.reduce((a, i) => a + i.value, 0)} netCash={cashToYou} variant={isCounter ? 'counter' : 'incoming'} />
-            <HaggleBar offer={o} onChanged={onChanged} />
-            <div className="faint small" style={{ marginTop: 8, fontStyle: 'italic' }}>{o.message}</div>
-            {replies[o.id] && <div className="trade-bubble" style={{ marginTop: 8 }}>{replies[o.id]}</div>}
-          </div>
-        )
-      })}
-    </div>
+
+      <div className="offer-side">
+        <div className="offer-side-label">You give</div>
+        {o.your_items.map((i) => (
+          <CardChip key={i.inventoryId} cardId={i.cardId} name={i.name} image={i.image} value={i.value} condition={i.condition} />
+        ))}
+        {cashFromYou > 0 && <div className="small" style={{ color: 'var(--red)' }}>+ {fmtUsd(cashFromYou)} cash</div>}
+      </div>
+
+      <div className="offer-total">
+        <OfferDelta total={theirTotal} anchor={yourValue} />
+        <span className="faint small">{fmtUsd(theirTotal)} vs {fmtUsd(yourValue)}</span>
+      </div>
+
+      {!reply && (
+        <div className="offer-actions">
+          {isCounter ? (
+            <>
+              <button className="primary small" disabled={busy} onClick={() => act(() => api.tradeAcceptCounter(o.id), 'Counter accepted — deal done')}>
+                {netCash < 0 ? `Accept & pay ${fmtUsd(-netCash)}` : netCash > 0 ? `Accept & take ${fmtUsd(netCash)}` : 'Accept'}
+              </button>
+              <button className="small" disabled={busy} onClick={() => act(() => api.tradeDeclineCounter(o.id), 'Walked away')}>Walk away</button>
+            </>
+          ) : (
+            <>
+              <button className="primary small" disabled={busy} onClick={() => act(() => api.tradeAcceptIncoming(o.id), 'Trade accepted')}>Accept</button>
+              <button className="small" disabled={busy} onClick={() => act(() => api.tradeRejectIncoming(o.id), 'Offer rejected')}>Reject</button>
+            </>
+          )}
+        </div>
+      )}
+
+      <CounterFairness lineupValue={theirCards} yourValue={yourValue} netCash={cashToYou} variant={isCounter ? 'counter' : 'incoming'} />
+      <HaggleBar offer={o} onChanged={onChanged} />
+      <div className="faint small" style={{ marginTop: 8, fontStyle: 'italic' }}>{o.message}</div>
+      {reply && <div className="trade-bubble" style={{ marginTop: 8 }}>{reply}</div>}
+    </article>
   )
 }
 
-function TradeMaker({ traders, onChanged }: { traders: TraderRow[]; onChanged: () => void }) {
+function TradersPanel({ traders, onChanged }: { traders: TraderRow[]; onChanged: () => void }) {
   const { toast, refreshState, openCard } = useStore()
   const [traderId, setTraderId] = useState<number | null>(null)
   const [collection, setCollection] = useState<{ id: number; name: string; condition: string; value: number }[]>([])
@@ -381,48 +382,56 @@ function TradeMaker({ traders, onChanged }: { traders: TraderRow[]; onChanged: (
   }
 
   return (
-    <div className="trade-maker">
-      <div className="panel" style={{ margin: 0 }}>
-        <h2 style={{ marginBottom: 4 }}>🤝 The traders</h2>
-        <div className="faint small" style={{ marginBottom: 10 }}>Every trader values your cards through their own obsession.</div>
-        {traders.map((t) => (
-          <div
-            key={t.id}
-            className={`trade-trader ${traderId === t.id ? 'sel' : ''}`}
-            onClick={() => { setTraderId(t.id); setReply(null) }}
-          >
-            <span style={{ fontSize: 22 }}>{t.avatar}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <b className="small">{t.name}</b>
-                <StanceChip stance={t.stance} rep={t.reputation} />
+    <>
+      <div className="panel">
+        <div className="home-sec-head">
+          <b className="small">🤝 The traders</b>
+          <span className="faint small">{traders.length} regulars</span>
+        </div>
+        <div className="home-mini" style={{ marginBottom: 8 }}>Every trader values your cards through their own obsession.</div>
+        <div className="pf-rows">
+          {traders.map((t) => (
+            <div
+              key={t.id}
+              className={`trade-trader${traderId === t.id ? ' sel' : ''}`}
+              onClick={() => { setTraderId(t.id); setReply(null) }}
+            >
+              <span style={{ fontSize: 20, flex: 'none' }}>{t.avatar}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                  <b className="small">{t.name}</b>
+                  <StanceChip stance={t.stance} rep={t.reputation} />
+                </div>
+                <div className="faint small">
+                  {ARCH_LABEL[t.archetype] ?? t.archetype} · {t.card_count} cards · {t.trade_count} trades
+                  {t.trade_count > 0 && <> · <EvCell v={t.ev_net} /></>}
+                </div>
+                {(t.guarding || t.generous) && (
+                  <div className="row" style={{ gap: 4, marginTop: 2, flexWrap: 'wrap' }}>
+                    {t.guarding && <span className="badge above" style={{ fontSize: 9, padding: '1px 6px' }}>🔒 guarding binder</span>}
+                    {t.generous && <span className="badge live" style={{ fontSize: 9, padding: '1px 6px' }}>🤝 back of the binder</span>}
+                  </div>
+                )}
               </div>
-              <div className="faint small">{ARCH_LABEL[t.archetype] ?? t.archetype} · {t.card_count} cards · {t.trade_count} trades</div>
-            {t.trade_count > 0 && (
-              <div className="small" style={{ marginTop: 2 }}>
-                Lifetime: <EvCell v={t.ev_net} />
-                {t.guarding && <span className="badge above" style={{ fontSize: 9, padding: '1px 6px', marginLeft: 6 }}>🔒 guarding binder</span>}
-                {t.generous && <span className="badge live" style={{ fontSize: 9, padding: '1px 6px', marginLeft: 6 }}>🤝 back of the binder</span>}
-              </div>
-            )}
+              <div className="small" style={{ color: 'var(--gold)', flex: 'none' }}>{fmtUsd(t.cash)}</div>
             </div>
-            <div className="small" style={{ color: 'var(--gold)' }}>{fmtUsd(t.cash)}</div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div className="panel" style={{ margin: 0 }}>
+      <div className="panel mt14">
         {!trader ? (
-          <div className="faint small">Pick a trader to open negotiations.</div>
+          <div className="home-mini">Pick a trader above to open negotiations.</div>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 26 }}>{trader.avatar}</span>
-              <div style={{ flex: 1 }}>
-                <h2 style={{ margin: 0 }}>
-                  {trader.name} <span className="faint small" style={{ fontWeight: 400 }}>{trader.handle}</span>
-                  <span style={{ marginLeft: 8 }}><StanceChip stance={trader.stance} rep={trader.reputation} /></span>
-                </h2>
+            <div className="row" style={{ gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
+              <span style={{ fontSize: 24, flex: 'none' }}>{trader.avatar}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                  <b>{trader.name}</b>
+                  <span className="faint small">{trader.handle}</span>
+                  <StanceChip stance={trader.stance} rep={trader.reputation} />
+                </div>
                 <div className="faint small">{ARCH_LABEL[trader.archetype] ?? trader.archetype} — {trader.blurb}</div>
                 <div className="faint small" style={{ marginTop: 2 }}>
                   {trader.stance === 'Neutral' && trader.trade_count === 0
@@ -432,35 +441,37 @@ function TradeMaker({ traders, onChanged }: { traders: TraderRow[]; onChanged: (
                 </div>
                 {trader.guarding && (
                   <div className="small" style={{ marginTop: 2, color: 'var(--gold)' }}>
-                    🔒 You're way up on them lifetime — they've wised up and keep their best cards in the binder. Trade fair (take a fair price, not a fleecing) to open it back up.
+                    🔒 You're way up on them lifetime — they keep their best cards in the binder. Trade fair to open it back up.
                   </div>
                 )}
                 {trader.generous && (
                   <div className="small" style={{ marginTop: 2, color: 'var(--green)' }}>
-                    🤝 You've had the rough end against them — they're courting your business: their best cards surface in trades, and they sweeten lineups more often.
+                    🤝 You've had the rough end against them — they're courting your business: best cards surface, lineups get sweeter.
                   </div>
                 )}
                 {(trader.trade_count > 0 || trader.offer_accept_rate !== null) && (
-                  <div className="small" style={{ marginTop: 2 }}>
-                    Lifetime vs you: <EvCell v={trader.ev_net} per={trader.avg_ev} />{trader.offer_accept_rate !== null && <> · took {trader.offer_accept_rate}% of their offers</>}
+                  <div className="small" style={{ marginTop: 3 }}>
+                    Lifetime vs you: <EvCell v={trader.ev_net} per={trader.avg_ev} />
+                    {trader.offer_accept_rate !== null && <span className="faint small"> · took {trader.offer_accept_rate}% of their offers</span>}
                   </div>
                 )}
               </div>
             </div>
+
+            <div className="offer-side-label">Their binder ({trader.cards.length})</div>
             <div className="trade-cards">
               {trader.cards.map((c) => (
                 <div key={c.id} className="trade-card" onClick={() => openCard(c.card_id)}>
-                  <img src={c.image_small ?? ''} alt={c.name}
-                    onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden' }} />
+                  <CardImg src={c.image_small} alt={c.name} cardId={c.card_id} />
                   <div className="small" style={{ padding: '4px 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
                   <div className="faint small" style={{ padding: '0 6px 6px' }}>{c.condition} · {fmtUsd(c.value)}</div>
                 </div>
               ))}
             </div>
 
-            <div className="nav-section" style={{ padding: 0, margin: '12px 0 6px' }}>Your offer</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <select value={inventoryId} onChange={(e) => setInventoryId(e.target.value ? Number(e.target.value) : '')} style={{ flex: 1, minWidth: 220 }}>
+            <div className="offer-side-label" style={{ marginTop: 12 }}>Your offer</div>
+            <div className="trade-propose">
+              <select value={inventoryId} onChange={(e) => setInventoryId(e.target.value ? Number(e.target.value) : '')}>
                 <option value="">Choose a card from your collection…</option>
                 {collection.map((c) => (
                   <option key={c.id} value={c.id}>{c.name} — {fmtUsd(c.value)}</option>
@@ -473,13 +484,17 @@ function TradeMaker({ traders, onChanged }: { traders: TraderRow[]; onChanged: (
                 placeholder="+ cash"
                 value={cash}
                 onChange={(e) => setCash(e.target.value)}
-                style={{ width: 90 }}
+                style={{ width: 92 }}
               />
               <button className="primary" disabled={!inventoryId || busy} onClick={propose}>
                 {busy ? 'Negotiating…' : 'Propose trade'}
               </button>
             </div>
-            {selected && <div className="faint small" style={{ marginTop: 6 }}>Offering {selected.name} (market {fmtUsd(selected.value)}){Number(cash) > 0 ? ` + $${Number(cash).toFixed(2)} cash` : ''}</div>}
+            {selected && (
+              <div className="faint small" style={{ marginTop: 6 }}>
+                Offering {selected.name} (market {fmtUsd(selected.value)}){Number(cash) > 0 ? ` + ${fmtUsd(Number(cash))} cash` : ''}
+              </div>
+            )}
 
             {reply?.reply && (
               <div className="trade-bubble" style={{ marginTop: 12 }}>
@@ -494,7 +509,7 @@ function TradeMaker({ traders, onChanged }: { traders: TraderRow[]; onChanged: (
           </>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
@@ -502,6 +517,7 @@ export function TradeView() {
   const [traders, setTraders] = useState<TraderRow[]>([])
   const [offers, setOffers] = useState<TradeOfferRow[]>([])
   const [history, setHistory] = useState<{ id: number; message: string; created_at: string }[]>([])
+  const [tab, setTab] = useState<'offers' | 'traders' | 'ledger'>('offers')
   const { state } = useStore()
 
   const load = () => {
@@ -525,64 +541,131 @@ export function TradeView() {
     () => traders.filter((t) => t.trade_count > 0 || t.ev_net !== 0 || t.offer_accept_rate !== null).sort((a, b) => b.ev_net - a.ev_net),
     [traders],
   )
+  const netEv = lifetime.reduce((a, t) => a + t.ev_net, 0)
 
   return (
     <div>
       <div className="page-head">
-        <div>
+        <div style={{ minWidth: 0 }}>
           <h1>Trading Post</h1>
           <div className="sub">Negotiate with collectors — real prices, personal obsessions.</div>
         </div>
-        <div className="right">
-          <div className="faint small">Trades completed</div>
-          <div className="price" style={{ fontSize: 18 }}>{totalTrades}</div>
+      </div>
+
+      <div className="pf-stats" style={{ marginBottom: 12 }}>
+        <div className="pf-stat">
+          <div className="lbl">Trades done</div>
+          <div className="val">{totalTrades}</div>
+          <div className="note">{traders.length} traders in town</div>
+        </div>
+        <div className="pf-stat">
+          <div className="lbl">On the table</div>
+          <div className="val">{offers.length}</div>
+          <div className="note">{offers.length === 0 ? 'nothing waiting' : 'offers expire'}</div>
+        </div>
+        <div className="pf-stat">
+          <div className="lbl">Lifetime vs them</div>
+          <div className="val" style={{ color: netEv > 0.5 ? 'var(--green)' : netEv < -0.5 ? 'var(--red)' : undefined }}>{fmtUsd(netEv)}</div>
+          <div className="note">{lifetime.length} with history</div>
+        </div>
+        <div className="pf-stat">
+          <div className="lbl">Cash</div>
+          <div className="val">{fmtUsd(state?.cash)}</div>
+          <div className="note">yours to sweeten offers</div>
         </div>
       </div>
 
-      {lifetime.length > 0 && (
-        <div className="panel" style={{ marginBottom: 16 }}>
-          <h2 style={{ marginBottom: 4 }}>📊 Trader report card</h2>
-          <div className="faint small" style={{ marginBottom: 10 }}>
-            Lifetime value won or lost against each trader — positive means their offers (and haggles) have favored you. "Took" is how often you accepted what they put on the table.
+      <div className="seg-bar" role="tablist" aria-label="Trading post modes">
+        <button role="tab" aria-selected={tab === 'offers'} className={`seg-item${tab === 'offers' ? ' on' : ''}`}
+          title="Offers on the table — incoming approaches and counters" onClick={() => setTab('offers')}>
+          📥 Offers<span className="seg-count">{offers.length}</span>
+        </button>
+        <button role="tab" aria-selected={tab === 'traders'} className={`seg-item${tab === 'traders' ? ' on' : ''}`}
+          title="Walk up to a trader and open negotiations" onClick={() => setTab('traders')}>
+          🤝 Traders<span className="seg-count">{traders.length}</span>
+        </button>
+        <button role="tab" aria-selected={tab === 'ledger'} className={`seg-item${tab === 'ledger' ? ' on' : ''}`}
+          title="How you've done against each trader, and the trade log" onClick={() => setTab('ledger')}>
+          📊 Ledger
+        </button>
+      </div>
+
+      {tab === 'offers' && (
+        <div className="panel">
+          <div className="home-sec-head">
+            <b className="small">📥 On the table</b>
+            <span className="faint small">answered offers disappear</span>
           </div>
-          <table className="table">
-            <thead>
-              <tr><th>Trader</th><th>Trades</th><th>Lifetime EV</th><th>Avg / trade</th><th>Took their offers</th></tr>
-            </thead>
-            <tbody>
-              {lifetime.map((t) => (
-                <tr key={t.id}>
-                  <td>
-                    <span style={{ marginRight: 6 }}>{t.avatar}</span><b className="small">{t.name}</b>
-                    <span className="faint small" style={{ marginLeft: 6 }}>{ARCH_LABEL[t.archetype] ?? t.archetype}</span>
-                  </td>
-                  <td className="num">{t.trade_count}</td>
-                  <td><EvCell v={t.ev_net} /></td>
-                  <td><EvCell v={t.avg_ev} /></td>
-                  <td className="num">{t.offer_accept_rate !== null ? `${t.offer_accept_rate}%` : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <IncomingOffers offers={offers} onChanged={load} />
-      <TradeMaker traders={traders} onChanged={load} />
-
-      {history.length > 0 && (
-        <div className="panel" style={{ marginTop: 16 }}>
-          <h2 style={{ marginBottom: 8 }}>📜 Trade log</h2>
-          {history.slice(0, 12).map((h) => (
-            <div key={h.id} className="faint small" style={{ padding: '4px 0', borderBottom: '1px solid var(--border-soft)' }}>
-              {h.message}
+          {offers.length === 0 ? (
+            <div className="home-mini">
+              No offers right now. Traders approach when you're active — or open negotiations yourself from the Traders tab.
             </div>
-          ))}
+          ) : (
+            <div className="offer-list">
+              {offers.map((o) => <OfferCard key={o.id} o={o} onChanged={load} />)}
+            </div>
+          )}
         </div>
       )}
 
-      <div className="faint small" style={{ marginTop: 10 }}>
-        Cash: {fmtUsd(state?.cash)} · Card values anchor to real TCGplayer / PriceCharting / eBay data; each trader's opinion of them is their own.
+      {tab === 'traders' && <TradersPanel traders={traders} onChanged={load} />}
+
+      {tab === 'ledger' && (
+        <>
+          <div className="panel">
+            <div className="home-sec-head">
+              <b className="small">📊 Trader report card</b>
+              <span className="faint small">{lifetime.length} with history</span>
+            </div>
+            <div className="home-mini" style={{ marginBottom: 8 }}>
+              Lifetime value won or lost against each trader — positive means their offers and haggles have favoured you.
+              "Took" is how often you accepted what they put on the table.
+            </div>
+            {lifetime.length === 0 ? (
+              <div className="home-mini">No history yet. Your first trade writes this card.</div>
+            ) : (
+              <div className="pf-rows">
+                {lifetime.map((t) => (
+                  <div key={t.id} className="pf-row">
+                    <div className="pf-row-main">
+                      <b className="pf-row-name">{t.avatar} {t.name}</b>
+                      <div className="faint small">
+                        {ARCH_LABEL[t.archetype] ?? t.archetype} · {t.trade_count} trade{t.trade_count === 1 ? '' : 's'}
+                        {t.offer_accept_rate !== null ? ` · took ${t.offer_accept_rate}% of theirs` : ''}
+                      </div>
+                    </div>
+                    <div className="pf-row-nums">
+                      <EvCell v={t.ev_net} />
+                      <div className="faint small">avg <EvCell v={t.avg_ev} /></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="panel mt14">
+            <div className="home-sec-head">
+              <b className="small">📜 Trade log</b>
+              <span className="faint small">{history.length} entries</span>
+            </div>
+            {history.length === 0 ? (
+              <div className="home-mini">Nothing logged yet.</div>
+            ) : (
+              <div className="stack">
+                {history.slice(0, 20).map((h) => (
+                  <div key={h.id} className="faint small" style={{ padding: '4px 0', borderBottom: '1px solid var(--border-soft)' }}>
+                    {h.message}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      <div className="faint small mt14">
+        Card values anchor to real TCGplayer / PriceCharting / eBay data; each trader's opinion of them is their own.
       </div>
     </div>
   )

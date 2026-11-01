@@ -219,14 +219,26 @@ type SaleRow = {
 export function negotiate(
   cardRowId: number,
   offer: number,
-): { ok: true; accepted: boolean; paid?: number; counter?: number | null; card?: string; message?: string } | { ok: false; error: string } {
+): {
+  ok: true
+  accepted: boolean
+  paid?: number
+  counter?: number | null
+  card?: string
+  /** What actually came off the table — the client shows the card, not a toast. */
+  cardId?: string
+  condition?: string
+  qty?: number
+  value?: number
+  message?: string
+} | { ok: false; error: string } {
   const row = db
     .prepare(
       `SELECT ysc.*, ys.id AS sale_id, ys.status AS sale_status, ys.rigidity, ys.seller_counters, ys.seller, c.name
        FROM yard_sale_cards ysc JOIN yard_sales ys ON ys.id = ysc.sale_id JOIN cards c ON c.id = ysc.card_id
        WHERE ysc.id = ?`,
     )
-    .get(cardRowId) as ( { card_id: string; condition: Condition; qty: number; ask: number; status: string; sale_id: number; sale_status: string; rigidity: number; seller_counters: number; seller: string; name: string } ) | undefined
+    .get(cardRowId) as ( { card_id: string; condition: Condition; qty: number; ask: number; status: string; sale_id: number; sale_status: string; rigidity: number; seller_counters: number; seller: string; name: string; true_market: number } ) | undefined
   if (!row || row.sale_status !== 'live' || row.status !== 'available') return { ok: false, error: 'That table is gone — the sale packed up.' }
   const bid = round2(Math.max(0.05, offer || 0))
 
@@ -246,7 +258,16 @@ export function negotiate(
     // Driveway provenance — the dice can land a counterfeit (auth.ts).
     import('./auth').then((a) => a.stampRisk(newInvId, row.card_id, 'normal', row.condition, 'yard_sale')).catch(() => {})
     logActivity('yard', `Yard sale: talked ${row.seller} down to $${bid.toFixed(2)} for ${row.name} (asked $${row.ask.toFixed(2)}).`, -bid)
-    return { ok: true as const, accepted: true, paid: bid, card: row.name }
+    return {
+      ok: true as const,
+      accepted: true,
+      paid: bid,
+      card: row.name,
+      cardId: row.card_id,
+      condition: row.condition,
+      qty: row.qty,
+      value: round2(row.true_market),
+    }
   }
 
   if (bid >= row.ask * row.rigidity) return accept()
@@ -263,14 +284,16 @@ export function negotiate(
 }
 
 /** Buy a table pile at the sticker ask — no haggling, no risk of souring anyone. */
-export function buyAtAsk(cardRowId: number): { ok: true; paid: number; card: string } | { ok: false; error: string } {
+export function buyAtAsk(cardRowId: number):
+  | { ok: true; paid: number; card: string; cardId: string; condition: string; qty: number; value: number }
+  | { ok: false; error: string } {
   const row = db
     .prepare(
       `SELECT ysc.*, ys.id AS sale_id, ys.status AS sale_status, ys.seller, c.name
        FROM yard_sale_cards ysc JOIN yard_sales ys ON ys.id = ysc.sale_id JOIN cards c ON c.id = ysc.card_id
        WHERE ysc.id = ?`,
     )
-    .get(cardRowId) as ({ card_id: string; condition: Condition; qty: number; ask: number; status: string; sale_id: number; sale_status: string; seller: string; name: string } | undefined)
+    .get(cardRowId) as ({ card_id: string; condition: Condition; qty: number; ask: number; status: string; sale_id: number; sale_status: string; seller: string; name: string; true_market: number } | undefined)
   if (!row || row.sale_status !== 'live' || row.status !== 'available') return { ok: false, error: 'That table is gone — the sale packed up.' }
   let newInvId = 0
   const tx = db.transaction(() => {
@@ -286,7 +309,15 @@ export function buyAtAsk(cardRowId: number): { ok: true; paid: number; card: str
   // Driveway provenance — the dice can land a counterfeit (auth.ts).
   import('./auth').then((a) => a.stampRisk(newInvId, row.card_id, 'normal', row.condition, 'yard_sale')).catch(() => {})
   logActivity('yard', `Yard sale: paid ${row.seller} $${row.ask.toFixed(2)} for ${row.name} ×${row.qty}.`, -row.ask)
-  return { ok: true, paid: row.ask, card: row.name }
+  return {
+    ok: true,
+    paid: row.ask,
+    card: row.name,
+    cardId: row.card_id,
+    condition: row.condition,
+    qty: row.qty,
+    value: round2(row.true_market),
+  }
 }
 
 // ---------------------------------------------------------------------------

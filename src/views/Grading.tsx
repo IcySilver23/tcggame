@@ -3,7 +3,23 @@ import { api } from '../api'
 import { gameDayEtaFor } from '../lib/gameday'
 import type { GradingReveal, GradingService, GradingStats } from '../api'
 import { useStore } from '../store'
-import { byNum, byStr, CardImg, DensityToggle, EmptyState, fmtUsd, GRADE_BADGE, GradeRevealModal, matchesQuery, SearchInput, SlabCard, SortSelect } from '../components'
+import { byNum, byStr, CardImg, EmptyState, fmtUsd, GRADE_BADGE, GradeRevealModal, matchesQuery, SearchInput, SlabCard, SortSelect } from '../components'
+
+// ---------------------------------------------------------------------------
+// Grading — the lab.
+//
+// Three jobs live here and the old screen rendered all three as tables: a
+// candidate table with eight columns (Card · Raw · Best service · Gem chance ·
+// Expected profit · If gem · Edge · button), a nine-column ROI-per-service
+// table, a pending table and a nine-column sales table. At this game's width
+// exactly one column of each was readable, and the four headline numbers were
+// four full-width panels above it all.
+//
+// So the shape is now: what the operation has made (one hero), what is worth
+// grading right now (rows with the GRADE button attached), what is in the lab,
+// what each service returns, and what sold. Same endpoints, same maths, same
+// reveal ceremony.
+// ---------------------------------------------------------------------------
 
 const SERVICE_NAME: Record<string, string> = {
   standard: 'Standard Grading',
@@ -13,7 +29,7 @@ const SERVICE_NAME: Record<string, string> = {
 }
 
 export function GradingView() {
-  const { toast, refreshState, openCard, density, state, rushShortcut, setRushShortcut } = useStore()
+  const { toast, refreshState, openCard, state, rushShortcut, setRushShortcut } = useStore()
   const [stats, setStats] = useState<GradingStats | null>(null)
   const [services, setServices] = useState<GradingService[]>([])
   const [pending, setPending] = useState<{ id: number; name: string; image_small: string | null; card_id: string; grading_service: string | null; grading_due_at: string; condition: string }[]>([])
@@ -65,6 +81,23 @@ export function GradingView() {
 
   const roiClass = (roi: number | null) => (roi == null ? 'faint' : roi >= 0 ? 'delta-up' : 'delta-down')
 
+  const submit = async (c: { inventoryId: number; serviceId: string; serviceName: string; taxSavings: { honest: number } }) => {
+    setSubmitting(c.inventoryId)
+    try {
+      const res = await api.gradingSubmit(c.inventoryId, c.serviceId)
+      toast(
+        `Off to ${c.serviceName} (${fmtUsd(res.cost)}) — deductible next filing${c.taxSavings.honest > 0 ? `, saves ~${fmtUsd(c.taxSavings.honest)} in tax` : ''}`,
+        'good',
+      )
+      await load()
+      refreshState()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Submit failed', 'bad')
+    } finally {
+      setSubmitting(null)
+    }
+  }
+
   const shownCandidates = useMemo(() => {
     const all = stats?.candidates ?? []
     // Rush filter: the cards the $10 line is the play for — candidates whose
@@ -87,15 +120,16 @@ export function GradingView() {
     return [...out].sort(sorters[candSort] ?? sorters.edge_desc)
   }, [stats, candQ, candSort, rushOnly])
 
-  const totalGemRate = stats?.totals.gemRate
+  const gemRate = stats?.totals.gemRate
   const maxDist = Math.max(1, ...(stats?.distribution ?? []).map((d) => d.n))
+  const held = (stats?.totals.returned ?? 0) - (stats?.totals.soldCount ?? 0)
 
   return (
     <div>
       <div className="page-head">
-        <div>
+        <div style={{ minWidth: 0 }}>
           <h1>Grading</h1>
-          <div className="sub">Your grading operation — submissions, grade outcomes, and ROI per service.</div>
+          <div className="sub">Your grading operation — what's worth slabbing, what's in the queue, and what the lab has actually been worth.</div>
         </div>
       </div>
 
@@ -104,76 +138,77 @@ export function GradingView() {
         if (!rush || (!rush.active && rush.backlogDays <= 0)) return null
         if (rush.active) {
           return (
-            <div className="panel mb14" style={{ padding: '10px 14px', borderColor: 'var(--yellow)', background: 'rgba(255,203,5,0.06)' }}>
-              <div className="row" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div className="panel mb14 lab-rush">
+              <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <b style={{ color: 'var(--gold)' }}>🏷️ PSA SPECIAL — LIVE</b>
-                <span className="small">$10-per-card grading · the whole scene is in line.</span>
-                <span className="badge hit">slab prices +{Math.round((rush.slabPremium - 1) * 100)}%</span>
-                {rush.specialOpen ? (
-                  <span className="badge live">quota {rush.quotaUsed}/{rush.quotaTotal} used · {Math.max(0, rush.quotaUsed - (rush.npcUsed ?? 0))} yours</span>
-                ) : (
-                  <span className="badge" style={{ borderColor: 'var(--red)', color: 'var(--red)' }}>quota GONE — the scene ate the line</span>
-                )}
-                <span className="faint small" style={{ marginLeft: 'auto' }}>queue adds ~{rush.backlogDays}d to every turnaround · ends {new Date(rush.endsAt ?? Date.now()).toLocaleDateString()}</span>
+                <span className="badge hit">slabs +{Math.round((rush.slabPremium - 1) * 100)}%</span>
+                {rush.specialOpen
+                  ? <span className="badge live">quota {rush.quotaUsed}/{rush.quotaTotal} · {Math.max(0, rush.quotaUsed - (rush.npcUsed ?? 0))} yours</span>
+                  : <span className="badge" style={{ borderColor: 'var(--red)', color: 'var(--red)' }}>quota GONE</span>}
               </div>
-              <div className="faint small mt8">
-                The arbitrage: slab prices run hot while the lab grinds the queue — slabs you ALREADY own sell at a premium, but cards submitted now wait in the very line that ends the party. Getting in early was the whole game; holding slabs and selling into the rush is the other play.
+              <div className="home-mini" style={{ marginTop: 6 }}>
+                $10 a card, and the whole scene is in line. Slabs you already own sell into the premium; cards submitted now wait
+                ~{rush.backlogDays}d in the same queue that ends the party. Ends {new Date(rush.endsAt ?? Date.now()).toLocaleDateString()}.
               </div>
             </div>
           )
         }
         return (
-          <div className="panel mb14" style={{ padding: '8px 14px' }}>
-            <span className="small">🏷️ <b>PSA backlog hangover</b> — the rush is over but the queue isn't: ~<b>{rush.backlogDays}</b> game-days of extra turnaround on every submission. Slab prices still carry a +{Math.round((rush.slabPremium - 1) * 100)}% premium while the scene waits it out.</span>
+          <div className="panel mb14 lab-rush">
+            <div className="small">
+              🏷️ <b>Backlog hangover</b> — the rush is over, the queue isn't: ~<b>{rush.backlogDays}</b> extra game-days on every
+              submission, and slab prices still carry +{Math.round((rush.slabPremium - 1) * 100)}% while the scene waits it out.
+            </div>
           </div>
         )
       })()}
 
-      {/* KPI row */}
-      <div className="grid cols4 mb14">
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">SPENT ON GRADING</div>
-          <div className="po-value">{fmtUsd(stats?.totals.spent)}</div>
-          <div className="small faint">{stats?.totals.submitted ?? 0} cards submitted</div>
+      <div className="panel">
+        <div className="home-kicker">Net — profit + held − spent</div>
+        <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
+          <div className="pf-big" style={{ color: (stats?.totals.net ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            {fmtUsd(stats?.totals.net)}
+          </div>
+          <div className="right small">
+            {gemRate != null ? <>gem rate <b>{gemRate}%</b></> : <span className="faint">no results back yet</span>}
+          </div>
         </div>
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">REALIZED PROFIT</div>
-          <div className={`po-value ${roiClass(stats && stats.totals.profit ? stats.totals.profit : null)}`}>{fmtUsd(stats?.totals.profit)}</div>
-          <div className="small faint">{stats?.totals.soldCount ?? 0} graded slabs sold</div>
-        </div>
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">UNREALIZED VALUE</div>
-          <div className="po-value">{fmtUsd(stats?.totals.unrealized)}</div>
-          <div className="small faint">{(stats?.totals.returned ?? 0) - (stats?.totals.soldCount ?? 0)} slabs still held</div>
-        </div>
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">NET (PROFIT + HELD − SPENT)</div>
-          <div className={`po-value ${roiClass(stats ? stats.totals.net : null)}`}>{fmtUsd(stats?.totals.net)}</div>
-          <div className="small faint">
-            {totalGemRate != null ? <>gem rate <b>{totalGemRate}%</b></> : 'no results yet'}
+        <div className="pf-stats">
+          <div className="pf-stat">
+            <div className="lbl">Spent</div>
+            <div className="val">{fmtUsd(stats?.totals.spent)}</div>
+            <div className="note">{stats?.totals.submitted ?? 0} submitted</div>
+          </div>
+          <div className="pf-stat">
+            <div className="lbl">Realized</div>
+            <div className="val" style={{ color: (stats?.totals.profit ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{fmtUsd(stats?.totals.profit)}</div>
+            <div className="note">{stats?.totals.soldCount ?? 0} slabs sold</div>
+          </div>
+          <div className="pf-stat">
+            <div className="lbl">Held</div>
+            <div className="val">{fmtUsd(stats?.totals.unrealized)}</div>
+            <div className="note">{held} slab{held === 1 ? '' : 's'} on the shelf</div>
+          </div>
+          <div className="pf-stat">
+            <div className="lbl">In the lab</div>
+            <div className="val">{pending.length}</div>
+            <div className="note">{pending.length === 0 ? 'queue clear' : 'waiting on a verdict'}</div>
           </div>
         </div>
       </div>
 
-      {/* Worth grading now */}
       {(stats?.candidates ?? []).length > 0 && (
-        <div className="panel mb14">
-          <h2>⚖ Worth grading now</h2>
-          <p className="small muted mb8">
-            Expected graded value uses your actual grade odds per condition and real graded prices
-            (PriceCharting / eBay comps), minus the 10% sale fee and grading fee — compared with selling the card raw.
-          </p>
+        <div className="panel mt14">
+          <div className="home-sec-head">
+            <b className="small">⚖ Worth grading now</b>
+            <span className="faint small">{shownCandidates.length} of {(stats?.candidates ?? []).length}</span>
+          </div>
+          <div className="home-mini" style={{ marginBottom: 9 }}>
+            Expected graded value uses your grade odds per condition and real graded comps, minus the 10% sale fee and the grading
+            fee — compared against selling the card raw.
+          </div>
           <div className="filter-row" style={{ marginBottom: 10 }}>
             <SearchInput value={candQ} onChange={setCandQ} placeholder="Search gradeable cards…" />
-            {stats?.rush?.active && (
-              <span
-                className={`chip ${rushOnly ? 'on' : ''}`}
-                onClick={() => setRushOnly((v) => !v)}
-                title={`Cards where the $10 special is the best play — it accepts raw ≥ $${stats.rush.minRawValue}; quota ${stats.rush.quotaUsed}/${stats.rush.quotaTotal}`}
-              >
-                🏷 rush-eligible{rushOnly ? ' ✓' : ''}
-              </span>
-            )}
             <SortSelect
               value={candSort}
               onChange={setCandSort}
@@ -186,104 +221,48 @@ export function GradingView() {
                 { value: 'name_asc', label: 'Sort: Name A→Z' },
               ]}
             />
-            <span className="result-count faint small">{shownCandidates.length} of {(stats?.candidates ?? []).length} candidates</span>
-            <div style={{ marginLeft: 'auto' }}><DensityToggle /></div>
           </div>
-          <table className="table" style={density !== 'comfortable' ? { display: 'none' } : undefined}>
-            <thead>
-              <tr><th>Card</th><th className="right">Raw</th><th>Best service</th><th className="right">Gem chance</th>
-                  <th className="right">Expected profit</th><th className="right">If gem</th><th className="right">Edge</th><th></th></tr>
-            </thead>
-            <tbody>
+          {stats?.rush?.active && (
+            <button
+              className={`small${rushOnly ? ' primary' : ''}`}
+              style={{ marginBottom: 10 }}
+              onClick={() => setRushOnly((v) => !v)}
+              title={`Cards where the $10 special is the best play — it accepts raw ≥ ${fmtUsd(stats.rush.minRawValue)}; quota ${stats.rush.quotaUsed}/${stats.rush.quotaTotal}`}
+            >
+              🏷 rush-eligible only {rushOnly ? '✓' : ''}
+            </button>
+          )}
+
+          {shownCandidates.length === 0 ? (
+            <div className="home-mini">Nothing matches — clear the search{rushOnly ? ' or the rush filter' : ''}.</div>
+          ) : (
+            <div className="lab-list">
               {shownCandidates.map((c) => (
-                <tr key={c.inventoryId}>
-                  <td>
-                    <div className="row" style={{ cursor: 'pointer' }} onClick={() => openCard(c.cardId)}>
-                      <div style={{ width: 32 }}><CardImg src={c.image} alt={c.name} cardId={c.cardId} /></div>
-                      <div>
-                        <b className="small">{c.name}</b>
-                        <div className="faint small">{c.set} · {c.condition}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="num">{fmtUsd(c.rawValue)}</td>
-                  <td className="small">{c.serviceName} <span className="faint small">(${c.cost})</span></td>
-                  <td className="num">{c.gemChance}%</td>
-                  <td className="num delta-up">{fmtUsd(c.expectedProfit)}</td>
-                  <td className="num faint">{fmtUsd(c.upside)}</td>
-                  <td className="num delta-up" style={{ fontWeight: 700 }}>+{fmtUsd(c.edge)}</td>
-                  <td className="right">
-                    <div className="faint small" style={{ marginBottom: 4 }} title={`Grading fees are deductible business expenses: ${c.taxSavings.honest > 0 ? `saves ~${fmtUsd(c.taxSavings.honest)} at your ${Math.round(c.taxSavings.bracketRate * 100)}% marginal bracket` : 'no tax benefit while profits are below the small-collector allowance'}${c.taxSavings.aggressive > c.taxSavings.honest ? ` · ${fmtUsd(c.taxSavings.aggressive)} on aggressive books` : ''}`}>
-                      {c.taxSavings.honest > 0 ? (
-                        <>🧾 −{fmtUsd(c.taxSavings.honest)} tax</>
-                      ) : (
-                        <>🧾 no tax benefit</>
-                      )}
-                    </div>
-                    <button
-                      className="small primary"
-                      disabled={submitting === c.inventoryId}
-                      onClick={async () => {
-                        setSubmitting(c.inventoryId)
-                        try {
-                          const res = await api.gradingSubmit(c.inventoryId, c.serviceId)
-                          toast(`Submitted to ${c.serviceName} ($${res.cost.toFixed(2)}) — deductible next filing${c.taxSavings.honest > 0 ? `, saves ~${fmtUsd(c.taxSavings.honest)} in tax` : ''}`, 'good')
-                          await load()
-                          refreshState()
-                        } catch (e) {
-                          toast(e instanceof Error ? e.message : 'Submit failed', 'bad')
-                        } finally {
-                          setSubmitting(null)
-                        }
-                      }}
-                    >
-                      GRADE
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {density !== 'comfortable' && (
-            <div className={`card-grid ${density === 'list' ? 'density-list' : 'density-compact'}`}>
-              {shownCandidates.map((c) => (
-                <div key={c.inventoryId} className="card-cell" style={density === 'list' ? undefined : { position: 'relative' }}>
-                  <div onClick={() => openCard(c.cardId)} style={{ cursor: 'pointer' }}>
+                <div key={c.inventoryId} className="lab-cand">
+                  <div className="lab-art" onClick={() => openCard(c.cardId)}>
                     <CardImg src={c.image} alt={c.name} cardId={c.cardId} />
                   </div>
-                  <div className="card-meta">
-                    <div className="nm">{c.name}</div>
-                    <div className="st">{c.set} · {c.condition}</div>
-                    <div className="card-row-between">
-                      <span className="faint" style={{ fontSize: 10 }}>raw {fmtUsd(c.rawValue)}</span>
-                      <span className="delta-up" style={{ fontSize: 10, fontWeight: 650 }}>+{fmtUsd(c.edge)}</span>
+                  <div className="lab-body">
+                    <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                      <b className="lab-name" onClick={() => openCard(c.cardId)}>{c.name}</b>
+                      <b className="small" style={{ color: 'var(--green)', flex: 'none', fontVariantNumeric: 'tabular-nums' }}>+{fmtUsd(c.edge)}</b>
+                    </div>
+                    <div className="faint small">{c.set} · {c.condition}</div>
+                    <div className="lab-facts">
+                      {/* Two deliberate lines instead of a dot-joined run: at
+                          this width the separators wrapped to line starts. */}
+                      <span>raw {fmtUsd(c.rawValue)} · {c.serviceName} ({fmtUsd(c.cost)})</span>
+                      <span>{c.gemChance}% gem · profit {fmtUsd(c.expectedProfit)} · if gem {fmtUsd(c.upside)}</span>
+                    </div>
+                    <div className="lab-foot">
+                      <span className="faint small" title={`Grading fees are deductible: saves ~${fmtUsd(c.taxSavings.honest)} at your ${Math.round(c.taxSavings.bracketRate * 100)}% bracket`}>
+                        {c.taxSavings.honest > 0 ? `🧾 −${fmtUsd(c.taxSavings.honest)} tax` : '🧾 no tax benefit'}
+                      </span>
+                      <button className="small primary" disabled={submitting === c.inventoryId} onClick={() => submit(c)}>
+                        ⚖ Grade
+                      </button>
                     </div>
                   </div>
-                  {density === 'list' && (
-                    <div className="faint" style={{ fontSize: 10, flex: '0 0 auto' }}>
-                      {c.serviceName} · {c.gemChance}% gem · profit {fmtUsd(c.expectedProfit)}
-                    </div>
-                  )}
-                  <button
-                    className="small primary"
-                    style={density === 'list' ? { flex: '0 0 auto' } : { width: '100%', marginTop: 6 }}
-                    disabled={submitting === c.inventoryId}
-                    onClick={async () => {
-                      setSubmitting(c.inventoryId)
-                      try {
-                        const res = await api.gradingSubmit(c.inventoryId, c.serviceId)
-                        toast(`Submitted to ${c.serviceName} ($${res.cost.toFixed(2)}) — deductible next filing`, 'good')
-                        await load()
-                        refreshState()
-                      } catch (e) {
-                        toast(e instanceof Error ? e.message : 'Submit failed', 'bad')
-                      } finally {
-                        setSubmitting(null)
-                      }
-                    }}
-                  >
-                    ⚖ Grade
-                  </button>
                 </div>
               ))}
             </div>
@@ -291,52 +270,79 @@ export function GradingView() {
         </div>
       )}
 
-      {/* ROI per service */}
-      <div className="panel">
-        <h2>ROI by grading service</h2>
-        {(stats?.services ?? []).length === 0 ? (
-          <EmptyState icon="⚖" text="No grading history yet" sub="Submit cards from Inventory → Raw cards → ⚖ Grade." />
+      <div className="panel mt14">
+        <div className="home-sec-head">
+          <b className="small">🏭 In the lab ({pending.length})</b>
+          <span className="faint small">{pending.length === 0 ? 'nothing in transit' : 'verdicts pop when they land'}</span>
+        </div>
+        {pending.length === 0 ? (
+          <div className="home-mini">Nothing out for grading. Submit a card above and it waits here for {state?.day?.lengthHours ?? 12}h game-days to pass.</div>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Service</th><th className="right">Submitted</th><th className="right">Spent</th>
-                <th className="right">Gem rate</th><th className="right">Sold</th>
-                <th className="right">Revenue</th><th className="right">Profit</th>
-                <th className="right">Held value</th><th className="right">ROI</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(stats?.services ?? []).map((s) => (
-                <tr key={s.service ?? 'unknown'}>
-                  <td><b>{SERVICE_NAME[s.service ?? ''] ?? s.service ?? 'Unknown'}</b></td>
-                  <td className="num">{s.submitted}</td>
-                  <td className="num faint">{fmtUsd(s.spent)}</td>
-                  <td className="num">{s.gemRate != null ? `${s.gemRate}%` : '—'} <span className="faint small">({s.gems}/{s.returned})</span></td>
-                  <td className="num">{s.soldCount}</td>
-                  <td className="num">{fmtUsd(s.revenue)}</td>
-                  <td className={`num ${s.profit >= 0 ? 'delta-up' : 'delta-down'}`}>{fmtUsd(s.profit)}</td>
-                  <td className="num faint">{fmtUsd(s.unrealized)}</td>
-                  <td className={`num ${roiClass(s.roi)}`} style={{ fontWeight: 700 }}>
-                    {s.roi != null ? `${s.roi > 0 ? '+' : ''}${s.roi}%` : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="pf-rows">
+            {pending.map((p) => {
+              const msLeft = new Date(p.grading_due_at).getTime() - Date.now()
+              // Game-days are 12h or 24h per the save's setting — day-scale ETAs, then h/m as the reveal closes.
+              const back = gameDayEtaFor(state?.day?.lengthHours ?? 12, msLeft)
+              return (
+                <div className="pf-row" key={p.id}>
+                  <div className="row" style={{ gap: 9, minWidth: 0, flex: 1, cursor: 'pointer' }} onClick={() => openCard(p.card_id)}>
+                    <div style={{ width: 30, flex: 'none' }}><SlabCard src={p.image_small} alt={p.name} grade="PSA10" /></div>
+                    <div className="pf-row-main">
+                      <b className="pf-row-name">{p.name}</b>
+                      <div className="faint small">{SERVICE_NAME[p.grading_service ?? ''] ?? p.grading_service ?? '—'}</div>
+                    </div>
+                  </div>
+                  <div className="pf-row-nums">
+                    <b className="small" style={{ fontVariantNumeric: 'tabular-nums' }}>{back}</b>
+                    <div className="faint small">to go</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
-        <p className="small muted mt8">
-          ROI = (realized profit + current market value of slabs still held − fees paid) ÷ fees paid.
-          Slab values use real PriceCharting grade prices, falling back to live eBay graded comps.
-        </p>
+      </div>
+
+      <div className="panel mt14">
+        <div className="home-sec-head">
+          <b className="small">💰 ROI by service</b>
+          <span className="faint small">profit + held − fees, ÷ fees</span>
+        </div>
+        {(stats?.services ?? []).length === 0 ? (
+          <div className="home-mini">No grading history yet — the first slab writes this table.</div>
+        ) : (
+          <div className="pf-rows">
+            {(stats?.services ?? []).map((s) => (
+              <div className="pf-row" key={s.service ?? 'unknown'}>
+                <div className="pf-row-main">
+                  <b className="pf-row-name">{SERVICE_NAME[s.service ?? ''] ?? s.service ?? 'Unknown'}</b>
+                  <div className="faint small">
+                    {s.submitted} submitted · {s.soldCount} sold · {s.gemRate != null ? `${s.gemRate}% gem (${s.gems}/${s.returned})` : 'no verdicts'} · {fmtUsd(s.spent)} spent
+                  </div>
+                </div>
+                <div className="pf-row-nums">
+                  <b className={`small ${s.profit >= 0 ? 'delta-up' : 'delta-down'}`} style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtUsd(s.profit)}</b>
+                  <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
+                    <span className="faint small">held {fmtUsd(s.unrealized)}</span>
+                    <span className={`small ${roiClass(s.roi)}`} style={{ fontWeight: 750 }}>
+                      {s.roi != null ? `${s.roi > 0 ? '+' : ''}${s.roi}%` : '—'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid cols2 mt14">
-        {/* Grade distribution */}
         <div className="panel" style={{ margin: 0 }}>
-          <h2>Grade distribution</h2>
+          <div className="home-sec-head">
+            <b className="small">📊 Grade distribution</b>
+            <span className="faint small">{stats?.totals.returned ?? 0} back</span>
+          </div>
           {(stats?.distribution ?? []).length === 0 ? (
-            <EmptyState icon="📊" text="No graded cards yet" />
+            <div className="home-mini">No graded cards yet.</div>
           ) : (
             <div className="stack">
               {(stats?.distribution ?? []).map((d) => (
@@ -352,87 +358,57 @@ export function GradingView() {
               ))}
             </div>
           )}
-          <div className="mt14">
-            <h2 style={{ fontSize: 15 }}>Services</h2>
+          <div className="mt14" style={{ borderTop: '1px solid var(--border-soft)', paddingTop: 9 }}>
+            <b className="small">Tiers</b>
             {services.map((s) => (
-              <div key={s.id} className="row small" style={{ justifyContent: 'space-between', padding: '4px 0' }}>
-                <span><b>{s.name}</b> <span className="faint">· {s.desc}</span></span>
-                <span className="faint">${s.cost} · {s.daysMin}–{s.daysMax}d</span>
+              <div key={s.id} className="pf-row" style={{ alignItems: 'flex-start' }}>
+                <div className="pf-row-main">
+                  <b className="pf-row-name">{s.name}{s.id === 'psa_special' ? ' 🏷️' : ''}</b>
+                  <div className="faint small">{s.desc}</div>
+                </div>
+                <div className="pf-row-nums">
+                  <b className="small">{fmtUsd(s.cost)}</b>
+                  <div className="faint small">{s.daysMin}–{s.daysMax}d</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Pending */}
         <div className="panel" style={{ margin: 0 }}>
-          <h2>At the grading company ({pending.length})</h2>
-          {pending.length === 0 ? (
-            <EmptyState icon="⏳" text="Nothing in transit" sub="Results appear here — and pop a reveal — when they come back." />
+          <div className="home-sec-head">
+            <b className="small">🧾 Graded sales</b>
+            <span className="faint small">{stats?.totals.soldCount ?? 0} sold</span>
+          </div>
+          {(stats?.history ?? []).length === 0 ? (
+            <div className="home-mini">No graded sales yet — list a slab from your inventory and it lands here with its full ROI.</div>
           ) : (
-            <table className="table">
-              <thead><tr><th>Card</th><th>Service</th><th className="right">Back in</th></tr></thead>
-              <tbody>
-                {pending.map((p) => {
-                  const msLeft = new Date(p.grading_due_at).getTime() - Date.now()
-                  // Game-days are 12h or 24h per the save's setting — day-scale ETAs, then h/m as the reveal closes.
-                  const back = gameDayEtaFor(state?.day?.lengthHours ?? 12, msLeft)
-                  return (
-                    <tr key={p.id}>
-                      <td>
-                        <div className="row" style={{ cursor: 'pointer' }} onClick={() => openCard(p.card_id)}>
-                          <div style={{ width: 34 }}><SlabCard src={p.image_small} alt={p.name} grade="PSA10" /></div>
-                          <b className="small">{p.name}</b>
-                        </div>
-                      </td>
-                      <td className="small">{SERVICE_NAME[p.grading_service ?? ''] ?? p.grading_service}</td>
-                      <td className="num">{back}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {/* Submission history */}
-      <div className="panel mt14">
-        <h2>Graded sales history</h2>
-        {(stats?.history ?? []).length === 0 ? (
-          <EmptyState icon="📜" text="No graded sales yet" sub="List a graded slab from Inventory and it will appear here with full ROI." />
-        ) : (
-          <table className="table">
-            <thead>
-              <tr><th>Card</th><th>Grade</th><th>Service</th><th className="right">Grading cost</th>
-                  <th className="right">Received</th><th className="right">Total cost</th><th className="right">Profit</th><th className="right">ROI</th><th className="right">When</th></tr>
-            </thead>
-            <tbody>
+            <div className="pf-rows">
               {(stats?.history ?? []).map((h) => {
                 // Profit here already has the grading fee deducted server-side.
                 const totalCost = (h.grading_cost ?? 0) + (h.sale_price - h.fee - h.profit)
                 const roi = totalCost > 0 ? Math.round((h.profit / totalCost) * 100) : null
                 return (
-                  <tr key={h.id}>
-                    <td>
-                      <div className="row" style={{ cursor: 'pointer' }} onClick={() => openCard(h.card_id)}>
-                        <div style={{ width: 34 }}><SlabCard src={h.image_small} alt={h.name} grade={h.grade} /></div>
-                        <b className="small">{h.name}</b>
+                  <div className="pf-row" key={h.id}>
+                    <div className="row" style={{ gap: 9, minWidth: 0, flex: 1, cursor: 'pointer' }} onClick={() => openCard(h.card_id)}>
+                      <div style={{ width: 28, flex: 'none' }}><SlabCard src={h.image_small} alt={h.name} grade={h.grade} /></div>
+                      <div className="pf-row-main">
+                        <b className="pf-row-name">{h.name} <span className="badge hit" style={{ fontSize: 9 }}>{GRADE_BADGE[h.grade] ?? h.grade}</span></b>
+                        <div className="faint small">
+                          {SERVICE_NAME[h.service ?? ''] ?? h.service ?? '—'} · {new Date(h.sold_at).toLocaleDateString()}
+                        </div>
                       </div>
-                    </td>
-                    <td><span className="badge hit">{GRADE_BADGE[h.grade] ?? h.grade}</span></td>
-                    <td className="small">{SERVICE_NAME[h.service ?? ''] ?? h.service ?? '—'}</td>
-                    <td className="num faint">{fmtUsd(h.grading_cost)}</td>
-                    <td className="num">{fmtUsd(h.sale_price)}</td>
-                    <td className="num faint small">{fmtUsd(totalCost)}</td>
-                    <td className={`num ${h.profit >= 0 ? 'delta-up' : 'delta-down'}`}>{fmtUsd(h.profit)}</td>
-                    <td className={`num ${roiClass(roi)}`}>{roi != null ? `${roi > 0 ? '+' : ''}${roi}%` : '—'}</td>
-                    <td className="num faint small">{new Date(h.sold_at).toLocaleDateString()}</td>
-                  </tr>
+                    </div>
+                    <div className="pf-row-nums">
+                      <b className={`small ${h.profit >= 0 ? 'delta-up' : 'delta-down'}`} style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtUsd(h.profit)}</b>
+                      <div className="faint small">{roi != null ? `${roi > 0 ? '+' : ''}${roi}% ROI` : fmtUsd(h.sale_price)}</div>
+                    </div>
+                  </div>
                 )
               })}
-            </tbody>
-          </table>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* The ceremony for verdicts this page's own poll just resolved. */}

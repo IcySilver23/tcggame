@@ -75,7 +75,10 @@ export function SourceBadge({ price }: { price: ResolvedPrice | undefined }) {
 
 export function ConditionBadge({ cond }: { cond: string }) {
   const label: Record<string, string> = { NM: 'Near Mint', LP: 'Lightly Played', MP: 'Moderately Played', HP: 'Heavily Played', DM: 'Damaged' }
-  return <span className="badge">{label[cond] ?? cond}</span>
+  // `.cond` is one of the four card-fact chips (condition / protection /
+  // grading / auth) — each carries its own colour so a raw row scans by shape
+  // and hue, not by reading every word.
+  return <span className="badge cond" title={`Condition: ${label[cond] ?? cond}`}>{label[cond] ?? cond}</span>
 }
 
 export function RarityBadge({ rarity }: { rarity: string | null | undefined }) {
@@ -1096,6 +1099,7 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
   const tearRef = useRef(0)
   const autoRipRef = useRef<number | null>(null)
   const doneRef = useRef(false)
+  const dragRef = useRef<number | null>(null)
   const hue = packHue(name)
 
   const finish = useCallback(() => {
@@ -1109,9 +1113,14 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
     onTorn()
   }, [onTorn])
 
+  // A rip is a SWIPE ACROSS: start at the left edge of the pack and drag right.
+  // The cut travels with your hand along the line, opening the wrapper from the
+  // left, instead of any drag direction moving the whole strip at once.
   const tearTo = (e: React.PointerEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
-    const pct = Math.max(0, Math.min(88, Math.round(((e.clientY - r.top) / r.height) * 100)))
+    if (dragRef.current == null) dragRef.current = e.clientX
+    const dx = Math.max(0, e.clientX - dragRef.current)
+    const pct = Math.max(0, Math.min(100, Math.round(Math.pow((dx / r.width) * 130, 1.05))))
     const prev = tearRef.current
     tearRef.current = Math.max(prev, pct)
     setTear(tearRef.current)
@@ -1157,37 +1166,60 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
           '--rx': `${tilt.x}deg`,
           '--ry': `${tilt.y}deg`,
           '--tn': (tear / 100).toFixed(3),
+          '--pull': tear,
           '--bh': hue,
         } as React.CSSProperties}
         tabIndex={0}
         role="button"
         aria-label={ariaLabel ?? `Tear open ${name} — press Enter or Space`}
         onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !torn && !e.repeat) { e.preventDefault(); startAutoRip() } }}
-        onPointerDown={(e) => { if (torn) return; try { e.currentTarget.setPointerCapture?.(e.pointerId) } catch { /* synthetic pointers can't capture */ } setRipping(true); tearTo(e) }}
+        onPointerDown={(e) => { if (torn) return; try { e.currentTarget.setPointerCapture?.(e.pointerId) } catch { /* synthetic pointers can't capture */ } dragRef.current = e.clientX; setRipping(true); tearTo(e) }}
         onPointerMove={(e) => { if (ripping && !torn) tearTo(e); else hoverTilt(e) }}
         onPointerLeave={() => { if (!ripping) setTilt({ x: 0, y: 0 }) }}
-        onPointerUp={() => { if (torn) return; setRipping(false); if (tearRef.current >= 55) finish(); else { tearRef.current = 0; setTear(0) } }}
-        onPointerCancel={() => { setRipping(false); tearRef.current = 0; setTear(0) }}
+        onPointerUp={() => { if (torn) return; dragRef.current = null; setRipping(false); if (tearRef.current >= 62) finish(); else { tearRef.current = 0; setTear(0) } }}
+        onPointerCancel={() => { dragRef.current = null; setRipping(false); tearRef.current = 0; setTear(0) }}
       >
-        {imageUrl && <div className="pack-art" aria-hidden style={{ backgroundImage: `url("${imageUrl}")` }} />}
-        <div className="pack-foil" aria-hidden />
-        <div
-          className="pack-top"
-          aria-hidden
-          style={{
-            ...(imageUrl ? { backgroundImage: `url("${imageUrl}")` } : null),
-            transform: `rotate(${tear * 0.03}deg)`,
-          }}
-        />
-        <div className="pack-tearline" style={{ top: `${tear}%` }} />
-        {!imageUrl && (symbolUrl && !broken
-          ? <img className="pack-logo-img" src={symbolUrl} alt={`${name} symbol`} onError={() => setBroken(true)} />
-          : <div className="pack-logo">🎴</div>)}
-        {!imageUrl && <div className="pack-name">{name}</div>}
-        <div className="pack-sub">{sub}</div>
-        <div className="tear-hint">{ripping ? 'keep pulling…' : 'hold & pull down — or press Enter'}</div>
+        {imageUrl ? (
+          /* The wrapper IS the interface: no frame, no printed captions. Two
+             copies of the art, cut by the same zigzag, so pulling the tail
+             actually splits the foil instead of sliding a panel. */
+          <>
+            {/* The inside of the wrapper, under the crimped strip. */}
+            <div className="rip-mouth" aria-hidden />
+            <div className="rip-body" aria-hidden><img className="rip-img" src={imageUrl} alt="" draggable={false} /></div>
+            {/* Only the already-cut section of the strip lifts, so the wrapper
+                opens from the left edge to the right along the swipe. */}
+            <div className="rip-lift" aria-hidden>
+              <div className="rip-tail" aria-hidden>
+                <img className="rip-img" src={imageUrl} alt="" draggable={false} />
+                <span className="rip-backing" />
+              </div>
+            </div>
+            <div className="rip-edge" aria-hidden />
+            <div className="rip-knob" aria-hidden />
+            {!torn && (
+              <div className={`rip-grip ${ripping ? 'pulling' : ''}`} aria-hidden>
+                <span className="rip-grip-teeth" />
+                <span className="rip-grip-text">{ripping ? 'CUTTING' : 'SWIPE →'}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="pack-foil" aria-hidden />
+            {symbolUrl && !broken
+              ? <img className="pack-logo-img" src={symbolUrl} alt={`${name} symbol`} onError={() => setBroken(true)} />
+              : <div className="pack-logo">🎴</div>}
+            <div className="pack-name">{name}</div>
+            <div className="pack-sub">{sub}</div>
+            <div className="tear-hint">{ripping ? 'keep pulling…' : 'hold & pull down — or press Enter'}</div>
+          </>
+        )}
       </div>
       </div>
+      {/* Captions live UNDER the pack: printing them on the wrapper was the
+          single worst thing about this screen. */}
+      {imageUrl && <div className="rip-caption"><b>{name}</b><span>{sub}</span></div>}
       {torn && <div className="rip-flash" aria-hidden />}
       {sparks && (
         <div className="po-sparks" aria-hidden>

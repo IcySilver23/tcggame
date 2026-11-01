@@ -3,6 +3,7 @@ import {
   api,
   type BattleCard,
   type BattleProduct,
+  type BattleRecord,
   type BattleRival,
   type BattleResult,
   type BracketSlot,
@@ -22,6 +23,7 @@ export function PackBattlesView() {
   const { toast, refreshState, openCard, state } = useStore()
   const [tab, setTab] = useState<'versus' | 'tournament'>('versus')
   const [rivals, setRivals] = useState<BattleRival[]>([])
+  const [record, setRecord] = useState<BattleRecord | null>(null)
   const [reloading, setReloading] = useState(false)
   const [products, setProducts] = useState<BattleProduct[]>([])
   const [rivalId, setRivalId] = useState<string | null>(null)
@@ -46,6 +48,7 @@ export function PackBattlesView() {
   const load = () => {
     api.battleRivals().then(setRivals).catch(() => {})
     api.battleProducts().then(setProducts).catch(() => {})
+    api.battleRecord().then(setRecord).catch(() => {})
   }
 
   const duck = async (id: string) => {
@@ -134,187 +137,236 @@ export function PackBattlesView() {
   return (
     <div>
       <div className="page-head">
-        <div>
-          <h1>⚔️ Pack Battles</h1>
+        <div style={{ minWidth: 0 }}>
+          <h1>Pack Battles</h1>
           <div className="sub">Both sides rip the same sealed product — best total pull value takes the pot. Everyone keeps their pulls.</div>
         </div>
-        <div className="right">
-          <button className={tab === 'versus' ? 'primary small' : 'small'} onClick={() => setTab('versus')}>Versus</button>{' '}
-          <button className={tab === 'tournament' ? 'primary small' : 'small'} onClick={() => setTab('tournament')}>🏆 Tournament</button>
-        </div>
+      </div>
+
+      <div className="seg-bar" role="tablist" aria-label="Battle modes">
+        <button role="tab" aria-selected={tab === 'versus'} className={`seg-item${tab === 'versus' ? ' on' : ''}`}
+          title="Pick a rival and a box, rip them head to head" onClick={() => setTab('versus')}>
+          ⚔️ Versus
+        </button>
+        <button role="tab" aria-selected={tab === 'tournament'} className={`seg-item${tab === 'tournament' ? ' on' : ''}`}
+          title="Single-elimination bracket — escalating rounds" onClick={() => setTab('tournament')}>
+          🏆 Tournament
+        </button>
       </div>
 
       {tab === 'tournament' ? (
         <TournamentTab onOpenCard={openCard} />
       ) : (
-      <>
-
-      <div className="grid cols2 mt14">
-        <div>
-          <h2 style={{ marginBottom: 8 }}>Pick your rival</h2>
-          {rivals.length === 0 && <EmptyState icon="⚔️" text="No challengers around" />}
-          {rivals.length > 6 && (
-            <div className="filter-row" style={{ marginBottom: 8 }}>
-              <SearchInput value={rivalQ} onChange={setRivalQ} placeholder="Find a rival…" />
-              <span className="result-count faint small">{shownRivals.length} shown</span>
+        <>
+          <div className="pf-stats" style={{ marginBottom: 12 }}>
+            <div className="pf-stat">
+              <div className="lbl">Record</div>
+              <div className="val">{record ? `${record.wins}–${record.losses}` : '—'}</div>
+              <div className="note">{record ? `${record.wins + record.losses} duels fought` : 'no duels yet'}</div>
             </div>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {shownRivals.map((r) => (
-              <div
-                key={r.id}
-                className="panel"
-                style={{
-                  margin: 0,
-                  padding: 12,
-                  cursor: 'pointer',
-                  borderColor: rivalId === r.id ? 'var(--yellow)' : r.grudgeMatch ? 'var(--red)' : undefined,
-                  background: rivalId === r.id ? 'var(--panel2)' : undefined,
-                }}
-                onClick={() => setRivalId(r.id)}
-              >
-                <div className="row">
-                  <div style={{ fontSize: 28 }}>{r.avatar}</div>
-                  <div className="grow" style={{ minWidth: 0 }}>
-                    <b>{r.name}</b>
-                    <div className="faint small">{r.style}</div>
-                    <div className="faint small" style={{ marginTop: 2 }}>{r.blurb}</div>
-                    {r.grudgeMatch && (
-                      <div style={{ marginTop: 4, lineHeight: 1.7 }}>
-                        <span className="badge" style={{ color: 'var(--red)', borderColor: 'var(--red)' }} title={`Grudge ${r.grudge.toFixed(1)}/10 — next battle costs DOUBLE`}>🩸 GRUDGE {r.grudge.toFixed(1)}</span>{' '}
-                        {/* Plain text, not a badge: a 400px nowrap pill broke to
-                            its own line and left the grudge tag stranded (and
-                            with no separator between them the two read as one
-                            run: GRUDGE 7.5DEMANDS REMATCH:). An em dash plus
-                            normal wrapping keeps the line whole and readable. */}
-                        {r.pendingProduct && <span className="small muted">— demands rematch: {r.pendingProduct}</span>}
-                      </div>
-                    )}
-                    {!r.grudgeMatch && r.salty && (
-                      <div className="faint small" style={{ marginTop: 4, fontStyle: 'italic' }} title={`Grudge ${r.grudge.toFixed(1)}/10`}>still salty about {r.salty}</div>
-                    )}
-                  </div>
-                  <div className="right" style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', flexShrink: 0 }}>
-                    {(r.wins > 0 || r.losses > 0) ? (
-                      <span className="badge">you {r.wins}–{r.losses}</span>
-                    ) : (
-                      <span className="badge">new blood</span>
-                    )}
-                    {r.pendingProduct && !r.grudgeMatch && (
-                      <button
-                        className="small"
-                        style={{ fontSize: 10, padding: '2px 8px' }}
-                        disabled={reloading}
-                        onClick={(e) => { e.stopPropagation(); duck(r.id) }}
-                      >
-                        Duck 🏃
-                      </button>
-                    )}
-                  </div>
-                </div>
+            <div className="pf-stat">
+              <div className="lbl">Net</div>
+              <div className="val" style={{ color: record && record.net > 0.5 ? 'var(--green)' : record && record.net < -0.5 ? 'var(--red)' : undefined }}>
+                {record ? `${record.net >= 0 ? '+' : ''}${fmtUsd(record.net)}` : '—'}
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 style={{ marginBottom: 8 }}>Pick the product</h2>
-          <div className="filter-row" style={{ marginBottom: 8 }}>
-            <SearchInput value={productQ} onChange={setProductQ} placeholder="Search battle products…" />
-            <SortSelect
-              value={productSort}
-              onChange={setProductSort}
-              options={[
-                { value: 'price_asc', label: 'Sort: Stake low→high' },
-                { value: 'price_desc', label: 'Sort: Stake high→low' },
-              ]}
-            />
-          </div>
-          <div className="filter-row" style={{ marginBottom: 8 }}>
-            <div className="chip-row">
-              <Chip on={productKind === 'all'} onClick={() => setProductKind('all')}>All kinds</Chip>
-              {battleKinds.map((k) => (
-                <Chip key={k} on={productKind === k} onClick={() => setProductKind(productKind === k ? 'all' : k)}>{k}</Chip>
-              ))}
-              <Chip
-                on={affordableOnly}
-                onClick={() => {
-                  const next = !affordableOnly
-                  setAffordableOnly(next)
-                  // A product hidden by the chip shouldn't stay selected and armed below.
-                  if (next && product && cash != null && (product.stake ?? product.market_price ?? product.msrp) > cash) setProductId(null)
-                }}
-              >
-                💵 Affordable only{cash != null ? ` · under ${fmtUsd(cash)}` : ''}
-              </Chip>
-              <span className="result-count faint small">{shownProducts.length} of {products.length}</span>
+              <div className="note">pot minus stake</div>
+            </div>
+            <div className="pf-stat">
+              <div className="lbl">Rivals</div>
+              <div className="val">{rivals.length}</div>
+              <div className="note">{rivals.filter((r) => r.grudgeMatch).length > 0 ? `${rivals.filter((r) => r.grudgeMatch).length} demanding a rematch` : 'nobody grudge-matching'}</div>
+            </div>
+            <div className="pf-stat">
+              <div className="lbl">Cash</div>
+              <div className="val">{fmtUsd(cash ?? 0)}</div>
+              <div className="note">staked whole-box</div>
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 480, overflowY: 'auto' }}>
-            {shownProducts.length === 0 && (
-              <div className="faint small" style={{ padding: 8 }}>
-                {affordableOnly && cash != null
-                  ? `Nothing you can afford under ${fmtUsd(cash)} — flip the chip off to browse the full catalog.`
-                  : 'No products match.'}
+
+          <div className="battle-steps">
+            <div className="battle-step">
+              <div className="step-head">
+                <span className="step-n">1</span> Pick your rival
+                <span className="faint small" style={{ marginLeft: 'auto' }}>{shownRivals.length} in town</span>
+              </div>
+              {rivals.length === 0 && <EmptyState icon="⚔️" text="No challengers around" />}
+              {rivals.length > 4 && (
+                <div className="battle-filters">
+                  <SearchInput value={rivalQ} onChange={setRivalQ} placeholder="Find a rival…" />
+                </div>
+              )}
+              <div className="rival-list">
+                {shownRivals.map((r) => {
+                  const known = r.wins + r.losses > 0
+                  return (
+                    <div
+                      key={r.id}
+                      role="button"
+                      tabIndex={0}
+                      className={`rival${rivalId === r.id ? ' on' : ''}${r.grudgeMatch ? ' grudge' : ''}`}
+                      onClick={() => setRivalId(r.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setRivalId(r.id) } }}
+                    >
+                      <span className="rival-av">{r.avatar}</span>
+                      <span className="rival-main">
+                        <span className="rival-name">
+                          {r.name}
+                          {r.grudgeMatch && <span className="rival-tag grudge">🩸 grudge {r.grudge.toFixed(1)}</span>}
+                        </span>
+                        <span className="rival-meta">{r.style} · nerve {r.nerve}/10</span>
+                        <span className="rival-blurb">
+                          {r.grudgeMatch && r.pendingProduct
+                            ? `demands a rematch: ${r.pendingProduct}`
+                            : r.salty ? `still salty about ${r.salty}` : r.blurb}
+                        </span>
+                      </span>
+                      <span className="rival-nums">
+                        <b>{known ? `${r.wins}–${r.losses}` : 'new'}</b>
+                        <span>{known ? 'vs you' : 'blood'}</span>
+                        {r.pendingProduct && !r.grudgeMatch && (
+                          <button
+                            className="small rival-duck"
+                            disabled={reloading}
+                            onClick={(e) => { e.stopPropagation(); duck(r.id) }}
+                          >
+                            Duck 🏃
+                          </button>
+                        )}
+                      </span>
+                      {rivalId === r.id && <span className="rival-check">✓</span>}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="battle-step">
+              <div className="step-head">
+                <span className="step-n">2</span> Pick the product
+                <span className="faint small" style={{ marginLeft: 'auto' }}>{shownProducts.length} of {products.length}</span>
+              </div>
+              <div className="battle-filters">
+                <SearchInput value={productQ} onChange={setProductQ} placeholder="Search battle products…" />
+                <div className="chip-row">
+                  <Chip on={productKind === 'all'} onClick={() => setProductKind('all')}>All</Chip>
+                  {battleKinds.map((k) => (
+                    <Chip key={k} on={productKind === k} onClick={() => setProductKind(productKind === k ? 'all' : k)}>{k}</Chip>
+                  ))}
+                  <Chip
+                    on={affordableOnly}
+                    onClick={() => {
+                      const next = !affordableOnly
+                      setAffordableOnly(next)
+                      // A product hidden by the chip shouldn't stay selected and armed.
+                      if (next && product && cash != null && (product.stake ?? product.market_price ?? product.msrp) > cash) setProductId(null)
+                    }}
+                  >
+                    💵 Affordable{cash != null ? ` · ${fmtUsd(cash)}` : ''}
+                  </Chip>
+                </div>
+                <SortSelect
+                  value={productSort}
+                  onChange={setProductSort}
+                  options={[
+                    { value: 'price_asc', label: 'Stake low→high' },
+                    { value: 'price_desc', label: 'Stake high→low' },
+                  ]}
+                />
+              </div>
+              <div className="bprod-list">
+                {shownProducts.length === 0 && (
+                  <div className="faint small" style={{ padding: 8 }}>
+                    {affordableOnly && cash != null
+                      ? `Nothing you can afford under ${fmtUsd(cash)} — flip the chip off to browse the full catalog.`
+                      : 'No products match.'}
+                  </div>
+                )}
+                {shownProducts.map((p) => {
+                  const price = p.stake ?? p.market_price ?? p.msrp
+                  const short = cash != null && price > cash
+                  return (
+                    <div
+                      key={p.id}
+                      role="button"
+                      tabIndex={0}
+                      className={`bprod${productId === p.id ? ' on' : ''}`}
+                      onClick={() => setProductId(p.id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProductId(p.id) } }}
+                    >
+                      <span className="bprod-main">
+                        <b className="bprod-name">{p.name}</b>
+                        <span className="faint small">{p.kind.toUpperCase()} · {p.packs} pack{p.packs === 1 ? '' : 's'} a side{short ? ` · short ${fmtUsd(price - (cash ?? 0))}` : ''}</span>
+                      </span>
+                      <span className="bprod-nums">
+                        <b style={{ color: short ? 'var(--red)' : undefined }}>{fmtUsd(price)}</b>
+                        <span>stake</span>
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className={`duel-slip${rival && product ? ' ready' : ''}${rival?.grudgeMatch ? ' grudge' : ''}`}>
+            {rival && product ? (
+              <>
+                <div className="duel-title">
+                  {rival.avatar} {rival.name} <span className="vs">vs</span> you
+                </div>
+                {rival.grudgeMatch && (
+                  <div className="small grudge-note">🩸 GRUDGE MATCH — stakes doubled, no nerve roll, pride on the line</div>
+                )}
+                <div className="duel-facts">
+                  <div><span>Product</span><b>{product.name}</b></div>
+                  <div><span>Stake each</span><b>{fmtUsd(stake)}</b></div>
+                  <div><span>Pot</span><b>{fmtUsd(stake * 2)}</b></div>
+                </div>
+                <button className="primary" disabled={busy} onClick={fight}>
+                  {busy ? 'Ripping…' : rival.grudgeMatch ? 'Settle it 🩸' : '⚔️ Battle'}
+                </button>
+                <div className="faint small">Pulls are kept win or lose.</div>
+              </>
+            ) : (
+              <div className="duel-pending">
+                <div className={`duel-slot${rival ? ' done' : ''}`}>
+                  {rival ? `${rival.avatar} ${rival.name}` : '① Pick a rival'}
+                </div>
+                <div className={`duel-slot${product ? ' done' : ''}`}>
+                  {product ? product.name : '② Pick a product'}
+                </div>
               </div>
             )}
-            {shownProducts.map((p) => {
-              const price = p.stake ?? p.market_price ?? p.msrp
-              return (
-                <div
-                  key={p.id}
-                  className="panel"
-                  style={{
-                    margin: 0,
-                    padding: 12,
-                    cursor: 'pointer',
-                    borderColor: productId === p.id ? 'var(--yellow)' : undefined,
-                    background: productId === p.id ? 'var(--panel2)' : undefined,
-                  }}
-                  onClick={() => setProductId(p.id)}
-                >
-                  <div className="row">
-                    <div className="grow" style={{ minWidth: 0 }}>
-                      <b className="small">{p.name}</b>
-                      <div className="faint small">{p.kind.toUpperCase()} · both sides rip the whole box — {p.packs} pack{p.packs === 1 ? '' : 's'} a side</div>
-                    </div>
-                    <div className="right" style={{ flexShrink: 0 }}>
-                      <div className="price">{fmtUsd(price)}</div>
-                      <div className="faint" style={{ fontSize: 10, textAlign: 'right' }}>stake each</div>
-                      {cash != null && (
-                        <div
-                          style={{
-                            fontSize: 10,
-                            textAlign: 'right',
-                            marginTop: 2,
-                            color: price <= cash ? 'var(--good, var(--green))' : 'var(--red, var(--red))',
-                          }}
-                        >
-                          you have {fmtUsd(cash)}{price > cash ? ` · short ${fmtUsd(price - cash)}` : ''}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
           </div>
-        </div>
-      </div>
 
-      {rival && product && (
-        <div className="panel mt14" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', borderColor: rival.grudgeMatch ? 'var(--red)' : undefined }}>
-          <div>
-            <b>{rival.avatar} {rival.name} vs you</b>
-            {rival.grudgeMatch && <div style={{ color: 'var(--red)', fontWeight: 700 }} className="small">🩸 GRUDGE MATCH — stakes doubled, no nerve roll, pride on the line</div>}
-            <div className="faint small">
-              {product.name} · stake {fmtUsd(stake)} each · pot {fmtUsd(stake * 2)} · pulls are kept win or lose
+          {record && record.history.length > 0 && (
+            <div className="panel" style={{ padding: '13px 14px' }}>
+              <div className="section-head">Recent duels<span className="faint small" style={{ marginLeft: 'auto' }}>newest first</span></div>
+              <div className="pf-rows">
+                {record.history.slice(0, 6).map((h) => {
+                  const won = h.winner === 'player'
+                  return (
+                    <div className="pf-row" key={h.id}>
+                      <div className="pf-row-main">
+                        <b className="pf-row-name">
+                          <span className={won ? 'delta-up' : 'delta-down'}>{won ? 'W' : 'L'}</span> · {h.opponent}
+                        </b>
+                        <div className="faint small">
+                          {h.productName} · {fmtUsd(h.stake)} stake{h.tiebreak ? ' · tiebreak' : ''}
+                          {h.bestPull ? ` · best ${h.bestPull.name}` : ''}
+                        </div>
+                      </div>
+                      <div className="pf-row-nums">
+                        <b className={h.net >= 0 ? 'delta-up' : 'delta-down'}>{h.net >= 0 ? '+' : ''}{fmtUsd(h.net)}</b>
+                        <div className="faint small">{fmtUsd(h.playerTotal)} vs {fmtUsd(h.opponentTotal)}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-          <button className="primary" disabled={busy} onClick={fight}>{busy ? 'Ripping…' : rival.grudgeMatch ? 'Settle it 🩸' : 'Battle!'}</button>
-        </div>
-      )}
-      </>
+          )}
+        </>
       )}
     </div>
   )
@@ -425,29 +477,30 @@ function TournamentTab({ onOpenCard }: { onOpenCard: (id: string) => void }) {
   if (!status) return <div className="empty"><span className="spinner" /> Setting up the bracket…</div>
 
   if (!status.active) {
+    const brackets: { icon: string; name: string; size: number; rounds: string; entry: number; prize: number; label: string }[] = [
+      { icon: '🥉', name: 'Mini Invitational', size: 4, rounds: '2 rounds · booster rip → final bundle', entry: status.mini?.entry ?? 0, prize: status.mini?.prize ?? 0, label: 'four players' },
+      { icon: '🏆', name: 'Grand Slam', size: 8, rounds: '3 rounds · booster → bundle → ETB final', entry: status.grand?.entry ?? 0, prize: status.grand?.prize ?? 0, label: 'eight players' },
+    ]
     return (
-      <div className="grid cols2 mt14">
-        <div className="panel" style={{ textAlign: 'center', padding: 24 }}>
-          <div style={{ fontSize: 36 }}>🥉</div>
-          <h2 style={{ margin: '6px 0' }}>Mini Invitational</h2>
-          <div className="faint small">4 players · 2 rounds</div>
-          <div className="small mt8">Semifinal: Booster rip → Final: Booster Bundle</div>
-          <div className="row" style={{ justifyContent: 'center', gap: 16, marginTop: 10 }}>
-            <div><div className="faint small">ENTRY</div><b>{fmtUsd(status.mini?.entry ?? 0)}</b></div>
-            <div><div className="faint small">CHAMPION TAKES</div><b style={{ color: 'var(--gold)' }}>{fmtUsd(status.mini?.prize ?? 0)}</b></div>
-          </div>
-          <button className="primary mt8" disabled={busy} onClick={() => join(4)}>Enter the bracket</button>
+      <div>
+        <div className="tourn-list">
+          {brackets.map((b) => (
+            <div className="tourn" key={b.name}>
+              <span className="tourn-icon">{b.icon}</span>
+              <div className="tourn-main">
+                <b className="tourn-name">{b.name}</b>
+                <div className="faint small">{b.label} · {b.rounds}</div>
+                <div className="tourn-facts">
+                  <span>entry <b>{fmtUsd(b.entry)}</b></span>
+                  <span>champion <b style={{ color: 'var(--gold)' }}>{fmtUsd(b.prize)}</b></span>
+                </div>
+              </div>
+              <button className="primary small" disabled={busy} onClick={() => join(b.size)}>Enter</button>
+            </div>
+          ))}
         </div>
-        <div className="panel" style={{ textAlign: 'center', padding: 24 }}>
-          <div style={{ fontSize: 36 }}>🏆</div>
-          <h2 style={{ margin: '6px 0' }}>Grand Slam</h2>
-          <div className="faint small">8 players · 3 rounds</div>
-          <div className="small mt8">Quarterfinal: Booster → Semi: Bundle → Championship: ETB</div>
-          <div className="row" style={{ justifyContent: 'center', gap: 16, marginTop: 10 }}>
-            <div><div className="faint small">ENTRY</div><b>{fmtUsd(status.grand?.entry ?? 0)}</b></div>
-            <div><div className="faint small">CHAMPION TAKES</div><b style={{ color: 'var(--gold)' }}>{fmtUsd(status.grand?.prize ?? 0)}</b></div>
-          </div>
-          <button className="primary mt8" disabled={busy} onClick={() => join(8)}>Enter the bracket</button>
+        <div className="faint small" style={{ marginTop: 8, lineHeight: 1.5 }}>
+          Single elimination — you rip every round, and whoever totals more keeps the pot. Your pulls stay yours either way.
         </div>
       </div>
     )
@@ -459,22 +512,22 @@ function TournamentTab({ onOpenCard }: { onOpenCard: (id: string) => void }) {
 
   return (
     <div>
-      <div className="panel mt14" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
-        <div>
-          <b>🏆 {status.title}</b>
-          <div className="faint small">{status.size} players · prize {fmtUsd(status.prize)} · you've paid {fmtUsd(status.entry)} in</div>
+      <div className="duel-slip ready">
+        <div className="duel-title">🏆 {status.title} <span className="vs">·</span> <span className="small">{status.size} players</span></div>
+        <div className="duel-facts">
+          <div><span>Round</span><b>{roundLabel}</b></div>
+          <div><span>Prize</span><b style={{ color: 'var(--gold)' }}>{fmtUsd(status.prize)}</b></div>
+          <div><span>Paid in</span><b>{fmtUsd(status.entry)}</b></div>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {nextOpponentId ? (
-            <>
-              <span className="small">Next: <b>{roundLabel}</b> vs <b>{names[nextOpponentId] ?? nextOpponentId}</b></span>
-              <button className="primary" disabled={busy} onClick={play}>{busy ? 'Ripping…' : 'Play round'}</button>
-            </>
-          ) : (
-            <span className="faint small">Bracket complete</span>
-          )}
-          <button className="small" disabled={busy} onClick={withdraw}>Withdraw</button>
-        </div>
+        {nextOpponentId ? (
+          <>
+            <div className="small">Next up: <b>{names[nextOpponentId] ?? nextOpponentId}</b></div>
+            <button className="primary" disabled={busy} onClick={play}>{busy ? 'Ripping…' : '⚔️ Play the round'}</button>
+          </>
+        ) : (
+          <div className="faint small">Bracket complete.</div>
+        )}
+        <button className="small" disabled={busy} onClick={withdraw}>Withdraw</button>
       </div>
 
       <BracketView bracket={status.bracket} names={names} />
@@ -487,21 +540,27 @@ function BracketView({ bracket, names }: { bracket: BracketSlot[][]; names: Reco
   return (
     <div className="row mt14" style={{ gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
       {bracket.map((round, ri) => (
-        <div key={ri} className="grow" style={{ minWidth: 210 }}>
-          <div className="faint small" style={{ marginBottom: 6 }}>{ri === bracket.length - 1 ? 'FINAL' : `ROUND ${ri + 1}`}</div>
+        <div key={ri} className="grow bracket-round" style={{ minWidth: 210 }}>
+          <div className="bracket-round-name">{ri === bracket.length - 1 ? 'Final' : `Round ${ri + 1}`}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {round.map((s, si) => (
-              <div key={si} className="panel" style={{ margin: 0, padding: 8 }}>
-                {(['a', 'b'] as const).map((side) => (
-                  <div key={side} className="row" style={{ justifyContent: 'space-between', fontSize: 12, opacity: s.winner && s.winner !== s[side] ? 0.45 : 1 }}>
-                    <span>
-                      {s.winner === s[side] && '✓ '}{names[s[side]] ?? s[side]}
-                    </span>
-                    <span className="faint">{side === 'a' ? (s.aTotal != null ? fmtUsd(s.aTotal) : '—') : (s.bTotal != null ? fmtUsd(s.bTotal) : '—')}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
+            {round.map((s, si) => {
+              const live = s.a === '__you__' || s.b === '__you__'
+              return (
+                <div key={si} className={`bracket-slot${live && !s.winner ? ' live' : ''}`}>
+                  {(['a', 'b'] as const).map((side) => {
+                    const out = s.winner && s.winner !== s[side]
+                    return (
+                      <div key={side} className={`bracket-line${s.winner === s[side] ? ' won' : ''}`} style={{ opacity: out ? 0.45 : 1 }}>
+                        <span className="bracket-who">
+                          {s.winner === s[side] ? '✓ ' : ''}{names[s[side]] ?? s[side]}
+                        </span>
+                        <span className="bracket-total">{side === 'a' ? (s.aTotal != null ? fmtUsd(s.aTotal) : '—') : (s.bTotal != null ? fmtUsd(s.bTotal) : '—')}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
           </div>
         </div>
       ))}

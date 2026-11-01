@@ -7,7 +7,7 @@ import { HomePage } from './views/Home'
 import { CollectionHubView, collectionModeLabel } from './views/CollectionHub'
 import { PortfolioView } from './views/Portfolio'
 import { SetDetailView } from './views/SetDetail'
-import { MarketView } from './views/Market'
+import { MarketHubView, marketModeLabel } from './views/MarketHub'
 import { PacksView } from './views/Packs'
 import { PackOpeningView } from './views/PackOpening'
 import { InventoryView } from './views/Inventory'
@@ -17,13 +17,11 @@ import { PullHistoryView } from './views/PullHistory'
 import { GradingView } from './views/Grading'
 import { TradeView } from './views/Trade'
 import { ForumView } from './views/Forum'
-import { ConventionView } from './views/Convention'
 import { StorageUnitsView } from './views/StorageUnits'
-import { BuylistView } from './views/Buylist'
 import { DealsView, DEAL_VENUES, DEALS_GATE, dealVenueLabel } from './views/Deals'
-import { CardShowsView } from './views/CardShows'
-import { CalendarView } from './views/Calendar'
-import { AuctionView } from './views/Auctions'
+// Calendar, Conventions and Card Shows are modes of the Events hub (roadmap
+// 10.0) — one door for what's on and whether you're going.
+import { EventsHubView, eventsModeLabel, LEGACY_EVENT_ROUTES } from './views/EventsHub'
 import { PackBattlesView } from './views/PackBattles'
 import { StreamView } from './views/Stream'
 import { ResaleView } from './views/Resale'
@@ -31,9 +29,10 @@ import { ShopView } from './views/Shop'
 import { CardDetailModal } from './views/CardDetail'
 import { StartingTutorial } from './views/Tutorial'
 import { ChangelogModal, useWhatsNewBadge } from './views/WhatsNew'
+import { NotificationBell } from './views/Notifications'
 
 export type ViewId =
-  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'convention' | 'shows' | 'calendar'  | 'auctions' | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'buylist' | 'settings' | 'pulls-history' | 'achievements'
+  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'settings' | 'pulls-history' | 'achievements'
 
 type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean } }
 type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
@@ -48,18 +47,20 @@ const NAV: NavEntry[] = [
   { id: 'grading', label: 'Grading', icon: '⚖', section: '' },
   { id: 'market', label: 'Market', icon: '⇄', section: 'MARKET' },
   { id: 'packs', label: 'Pack Shop', icon: '📦', section: '' },
-  { id: 'auctions', label: 'Auction House', icon: '🔨', section: '' },
+  // Auction House and Buylist are MODES of the Market hub now (roadmap 9.0)
+  // — three ways of buying and selling a card, one door.
   { id: 'trade', label: 'Trading Post', icon: '🔁', section: '' },
   { id: 'forum', label: 'Community', icon: '🫂', section: '' },
-  { id: 'buylist', label: 'Buylist', icon: '🧾', section: '' },
   // One door for seven venues (roadmap 1.0). The gate is the EARLIEST venue
   // gate, so the hub can never open onto an empty shell — unlocking it always
   // unlocks the Pawn Shop with it. The venues' own gates live in DEAL_VENUES
   // and print on the tabs inside.
   { id: 'deals', label: 'Deals', icon: '🏷', section: 'DEALS', locked: (s) => s.progress.salesCount >= DEALS_GATE, hint: `Make ${DEALS_GATE} sales`, goal: DEALS_GATE },
-  { id: 'convention', label: 'Conventions', icon: '🎪', section: 'EVENTS' },
-  { id: 'shows', label: 'Card Shows', icon: '🏟', section: '' },
-  { id: 'calendar', label: 'Calendar', icon: '📅', section: '' },
+  // One door for the calendar, the convention floor and your own shows
+  // (roadmap 10.0). The calendar is the index — it already lists convention
+  // weekends and show windows — and the other two are what you attend. The old
+  // #/calendar, #/convention and #/shows hashes normalize into it below.
+  { id: 'events', label: 'Events', icon: '🎪', section: 'EVENTS' },
   { id: 'inventory', label: 'Inventory', icon: '🗃', section: 'BUSINESS' },
   // Storage is always visible — it's the answer to "where do I put more cards?"
   // and hiding it behind a sales count left players hunting for it. The
@@ -217,8 +218,14 @@ export default function App() {
   // and Wishlist are modes of the Collection hub now (roadmap 8.0), and the
   // Home dashboard plus the set browser still write those old hashes.
   const legacyCollect = rawRoute === 'binders' || rawRoute === 'sets' || rawRoute === 'wishlist'
-  const route = legacyVenue ? 'deals' : legacyCollect ? 'collection' : rawRoute
-  const routeParam = legacyVenue || legacyCollect ? rawRoute : rawParam
+  // Auction House and Buylist are modes of the Market hub now (roadmap 9.0).
+  const legacyMarket = rawRoute === 'auctions' || rawRoute === 'buylist'
+  // Same treatment for EVENTS (roadmap 10.0): calendar rows, the Home
+  // dashboard and server-written feed items still link #/convention, #/shows
+  // and #/calendar, so those map onto hub modes rather than bouncing home.
+  const legacyEvents = LEGACY_EVENT_ROUTES[rawRoute]
+  const route = legacyVenue ? 'deals' : legacyCollect ? 'collection' : legacyMarket ? 'market' : legacyEvents ? 'events' : rawRoute
+  const routeParam = legacyVenue || legacyCollect || legacyMarket ? rawRoute : legacyEvents ?? rawParam
   const view = (route || 'home') as ViewId
 
   useEffect(() => {
@@ -293,6 +300,8 @@ export default function App() {
     : viewLocked ? 'Home'
     : view === 'deals' ? dealVenueLabel(routeParam) ?? 'Deals'
     : view === 'collection' ? collectionModeLabel(routeParam) ?? 'Collection'
+    : view === 'market' ? marketModeLabel(routeParam) ?? 'Market'
+    : view === 'events' ? eventsModeLabel(routeParam) ?? 'Events'
     : NAV.find((n) => n.id === view)?.label ?? 'TCG Life'
 
   return (
@@ -305,6 +314,7 @@ export default function App() {
             <div className="tag">Collector Simulator</div>
           </div>
         </div>
+        <NotificationBell />
         {(() => {
           const snap: UnlockState | null = state?.progress
             ? { cash: state.cash, collectionValue: state.collectionValue, inventoryValue: state.inventoryValue, netWorth: state.netWorth, progress: state.progress }
@@ -398,20 +408,16 @@ export default function App() {
               {view === 'portfolio' && <PortfolioView />}
               {view === 'achievements' && <AchievementsView />}
               {view === 'set' && routeParam && <SetDetailView setId={routeParam} />}
-              {view === 'market' && <MarketView />}
+              {view === 'market' && <MarketHubView mode={routeParam} />}
               {view === 'packs' && <PacksView />}
               {view === 'opening' && <PackOpeningView />}
               {view === 'inventory' && <InventoryView />}
               {view === 'grading' && <GradingView />}
               {view === 'trade' && <TradeView />}
               {view === 'forum' && <ForumView />}
-              {view === 'convention' && <ConventionView />}
               {view === 'storage' && <StorageUnitsView />}
-              {view === 'buylist' && <BuylistView />}
               {view === 'deals' && <DealsView venue={routeParam} />}
-              {view === 'shows' && <CardShowsView />}
-              {view === 'calendar' && <CalendarView />}
-              {view === 'auctions' && <AuctionView />}
+              {view === 'events' && <EventsHubView mode={routeParam} />}
               {view === 'battles' && <PackBattlesView />}
               {view === 'stream' && <StreamView />}
               {view === 'resale' && <ResaleView />}

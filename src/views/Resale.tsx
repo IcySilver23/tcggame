@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, type FlipStock, type ResaleDeal, type ResaleLedger, type ResaleCard } from '../api'
+import { api, type FlipStock, type ResaleDeal, type ResaleLedger } from '../api'
 import { useStore } from '../store'
-import { byNum, byStr, CardImg, EmptyState, FirstUseTip, fmtUsd, SortSelect } from '../components'
+import { byNum, CardImg, EmptyState, FirstUseTip, fmtUsd, SortSelect } from '../components'
 
 // ---------------------------------------------------------------------------
-// 💼 Resale desk — Phase 4. Buy undervalued lots from sellers, flip through
-// the instant dealer or list at market, and watch the ledger.
+// 💼 Resale desk — the business screen.
+//
+// Three lanes over one standing ledger: the inbox is a stack of notes sellers
+// have left on the desk, the shelf is what those lots turned into, and the
+// statement is where the money has gone. The ledger tape stays visible in every
+// lane, because "am I up?" is the question this screen exists to answer.
 // ---------------------------------------------------------------------------
 
-const CONDITION_COLORS: Record<string, string> = {
+const COND_COLOR: Record<string, string> = {
   NM: 'var(--green)',
   LP: '#9acd32',
   MP: 'var(--yellow)',
@@ -16,16 +20,39 @@ const CONDITION_COLORS: Record<string, string> = {
   DM: 'var(--red)',
 }
 
+function untilText(iso: string, now: number): string {
+  const ms = new Date(iso).getTime() - now
+  if (!Number.isFinite(ms) || ms <= 0) return 'closing'
+  const m = Math.round(ms / 60_000)
+  if (m < 60) return `${m}m left`
+  const h = Math.floor(m / 60)
+  return `${h}h ${m % 60}m left`
+}
+
+function heldText(iso: string): string {
+  const days = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 86_400_000))
+  return days === 0 ? 'today' : `${days}d`
+}
+
+const pnl = (n: number) => (n >= 0 ? 'rd-pos' : 'rd-neg')
+const sign = (n: number) => (n >= 0 ? '+' : '−')
+
 export function ResaleView() {
-  const { toast, refreshState, openCard } = useStore()
+  const { toast, refreshState, openCard, state } = useStore()
   const [tab, setTab] = useState<'inbox' | 'stock' | 'ledger'>('inbox')
   const [inbox, setInbox] = useState<ResaleDeal[] | null>(null)
   const [stock, setStock] = useState<FlipStock | null>(null)
   const [ledger, setLedger] = useState<ResaleLedger | null>(null)
   const [expanded, setExpanded] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
-  const [stockQ, setStockQ] = useState('')
   const [stockSort, setStockSort] = useState('edge_desc')
+  const [now, setNow] = useState(() => Date.now())
+
+  // Countdowns want to move; 30s is enough for a two-hour window.
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(t)
+  }, [])
 
   const shownLots = useMemo(() => {
     const lots = [...(stock?.lots ?? [])]
@@ -34,10 +61,15 @@ export function ResaleView() {
       edge_asc: byNum((l) => l.marginPct, 'asc'),
       offer_desc: byNum((l) => l.offer, 'desc'),
       market_desc: byNum((l) => l.market, 'desc'),
-      held_desc: byStr((l) => l.heldSince, 'asc'), // oldest held first
+      held_desc: byNum((l) => new Date(l.heldSince).getTime(), 'asc'),
     }
     return lots.sort(sorters[stockSort] ?? sorters.edge_desc)
   }, [stock, stockSort])
+
+  const shelfOffer = useMemo(
+    () => Math.round(shownLots.reduce((a, l) => a + l.offer, 0) * 100) / 100,
+    [shownLots],
+  )
 
   const load = () => {
     api.resaleInbox().then(setInbox).catch(() => setInbox([]))
@@ -62,9 +94,11 @@ export function ResaleView() {
     try {
       const r = await api.resaleBuy(id)
       if (r.ok) {
-        toast(`Bought ${r.bought} cards for ${fmtUsd(r.spent ?? 0)}`, 'good')
+        toast(`Bought ${r.bought} cards for ${fmtUsd(r.spent ?? 0)} — they're on the shelf`, 'good')
         refreshState()
+        setExpanded(null)
         load()
+        setTab('stock')
       } else toast(r.error ?? 'Buy failed', 'bad')
     } finally { setBusy(false) }
   }
@@ -73,6 +107,7 @@ export function ResaleView() {
     setBusy(true)
     try {
       await api.resaleWalk(id)
+      setExpanded(null)
       load()
     } finally { setBusy(false) }
   }
@@ -90,72 +125,152 @@ export function ResaleView() {
     } finally { setBusy(false) }
   }
 
+  const deals = inbox?.length ?? 0
+  const shelfCount = stock?.lots.length ?? 0
+
   return (
-    <div>
-      <div className="page-head">
-        <div>
-          <h1>💼 Resale Desk</h1>
-          <div className="sub">Buy undervalued lots, flip them fast or at market — the first step of the business.</div>
+    <div className="rd">
+      <header className="rd-top">
+        <div className="rd-id">
+          <span className="rd-mark" aria-hidden>💼</span>
+          <div>
+            <h1>Resale Desk</h1>
+            <div className="rd-tag">
+              Buy the lot, flip the cardboard.
+              {stock?.dealer ? <> <b>{stock.dealer}</b> is on the phone today.</> : null}
+            </div>
+          </div>
         </div>
-        <div className="right">
-          <button className={tab === 'inbox' ? 'primary small' : 'small'} onClick={() => setTab('inbox')}>📬 Inbox</button>{' '}
-          <button className={tab === 'stock' ? 'primary small' : 'small'} onClick={() => setTab('stock')}>📦 Flip stock</button>{' '}
-          <button className={tab === 'ledger' ? 'primary small' : 'small'} onClick={() => setTab('ledger')}>🧾 Ledger</button>
+        <div className="rd-tabs" role="tablist">
+          <button className={`rd-tab ${tab === 'inbox' ? 'on' : ''}`} onClick={() => setTab('inbox')} role="tab">
+            📬 Inbox<i>{deals}</i>
+          </button>
+          <button className={`rd-tab ${tab === 'stock' ? 'on' : ''}`} onClick={() => setTab('stock')} role="tab">
+            📦 Shelf<i>{shelfCount}</i>
+          </button>
+          <button className={`rd-tab ${tab === 'ledger' ? 'on' : ''}`} onClick={() => setTab('ledger')} role="tab">
+            🧾 Statement
+          </button>
         </div>
-      </div>
+      </header>
+
+      {ledger && (
+        <div className="rd-tape" aria-label="Ledger summary">
+          <div className="rd-cell">
+            <span>Out</span>
+            <b>{fmtUsd(ledger.capitalDeployed)}</b>
+            <em>capital</em>
+          </div>
+          <div className="rd-cell">
+            <span>Realized</span>
+            <b className={pnl(ledger.realized)}>{sign(ledger.realized)}{fmtUsd(Math.abs(ledger.realized))}</b>
+            <em>{ledger.instantSales + ledger.marketSales} sales</em>
+          </div>
+          <div className="rd-cell">
+            <span>Unrealized</span>
+            <b className={pnl(ledger.unrealized)}>{sign(ledger.unrealized)}{fmtUsd(Math.abs(ledger.unrealized))}</b>
+            <em>{ledger.stockCount} on shelf</em>
+          </div>
+          <div className="rd-cell">
+            <span>ROI</span>
+            <b className={pnl(ledger.roiPct)}>{sign(ledger.roiPct)}{ledger.roiPct}%</b>
+            <em>all in</em>
+          </div>
+        </div>
+      )}
 
       {tab === 'inbox' && (
         <div>
           <FirstUseTip surface="resale">
-            <b style={{ color: 'var(--gold)' }}>💼 First lot?</b> Sellers drift in with bulk lots priced <b>below</b> what's inside —
-            the "edge" is the estimated gap between ask and true value, but it's only an estimate until you <b>inspect</b> the cards.
-            You can <b>haggle the ask</b> once per deal (that also reveals the true value — you'll know exactly what you're buying),
-            then flip through the <b>instant dealer</b> for quick cash or list at market for more, slower money. Expired deals are gone — sellers don't wait.
+            <b style={{ color: 'var(--gold)' }}>💼 Reading the notes.</b> Sellers leave a lot on the desk priced under what's inside —
+            the <b>edge bar</b> is how far under. It is an estimate until you <b>haggle</b>, which costs you nothing but also reveals
+            the true value. Buy, then sell fast off the <b>shelf</b> at dealer rates or list at full market from your Collection.
+            Notes expire; the clock is on each one.
           </FirstUseTip>
-          {!inbox ? <div className="empty"><span className="spinner" /> Loading deals…</div> : inbox.length === 0 ? (
-            <EmptyState icon="📬" text="No offers right now" sub="Sellers drift in while you play — check back or keep grinding." />
+
+          {!inbox ? (
+            <div className="empty"><span className="spinner" /> Loading the inbox…</div>
+          ) : inbox.length === 0 ? (
+            <EmptyState icon="📬" text="No notes on the desk" sub="Sellers drift in while you play — check back or keep grinding." />
           ) : (
-            <div className="mt14">
-              {inbox.map((d) => (
-                <div key={d.id} className="panel" style={{ marginBottom: 12 }}>
-                  <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                    <div style={{ flex: 1, minWidth: 220 }}>
-                      <b>{d.seller}</b> <span className="badge small">{d.sellerType}</span>
-                      <div className="small" style={{ fontStyle: 'italic' }}>"{d.message}"</div>
-                      <div className="faint small mt4">
-                        {d.cards} cards · ask <b>{fmtUsd(d.ask)}</b> · {d.trueValueKnown ? `true value ${fmtUsd(d.estTrueValue)}` : `est. value ~${fmtUsd(d.estTrueValue)}`}
-                        {' '}· <span style={{ color: d.margin >= 0 ? 'var(--green)' : 'var(--red)' }}>{d.margin >= 0 ? '+' : ''}{d.margin}% edge</span>
+            <div className="rd-list">
+              {inbox.map((d) => {
+                const hot = d.margin >= 15
+                const cold = d.margin < 0
+                const ratio = d.ask > 0 ? d.estTrueValue / d.ask : 1
+                const fill = Math.max(4, Math.min(100, (ratio / 2) * 100))
+                const msLeft = new Date(d.expiresAt).getTime() - now
+                const open = expanded === d.id
+                return (
+                  <article key={d.id} className={`rd-deal ${hot ? 'hot' : cold ? 'cold' : ''}`}>
+                    <div className="rd-deal-top">
+                      <div className="rd-seller">
+                        <b>{d.seller}</b>
+                        <span className="rd-kind">{d.sellerType}</span>
                       </div>
+                      <span className={`rd-clock ${msLeft < 30 * 60_000 ? 'urgent' : ''}`}>⏳ {untilText(d.expiresAt, now)}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button className="small" disabled={busy} onClick={() => setExpanded(expanded === d.id ? null : d.id)}>
-                        {expanded === d.id ? 'Hide lot' : 'Inspect lot'}
-                      </button>
-                      {!(d.trueValueKnown) && (
-                        <button className="small" disabled={busy || d.trueValueKnown} onClick={() => haggle(d.id)}>Haggle</button>
-                      )}
-                      <button className="primary small" disabled={busy} onClick={() => buy(d.id)}>Buy {fmtUsd(d.ask)}</button>
-                      <button className="small" disabled={busy} onClick={() => walk(d.id)}>Pass</button>
-                    </div>
-                  </div>
-                  {expanded === d.id && (
-                    <div className="grid cols3 mt8">
-                      {d.preview.map((c, i) => (
-                        <div key={i} className="panel" style={{ margin: 0, padding: 6, cursor: 'pointer' }} onClick={() => openCard(c.cardId)}>
-                          <CardImg src={c.image} alt={c.name} cardId={c.cardId} />
-                          <div className="row" style={{ justifyContent: 'space-between' }}>
-                            <span className="badge" style={{ fontSize: 9, padding: '1px 5px', color: CONDITION_COLORS[c.condition] }}>{c.condition}</span>
-                            <span className="faint small">{fmtUsd(c.market)}</span>
-                          </div>
-                        </div>
+
+                    <p className="rd-quote">“{d.message}”</p>
+
+                    <div className="rd-fan" onClick={() => setExpanded(open ? null : d.id)} title={open ? 'Hide the lot' : 'Look through the lot'}>
+                      {d.preview.slice(0, 4).map((c, i) => (
+                        <CardImg key={`${c.cardId}-${i}`} src={c.image} alt={c.name} cardId={c.cardId} />
                       ))}
-                      {d.cards > d.preview.length && (
-                        <div className="faint small" style={{ alignSelf: 'center' }}>+ {d.cards - d.preview.length} more in the lot</div>
+                      {d.cards > Math.min(4, d.preview.length) && (
+                        <span className="rd-fan-more">+{d.cards - Math.min(4, d.preview.length)}</span>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className="rd-metrics">
+                      <div><span>Ask</span><b>{fmtUsd(d.ask)}</b></div>
+                      <div><span>{d.trueValueKnown ? 'True value' : 'Est. value'}</span><b>{fmtUsd(d.estTrueValue)}</b></div>
+                      <div><span>Cards</span><b>{d.cards}</b></div>
+                    </div>
+
+                    <div className="rd-meter" aria-hidden>
+                      <i style={{ width: `${fill}%` }} />
+                      <u />
+                    </div>
+                    <div className="rd-edge">
+                      <span>{d.trueValueKnown ? 'Checked against market' : 'Estimate — haggle to know'}</span>
+                      <b className={pnl(d.margin)}>{sign(d.margin)}{d.margin}% edge</b>
+                    </div>
+
+                    <div className="rd-actions">
+                      <button className="primary small" disabled={busy} onClick={() => buy(d.id)}>
+                        Buy {fmtUsd(d.ask)}
+                      </button>
+                      <button className="small" disabled={busy || d.trueValueKnown} onClick={() => haggle(d.id)}>
+                        {d.trueValueKnown ? '✓ Value known' : 'Haggle'}
+                      </button>
+                      <button className="small" disabled={busy} onClick={() => setExpanded(open ? null : d.id)}>
+                        {open ? 'Close lot' : 'Look'}
+                      </button>
+                      <button className="small ghost" disabled={busy} onClick={() => walk(d.id)}>Pass</button>
+                    </div>
+
+                    {open && (
+                      <div className="rd-lot">
+                        {d.preview.map((c, i) => (
+                          <div key={`${c.cardId}-${i}`} className="rd-lot-card" onClick={() => openCard(c.cardId)}>
+                            <CardImg src={c.image} alt={c.name} cardId={c.cardId} />
+                            <span>
+                              <b style={{ color: COND_COLOR[c.condition] ?? 'var(--text-faint)' }}>{c.condition}</b>
+                              <b>{fmtUsd(c.market)}</b>
+                            </span>
+                          </div>
+                        ))}
+                        {d.cards > d.preview.length && (
+                          <span className="faint small" style={{ alignSelf: 'center' }}>
+                            +{d.cards - d.preview.length} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
@@ -163,95 +278,93 @@ export function ResaleView() {
 
       {tab === 'stock' && (
         <div>
-          {!stock ? <div className="empty"><span className="spinner" /> Counting the boxes…</div> : stock.lots.length === 0 ? (
-            <EmptyState icon="📦" text="No flip stock" sub="Buy a lot from the inbox and it lands here." />
+          {!stock ? (
+            <div className="empty"><span className="spinner" /> Counting the boxes…</div>
+          ) : stock.lots.length === 0 ? (
+            <EmptyState icon="📦" text="The shelf is empty" sub="Buy a lot from the inbox and it lands here." />
           ) : (
-            <div className="mt14">
-              <div className="faint small mb8">
-                Instant offers from <b>{stock.dealer}</b> — cash today at 70–92% of market. Or list anything at full market from the Collection page.
-              </div>
-              <div className="filter-row" style={{ marginBottom: 10 }}>
+            <>
+              <div className="rd-banner">
+                <div>
+                  <b>{stock.dealer}</b> will take the whole shelf today for <b>{fmtUsd(shelfOffer)}</b>
+                  <span className="faint small"> — dealer offers run 70–92% of market, cash now. Listing at full market in Collection pays more, slower.</span>
+                </div>
                 <SortSelect
                   value={stockSort}
                   onChange={setStockSort}
                   options={[
-                    { value: 'edge_desc', label: 'Sort: Best dealer edge' },
-                    { value: 'edge_asc', label: 'Sort: Worst dealer edge' },
-                    { value: 'offer_desc', label: 'Sort: Offer size high→low' },
-                    { value: 'market_desc', label: 'Sort: Market value high→low' },
-                    { value: 'held_desc', label: 'Sort: Longest held' },
+                    { value: 'edge_desc', label: 'Best return first' },
+                    { value: 'edge_asc', label: 'Worst return first' },
+                    { value: 'offer_desc', label: 'Biggest offer' },
+                    { value: 'market_desc', label: 'Most valuable' },
+                    { value: 'held_desc', label: 'Longest held' },
                   ]}
                 />
-                <span className="result-count faint small">{shownLots.length} lots in stock</span>
               </div>
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr><th>Card</th><th>Cost</th><th>Market</th><th>Dealer offer</th><th>Edge</th><th></th></tr>
-                  </thead>
-                  <tbody>
-                    {shownLots.map((l) => (
-                      <FlipRow key={l.inventoryId} lot={l} busy={busy} onSell={instant} onOpen={openCard} />
-                    ))}
-                  </tbody>
-                </table>
+
+              <div className="rd-shelf">
+                {shownLots.map((l) => (
+                  <div key={l.inventoryId} className="rd-flip">
+                    <div className="rd-flip-art" onClick={() => openCard(l.cardId)}>
+                      <CardImg src={l.image} alt={l.name} cardId={l.cardId} />
+                    </div>
+                    <div className="rd-flip-body">
+                      <div className="rd-flip-name">{l.name}</div>
+                      <div className="rd-flip-meta">
+                        {l.condition} · held {heldText(l.heldSince)}
+                      </div>
+                      <div className="rd-flip-nums">
+                        <span>cost {fmtUsd(l.costBasis)}</span>
+                        <span>market {fmtUsd(l.market)}</span>
+                      </div>
+                      <div className="rd-flip-offer">
+                        <b>{fmtUsd(l.offer)}</b>
+                        <em className={pnl(l.marginPct)}>{sign(l.marginPct)}{Math.abs(l.marginPct)}%</em>
+                        <span className="faint small">vs cost</span>
+                      </div>
+                      <button className="primary small" disabled={busy} onClick={() => instant(l.inventoryId)}>
+                        Sell now
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
 
       {tab === 'ledger' && ledger && (
-        <div className="mt14">
-          <div className="kpi-row" style={{ display: 'flex', gap: 26, flexWrap: 'wrap' }}>
-            <div><div className="faint small">CAPITAL DEPLOYED</div><b>{fmtUsd(ledger.capitalDeployed)}</b></div>
-            <div><div className="faint small">STOCK HELD</div><b>{ledger.stockCount} cards · {fmtUsd(ledger.stockValue)}</b></div>
-            <div><div className="faint small">UNREALIZED</div><b style={{ color: ledger.unrealized >= 0 ? 'var(--green)' : 'var(--red)' }}>{ledger.unrealized >= 0 ? '+' : ''}{fmtUsd(ledger.unrealized)}</b></div>
-            <div><div className="faint small">REALIZED</div><b style={{ color: ledger.realized >= 0 ? 'var(--green)' : 'var(--red)' }}>{ledger.realized >= 0 ? '+' : ''}{fmtUsd(ledger.realized)}</b></div>
-            <div><div className="faint small">TOTAL ROI</div><b style={{ color: ledger.roiPct >= 0 ? 'var(--green)' : 'var(--red)' }}>{ledger.roiPct >= 0 ? '+' : ''}{ledger.roiPct}%</b></div>
+        <div className="rd-statement">
+          <div className="rd-st-head">
+            <span>Statement</span>
+            <span>Day {state?.day?.number ?? '—'}</span>
           </div>
-          <div className="panel mt14">
-            <b>How the money moves</b>
-            <div className="small faint mt4">
-              {ledger.instantSales} instant dealer sale{ledger.instantSales === 1 ? '' : 's'} ({fmtUsd(ledger.instantProceeds)}) · {ledger.marketSales} market sale{ledger.marketSales === 1 ? '' : 's'} · stock cost basis {fmtUsd(ledger.stockBasis)} vs {fmtUsd(ledger.stockValue)} at today's market.
-              Instant sales pay 70–92% of market immediately; market listings pay full price when a buyer bites, minus the usual 10% fee.
-            </div>
+          <div className="rd-line"><span>Capital deployed</span><b>{fmtUsd(ledger.capitalDeployed)}</b></div>
+          <div className="rd-line"><span>Shelf at cost</span><b>{fmtUsd(ledger.stockBasis)}</b></div>
+          <div className="rd-line"><span>Shelf at market ({ledger.stockCount} cards)</span><b>{fmtUsd(ledger.stockValue)}</b></div>
+          <div className="rd-line">
+            <span>Unrealized</span>
+            <b className={pnl(ledger.unrealized)}>{sign(ledger.unrealized)}{fmtUsd(Math.abs(ledger.unrealized))}</b>
+          </div>
+          <div className="rd-line">
+            <span>Dealer sales — proceeds ({ledger.instantSales})</span>
+            <b>{fmtUsd(ledger.instantProceeds)}</b>
+          </div>
+          <div className="rd-line">
+            <span>Market sales — profit ({ledger.marketSales})</span>
+            <b className={pnl(ledger.realized)}>{sign(ledger.realized)}{fmtUsd(Math.abs(ledger.realized))} profit</b>
+          </div>
+          <div className="rd-total">
+            <span>Total ROI</span>
+            <b className={pnl(ledger.roiPct)}>{sign(ledger.roiPct)}{ledger.roiPct}%</b>
+          </div>
+          <div className="rd-note">
+            ROI counts realized profit plus what the shelf would fetch at today's market, over every dollar you put into lots.
+            Dealer sales pay 70–92% of market immediately with no fee; market listings pay full price when a buyer bites, minus the usual 10%.
           </div>
         </div>
       )}
     </div>
-  )
-}
-
-function FlipRow({ lot, busy, onSell, onOpen }: {
-  lot: { inventoryId: number; cardId: string; costBasis: number; market: number; offer: number; marginPct: number }
-  busy: boolean
-  onSell: (id: number) => void
-  onOpen: (id: string) => void
-}) {
-  const [img, setImg] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  useEffect(() => {
-    api.cardDetail(lot.cardId).then((d) => { setImg(d.card.image_small); setName(d.card.name) }).catch(() => {})
-  }, [lot.cardId])
-
-  return (
-    <tr>
-      <td>
-        <span className="row" style={{ gap: 8, cursor: 'pointer', alignItems: 'center' }} onClick={() => onOpen(lot.cardId)}>
-          <CardImg src={img} alt={name} cardId={lot.cardId} />
-          <span>{name || lot.cardId}</span>
-        </span>
-      </td>
-      <td>{fmtUsd(lot.costBasis)}</td>
-      <td>{fmtUsd(lot.market)}</td>
-      <td><b>{fmtUsd(lot.offer)}</b></td>
-      <td style={{ color: lot.marginPct >= 0 ? 'var(--green)' : 'var(--red)' }}>
-        {lot.marginPct >= 0 ? '+' : ''}{lot.marginPct}%
-      </td>
-      <td>
-        <button className="primary small" disabled={busy} onClick={() => onSell(lot.inventoryId)}>Sell now</button>
-      </td>
-    </tr>
   )
 }

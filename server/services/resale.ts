@@ -26,19 +26,19 @@ type SellerProfile = {
 
 const SELLERS: SellerProfile[] = [
   {
-    type: 'collection', label: 'Collection Seller', minV: 1, maxV: 400, askLow: 0.45, askHigh: 0.85, minCards: 4, maxCards: 12,
+    type: 'collection', label: 'Collection Seller', minV: 1, maxV: 400, askLow: 0.52, askHigh: 0.95, minCards: 4, maxCards: 12,
     blurb: ['Selling the collection, no time wasters please.', 'Everything must go this weekend.', 'Prices are firm-ish. Bring cash vibes.'],
   },
   {
-    type: 'dupes', label: 'Bulk Dupes Seller', minV: 0.3, maxV: 15, askLow: 0.3, askHigh: 0.7, minCards: 8, maxCards: 25,
+    type: 'dupes', label: 'Bulk Dupes Seller', minV: 0.3, maxV: 15, askLow: 0.42, askHigh: 0.78, minCards: 8, maxCards: 25,
     blurb: ['Got doubles of loads of these.', 'Bulk box cleanup — take the lot.', 'These were spares in my dupes binder.'],
   },
   {
-    type: 'chase', label: 'Chase Chaser', minV: 30, maxV: 600, askLow: 0.65, askHigh: 1.1, minCards: 1, maxCards: 3,
+    type: 'chase', label: 'Chase Chaser', minV: 30, maxV: 600, askLow: 0.72, askHigh: 1.12, minCards: 1, maxCards: 3,
     blurb: ['Need gone ASAP, priced to move.', 'You know what this is. Cash only.', 'Might regret selling this tomorrow.'],
   },
   {
-    type: 'storage', label: 'Storage Unit Find', minV: 0.5, maxV: 200, askLow: 0.25, askHigh: 0.6, minCards: 10, maxCards: 30,
+    type: 'storage', label: 'Storage Unit Find', minV: 0.5, maxV: 200, askLow: 0.36, askHigh: 0.7, minCards: 10, maxCards: 30,
     blurb: ['Unit cleared out, boxes of cards inside.', 'No idea what these are worth.', 'Take it all, it is taking up my garage.'],
   },
 ]
@@ -193,14 +193,16 @@ export function buyDeal(id: number) {
 
   const cards = dealCards(d.id)
   if (cards.length === 0) return { ok: false as const, error: 'Lot is empty' }
-  // Storage & the vault: make room per the overflow policy — whatever still
-  // doesn't fit stays with the seller (full ask is still the price of the deal).
+  // Storage & the vault: make room per the overflow policy. Whatever still
+  // doesn't fit stays with the seller, and you are charged only for what you
+  // actually carry home — the old code billed the full ask for a partial lot.
   const rawCount = cards.length
   const admitted = vault.makeRoomFor(rawCount, 'Resale lot')
   if (admitted <= 0) {
     return { ok: false as const, error: 'Resale lot: no room on the shelf — sell or scrap before buying another lot.' }
   }
   const perCard = round2(d.ask / rawCount)
+  const charged = round2(perCard * admitted)
   // Keep the card's REAL condition: the ask was discounted for LP/MP/HP copies,
   // so booking them all as NM would launder worn cardboard into near-mint (the
   // dealer desk would then pay NM rates for it).
@@ -220,9 +222,16 @@ export function buyDeal(id: number) {
   import('./auth').then((a) => a.stampRiskBatch(added, 'resale')).catch(() => {})
 
   db.prepare(`UPDATE resale_deals SET status = 'bought' WHERE id = ?`).run(d.id)
-  logActivity('resale', `Bought ${cards.length} cards from ${d.seller} for $${d.ask.toFixed(2)} (est. $${d.true_value.toFixed(2)} value).`, -d.ask)
+  const short = rawCount - admitted
+  logActivity(
+    'resale',
+    short > 0
+      ? `Bought ${admitted} of ${rawCount} cards from ${d.seller} for ${charged.toFixed(2)} — ${short} stayed with the seller, no shelf room.`
+      : `Bought ${admitted} cards from ${d.seller} for ${charged.toFixed(2)} (est. ${d.true_value.toFixed(2)} value).`,
+    -charged,
+  )
 
-  return { ok: true as const, bought: cards.length, spent: d.ask, estValue: d.true_value }
+  return { ok: true as const, bought: admitted, spent: charged, estValue: round2(d.true_value * (admitted / rawCount)), short }
 }
 
 export function walkDeal(id: number) {
@@ -238,20 +247,44 @@ export function expireDeals() {
 
 const DEALER_NAMES = ['QuickFlip Quinns', 'CaseFresh Cards', 'The Buylist Bin', 'WallStreet Slabs', 'Corner Shop Cards']
 
+/**
+ * The dealer's rate for one specific card, stable for as long as the card sits
+ * on your shelf. 0.70–0.92 of market, scrambled off the row id.
+ *
+ * It used to be `0.70 + Math.random() * 0.22` — rolled on every read of the
+ * shelf AND rolled again inside the sale — so the displayed offer was not the
+ * offer you got, and reloading was a way to reroll your own quote.
+ */
+function dealerMultiplier(inventoryId: number): number {
+  const x = Math.sin(inventoryId * 12.9898) * 43758.5453
+  const frac = x - Math.floor(x)
+  return 0.7 + frac * 0.22
+}
+
 /** Instant dealer offers on held flip stock: 70–92% of market, cash now. */
 export function flipStock() {
   const rows = db
-    .prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade, cost_basis, acquired_at, acquired_ref FROM inventory WHERE status = 'collection' AND acquired_via = 'resale' ORDER BY acquired_at DESC`)
-    .all() as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_at: string; acquired_ref: string | null }[]
+    .prepare(
+      `SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, i.cost_basis, i.acquired_at, i.acquired_ref,
+              c.name AS name, c.image_small AS image
+       FROM inventory i JOIN cards c ON c.id = i.card_id
+       WHERE i.status = 'collection' AND i.acquired_via = 'resale'
+       ORDER BY i.acquired_at DESC`,
+    )
+    .all() as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_at: string; acquired_ref: string | null; name: string; image: string | null }[]
   const dealer = DEALER_NAMES[Math.floor(Math.random() * DEALER_NAMES.length)]
   const lots = rows.map((r) => {
     const market = round2(valueOfRow({ card_id: r.card_id, variant: r.variant, condition: r.condition, graded_grade: r.graded_grade }))
     const basis = round2(r.cost_basis * r.quantity)
-    const mult = 0.7 + Math.random() * 0.22
+    const mult = dealerMultiplier(r.id)
     const offer = round2(market * mult)
     return {
       inventoryId: r.id,
       cardId: r.card_id,
+      name: r.name,
+      image: r.image,
+      condition: r.condition,
+      quantity: r.quantity,
       costBasis: basis,
       market,
       offer,
@@ -268,7 +301,8 @@ export function instantSell(inventoryId: number) {
     .get(inventoryId) as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_via: string } | undefined
   if (!r) return { ok: false as const, error: 'Card not in stock' }
   const market = round2(valueOfRow({ card_id: r.card_id, variant: r.variant, condition: r.condition, graded_grade: r.graded_grade }))
-  const mult = 0.7 + Math.random() * 0.22
+  // Same rate the shelf quoted — this is the half that made the quote a lie.
+  const mult = dealerMultiplier(r.id)
   const offer = round2(market * mult)
   const fee = 0
   const proceeds = offer

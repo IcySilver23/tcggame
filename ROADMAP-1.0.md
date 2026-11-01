@@ -86,8 +86,33 @@ normalize into the hub, and the COLLECT section drops from 8 rows to 4 (Collecti
 Portfolio, Achievements, Grading). It reuses the DEALS hub chrome (`.hub-bar`), which is
 now the template 9.0–11.0 inherit.
 
-**Next up: 9.0 Market hub** — Market, Auction House and Buylist as modes of one market;
-Pack Shop, Trading Post and Community keep their own doors.
+**Status: 9.0 Market hub built.** Marketplace, Auction House and Buylist are one door with
+three modes (`#/market/feed|auctions|buylist`); `#/auctions` and `#/buylist` normalize into
+it. Pack Shop, Trading Post and Community keep their own rows, so MARKET is 4 doors instead
+of 6 and the sidebar is down to 20.
+
+**Status: 10.0 Events hub built.** Calendar, Conventions and Card Shows are one door with
+three modes (`#/events/calendar|conventions|shows`); `#/calendar`, `#/convention` and
+`#/shows` normalize into it. The calendar leads the bar as **Calendar** because it is the
+index — and it is now a real month grid (Monday-first weekday columns, today ringed, month
+paging bounded by what the scene has published, two chips per day then "+N more") with a
+selected-day panel carrying the blurbs, countdowns and jump links. The two things you can
+attend follow it. New links (calendar rows, the Home dashboard) write hub hashes directly;
+the old ones keep working forever because server
+feed items and existing saves still carry them. EVENTS is now 1 row, sidebar down to 18.
+
+Both attend-venues shed their stacked walls this pass. **Conventions** is three states — a
+hall that hasn't opened (countdown, prep list, your record), a door screen, and an entered
+hall split into Floor / Booths / Estate / Your table. **Card Shows** keeps its organizer verb
+but splits it: nothing booked is a plan (price the doors with live verdicts, sign headliners,
+pick a hall with the cost math printed on it), and a booked show is a console with four
+sections — The deal, Guests, My booth, Dealers — under a countdown banner. Past shows are rows
+instead of a seven-column table, because at this width the table only ever showed the one
+number you came for. Both venues share one segmented bar (`.seg-bar`) so the two organisers
+read the same way.
+
+**Next up: 11.0 Inventory absorbs Storage** — one inventory screen with storage capacity
+as a mode instead of a second door onto the same cards.
 
 Fold the remaining screens so the sidebar stops being a wall. Same principle as DEALS:
 fewer doors, deeper rooms.
@@ -104,8 +129,8 @@ fewer doors, deeper rooms.
 32 screens → 18 doors, every one of them earning its place.
 
 - [x] 8.0 Collection hub
-- [ ] 9.0 Market hub
-- [ ] 10.0 Events hub
+- [x] 9.0 Market hub
+- [x] 10.0 Events hub
 - [ ] 11.0 Inventory absorbs Storage
 
 ### Phase 3 — The finish pass

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api, type BagRevealResult, type BagRow, type BulkBoxRow, type ConsignmentStatus, type FinanceStatus, type FranchiseDm, type FranchiseInternalCandidate, type FranchiseManagerCandidate, type FranchiseShelfRow, type FranchiseSlot, type FranchiseStore, type IntelCard, type IntelStatus, type LoyaltyView, type PnlStatement, type ProtectionCosts, type RivalStatus, type PnlWeekRow, type ShopCaseRow, type ShopProperty, type ShopStatus, type StockableRow, type StaffCandidate, type StaffMember } from '../api'
 import { useStore } from '../store'
 import { gameDayMsFor } from '../lib/gameday'
-import { DensityToggle, fmtUsd, matchesQuery, OverflowMenu, Tabs } from '../components'
+import { fmtUsd, matchesQuery, OverflowMenu } from '../components'
 
 // ---------------------------------------------------------------------------
 // 🏪 The Card Shop — your permanent storefront (Phase 4)
@@ -33,6 +33,15 @@ function LeasePanel({ onLeased }: { onLeased: () => void }) {
   const [name, setName] = useState('')
   const [tier, setTier] = useState('hole-in-the-wall')
   const [busy, setBusy] = useState(false)
+  const cash = state?.cash ?? 0
+
+  const tiers = [
+    { id: 'hole-in-the-wall', icon: '🚪', label: 'Hole-in-the-wall', blurb: 'A narrow slot between a laundromat and a phone repair kiosk.', deposit: 250, rent: 6 },
+    { id: 'storefront', icon: '🏪', label: 'Storefront', blurb: 'Real windows, real sign, a door that opens with intention.', deposit: 900, rent: 22.5 },
+    { id: 'flagship', icon: '🏛', label: 'Flagship', blurb: 'The corner location everyone in the scene knows by name.', deposit: 3000, rent: 70 },
+  ]
+  const pick = tiers.find((t) => t.id === tier) ?? tiers[0]
+  const short = cash < pick.deposit
 
   const lease = async () => {
     setBusy(true)
@@ -50,39 +59,50 @@ function LeasePanel({ onLeased }: { onLeased: () => void }) {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>🏪 Open a Card Shop</h1>
-          <div className="sub">Sign a lease, fill your cases, and let the walk-ins come to you.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🏪</span>
+          <div>
+            <h1>Open a Card Shop</h1>
+            <div className="sub">Sign a lease, fill your cases, and let the walk-ins come to you.</div>
+          </div>
         </div>
       </div>
-      <div className="panel" style={{ maxWidth: 720 }}>
-        <b>Choose your location</b>
-        <div className="grid cols3 mt10">
-          {[
-            { id: 'hole-in-the-wall', label: 'Hole-in-the-wall', blurb: 'A narrow slot between a laundromat and a phone repair kiosk.', deposit: 250, rent: 6 },
-            { id: 'storefront', label: 'Storefront', blurb: 'Real windows, real sign, a door that opens with intention.', deposit: 900, rent: 22.5 },
-            { id: 'flagship', label: 'Flagship', blurb: 'The corner location everyone in the scene knows by name.', deposit: 3000, rent: 70 },
-          ].map((t) => (
-            <div
-              key={t.id}
-              className="conv-booth"
-              style={{ cursor: 'pointer', outline: tier === t.id ? '2px solid var(--accent, #f5c518)' : 'none' }}
-              onClick={() => setTier(t.id)}
-            >
-              <b className="small">{t.label}</b>
-              <div className="price" style={{ fontSize: 16 }}>{fmtUsd(t.deposit)} deposit</div>
-              <div className="faint small">{t.blurb}</div>
-              <div className="badge mt8" style={{ fontSize: 10 }}>{fmtUsd(t.rent)}/day rent</div>
-            </div>
-          ))}
+
+      <div className="shop-tiers" role="radiogroup" aria-label="Location">
+        {tiers.map((t) => (
+          <button
+            key={t.id}
+            role="radio"
+            aria-checked={tier === t.id}
+            className={`shop-tier${tier === t.id ? ' on' : ''}`}
+            onClick={() => setTier(t.id)}
+          >
+            <span className="shop-tier-icon">{t.icon}</span>
+            <span className="shop-tier-main">
+              <span className="shop-tier-name">{t.label}</span>
+              <span className="shop-tier-blurb">{t.blurb}</span>
+            </span>
+            <span className="shop-tier-nums">
+              <b>{fmtUsd(t.deposit)}</b>
+              <span>{fmtUsd(t.rent)}/day</span>
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="shop-sign">
+        <div className="shop-sign-facts">
+          <div><span>Deposit</span><b>{fmtUsd(pick.deposit)}</b></div>
+          <div><span>Rent</span><b>{fmtUsd(pick.rent)}/day</b></div>
+          <div><span>Cash after</span><b style={{ color: short ? 'var(--red)' : undefined }}>{fmtUsd(cash - pick.deposit)}</b></div>
         </div>
-        <div className="row mt10" style={{ gap: 8 }}>
-          <input className="input" style={{ flex: 1 }} placeholder="Shop name — e.g. The Dragon Vault" value={name} maxLength={40}
-            onChange={(e) => setName(e.target.value)} />
-          <button className="primary" disabled={busy || !name.trim()} onClick={lease}>Sign the lease</button>
-        </div>
-        <div className="faint small mt8">
+        <input className="input shop-sign-name" placeholder="Shop name — e.g. The Dragon Vault" value={name} maxLength={40}
+          onChange={(e) => setName(e.target.value)} />
+        <button className="primary" disabled={busy || !name.trim() || short} onClick={lease}>
+          {short ? `Need ${fmtUsd(pick.deposit - cash)} more` : 'Sign the lease'}
+        </button>
+        <div className="faint small" style={{ lineHeight: 1.5 }}>
           Rent is charged once per in-game day while your cases are stocked. Empty cases are rent-free — but a shop that never opens never sells.
         </div>
       </div>
@@ -95,56 +115,40 @@ function CaseCard({ shopCase, onUnstock, onStockInto }: {
   onUnstock: (id: number, name: string) => void
   onStockInto: (c: ShopCaseRow) => void
 }) {
-  const { openCard, density } = useStore()
+  const { openCard } = useStore()
   const full = shopCase.used >= shopCase.slots
-  const compact = density !== 'comfortable'
+  const pct = Math.round((shopCase.used / Math.max(1, shopCase.slots)) * 100)
   return (
-    <div className="panel" style={{ margin: 0 }}>
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <div>
-          <b className="small">{shopCase.label}</b>
-          <div className="faint small">{shopCase.used}/{shopCase.slots} slots · {shopCase.blurb}</div>
+    <div className="shopcase">
+      <div className="shopcase-head">
+        <div className="shopcase-title">
+          <b>{shopCase.label}</b>
+          <div className="faint small">{shopCase.blurb}</div>
         </div>
-        <div className="row" style={{ gap: 8 }}>
-          {shopCase.cards.length > 1 && <DensityToggle />}
-          <button className="small" disabled={full} onClick={() => onStockInto(shopCase)}>{full ? 'Full' : '+ Stock'}</button>
-        </div>
+        <button className="small" disabled={full} onClick={() => onStockInto(shopCase)}>{full ? 'Full' : '+ Stock'}</button>
+      </div>
+      <div className="shopcase-fill">
+        <span className="shopcase-meter"><i style={{ width: `${pct}%` }} /></span>
+        <span className="faint small">{shopCase.used}/{shopCase.slots}</span>
       </div>
       {shopCase.cards.length === 0 ? (
-        <div className="faint small mt8">Empty — dust and daydreams.</div>
-      ) : compact ? (
-        <div className={`card-grid mt8 ${density === 'list' ? 'density-list' : 'density-compact'}`}>
-          {shopCase.cards.map((r) => (
-            <div key={r.id} className="card-cell">
-              <div style={{ width: density === 'list' ? 38 : undefined, cursor: 'pointer' }} onClick={() => openCard(r.card_id)}>
-                <img src={r.image_small ?? ''} alt={r.name} style={{ width: '100%', borderRadius: 4, display: 'block' }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden' }} />
-              </div>
-              <div className="card-meta">
-                <div className="nm" title={r.name}>{r.name}</div>
-                <div className="card-row-between">
-                  <span className="price">{fmtUsd(r.ask)}</span>
-                  <DeltaBadge delta={r.delta} />
-                </div>
-              </div>
-              <button className="small ghost" onClick={() => onUnstock(r.id, r.name)}>Take out</button>
-            </div>
-          ))}
-        </div>
+        <div className="faint small shopcase-empty">Empty — dust and daydreams.</div>
       ) : (
-        <div className="grid cols3 mt8" style={{ gap: 8 }}>
+        <div className="shopcase-cards">
           {shopCase.cards.map((r) => (
-            <div key={r.id} style={{ background: '#0d1017', borderRadius: 8, padding: 8 }}>
-              <div style={{ width: 56, cursor: 'pointer', margin: '0 auto' }} onClick={() => openCard(r.card_id)}>
-                <img src={r.image_small ?? ''} alt={r.name} style={{ width: '100%', borderRadius: 4, display: 'block' }}
+            <div key={r.id} className="shopcase-card">
+              <span className="shopcase-thumb" onClick={() => openCard(r.card_id)} title={r.name}>
+                <img src={r.image_small ?? ''} alt={r.name} style={{ width: '100%', display: 'block', borderRadius: 3 }}
                   onError={(e) => { (e.target as HTMLImageElement).style.visibility = 'hidden' }} />
-              </div>
-              <div className="small" style={{ marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.name}>{r.name}</div>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <span className="price">{fmtUsd(r.ask)}</span>
+              </span>
+              <span className="shopcase-main">
+                <span className="shopcase-name" title={r.name}>{r.name}</span>
                 <DeltaBadge delta={r.delta} />
-              </div>
-              <button className="small mt8" style={{ width: '100%' }} onClick={() => onUnstock(r.id, r.name)}>Take out</button>
+              </span>
+              <span className="shopcase-nums">
+                <b>{fmtUsd(r.ask)}</b>
+                <button className="small ghost" onClick={() => onUnstock(r.id, r.name)}>Take out</button>
+              </span>
             </div>
           ))}
         </div>
@@ -506,29 +510,32 @@ function TaxPanel() {
         </div>
       )}
 
-      {data.filings.length > 0 && (
-        <table className="table mt10" style={{ width: '100%' }}>
-          <thead>
-            <tr><th style={{ textAlign: 'left' }}>Period</th><th>Revenue</th><th>Deductions</th><th>Taxable</th><th>Rate</th><th>Tax</th></tr>
-          </thead>
-          <tbody>
-            {data.filings.map((f) => (
-              <tr key={f.id}>
-                <td style={{ textAlign: 'left' }} className="small">
+            {data.filings.length > 0 && (
+        <div className="pf-rows mt10">
+          {data.filings.map((f) => (
+            <div className="pf-row" key={f.id}>
+              <div className="pf-row-main">
+                <b className="pf-row-name">
                   {f.month}
-                  {f.strategy === 'aggressive' && <span className="faint small" title="Filed with phantom deductions"> · 📕</span>}
-                  {f.audited === 1 && <span className="small" style={{ color: f.penalty > 0 ? 'var(--red)' : 'var(--good, var(--green))' }}> · {f.penalty > 0 ? `🚨 AUDITED −${fmtUsd(f.penalty)}` : '✅ audited clean'}</span>}
-                  {f.fine > 0 && <span className="small" style={{ color: 'var(--amber)' }}> · ⚠️ underpaid −{fmtUsd(f.fine)} fine</span>}
-                </td>
-                <td className="price small" style={{ textAlign: 'right' }}>{fmtUsd(f.revenue)}</td>
-                <td className="faint small" style={{ textAlign: 'right' }}>{fmtUsd(f.deductions)}</td>
-                <td className="small" style={{ textAlign: 'right', color: f.taxable < 0 ? 'var(--red)' : undefined }}>{fmtUsd(f.taxable)}</td>
-                <td className="faint small" style={{ textAlign: 'right' }}>{Math.round(f.rate * 100)}%</td>
-                <td className="price small" style={{ textAlign: 'right', color: f.tax > 0 ? 'var(--red)' : 'var(--good, var(--green))' }}>{f.tax > 0 ? `-${fmtUsd(f.tax)}` : '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  {f.strategy === 'aggressive' && <span className="faint small"> · 📕</span>}
+                </b>
+                <div className="faint small">
+                  {fmtUsd(f.revenue)} revenue · {fmtUsd(f.deductions)} deductions · {Math.round(f.rate * 100)}% rate
+                  {f.audited === 1 && (
+                    <span style={{ color: f.penalty > 0 ? 'var(--red)' : 'var(--green)' }}>
+                      {f.penalty > 0 ? ` · 🚨 audited −${fmtUsd(f.penalty)}` : ' · ✅ audited clean'}
+                    </span>
+                  )}
+                  {f.fine > 0 && <span style={{ color: 'var(--amber)' }}> · ⚠️ underpaid −{fmtUsd(f.fine)}</span>}
+                </div>
+              </div>
+              <div className="pf-row-nums">
+                <b className="small" style={{ color: f.tax > 0 ? 'var(--red)' : 'var(--green)' }}>{f.tax > 0 ? `-${fmtUsd(f.tax)}` : '—'}</b>
+                <div className="faint small">{fmtUsd(f.taxable)} taxable</div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
@@ -593,22 +600,21 @@ function SalesTaxPanel() {
         </div>
       </div>
 
-      {st.filings.length > 0 && (
-        <table className="table mt10" style={{ width: '100%' }}>
-          <thead>
-            <tr><th style={{ textAlign: 'left' }}>Month</th><th>Collected</th><th>Remitted</th><th>Filed</th></tr>
-          </thead>
-          <tbody>
-            {st.filings.map((f) => (
-              <tr key={f.id}>
-                <td style={{ textAlign: 'left' }} className="small">{f.month}</td>
-                <td className="price small" style={{ textAlign: 'right' }}>{fmtUsd(f.collected)}</td>
-                <td className="price small" style={{ textAlign: 'right' }}>{fmtUsd(f.remitted)}</td>
-                <td className="faint small" style={{ textAlign: 'right' }}>{new Date(f.filed_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            {st.filings.length > 0 && (
+        <div className="pf-rows mt10">
+          {st.filings.map((f) => (
+            <div className="pf-row" key={f.id}>
+              <div className="pf-row-main">
+                <b className="pf-row-name">{f.month}</b>
+                <div className="faint small">filed {new Date(f.filed_at).toLocaleDateString()}</div>
+              </div>
+              <div className="pf-row-nums">
+                <b className="small">{fmtUsd(f.collected)}</b>
+                <div className="faint small">{fmtUsd(f.remitted)} remitted</div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   )
@@ -823,7 +829,7 @@ function FinancePanel() {
             {data.missedDrafts > 0 && <span className="bad"> · {data.missedDrafts}/3 missed drafts</span>}
           </div>
         </div>
-        <div className="row" style={{ gap: 14 }}>
+        <div className="row" style={{ gap: 14, flexWrap: 'wrap' }}>
           <div style={{ textAlign: 'right' }}>
             <div className="faint small">Credit line</div>
             <div className="price">{fmtUsd(data.creditLimit)}</div>
@@ -845,27 +851,23 @@ function FinancePanel() {
         </div>
       )}
 
-      {data.loans.length > 0 && (
-        <table className="table mt8" style={{ width: '100%' }}>
-          <thead>
-            <tr><th style={{ textAlign: 'left' }}>Lender</th><th>Principal</th><th>Balance</th><th>Rate</th><th>Interest paid</th><th></th></tr>
-          </thead>
-          <tbody>
-            {data.loans.map((l) => (
-              <tr key={l.id}>
-                <td style={{ textAlign: 'left' }}>
-                  <b className="small">{l.lender}</b>
-                  <span className="faint small"> · {l.daysOld}d old{l.kind === 'overdraft' ? ' · 🚨 overdraft' : ''}</span>
-                </td>
-                <td className="faint small">{fmtUsd(l.principal)}</td>
-                <td className="price">{fmtUsd(l.balance)}</td>
-                <td className="faint small">{(l.rateDaily * 100).toFixed(1)}%/day</td>
-                <td className="faint small">{fmtUsd(l.interestPaid)}</td>
-                <td><button className="small" disabled={busy} onClick={() => repay(l.id, true, l.balance)}>Pay off</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            {data.loans.length > 0 && (
+        <div className="pf-rows mt8">
+          {data.loans.map((l) => (
+            <div className="pf-row" key={l.id}>
+              <div className="pf-row-main">
+                <b className="pf-row-name">{l.lender}{l.kind === 'overdraft' ? ' · 🚨 overdraft' : ''}</b>
+                <div className="faint small">
+                  {fmtUsd(l.principal)} at {(l.rateDaily * 100).toFixed(1)}%/day · {l.daysOld}d old · {fmtUsd(l.interestPaid)} interest
+                </div>
+              </div>
+              <div className="pf-row-nums">
+                <b className="small">{fmtUsd(l.balance)}</b>
+                <button className="small" disabled={busy} onClick={() => repay(l.id, true, l.balance)}>Pay off</button>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="row mt8" style={{ gap: 8 }}>
@@ -1198,7 +1200,7 @@ function GrabBagsPanel({ bags = [], history = [], prices = [], onChange }: {
       <div className="faint small">Sealed packs of 10 with one guaranteed hit (≥5× the bag price). Sell them to gamblers, or rip one yourself — the reveal is half the fun.</div>
 
       {bags.length > 0 && (
-        <div className="grid cols3 mt8" style={{ gap: 10 }}>
+        <div className="grid cols2 mt8" style={{ gap: 10 }}>
           {bags.map((b) => (
             <div key={b.id} className="conv-booth" style={{ cursor: 'default' }}>
               <div className="row" style={{ justifyContent: 'space-between' }}>
@@ -2667,81 +2669,94 @@ export function ShopView() {
   const ownedCases = data.cases.filter((c) => c.owned)
   const shopCases = data.cases.filter((c) => !c.owned && !c.locked)
   const lockedCases = data.cases.filter((c) => !c.owned && c.locked)
+  const netGoods = s.lifetimeRevenue - s.lifetimeCost
+
+  const tabs = [
+    { id: 'floor', label: '🪟 Floor' },
+    { id: 'products', label: '📦 Products' },
+    { id: 'money', label: '💳 Money' },
+    { id: 'office', label: '🗂 Office' },
+    { id: 'franchise', label: '🛰 Chain' },
+  ]
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>🏪 {s.name}</h1>
-          <div className="sub">{s.tierLabel} · {propertyHeadline(s.property)} · {s.displayedUnits} {s.displayedUnits === 1 ? 'card' : 'cards'} on display</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🏪</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>{s.name}</h1>
+            <div className="sub">{s.tierLabel} · {propertyHeadline(s.property)} · {s.displayedUnits} {s.displayedUnits === 1 ? 'card' : 'cards'} on display</div>
+          </div>
         </div>
-        <div className="right" style={{ textAlign: 'right' }}>
-          <RepBadge rep={s.reputation} />
-          <div className="faint small mt8">Today: {s.todayCustomers} sales · {fmtUsd(s.todayRevenue)}</div>
+        <div className="right"><RepBadge rep={s.reputation} /></div>
+      </div>
+
+      <div className="pf-stats" style={{ marginBottom: 12 }}>
+        <div className="pf-stat">
+          <div className="lbl">Lifetime revenue</div>
+          <div className="val">{fmtUsd(s.lifetimeRevenue)}</div>
+          <div className="note">{s.customerCount} walk-in sales</div>
+        </div>
+        <div className="pf-stat">
+          <div className="lbl">Net of goods</div>
+          <div className="val" style={{ color: netGoods >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            {netGoods >= 0 ? '+' : ''}{fmtUsd(netGoods)}
+          </div>
+          <div className="note">{fmtUsd(s.lifetimeCost)} of basis sold</div>
+        </div>
+        <div className="pf-stat">
+          <div className="lbl">Rent / day</div>
+          <div className="val">{fmtUsd(s.rent)}</div>
+          <div className="note">charged while stocked</div>
+        </div>
+        <div className="pf-stat">
+          <div className="lbl">Today</div>
+          <div className="val">{fmtUsd(s.todayRevenue)}</div>
+          <div className="note">{s.todayCustomers} sale{s.todayCustomers === 1 ? '' : 's'} through the door</div>
         </div>
       </div>
 
-      <div className="grid cols3" style={{ marginBottom: 16 }}>
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">Lifetime revenue</div>
-          <div className="price">{fmtUsd(s.lifetimeRevenue)}</div>
-          <div className="faint small">{s.customerCount} walk-in sales</div>
-        </div>
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">Net of goods sold</div>
-          <div className="price" style={{ color: s.lifetimeRevenue - s.lifetimeCost >= 0 ? 'var(--good, var(--green))' : 'var(--red)' }}>
-            {fmtUsd(s.lifetimeRevenue - s.lifetimeCost)}
-          </div>
-          <div className="faint small">goods sold at {fmtUsd(s.lifetimeCost)} basis</div>
-        </div>
-        <div className="panel" style={{ margin: 0 }}>
-          <div className="faint small">{s.property.owned ? 'Daily mortgage' : 'Daily rent'}</div>
-          <div className="price">{fmtUsd(s.property.owned ? (s.property.mortgage && !s.property.mortgage.paidOff ? s.property.mortgage.daily : 0) : s.rent)}</div>
-          <div className="faint small">
-            {s.property.owned
-              ? (s.property.mortgage && !s.property.mortgage.paidOff
-                  ? `${fmtUsd(s.property.mortgage.balance)} left on the deed`
-                  : 'paid off — the building is yours')
-              : 'charged while cases are stocked'}
-          </div>
-        </div>
-      </div>
-
-      <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-        {ownedCases.map((c) => (
-          <CaseCard key={c.id} shopCase={c} onUnstock={unstock} onStockInto={setStockInto} />
+      <div className="seg-bar" role="tablist" aria-label="Shop modes">
+        {tabs.map((t) => (
+          <button key={t.id} role="tab" aria-selected={tab === t.id} className={`seg-item${tab === t.id ? ' on' : ''}`}
+            onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
         ))}
-      </div>
-
-      {stockInto && <StockPicker targetCase={stockInto} onClose={() => setStockInto(null)} onStocked={() => { setStockInto(null); load() }} />}
-
-      <div className="tab-bar mt14" style={{ marginBottom: 14 }}>
-        <Tabs
-          active={tab}
-          onChange={setTab}
-          tabs={[
-            { id: 'floor', label: 'Floor' },
-            { id: 'products', label: 'Products' },
-            { id: 'money', label: 'Money' },
-            { id: 'office', label: 'Office' },
-            { id: 'franchise', label: '🛰 The Chain' },
-          ]}
-        />
       </div>
 
       {tab === 'floor' && (
         <>
-          <ConsignmentPanel />
+          {ownedCases.length > 0 ? (
+            <div className="shopcase-list">
+              {ownedCases.map((c) => (
+                <CaseCard key={c.id} shopCase={c} onUnstock={unstock} onStockInto={setStockInto} />
+              ))}
+            </div>
+          ) : (
+            <div className="shop-empty">
+              <b className="small">The floor is bare</b>
+              <div className="faint small">No cases yet — buy one below, then stock it from your binder. A shop with nothing in the window sells nothing.</div>
+            </div>
+          )}
+
+          {stockInto && <StockPicker targetCase={stockInto} onClose={() => setStockInto(null)} onStocked={() => { setStockInto(null); load() }} />}
+
           {shopCases.length > 0 && (
-            <div className="panel">
-              <b className="small">Furnish the shop</b>
-              <div className="grid cols3 mt8">
+            <div className="panel" style={{ padding: '13px 14px' }}>
+              <div className="section-head">Furnish the shop</div>
+              <div className="pf-rows">
                 {shopCases.map((c) => (
-                  <div key={c.id} className="conv-booth" style={{ cursor: 'default' }}>
-                    <b className="small">{c.label}</b>
-                    <div className="price" style={{ fontSize: 15 }}>{fmtUsd(c.price)}</div>
-                    <div className="faint small">{c.blurb}</div>
-                    <button className="primary small mt8" style={{ width: '100%' }} onClick={() => buyCase(c.id)}>Buy case</button>
+                  <div className="pf-row" key={c.id}>
+                    <div className="pf-row-main">
+                      <b className="pf-row-name">{c.label}</b>
+                      <div className="faint small">{c.slots} slots · {c.blurb}</div>
+                    </div>
+                    <div className="pf-row-nums">
+                      <b className="small">{fmtUsd(c.price)}</b>
+                      <button className="small" onClick={() => buyCase(c.id)}>Buy</button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2749,45 +2764,45 @@ export function ShopView() {
           )}
 
           {lockedCases.length > 0 && (
-            <div className="panel faint small" style={{ marginTop: 10 }}>
-              Bigger leases unlock: {lockedCases.map((c) => `${c.label} (${c.tier} lease)`).join(' · ')}
+            <div className="panel faint small" style={{ marginTop: 10, lineHeight: 1.5 }}>
+              Bigger leases unlock: {lockedCases.map((c) => c.label).join(' · ')}
             </div>
           )}
 
           {data.recent.length > 0 && (
-            <div className="panel" style={{ marginTop: 10 }}>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <b className="small">Recent walk-in sales</b>
-                {data.shop.reputation !== undefined && data.roundUps && (data.roundUps.donors > 0 || data.roundUpsEnabled) && (
-                  <span className="faint small" title="Customers round the total up to the next dollar for the cause — the full spare change goes there, and donors talk">
-                    🕊️ {data.roundUps.donors} round-up{data.roundUps.donors === 1 ? '' : 's'} · {fmtUsd(data.roundUps.total)} donated
+            <div className="panel" style={{ padding: '13px 14px' }}>
+              <div className="section-head">
+                Recent walk-ins
+                {data.roundUps.donors > 0 && (
+                  <span className="faint small" style={{ marginLeft: 'auto', textTransform: 'none', letterSpacing: 0 }}>
+                    🕊️ {data.roundUps.donors} round-up{data.roundUps.donors === 1 ? '' : 's'} · {fmtUsd(data.roundUps.total)}
                   </span>
                 )}
               </div>
-              <table className="table mt8" style={{ width: '100%' }}>
-                <thead>
-                  <tr><th style={{ textAlign: 'left' }}>Card</th><th>Buyer</th><th>Price</th><th>Profit</th><th>When</th></tr>
-                </thead>
-                <tbody>
-                  {data.recent.slice(0, 8).map((r) => (
-                    <tr key={r.id}>
-                      <td style={{ textAlign: 'left' }}><b className="small">{r.name}</b>{r.quantity > 1 && ` ×${r.quantity}`}</td>
-                      <td className="faint small">{r.buyer}</td>
-                      <td className="price">{fmtUsd(r.price)}{r.roundup > 0 && <span className="faint small" style={{ marginLeft: 4 }}>+{fmtUsd(r.roundup)} 🕊️</span>}</td>
-                      <td className={r.profit >= 0 ? 'good small' : 'bad small'}>{r.profit >= 0 ? '+' : ''}{fmtUsd(r.profit)}</td>
-                      <td className="faint small">{new Date(r.sold_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="pf-rows">
+                {data.recent.slice(0, 8).map((r) => (
+                  <div className="pf-row" key={r.id}>
+                    <div className="pf-row-main">
+                      <b className="pf-row-name">{r.name}{r.quantity > 1 ? ` ×${r.quantity}` : ''}</b>
+                      <div className="faint small">{r.buyer} · {new Date(r.sold_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+                    <div className="pf-row-nums">
+                      <b className="small">{fmtUsd(r.price)}</b>
+                      <div className="small" style={{ color: r.profit >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                        {r.profit >= 0 ? '+' : ''}{fmtUsd(r.profit)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          <div className="panel" style={{ marginTop: 10 }}>
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <div>
+          <div className="panel" style={{ padding: '13px 14px' }}>
+            <div className="row" style={{ justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <b className="small">Locking up</b>
-                <div className="faint small">Close the shop for good — all displayed cards return to your binder. Sales history stays.</div>
+                <div className="faint small">Close the shop for good — displayed cards return to your binder. Sales history stays.</div>
               </div>
               <button className="small" onClick={closeShop}>Close the shop</button>
             </div>

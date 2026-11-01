@@ -710,7 +710,20 @@ function saveThread(o: {
   rounds: number
 }) {
   // Every incoming offer counts toward the trader's lifetime accept-rate denominator.
-  if (o.direction === 'incoming') db.prepare(`UPDATE traders SET offers_made = offers_made + 1 WHERE id = ?`).run(o.traderId)
+  if (o.direction === 'incoming') {
+    db.prepare(`UPDATE traders SET offers_made = offers_made + 1 WHERE id = ?`).run(o.traderId)
+    // An offer that expires unanswered is a real loss, so it wants a badge.
+    const lead = o.theirCards[0]?.name ?? 'a card'
+    const more = o.theirCards.length > 1 ? ` + ${o.theirCards.length - 1} more` : ''
+    void import('./notify')
+      .then((n) => n.push(
+        'trade',
+        '🤝 New trade offer',
+        `${lead}${more} on the table${o.theirCash > 0 ? ` with ${o.theirCash.toFixed(2)}` : ''} — it expires if you sit on it.`,
+        '#/trade',
+      ))
+      .catch(() => {})
+  }
   db.prepare(
     `INSERT INTO trade_offers (trader_id, direction, their_cards, their_cash, your_items, your_cash, message, expires_at, status, rounds, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,

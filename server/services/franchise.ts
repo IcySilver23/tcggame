@@ -50,10 +50,10 @@ export type FranchiseRow = {
 type Tier = { id: FranchiseRow['tier']; label: string; blurb: string; deposit: number; rent: number }
 
 const TIERS: Tier[] = [
-  { id: 'hole-in-the-wall', label: 'Hole-in-the-wall', blurb: 'Across town where rent is cheap and foot traffic is optimistic.', deposit: 250, rent: 6 },
-  { id: 'storefront', label: 'Storefront', blurb: 'A real shop in a real neighborhood. Costs real money to keep dark.', deposit: 900, rent: 18 },
-  { id: 'flagship', label: 'Flagship', blurb: 'You are becoming a chain. The scene has noticed.', deposit: 3000, rent: 70 },
-  { id: 'region', label: 'Region flagship', blurb: 'Four doors under one name — the map finally has a region on it.', deposit: 6500, rent: 170 },
+  { id: 'hole-in-the-wall', label: 'Hole-in-the-wall', blurb: 'Across town where rent is cheap and foot traffic is optimistic.', deposit: 250, rent: 4 },
+  { id: 'storefront', label: 'Storefront', blurb: 'A real shop in a real neighborhood. Costs real money to keep dark.', deposit: 900, rent: 11 },
+  { id: 'flagship', label: 'Flagship', blurb: 'You are becoming a chain. The scene has noticed.', deposit: 3000, rent: 20 },
+  { id: 'region', label: 'Region flagship', blurb: 'Four doors under one name — the map finally has a region on it.', deposit: 6500, rent: 46 },
 ]
 
 const MANAGER_NAMES = ['Marisol', 'Dell', 'Priya', 'Hank', 'Iris', 'Sol', 'Nadia', 'Bruno', 'Winnie', 'Otis']

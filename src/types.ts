@@ -51,6 +51,8 @@ export type SetRow = {
   symbol_url: string | null
   logo_url: string | null
   cards_synced?: number
+  /** Cards in this set the player owns (collection + in-grading), distinct. */
+  owned?: number
 }
 
 export type PriceRow = {
@@ -149,6 +151,21 @@ export type ProductRow = {
 
 export type OpenedCard = { cardId: string; isHit: boolean; value: number; variant?: string; setName?: string; rarity?: string | null; image?: string | null; name?: string; /** Zero copies owned before this rip — first copy only. */ isNew?: boolean }
 export type OpenSession = { sessionId: string; cards: OpenedCard[]; totalValue: number; spent: number }
+
+/** The promo card sealed beside a box's packs — it lands before any wrapper. */
+export type BoxPromo = { cardId: string; name: string; image: string | null; value: number }
+
+/** One pack out of a box that is being opened wrapper by wrapper. */
+export type BoxOpen = OpenSession & {
+  boxId: number
+  productId: string
+  productName: string
+  packIndex: number
+  packsTotal: number
+  packsLeft: number
+  done: boolean
+  promo?: BoxPromo | null
+}
 
 export type PullRow = {
   id: number

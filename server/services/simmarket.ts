@@ -1,5 +1,5 @@
 import { db, getMeta, setMeta, nowIso, logActivity } from '../lib/db'
-import { estimatePrice } from './estimates'
+import { estimatePrice, researchedAnchor } from './estimates'
 
 // ---------------------------------------------------------------------------
 // API quota budget + simulated-market fallback
@@ -225,6 +225,11 @@ export function simJitter(cardId: string): number {
  * precedence in resolvePrice.
  */
 export function simulatedAnchor(cardId: string): number | null {
+  // Hand-researched values outrank every inference below. The sibling anchor
+  // happily drags a $3,850 phantom Mew down to the $0.35 common it shares a
+  // name with, which is the exact failure this table exists to correct.
+  const curated = researchedAnchor(cardId)
+  if (curated != null) return Math.round(curated * simJitter(cardId) * 100) / 100
   const row = ANY_ANCHOR.get(cardId) as { market: number } | undefined
   let base = row?.market ?? null
   let commodity = false

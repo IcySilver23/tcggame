@@ -50,6 +50,19 @@ const schemaPath = fs.existsSync(path.join(APP_ROOT, 'server', 'schema.sql'))
 const schema = fs.readFileSync(schemaPath, 'utf-8')
 db.exec(schema)
 
+// A box (bundle/ETB/display) opens one pack at a time; this row remembers how
+// many wrappers are left so closing the tab mid-box resumes at the next pack.
+db.exec(`CREATE TABLE IF NOT EXISTS sealed_box_open (
+  id INTEGER PRIMARY KEY,
+  product_id TEXT NOT NULL,
+  set_id TEXT NOT NULL,
+  cards_per_pack INTEGER NOT NULL,
+  packs_left INTEGER NOT NULL,
+  packs_total INTEGER NOT NULL,
+  per_pack_cost REAL NOT NULL,
+  total_cost REAL NOT NULL,
+  created_at TEXT NOT NULL
+)`)
 // Migrations for databases created before these columns existed.
 try { db.exec('ALTER TABLE activity_log ADD COLUMN href TEXT') } catch { /* exists */ }
 try { db.exec('ALTER TABLE pack_products ADD COLUMN image_url TEXT') } catch { /* exists */ }

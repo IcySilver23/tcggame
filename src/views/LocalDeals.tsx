@@ -643,6 +643,9 @@ export function LocalDealsView() {
   const [tab, setTab] = useState<Tab>('browse')
   const [busy, setBusy] = useState<number | null>(null)
   const [result, setResult] = useState<any>(null)
+  // The listing behind the last meetup, so the scene can put a face and a car
+  // in it. Selling your own post has no row — that keeps the plain modal.
+  const [sceneRow, setSceneRow] = useState<LocalFeedRow | null>(null)
   const [offerFor, setOfferFor] = useState<LocalFeedRow | null>(null)
   const [open, setOpen] = useState<LocalFeedRow | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -684,6 +687,7 @@ export function LocalDealsView() {
       const r = await api.localMeet(row.id, offer)
       if (r.ok) {
         setResult(r)
+        setSceneRow(row)
         if (r.outcome === 'bought') refreshState()
         if (r.ok && r.outcome === 'bought') setOpen(null)
       } else toast(r.error ?? 'Meetup failed', 'bad')
@@ -695,7 +699,7 @@ export function LocalDealsView() {
     setBusy(l.id)
     try {
       const r = await api.localAccept(l.id, buyer, amount)
-      if (r.ok) { setResult(r); refreshState() }
+      if (r.ok) { setResult(r); setSceneRow(null); refreshState() }
       else toast(r.error ?? 'Meetup failed', 'bad')
       load()
     } finally { setBusy(null) }
@@ -841,7 +845,21 @@ export function LocalDealsView() {
           onSend={async (num) => { await meet(offerFor, num); setOfferFor(null) }}
         />
       )}
-      <MeetResultModal result={result} onClose={() => setResult(null)} />
+      {result && sceneRow && (result.outcome !== 'bought' || !result.reveal) ? (
+        <MeetupScene
+          row={sceneRow}
+          result={result}
+          onClose={() => { setResult(null); setSceneRow(null); refreshState() }}
+          onCounter={(n) => {
+            const next = sceneRow
+            setResult(null)
+            setSceneRow(null)
+            void meet(next, n)
+          }}
+        />
+      ) : (
+        <MeetResultModal result={result} onClose={() => setResult(null)} />
+      )}
     </div>
   )
 }
@@ -1010,6 +1028,198 @@ function MysteryReveal({ reveal, onClose }: { reveal: LocalReveal; onClose: () =
             </div>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// The meetup — a parking lot, not a popup.
+//
+// Buying from a stranger is the one transaction in the game with no
+// protection, so it gets the one screen with no paperwork: you pull in, you
+// make small talk, you count cash, you check the corners, you leave. Every
+// beat below is driven by what the server already decided (outcome, paid,
+// inspected) — the scene dramatises the result, it never invents one.
+// ---------------------------------------------------------------------------
+
+type MeetBeat = {
+  label: string
+  /** What they say, in their own words. */
+  seller?: string
+  /** What you do / notice. */
+  you?: string
+  action?: string
+  /** This beat ends in a corner check — advance twice. */
+  reveal?: 'genuine' | 'fake'
+  /** Final beat: shows the paid-vs-market tally. */
+  tally?: boolean
+}
+
+const VERDICT: Record<'genuine' | 'fake', string> = {
+  genuine:
+    'Corners tight, edges clean, no reseal seam, and the holo lines up under the streetlight. The real thing.',
+  fake:
+    'The corner lifts under your thumbnail. Wrong stock, wrong gloss, wrong colour in this light. A counterfeit — and your cash is already in their pocket.',
+}
+
+function meetBeats(row: LocalFeedRow, r: any): MeetBeat[] {
+  const seller = row.seller
+  if (r.outcome === 'ghosted') {
+    return [
+      { label: 'ARRIVE', you: `The agreed lot. One streetlight, one abandoned cart, no ${seller}.`, action: 'Wait five minutes' },
+      { label: 'NO SHOW', you: 'You text them. Delivered. Read. Nothing. The lot hums.', action: 'Drive home' },
+    ]
+  }
+  if (r.outcome === 'sold_elsewhere') {
+    return [
+      { label: 'ARRIVE', you: 'You pull in as someone else is walking away with it, bag already in hand.', action: 'Get out anyway' },
+      { label: 'TOO LATE', seller: '"Sorry — sold it locally already."', you: 'The taillights are two red dots before you reach the curb.', action: 'Drive home' },
+    ]
+  }
+  if (r.outcome === 'counter') {
+    return [
+      { label: 'ARRIVE', you: `${seller} is leaning on the car with the item already out of the trunk.`, action: 'Name your price' },
+      { label: 'THE NUMBER', seller: `"${fmtUsd(r.counter)} and it's yours."`, you: 'They say it like the number was always the number.', action: 'decide' },
+    ]
+  }
+
+  const fake = r.inspected === 'fake'
+  const line =
+    row.kind === 'card' ? `It's the ${row.condition} one, like the photos.`
+      : row.kind === 'sealed' ? 'Never opened. Sealed the day I bought it.'
+        : row.kind === 'bundle' ? 'All of it, in the box, like I listed.'
+          : 'Still sealed. I have not looked.'
+
+  return [
+    {
+      label: 'ARRIVE',
+      you: `The agreed lot. ${seller}'s car is already there — engine off, headlights dark, hazards blinking twice as you pull in.`,
+      action: 'Walk over',
+    },
+    {
+      label: 'SMALL TALK',
+      seller: `"Yeah — still got it." ${line}`,
+      you: 'No handshake. They keep one hand in their pocket the whole time.',
+      action: 'Ask to see it',
+    },
+    {
+      label: 'CASH',
+      you: `You count ${fmtUsd(r.paid)} out of your wallet and hold it at arm's length. They take it without counting.`,
+      action: 'Take the item',
+    },
+    { label: 'THE CHECK', action: 'Check the corners', reveal: fake ? 'fake' : 'genuine' },
+    {
+      label: 'DONE',
+      you: fake
+        ? 'You are standing in a parking lot holding a counterfeit you already paid for. They are already backing out.'
+        : 'It goes in the bag. You are back in the car before the streetlight clicks off.',
+      action: fake ? 'Drive home' : 'Drive home',
+      tally: true,
+    },
+  ]
+}
+
+function MeetupScene({
+  row,
+  result,
+  onClose,
+  onCounter,
+}: {
+  row: LocalFeedRow
+  result: any
+  onClose: () => void
+  onCounter: (counter: number) => void
+}) {
+  const beats = useMemo(() => meetBeats(row, result), [row, result])
+  const [step, setStep] = useState(0)
+  const [revealed, setRevealed] = useState(-1)
+  const beat = beats[Math.min(step, beats.length - 1)]
+  const isCounter = result.outcome === 'counter'
+  const done = step >= beats.length - 1
+  const verdict = beat.reveal && revealed === step ? VERDICT[beat.reveal] : null
+
+  const advance = () => {
+    // A check beat is two beats: turn the card over, then move on.
+    if (beat.reveal && revealed !== step) {
+      setRevealed(step)
+      if (beat.reveal === 'fake') crinkle(0.9)
+      else flipSwish(true)
+      return
+    }
+    if (done) { onClose(); return }
+    flipSwish(false)
+    setStep((s) => Math.min(beats.length - 1, s + 1))
+  }
+
+  const paid = Number(result.paid ?? row.ask)
+  const market = row.anchor
+  const delta = market > 0 ? (paid - market) / market : 0
+
+  return (
+    <div className="mp-back" onClick={(e) => { if (e.target === e.currentTarget && done) onClose() }}>
+      <div className="mp" role="dialog" aria-label={`Meetup with ${row.seller}`}>
+        <button className="ld-close" onClick={onClose} aria-label="Leave">✕</button>
+
+        {/* The lot: sky, lamp, car, and whoever is standing in it. */}
+        <div className={`mp-sky ${result.outcome === 'ghosted' ? 'empty' : ''}`}>
+          <span className="mp-star s1" aria-hidden /><span className="mp-star s2" aria-hidden /><span className="mp-star s3" aria-hidden />
+          <div className="mp-lamp" aria-hidden><span className="mp-lamp-head">💡</span></div>
+          <div className="mp-car" aria-hidden>{result.outcome === 'ghosted' ? '🚙' : result.outcome === 'sold_elsewhere' ? '🚗' : '🚙'}</div>
+          {result.outcome !== 'ghosted' && (
+            <div className="mp-figure">
+              <span className="mp-avatar" aria-hidden>{row.seller.slice(0, 1).toUpperCase()}</span>
+              <span className="mp-name">{row.seller}</span>
+            </div>
+          )}
+          <div className="mp-ground" aria-hidden>
+            <span className="mp-stall" /><span className="mp-stall" /><span className="mp-stall" />
+          </div>
+          <div className="mp-item" aria-hidden>
+            <ItemArt r={row} cls="mp-item-art" />
+          </div>
+        </div>
+
+        <div className="mp-beats" aria-hidden>
+          {beats.map((b, i) => (
+            <span key={b.label} className={`mp-beat ${i < step ? 'past' : ''} ${i === step ? 'now' : ''}`}>{b.label}</span>
+          ))}
+        </div>
+
+        <div className="mp-body">
+          {beat.seller && (
+            <div className="mp-dlg">
+              <span className="mp-who">{row.seller}</span>
+              <p>{beat.seller}</p>
+            </div>
+          )}
+          {beat.you && <p className="mp-you">{beat.you}</p>}
+          {verdict && <p className={`mp-verdict ${beat.reveal}`}>{beat.reveal === 'fake' ? '🚫 ' : '✅ '}{verdict}</p>}
+
+          {beat.tally && (
+            <div className="mp-tally">
+              <span>Paid <b>{fmtUsd(paid)}</b></span>
+              <span>{row.anchorLabel === 'est' ? 'Est. contents' : 'Market'} <b>{fmtUsd(market)}</b></span>
+              <span className={delta <= 0 ? 'good' : 'bad'}>
+                {delta <= 0 ? `${Math.round(-delta * 100)}% under` : `${Math.round(delta * 100)}% over`}
+              </span>
+            </div>
+          )}
+
+          <div className="mp-actions">
+            {isCounter && done ? (
+              <>
+                <button className="primary" onClick={() => onCounter(result.counter)}>Pay {fmtUsd(result.counter)}</button>
+                <button className="ghost" onClick={onClose}>Walk away</button>
+              </>
+            ) : (
+              <button className="primary" onClick={advance}>
+                {beat.reveal && revealed !== step ? beat.action : done ? (beat.action ?? 'Drive home') : (beat.action ?? 'Continue')}
+              </button>
+            )}
+            {!done && <button className="ghost" onClick={onClose}>Leave</button>}
+          </div>
+        </div>
       </div>
     </div>
   )

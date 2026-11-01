@@ -692,4 +692,8 @@ export function tick() {
   import('./forum').then((f) => f.forumTick()).catch(() => {})
   // Local deals — Marketplace/Craigslist spawns, expiries, and buyer messages
   import('./local').then((l) => l.localTick()).catch(() => {})
+  // Prices ride the game clock: quotes for what you own or watch, the price
+  // history point, and the simulated market all advance once per game day
+  // (each guarded by its own day key, so repeat ticks that day are free).
+  import('./pricetick').then((p) => p.priceDayTick()).catch(() => {})
 }

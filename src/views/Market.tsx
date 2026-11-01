@@ -1,21 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import type { MarketRegimes, MarketScene, MarketSeasonal } from '../api'
 import { useStore } from '../store'
-import { CardImg, ConditionBadge, DensityToggle, EmptyState, fmtUsd, OverflowHint } from '../components'
+import { CardImg, ConditionBadge, DensityToggle, EmptyState, fmtUsd, OverflowHint, SortSelect } from '../components'
 import type { ListingRow } from '../types'
+
+// ---------------------------------------------------------------------------
+// ⇄ Marketplace — the price desk (roadmap problem #1: no two venues share a shape).
+//
+// BidBay is the eBay storefront: rival listings, timers, you undercut them.
+// Local Deals is Facebook Marketplace: square tiles, a stranger, a car park.
+// This screen is deliberately neither. Its OBJECT is the quote, not the
+// listing: one line per card *and condition*, carrying the market anchor, the
+// cheapest live ask, the spread between them and a ladder of the sellers under
+// it. You don't browse a feed here — you price a card, and buy the cheapest ask
+// in one click because there is nothing to negotiate and no clock to beat.
+//
+// The depth is the spread and the seller ladder (a −14% ask from a ★4.2 seller
+// on a 3-day ETA is a different decision from the same number from a nobody),
+// which is knowledge no other venue gives you: BidBay hides it behind an
+// auction, Local hides it behind a meet-up.
+// ---------------------------------------------------------------------------
 
 const PHASE_META: Record<MarketRegimes['phase'], { icon: string; label: string; color: string; note: string }> = {
   bull: { icon: '🐂', label: 'BULL', color: '#1a7f37', note: 'Sellers emboldened — your inventory is ripening.' },
   bear: { icon: '🐻', label: 'BEAR', color: '#b35900', note: 'Wallets closed — a buying season, not a selling one.' },
   chop: { icon: '↔️', label: 'CHOP', color: '#57606a', note: 'No direction — pickers hunt misprices, deals go fast.' },
-}
-
-function dealBadge(delta: number) {
-  if (delta <= -0.1) return <span className="badge below">🔥 BELOW MARKET</span>
-  if (delta <= -0.02) return <span className="badge below">Under market</span>
-  if (delta < 0.08) return <span className="badge at">At market</span>
-  return <span className="badge above">Above market</span>
 }
 
 /** Deal-quality trust line — names the anchor so the comparison is explicit.
@@ -39,7 +49,7 @@ function TrustLine({ cond, anchorKind }: { cond?: string; anchorKind?: string | 
   return (
     <div
       className="faint"
-      style={{ fontSize: 10, lineHeight: '13px', marginTop: -2 }}
+      style={{ fontSize: 10, lineHeight: '13px' }}
       title={src ? `The ${cond} anchor comes from ${src}.` : `Anchored against ${cond} market value.`}
     >
       priced vs {cond}
@@ -47,14 +57,56 @@ function TrustLine({ cond, anchorKind }: { cond?: string; anchorKind?: string | 
   )
 }
 
+/** How far under the anchor a card's cheapest ask has to be before it gets a name. */
+type Verdict = 'steal' | 'deal' | 'under' | 'at' | 'over'
+function verdictOf(delta: number): Verdict {
+  if (delta <= -0.15) return 'steal'
+  if (delta <= -0.05) return 'deal'
+  if (delta <= -0.02) return 'under'
+  if (delta < 0.08) return 'at'
+  return 'over'
+}
+const VERDICT_LABEL: Record<Verdict, string> = { steal: 'STEAL', deal: 'DEAL', under: 'UNDER', at: 'AT', over: 'OVER' }
+
+/** The detectable bands the desk can be tuned to. */
+const BANDS: { min: number; label: string }[] = [
+  { min: 0, label: 'Everything' },
+  { min: 0.02, label: '≥2% under' },
+  { min: 0.05, label: '≥5% under' },
+  { min: 0.1, label: '≥10% under' },
+  { min: 0.2, label: '≥20% under' },
+]
+
+/** One card+condition line: the quote. */
+type Quote = {
+  key: string
+  cardId: string
+  name: string
+  image: string | null
+  setName: string | null
+  rarity: string | null
+  condition: string
+  /** Market anchor for this exact condition — null when nothing is published. */
+  market: number | null
+  anchorKind: string | null
+  /** Cheapest ask, and every seller offering this card in this condition. */
+  asks: ListingRow[]
+  best: ListingRow
+  /** Cheapest ask vs the anchor (the server's condition-aware delta). */
+  spread: number
+  sellers: number
+}
+
 export function MarketView() {
   const { toast, refreshState, openCard, density } = useStore()
   const [listings, setListings] = useState<ListingRow[]>([])
   const [q, setQ] = useState('')
-  const [onlyDeals, setOnlyDeals] = useState(false)
+  const [band, setBand] = useState(0)
+  const [sort, setSort] = useState<'spread' | 'ask' | 'sellers'>('spread')
   const [regime, setRegime] = useState<MarketRegimes | null>(null)
   const [seasonal, setSeasonal] = useState<MarketSeasonal | null>(null)
   const [scene, setScene] = useState<MarketScene | null>(null)
+  const [sweptAt, setSweptAt] = useState<number>(() => Date.now())
   const timer = useRef<number | null>(null)
 
   useEffect(() => {
@@ -64,7 +116,10 @@ export function MarketView() {
   }, [])
 
   const load = useCallback(async (query: string) => {
-    try { setListings(await api.marketListings({ q: query })) } catch { /* ignore */ }
+    try {
+      setListings(await api.marketListings({ q: query }))
+      setSweptAt(Date.now())
+    } catch { /* keep the last sweep on screen rather than blanking it */ }
   }, [])
 
   useEffect(() => {
@@ -78,7 +133,64 @@ export function MarketView() {
     return () => { if (timer.current) clearInterval(timer.current) }
   }, [q, load])
 
-  const shown = onlyDeals ? listings.filter((l) => l.delta <= -0.02) : listings
+  // COLLAPSE THE FEED INTO QUOTES. A listing is a seller's opinion; the quote
+  // is what the card costs right now. Grouping by card+condition is the whole
+  // difference between this screen and BidBay's result list.
+  const quotes = useMemo(() => {
+    const byCard = new Map<string, ListingRow[]>()
+    for (const l of listings) {
+      const key = `${l.card_id}|${l.condition}`
+      const bucket = byCard.get(key)
+      if (bucket) bucket.push(l)
+      else byCard.set(key, [l])
+    }
+    const out: Quote[] = []
+    for (const [key, raw] of byCard) {
+      const asks = [...raw].sort((a, b) => a.total - b.total)
+      const best = asks[0]
+      out.push({
+        key,
+        cardId: best.card_id,
+        name: best.name,
+        image: best.image_small,
+        setName: best.set_name ?? null,
+        rarity: best.rarity,
+        condition: best.condition,
+        market: best.market?.usd ?? null,
+        anchorKind: best.market?.kind ?? null,
+        asks,
+        best,
+        spread: best.delta,
+        sellers: new Set(asks.map((a) => a.seller_name)).size,
+      })
+    }
+    return out
+  }, [listings])
+
+  // What the sweep found, in the terms a price desk thinks in: cards, asks,
+  // how many cards sit under their anchor, the best spread and the median one.
+  const radar = useMemo(() => {
+    const spreads = quotes.map((c) => c.spread).filter((d) => Number.isFinite(d)).sort((a, b) => a - b)
+    const at = (p: number) => (spreads.length ? spreads[Math.min(spreads.length - 1, Math.floor(spreads.length * p))] : 0)
+    return {
+      cards: quotes.length,
+      asks: listings.length,
+      under: spreads.filter((d) => d <= -0.02).length,
+      steals: spreads.filter((d) => d <= -0.15).length,
+      best: spreads.length ? spreads[0] : 0,
+      median: at(0.5),
+    }
+  }, [quotes, listings])
+
+  const shown = useMemo(() => {
+    const cutoff = band === 0 ? Infinity : -band
+    const rows = quotes.filter((c) => c.spread <= cutoff)
+    const sorted = [...rows]
+    if (sort === 'ask') sorted.sort((a, b) => a.best.total - b.best.total)
+    else if (sort === 'sellers') sorted.sort((a, b) => b.sellers - a.sellers)
+    else sorted.sort((a, b) => a.spread - b.spread)
+    return sorted
+  }, [quotes, band, sort])
 
   const buy = async (l: ListingRow) => {
     try {
@@ -97,11 +209,13 @@ export function MarketView() {
       <div className="page-head">
         <div>
           <h1>Marketplace</h1>
-          <div className="sub">Simulated seller feed anchored to real TCGplayer market prices. Good deals get sniped — move fast.</div>
+          <div className="sub">
+            The reference desk: what a card is <b>actually worth</b>, and who is selling under it. One line per card and
+            condition — the anchor, the cheapest ask, the spread. No haggling, no clock: you pay the ask and it ships.
+          </div>
         </div>
         <div className="chip-row">
-          <span className={`chip ${onlyDeals ? 'on' : ''}`} onClick={() => setOnlyDeals(!onlyDeals)}>🔥 Deals only</span>
-          <button className="small" onClick={() => load(q)}>Refresh</button>
+          <button className="small" onClick={() => load(q)}>Re-price the board</button>
         </div>
       </div>
 
@@ -189,51 +303,109 @@ export function MarketView() {
         </div>
       )}
 
+      {/* The desk head: what the sweep found, before a single card is read. */}
+      <div className="radar-head">
+        <div className="radar-scope" aria-hidden>
+          <span className="radar-ring" />
+          <span className="radar-ring inner" />
+          <span className="radar-sweep" />
+          <span className="radar-blip" />
+        </div>
+        <div className="radar-stats">
+          <div><div className="faint small">CARDS QUOTED</div><div className="radar-num">{radar.cards}</div></div>
+          <div><div className="faint small">ASKS SCANNED</div><div className="radar-num">{radar.asks}</div></div>
+          <div><div className="faint small">BELOW ANCHOR</div><div className="radar-num" style={{ color: 'var(--green)' }}>{radar.under}</div></div>
+          <div><div className="faint small">STEALS ≤15%</div><div className="radar-num" style={{ color: 'var(--yellow)' }}>{radar.steals}</div></div>
+          <div><div className="faint small">BEST SPREAD</div><div className="radar-num" style={{ color: 'var(--green)' }}>{Math.round(radar.best * 100)}%</div></div>
+          <div><div className="faint small">MEDIAN SPREAD</div><div className="radar-num">{radar.median > 0 ? '+' : ''}{Math.round(radar.median * 100)}%</div></div>
+        </div>
+        <div className="radar-copy small">
+          Each quote compares the cheapest ask against that card's <b>own condition</b> anchor, never NM — an LP at −12%
+          is a real discount. BidBay is where sellers undercut each other; this is where you learn the number first.
+          <div className="faint" style={{ marginTop: 3 }}>last sweep {new Date(sweptAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · re-prices every 25s</div>
+          {/* An empty scan is a finding, not a failure: say the board is priced
+              high instead of leaving six zeroes to be interpreted. */}
+          {radar.cards > 0 && radar.under === 0 && (
+            <div style={{ marginTop: 3, color: 'var(--amber)' }}>
+              No quote sits under its anchor this sweep — every ask is at or above market. The list still ranks the
+              least-bad quotes, and the band chips fill in as sellers list.
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="filter-row">
-        <input type="search" placeholder="Search the marketplace (e.g. Charizard)…" value={q} onChange={(e) => setQ(e.target.value)} />
-        <span className="faint small">{shown.length} listings</span>
+        <input type="search" placeholder="Price a card (e.g. Charizard)…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="chip-row">
+          {BANDS.map((b) => (
+            <span key={b.min} className={`chip ${band === b.min ? 'on' : ''}`} onClick={() => setBand(b.min)}>{b.label}</span>
+          ))}
+        </div>
+        <SortSelect
+          value={sort}
+          onChange={(v) => setSort(v as 'spread' | 'ask' | 'sellers')}
+          options={[
+            { value: 'spread', label: 'Sort: Biggest spread' },
+            { value: 'ask', label: 'Sort: Cheapest ask' },
+            { value: 'sellers', label: 'Sort: Most sellers' },
+          ]}
+        />
+        <span className="faint small">{shown.length} quotes</span>
         <div style={{ marginLeft: 'auto' }}><DensityToggle /></div>
       </div>
 
       {shown.length === 0 ? (
-        <EmptyState icon="🔍" text="No listings right now" sub="The feed refills continuously — check back." />
+        <EmptyState
+          icon="📋"
+          text={band === 0 ? 'No quotes on the board' : `No card is ${Math.round(band * 100)}% under its anchor`}
+          sub={band === 0 ? 'The feed refills continuously — re-price the board in a moment.' : 'Widen the band, or wait for the next sweep — sellers list under the anchor as stock turns over.'}
+        />
       ) : (
-        <div className={`grid ${density === 'compact' ? 'cols3' : 'cols2'}`}>
-          {shown.map((l) => (
-            <div key={l.id} className="panel" style={{ margin: 0 }}>
-              <div className="row" style={{ alignItems: 'stretch' }}>
-                <div style={{ width: density === 'compact' ? 64 : 96, cursor: 'pointer' }} onClick={() => openCard(l.card_id)}>
-                  <CardImg src={l.image_small} alt={l.name} cardId={l.card_id} />
+        <div className={`radar-list density-${density}`}>
+          {shown.map((c) => {
+            const v = verdictOf(c.spread)
+            const pct = Math.round(c.spread * 100)
+            const save = c.market == null ? null : c.market - c.best.total
+            return (
+              <div key={c.key} className={`radar-row quote-row ${v}`}>
+                <div className="radar-thumb" onClick={() => openCard(c.cardId)}>
+                  <CardImg src={c.image} alt={c.name} cardId={c.cardId} />
                 </div>
-                <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 0 }}>
-                  <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
-                    <b style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.name}</b>
-                    <div style={{ textAlign: 'right' }}>
-                      {dealBadge(l.delta)}
-                      <TrustLine cond={l.condition} anchorKind={l.market?.kind} />
-                    </div>
+                <div className="radar-main">
+                  <div className="radar-title">
+                    <b className="radar-name" onClick={() => openCard(c.cardId)}>{c.name}</b>
+                    <ConditionBadge cond={c.condition} />
+                    <span className={`badge ${v === 'steal' ? 'warn' : v === 'over' ? 'above' : v === 'at' ? 'at' : 'below'}`}>{VERDICT_LABEL[v]}</span>
+                    <span className="quote-sellers" title="Distinct sellers offering this card in this condition">
+                      {c.sellers} seller{c.sellers === 1 ? '' : 's'}
+                    </span>
                   </div>
-                  <div className="small muted">{l.set_name} · {l.rarity ?? ''}</div>
-                  <div className="row" style={{ gap: 6 }}>
-                    <ConditionBadge cond={l.condition} />
-                    {density !== 'compact' && <span className="faint small">by {l.seller_name} · ★{l.seller_rating.toFixed(1)} ({l.seller_sales.toLocaleString()} sales)</span>}
+                  <div className="small muted radar-sub">{c.setName ?? '—'}{c.rarity ? ` · ${c.rarity}` : ''}</div>
+                  {/* The ladder: what the sellers under the anchor are asking,
+                      best first. This is the depth BidBay's list can't show. */}
+                  <div className="quote-ladder">
+                    {c.asks.slice(0, 3).map((a, i) => (
+                      <span key={a.id} className={i === 0 ? 'best' : ''} title={`Listing ${fmtUsd(a.price)} + ${fmtUsd(a.shipping)} shipping · ETA ${a.eta_days} game-day${a.eta_days === 1 ? '' : 's'}`}>
+                        {i === 0 ? 'best' : 'then'} {fmtUsd(a.total)} · {a.seller_name} ★{a.seller_rating.toFixed(1)} · {a.eta_days}d
+                      </span>
+                    ))}
+                    {c.asks.length > 3 && <span className="faint">+{c.asks.length - 3} more</span>}
                   </div>
-                  <div className="small">
-                    Listing {fmtUsd(l.price)} + ship {fmtUsd(l.shipping)}
-                    {density !== 'compact' && <> · ETA {l.eta_days} game-day{l.eta_days === 1 ? '' : 's'}</>}
-                  </div>
-                  <div className="row" style={{ justifyContent: 'space-between', marginTop: 'auto', alignItems: 'flex-end' }}>
-                    <div>
-                      <span className="faint small">Market {fmtUsd(l.market.usd)}</span>
-                      <div style={{ fontWeight: 750 }}>{fmtUsd(l.total)} <span className="faint small">total</span></div>
-                      <OverflowHint count={1} align="left" />
-                    </div>
-                    <button className="primary" onClick={() => buy(l)}>BUY</button>
-                  </div>
+                  <TrustLine cond={c.condition} anchorKind={c.anchorKind} />
+                </div>
+                <div className="radar-metrics">
+                  <div><div className="faint small">CHEAPEST ASK</div><div className="radar-price">{fmtUsd(c.best.total)}</div></div>
+                  <div><div className="faint small">ANCHOR</div><div className="radar-mkt">{fmtUsd(c.market)}</div></div>
+                  <div><div className="faint small">SPREAD</div><div className={`radar-off ${c.spread <= -0.02 ? 'good' : c.spread >= 0.08 ? 'bad' : ''}`}>{pct > 0 ? '+' : ''}{pct}%</div></div>
+                  <div className="radar-save-col"><div className="faint small">UNDER ANCHOR</div><div className="radar-save">{save != null && save > 0 ? fmtUsd(save) : '—'}</div></div>
+                </div>
+                <div className="radar-act">
+                  <button className="primary" onClick={() => buy(c.best)} title={`Buy the cheapest ask: ${fmtUsd(c.best.total)} from ${c.best.seller_name}`}>BUY CHEAPEST</button>
+                  <OverflowHint count={1} align="right" />
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

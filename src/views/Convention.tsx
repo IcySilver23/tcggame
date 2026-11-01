@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
   api,
+  type BoothItem,
+  type BoothStockResponse,
+  type ConventionBoothRow,
   type ConventionStatus,
+  type ConventionSummary,
   type EstateBuyResult,
   type EstateLotRow,
   type EstateSection,
@@ -15,7 +19,7 @@ import {
   type VendorStatus,
 } from '../api'
 import { useStore } from '../store'
-import { CardImg, DensityToggle, FirstUseTip, fmtUsd, fmtWhen, fmtWait, SlabCard } from '../components'
+import { DensityToggle, FirstUseTip, fmtUsd, SlabCard } from '../components'
 
 const SPECIALTY_LABEL: Record<string, string> = {
   deals: 'Deal Bins',
@@ -151,10 +155,13 @@ function FloorTableView({ boothId, onBack, onBought, onSell }: { boothId: number
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>{data.booth!.avatar} {data.booth!.vendorName} <span style={{ fontSize: 18 }}>{MOOD_FACE[data.moodSeen!] ?? ''}</span></h1>
-          <div className="sub">{SPECIALTY_LABEL[data.booth!.specialty] ?? data.booth!.specialty} — {data.booth!.blurb}</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>{data.booth!.avatar}</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>{data.booth!.vendorName} <span style={{ fontSize: 18 }}>{MOOD_FACE[data.moodSeen!] ?? ''}</span></h1>
+            <div className="sub">{SPECIALTY_LABEL[data.booth!.specialty] ?? data.booth!.specialty} — {data.booth!.blurb}</div>
+          </div>
         </div>
         <div className="right">
           <button className="ghost small" onClick={onSell}>Open my binder 💼</button>
@@ -822,10 +829,267 @@ function VendorPanel({ entered, onChange }: { entered: boolean; onChange: () => 
   )
 }
 
+// ---------------------------------------------------------------------------
+// The shell around the four things a show is for.
+// ---------------------------------------------------------------------------
+
+const SHOW_SECTIONS = [
+  { id: 'floor', label: 'The floor', icon: '🚶', verb: 'Walk dealer tables, haggle, and sell cards out of your own binder' },
+  { id: 'booths', label: 'Booths', icon: '🛒', verb: 'Singles priced under market by specialists — slabs, vintage, deal bins' },
+  { id: 'estate', label: 'Estate lots', icon: '📦', verb: 'Mystery bundles, one price, contents wrapped until you pay' },
+  { id: 'table', label: 'Your table', icon: '🪑', verb: 'Rent a spot, price your spare cards, and let walk-ups buy' },
+] as const
+
+type ShowSection = (typeof SHOW_SECTIONS)[number]['id']
+
+const SHOW_PREP = [
+  { icon: '🚶', title: 'The floor', detail: 'Walk dealer tables and haggle. Every vendor has a mood — two rounds and a table can go cold for the rest of the show. You can also sell straight out of your binder.' },
+  { icon: '🛒', title: 'The booths', detail: 'Singles priced under market by specialists: slabs, vintage, deal bins, modern chasers. Other shoppers snipe the real bargains while you browse.' },
+  { icon: '📦', title: 'Estate lots', detail: 'Mystery bundles at one price. The seller guesses the value; you find out what it was actually worth after you pay.' },
+  { icon: '🪑', title: 'Your own table', detail: 'Rent a spot by the door, price your spare cards, and let walk-up buyers do the work. Tables close when the hall does.' },
+]
+
+/** Ticks down from the server's answer, so a shifted dev clock can't lie. */
+function Countdown({ minutes }: { minutes: number }) {
+  const [startedAt] = useState(() => Date.now())
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const total = Math.max(0, Math.floor((minutes * 60_000 - (Date.now() - startedAt)) / 1000))
+  const d = Math.floor(total / 86_400)
+  const h = Math.floor((total % 86_400) / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  const text = d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m ${String(s).padStart(2, '0')}s`
+  return <div className="conv-clock">{text}</div>
+}
+
+/**
+ * Outside the weekend windows the hall is empty for a scheduled reason. That
+ * used to be a dead panel with a calendar emoji: ~150 of the week's 168 hours.
+ * Now it answers the only question worth asking before a show — when is it, and
+ * what am I walking into — and shows the player's own record there.
+ */
+function HallClosed({ status }: { status: Extract<ConventionStatus, { open: false }> }) {
+  const [summary, setSummary] = useState<ConventionSummary | null>(null)
+  useEffect(() => { api.conventionSummary().then(setSummary).catch(() => {}) }, [])
+  const totals = summary?.totals
+  const last = summary?.lastShow ?? null
+  const when = status.nextShowAt ? new Date(status.nextShowAt) : null
+
+  return (
+    <div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🎪</span>
+          <div>
+            <h1>Conventions</h1>
+            <div className="sub">Pop-up card shows that come to town on the game clock.</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel conv-closed">
+        <div className="conv-closed-head">
+          <div className="conv-closed-mark">🎪</div>
+          <div className="grow" style={{ minWidth: 0 }}>
+            <div className="conv-kicker">{status.liveNow ? 'Doors opening' : 'The hall is dark'}</div>
+            <h2 className="conv-closed-title">{status.nextShowTitle ?? 'The next show'}</h2>
+            <div className="faint small">
+              {when
+                ? `${when.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })} · ${when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+                : 'Back on the weekly rhythm soon.'}
+            </div>
+          </div>
+          {status.nextShowAt && !status.liveNow && (
+            <div className="conv-clock-block">
+              <div className="faint small">doors open in</div>
+              <Countdown minutes={status.nextShowInMin} />
+            </div>
+          )}
+        </div>
+        <div className="conv-closed-note">
+          {status.liveNow
+            ? 'Vendors are unloading the vans — the doors open within the minute. Check back in a moment.'
+            : 'The scene runs on a weekly clock: the flea market takes Saturday, the mega show takes Sunday. Nothing to buy until the doors open.'}
+        </div>
+      </div>
+
+      <div className="panel conv-prep mt14">
+        <b>🎒 What a show is for</b>
+        <div className="conv-prep-list">
+          {SHOW_PREP.map((p) => (
+            <div key={p.title} className="conv-prep-row">
+              <span className="conv-prep-ic">{p.icon}</span>
+              <div>
+                <div className="conv-prep-t">{p.title}</div>
+                <div className="conv-prep-d">{p.detail}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="panel mt14">
+        <b>📓 Your convention record</b>
+        {totals && totals.shows > 0 ? (
+          <>
+            <div className="conv-record">
+              <div><span className="faint small">shown up</span><b>{totals.shows}</b></div>
+              <div><span className="faint small">spent</span><b>{fmtUsd(totals.spent)}</b></div>
+              <div><span className="faint small">cards worth</span><b>{fmtUsd(totals.value)}</b></div>
+              <div>
+                <span className="faint small">net</span>
+                <b style={{ color: totals.net >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                  {totals.net >= 0 ? '+' : '−'}{fmtUsd(Math.abs(totals.net))}
+                </b>
+              </div>
+            </div>
+            {last && (
+              <div className="faint small mt8">
+                Last one: {last.name} · {new Date(last.date).toLocaleDateString([], { month: 'short', day: 'numeric' })} ·
+                {' '}{last.cards} card{last.cards === 1 ? '' : 's'} for {fmtUsd(last.spent)} · worth {fmtUsd(last.value)}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="faint small mt8">
+            No shows attended yet. The first one teaches you the floor — entry is cheap, and every dealer there has a mood you can read.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The booths were the screen's missing verb: the tutorial promised "booths sell
+ * singles below market" and `#/convention` rendered them as greyed-out cards you
+ * could not open. The endpoints were always there (`/api/convention/booth/:id`,
+ * `/api/convention/buy/:item`); nothing had ever called them.
+ */
+function BoothSection({ booths, onBought }: { booths: ConventionBoothRow[]; onBought: () => void }) {
+  const { toast, refreshState, openCard } = useStore()
+  const [openId, setOpenId] = useState<number | null>(null)
+  const [stock, setStock] = useState<BoothStockResponse | null>(null)
+  const [busy, setBusy] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (openId == null) { setStock(null); return }
+    let alive = true
+    const load = () => api.conventionBooth(openId).then((r) => { if (alive) setStock(r) }).catch(() => {})
+    load()
+    const t = setInterval(load, 15_000) // shoppers snipe; keep the table honest
+    return () => { alive = false; clearInterval(t) }
+  }, [openId])
+
+  const buy = async (item: BoothItem) => {
+    setBusy(item.id)
+    try {
+      const res = await api.conventionBuy(item.id)
+      if (res.ok) {
+        toast(res.message ?? `${item.name} — ${fmtUsd(res.paid ?? item.ask)}`, res.verdict === 'You paid tourist price.' ? 'info' : 'good')
+        refreshState()
+        onBought()
+        if (openId != null) api.conventionBooth(openId).then(setStock).catch(() => {})
+      } else toast(res.error ?? 'Someone else grabbed it', 'bad')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (openId == null) {
+    return (
+      <div className="panel">
+        <div className="conv-roster-head">
+          <b>🛒 Booths</b>
+          <span className="faint small">{booths.length} tables · priced under market</span>
+        </div>
+        <div className="faint small" style={{ marginBottom: 10 }}>
+          Specialists buy deep and price to move. The deals vanish as other shoppers walk the aisles, so a table you
+          liked at noon may be picked clean by two.
+        </div>
+        <div className="grid cols3">
+          {booths.map((b) => (
+            <button key={b.id} className="panel conv-booth conv-booth-btn" style={{ margin: 0 }} onClick={() => setOpenId(b.id)}>
+              <div className="row" style={{ justifyContent: 'space-between' }}>
+                <div style={{ fontSize: 26 }}>{b.avatar}</div>
+                <span className="badge" style={{ fontSize: 9 }}>{b.stock} on table</span>
+              </div>
+              <b>{b.vendor_name}</b>
+              <div className="badge" style={{ margin: '4px 0' }}>{SPECIALTY_LABEL[b.specialty] ?? b.specialty}</div>
+              <div className="faint small">{b.blurb}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const booth = stock && stock.ok ? stock.booth : booths.find((b) => b.id === openId)
+  const items = stock && stock.ok ? stock.items : []
+
+  return (
+    <div className="panel">
+      <div className="conv-subhead">
+        <button className="ghost small" onClick={() => setOpenId(null)}>← All booths</button>
+        <div className="conv-subhead-title">{booth?.avatar} {booth?.vendor_name ?? 'Booth'}</div>
+        <div className="faint small">
+          {booth ? `${SPECIALTY_LABEL[booth.specialty] ?? booth.specialty} — ${booth.blurb}` : ''}
+        </div>
+      </div>
+
+      {!stock ? (
+        <div className="empty"><span className="spinner" /> Walking over…</div>
+      ) : !stock.ok ? (
+        <div className="trade-bubble">{stock.error}</div>
+      ) : items.length === 0 ? (
+        <div className="faint small">Picked clean — the good stuff went early. Try another table.</div>
+      ) : (
+        <div className="grid cols3 mt14">
+          {items.map((it) => (
+            <div key={it.id} className="panel conv-item" style={{ margin: 0 }}>
+              <div className="row" style={{ alignItems: 'flex-start' }}>
+                <div style={{ width: 66, cursor: 'pointer' }} onClick={() => openCard(it.card_id)}>
+                  <SlabCard src={it.image_small ?? null} alt={it.name} grade={it.graded_grade} setName={it.set_name} />
+                </div>
+                <div className="grow" style={{ minWidth: 0 }}>
+                  <b className="small" style={{ cursor: 'pointer' }} onClick={() => openCard(it.card_id)}>{it.name}</b>
+                  <div className="faint small">{it.set_name}</div>
+                  <div className="row mt8" style={{ gap: 6, flexWrap: 'wrap' }}>
+                    {it.graded_grade && <span className="badge hit">{it.graded_grade}</span>}
+                    <span className="badge">{it.graded_grade ? 'SLAB' : it.condition}</span>
+                    <DeltaBadge delta={it.delta} />
+                  </div>
+                  <div className="row" style={{ justifyContent: 'space-between', marginTop: 8 }}>
+                    <span className="price">{fmtUsd(it.ask)}</span>
+                    <span className="faint small">mkt {fmtUsd(it.anchor)}</span>
+                  </div>
+                  <button
+                    className="primary small"
+                    style={{ marginTop: 6, width: '100%' }}
+                    disabled={busy === it.id}
+                    onClick={() => buy(it)}
+                  >
+                    {busy === it.id ? '…' : `Buy — ${fmtUsd(it.ask)}`}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ConventionView() {
   const { toast, refreshState } = useStore()
   const [status, setStatus] = useState<ConventionStatus | null>(null)
   const [entering, setEntering] = useState(false)
+  const [section, setSection] = useState<ShowSection>('floor')
 
   const load = () => api.convention().then(setStatus).catch(() => {})
   useEffect(() => { load() }, [])
@@ -852,52 +1116,40 @@ export function ConventionView() {
 
   if (!status) return <div className="empty"><span className="spinner" /> Checking the calendar…</div>
 
-  if (!status.open) {
-    return (
-      <div>
-        <div className="page-head">
-          <div>
-            <h1>🎪 Conventions</h1>
-            <div className="sub">Pop-up card shows that come to town on the game clock.</div>
-          </div>
-        </div>
-        <div className="panel" style={{ textAlign: 'center', padding: '60px 20px' }}>
-          <div style={{ fontSize: 42, marginBottom: 10 }}>🗓️</div>
-          <h2>No show in town right now</h2>
-          <div className="faint small" style={{ marginTop: 6 }}>
-            {status.liveNow
-              ? `${status.nextShowTitle ?? 'The next show'} is opening now — vendors are still setting up. Watch the activity feed.`
-              : status.nextShowAt
-                ? `The ${status.nextShowTitle ?? 'next convention'} opens ${fmtWhen(status.nextShowAt)} — about ${fmtWait(status.nextShowInMin)} from now. Watch the activity feed.`
-                : 'Watch the activity feed for the next show.'}
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (!status.open) return <HallClosed status={status} />
 
   // Entry is server-authoritative: the wristband survives page reloads.
   const alreadyIn = status.entered
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>🎪 {status.show.name}</h1>
-          <div className="sub">{status.show.blurb}</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🎪</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>{status.show.name}</h1>
+            <div className="sub">{status.show.blurb}</div>
+          </div>
         </div>
         <div className="right">
           <div className="faint small">Closes in</div>
           <div className="price" style={{ fontSize: 18 }}>{status.minutesLeft} min</div>
+          <div className="faint small">{status.booths.length} tables · {status.totalStock} singles</div>
         </div>
       </div>
 
       {!alreadyIn && (
-        <div className="panel" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'space-between', flexWrap: 'wrap' }}>
-          <div>
-            <b>Entry: {fmtUsd(status.show.entry_fee)}</b>
-            <div className="faint small">Pay at the door to browse every booth. Vendors sell out — real bargains don't wait.</div>
+        <div className="panel conv-door">
+          <div className="conv-door-mark">🎟️</div>
+          <div className="grow" style={{ minWidth: 0 }}>
+            <b>Entry {fmtUsd(status.show.entry_fee)}</b>
+            <div className="faint small">
+              The wristband buys the whole hall: {status.booths.length} dealer tables with {status.totalStock} singles on
+              them, the estate lots, and the right to sell out of your own binder across the table.
+            </div>
           </div>
-          <button className="primary" disabled={entering} onClick={enter}>Pay entry & come in</button>
+          <button className="primary" disabled={entering} onClick={enter}>
+            {entering ? 'Paying…' : `Pay ${fmtUsd(status.show.entry_fee)} & come in`}
+          </button>
         </div>
       )}
 
@@ -911,23 +1163,46 @@ export function ConventionView() {
         </FirstUseTip>
       )}
 
-      <EstateFloor entered={alreadyIn} onSold={load} />
+      <div className="seg-bar" role="tablist" aria-label="Show sections">
+        {SHOW_SECTIONS.map((s) => (
+          <button
+            key={s.id}
+            role="tab"
+            aria-selected={section === s.id}
+            className={`seg-item${section === s.id ? ' on' : ''}`}
+            title={`${s.label} — ${s.verb}`}
+            onClick={() => setSection(s.id)}
+          >
+            <span aria-hidden>{s.icon}</span> {s.label}
+            {s.id === 'booths' && <span className="seg-count">{status.booths.length}</span>}
+          </button>
+        ))}
+      </div>
 
-      <FloorSection entered={alreadyIn} onBought={load} />
-
-      <VendorPanel entered={alreadyIn} onChange={load} />
+      {section === 'floor' && <FloorSection entered={alreadyIn} onBought={load} />}
+      {section === 'booths' && <BoothSection booths={status.booths} onBought={load} />}
+      {section === 'estate' && <EstateFloor entered={alreadyIn} onSold={load} />}
+      {section === 'table' && <VendorPanel entered={alreadyIn} onChange={load} />}
 
       {!alreadyIn && (
-        <div className="grid cols3" style={{ marginTop: 16 }}>
-          {status.booths.map((b) => (
-            <div key={b.id} className="panel conv-booth" style={{ margin: 0, opacity: 0.6 }}>
-              <div style={{ fontSize: 26 }}>{b.avatar}</div>
-              <b>{b.vendor_name}</b>
-              <div className="badge" style={{ margin: '4px 0' }}>{SPECIALTY_LABEL[b.specialty] ?? b.specialty}</div>
-              <div className="faint small">{b.blurb}</div>
-              <div className="small" style={{ marginTop: 6 }}>{b.stock} items on the table</div>
-            </div>
-          ))}
+        <div className="mt14">
+          <div className="conv-roster-head">
+            <b>Through the door</b>
+            <span className="faint small">{status.booths.length} tables · {status.totalStock} singles priced today</span>
+          </div>
+          <div className="grid cols3">
+            {status.booths.map((b) => (
+              <div key={b.id} className="panel conv-booth" style={{ margin: 0 }}>
+                <div className="row" style={{ justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 26 }}>{b.avatar}</div>
+                  <span className="badge" style={{ fontSize: 9 }}>{b.stock} on table</span>
+                </div>
+                <b>{b.vendor_name}</b>
+                <div className="badge" style={{ margin: '4px 0' }}>{SPECIALTY_LABEL[b.specialty] ?? b.specialty}</div>
+                <div className="faint small">{b.blurb}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -103,6 +103,58 @@ function roundEstimate(n: number): number {
   return Math.round(n / 5) * 5
 }
 
+// ---------------------------------------------------------------------------
+// Researched anchors
+//
+// Hand-checked market values for the cards the comparable model cannot price
+// honestly: collector pieces whose nearest comparables are bulk printings, and
+// phantom secret rares that no comparable set has ever contained. Each entry
+// carries the month it was researched, so a stale number is obvious instead of
+// silently wrong.
+//
+// Sources: TCGplayer market via Scrydex / Sparkl / PokeScope / Dittobase, eBay
+// solds, PriceCharting, and Rare Candy's October 2026 RGB Mew write-up.
+// ---------------------------------------------------------------------------
+
+type Researched = { usd: number; asOf: string; note: string }
+
+const RESEARCHED: Record<string, Researched> = {
+  // 30th Celebration (me55) — the undocumented "RGB Rare" Mew trio: no set
+  // symbol, collector numbers R/G/B, ~1 in 12,000 packs per colour by
+  // community estimate (TPCi published no rate). Mid-October hype peaked near
+  // $6,000 and has been falling since; these are late-Oct/Nov 2026 raw NM
+  // levels, with blue ≥ red ≥ green by a small margin.
+  'me55-R': { usd: 3850, asOf: '2026-11', note: 'RGB Mew (red), raw NM — $3.25k–$4.68k across trackers, down from ~$6k' },
+  'me55-G': { usd: 3450, asOf: '2026-11', note: 'RGB Mew (green), raw NM — $3.09k–$3.58k' },
+  'me55-B': { usd: 3950, asOf: '2026-11', note: 'RGB Mew (blue), raw NM — $3.75k–$4.10k' },
+
+  // Worlds / event promos. The comparable model collapses these toward the
+  // cheapest printing that shares their name, which undersells every one.
+  'dpp-DP25': { usd: 795, asOf: '2026-11', note: 'Tropical Wind (2008 Worlds promo), ungraded ~$830' },
+  'dpp-DP54': { usd: 12, asOf: '2026-11', note: 'Beginning Door promo — no quote on Scrydex/PokeScope, event-awarded, thin market' },
+  'dpp-DP55': { usd: 95, asOf: '2026-11', note: 'Ultimate Zone promo — ~£79 in the UK, no US TCGplayer quote' },
+  'bwp-BW77': { usd: 14, asOf: '2026-11', note: 'Pikachu BW77 — never sold at retail (cancelled product); eBay raw asks median ~$10' },
+  'bwp-BW78': { usd: 12, asOf: '2026-11', note: 'Raichu BW78 — no sales history anywhere; illiquid, priced off its twin above' },
+
+  // Chaos Rising (me4) energies and Emma printings: the set's own commons are
+  // cheaper than the cross-set commodity pool the fallback reaches for.
+  'me4-86': { usd: 0.19, asOf: '2026-11', note: 'Nitro Fire Energy holo — TCGplayer market $0.19' },
+  'me4-84': { usd: 0.17, asOf: '2026-11', note: 'Bubbly Water Energy — $0.16–$0.19' },
+  'me4-107': { usd: 2.05, asOf: '2026-11', note: 'Emma (Ultra Rare) — TCGplayer market $2.11–$2.14' },
+  'me4-77': { usd: 0.25, asOf: '2026-11', note: 'Emma (Uncommon) — bulk trainer, ~$0.10–$0.50' },
+
+  // Vintage/mid singles mispriced by rarity matching.
+  'ecard2-103': { usd: 6.5, asOf: '2026-11', note: 'Porygon, Aquapolis #103 — 103a ~$4.78–$7.00, 103b ~$10.07' },
+  'xy8-146a': { usd: 2, asOf: '2026-11', note: "Professor's Letter #146a — ~$0.95–$5.63 depending on finish" },
+  'xy9-98a': { usd: 0.31, asOf: '2026-11', note: 'Delinquent #98a (regular print; the $52 card is the full art 98b)' },
+}
+
+/** A researched value for this card, if we have one. */
+export function researchedAnchor(cardId: string): number | null {
+  const hit = RESEARCHED[cardId]
+  return hit ? hit.usd : null
+}
+
 /** Estimated NM value for a card, or null if the model has no data at all. */
 export function estimatePrice(cardId: string): number | null {
   const card = db
@@ -112,6 +164,9 @@ export function estimatePrice(cardId: string): number | null {
     )
     .get(cardId) as { rarity: string | null; supertype: string; yr: string | null } | undefined
   if (!card) return null
+
+  const curated = researchedAnchor(cardId)
+  if (curated != null) return curated
 
   const m = getModel()
   const tier = tierOf(card.rarity)
@@ -134,5 +189,9 @@ export function estimatePrice(cardId: string): number | null {
     factor = 0.6
   }
 
-  return roundEstimate(Math.max(floor, est * factor))
+  // A phantom tier can never be bulk, whatever its comparables say — if a
+  // researched value ever goes missing this floor keeps it a chase card.
+  const phantomFloor = /rgb rare/i.test(card.rarity ?? '') ? 1500 : 0
+
+  return roundEstimate(Math.max(floor, est * factor, phantomFloor))
 }

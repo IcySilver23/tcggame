@@ -263,6 +263,9 @@ type EstateLotOut = {
 // Buying — the reveal
 // ---------------------------------------------------------------------------
 
+/** The house's cut on an estate lot — hammer plus this is what you hand over. */
+export const ESTATE_PREMIUM = 0.12
+
 export function buyEstateLot(lotId: number) {
   const show = db
     .prepare(`SELECT * FROM conventions WHERE closes_at > ? ORDER BY id DESC LIMIT 1`)
@@ -276,7 +279,10 @@ export function buyEstateLot(lotId: number) {
   const paid = db.prepare(`SELECT value FROM meta WHERE key = ?`).get(`conventionEntry:${show.id}`)
   if (!paid) return { ok: false as const, error: 'Pay entry at the door first' }
   const state = db.prepare(`SELECT cash FROM game_state WHERE id = 1`).get() as { cash: number }
-  if (state.cash < lot.ask) return { ok: false as const, error: `Not enough cash (need $${lot.ask.toFixed(2)})` }
+  // The house takes a premium on the hammer — estate tables are liquidations,
+  // the resale desk is a private fee-free trade. That is the difference.
+  const charged = round2(lot.ask * (1 + ESTATE_PREMIUM))
+  if (state.cash < charged) return { ok: false as const, error: `Hammer ${lot.ask.toFixed(2)} plus ${Math.round(ESTATE_PREMIUM * 100)}% house premium — need ${charged.toFixed(2)}` }
 
   const cards = db
     .prepare(
@@ -290,7 +296,7 @@ export function buyEstateLot(lotId: number) {
   const realized = round2(
     cards.reduce((a, c) => a + valueOf(c.card_id, 'normal', c.condition as Condition), 0),
   )
-  const perCard = round2(lot.ask / cards.length)
+  const perCard = round2(charged / cards.length)
 
   const insertInv = db.prepare(
     `INSERT INTO inventory (card_id, variant, condition, quantity, status, acquired_via, acquired_ref, cost_basis, acquired_at)
@@ -306,7 +312,7 @@ export function buyEstateLot(lotId: number) {
 
   const tx = db.transaction(() => {
     db.prepare(`UPDATE estate_lots SET status = 'sold', bought_at = ?, true_value = ? WHERE id = ?`).run(nowIso(), realized, lotId)
-    db.prepare(`UPDATE game_state SET cash = cash - ? WHERE id = 1`).run(lot.ask)
+    db.prepare(`UPDATE game_state SET cash = cash - ? WHERE id = 1`).run(charged)
     for (const c of cards.slice(0, admitted)) insertInv.run(c.card_id, c.condition, String(show.id), perCard, nowIso())
     const delta = realized - lot.ask
     const pct = lot.ask > 0 ? Math.round((delta / lot.ask) * 100) : 0
@@ -321,7 +327,7 @@ export function buyEstateLot(lotId: number) {
     logActivity(
       'buy',
       `Bought ${lot.seller_name} (${cards.length} cards) at ${show.name} for $${lot.ask.toFixed(2)} — worth $${realized.toFixed(2)} (${delta >= 0 ? '+' : ''}${pct}%)`,
-      -lot.ask,
+      -charged,
     )
   })
   tx()
@@ -339,7 +345,9 @@ export function buyEstateLot(lotId: number) {
 
   return {
     ok: true as const,
-    paid: lot.ask,
+    paid: charged,
+    hammer: lot.ask,
+    premium: ESTATE_PREMIUM,
     estimate: lot.seller_estimate,
     realized,
     profit: delta,

@@ -43,6 +43,7 @@ export const META_KEEP = new Set([
   // external feed cadence / caches
   'lastBenchFetchAt', 'lastBenchFetchOkAt', 'lastBenchHost', 'lastOwnedPriceRefreshAt',
   'lastTickAt', 'listingsGeneratedAt', 'eurUsdRate',
+  'lastPriceSnapshotDay', 'lastSimMarketDay', 'lastOwnedPriceRefreshDay', 'lastOwnedRefreshFailAt',
   // migration & build stamps (re-running them on a fresh save is at best noise:
   // econ:12hDay re-halves wages, estateCondRollMigrated re-rolls conditions)
   'sealedBackfilledAt', 'estateCondRollMigrated', 'pullTablesBuiltAt', 'econ:12hDay',

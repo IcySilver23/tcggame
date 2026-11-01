@@ -84,6 +84,12 @@ export const api = {
   buyProduct: (productId: string, qty: number, openNow: boolean) =>
     post<{ ok: boolean; cost: number; opened?: import('./types').OpenSession[] }>(`/api/shop/buy/${encodeURIComponent(productId)}`, { qty, openNow }),
   openPack: (productId: string) => post<import('./types').OpenSession & { packsInBox?: number; packsOpened?: number; perPack?: { sessionId: string; totalValue: number; spent: number }[] }>('/api/packs/open', { productId }),
+  /** Start a box: one pack comes out, the promo (if any) is already banked. */
+  openBox: (productId: string) => post<import('./types').BoxOpen>('/api/packs/box', { productId }),
+  /** The next wrapper out of a box that is already open. */
+  openBoxNext: (boxId: number) => post<import('./types').BoxOpen>('/api/packs/box/next', { boxId }),
+  /** Boxes that still have wrappers inside — a reload mid-box must not lose them. */
+  openBoxes: () => req<{ id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }[]>('/api/packs/boxes'),
   sellSealed: (productId: string, qty: number) =>
     post<SellSealedResult>(`/api/sealed/sell/${encodeURIComponent(productId)}`, { qty }),
   sealedFutures: () => req<SealedFuturesSection>('/api/sealed/futures'),
@@ -248,7 +254,10 @@ export const api = {
   finance: () => req<FinanceStatus>('/api/finance'),
   financeBorrow: (amount: number) => post<{ ok: boolean; amount?: number; lender?: string; rateDaily?: number; error?: string }>('/api/finance/borrow', { amount }),
   financeRepay: (loanId: number, amount?: number) => post<{ ok: boolean; paid?: number; remaining?: number; cleared?: boolean; error?: string }>('/api/finance/repay', { loanId, amount }),
-  calendar: () => req<CalendarResponse>('/api/calendar'),
+  // `weeks` widens the published window — the month grid asks for enough to
+  // page either side of the current month.
+  calendar: (weeks?: number) =>
+    req<CalendarResponse>(weeks ? `/api/calendar?weeks=${weeks}` : '/api/calendar'),
   netWorthHistory: () => req<NetWorthHistory>('/api/networth/history'),
   portfolio: () => req<Portfolio>('/api/portfolio'),
   collectorStats: () => req<CollectorStats>('/api/collector/stats'),
@@ -343,7 +352,7 @@ export const api = {
   fleaDig: (binId: number) => post<{ ok: boolean; card?: FleaDigResult; error?: string }>(`/api/flea/dig/${binId}`),
   fleaDebugSpawn: () => post<{ ok: boolean }>('/api/flea/debug-spawn'),
   yardOffer: (rowId: number, offer: number) => post<YardOfferResult>(`/api/yard/offer/${rowId}`, { offer }),
-  yardBuy: (rowId: number) => post<{ ok: boolean; paid?: number; card?: string; error?: string }>(`/api/yard/buy/${rowId}`),
+  yardBuy: (rowId: number) => post<YardPickResult>(`/api/yard/buy/${rowId}`),
   yardBox: (saleId: number) => post<YardBoxResult>(`/api/yard/box/${saleId}`),
 
   // ------------------------------------------------- estate & collection buyouts
@@ -2551,13 +2560,17 @@ export type ResaleDeal = {
 
 export type ResaleHaggle = { ok: boolean; counter?: number; sellerReply?: string; error?: string }
 
-export type ResaleBuy = { ok: boolean; bought?: number; spent?: number; estValue?: number; error?: string }
+export type ResaleBuy = { ok: boolean; bought?: number; spent?: number; estValue?: number; short?: number; error?: string }
 
 export type FlipStock = {
   dealer: string
   lots: {
     inventoryId: number
     cardId: string
+    name: string
+    image: string | null
+    condition: string
+    quantity: number
     costBasis: number
     market: number
     offer: number
@@ -3009,7 +3022,23 @@ export type YardOfferResult = {
   paid?: number
   counter?: number | null
   card?: string
+  cardId?: string
+  condition?: string
+  qty?: number
+  value?: number
   message?: string
+  error?: string
+}
+
+/** What a yard-sale pile actually hands you. */
+export type YardPickResult = {
+  ok: boolean
+  paid?: number
+  card?: string
+  cardId?: string
+  condition?: string
+  qty?: number
+  value?: number
   error?: string
 }
 

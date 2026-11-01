@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import type { YardCard, YardOfferResult, YardSaleRow, YardSection, YardBoxResult } from '../api'
+import type { YardCard, YardOfferResult, YardPickResult, YardSaleRow, YardSection, YardBoxResult } from '../api'
 import { useStore } from '../store'
-import { EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
 
 // ---------------------------------------------------------------------------
 // 🛗 YARD SALES — roadmap 6.0: "read the table".
@@ -205,6 +205,9 @@ export function YardSalesView() {
   const [offers, setOffers] = useState<Record<number, string>>({})
   const [says, setSays] = useState<Record<number, Say>>({})
   const [reveal, setReveal] = useState<YardBoxResult | null>(null)
+  // A table buy used to end in a toast, which is not an answer to "what did I
+  // just carry home?" — this is the card, its condition, and what it is worth.
+  const [pick, setPick] = useState<YardPickResult | null>(null)
   const [now, setNow] = useState(() => Date.now())
 
   const load = () => {
@@ -246,6 +249,7 @@ export function YardSalesView() {
     if (r.accepted) {
       setSays((s) => { const n = { ...s }; delete n[rowId]; return n })
       setOffers((o) => ({ ...o, [rowId]: '' }))
+      setPick(r)
       return
     }
     setSays((s) => ({
@@ -257,8 +261,11 @@ export function YardSalesView() {
     if (!r.counter) toast(r.message ?? 'They passed.', 'info')
   }
 
-  const buy = (rowId: number) =>
-    run(() => api.yardBuy(rowId), (r) => `Paid ${fmtUsd(r.paid ?? 0)} — ${r.card} is yours.`)
+  const buy = async (rowId: number) => {
+    // No toast: the reveal is the receipt.
+    const r = (await run(() => api.yardBuy(rowId), () => '')) as YardPickResult | null
+    if (r && r.ok) setPick(r)
+  }
 
   const openBox = (s: YardSaleRow) =>
     run(() => api.yardBox(s.id), () => 'Box paid — tear it open.').then((r: any) => {
@@ -341,6 +348,37 @@ export function YardSalesView() {
             onBox={() => openBox(s)}
           />
         ))
+      )}
+
+      {pick && (
+        <div className="ys-reveal-back" onClick={() => setPick(null)}>
+          <div className="ys-reveal" role="dialog" aria-label="What you carried home" onClick={(e) => e.stopPropagation()}>
+            <div className="ys-reveal-head">
+              <b>🛗 What you carried home</b>
+              <button className="ghost small" onClick={() => setPick(null)}>close</button>
+            </div>
+            <div className="ys-pick">
+              <CardImg src={null} alt={pick.card ?? 'the pile'} cardId={pick.cardId} className="ys-pick-art" />
+              <div className="ys-pick-info">
+                <b>{pick.card}</b>
+                <span className="faint small">
+                  {pick.condition}{pick.qty && pick.qty > 1 ? ` ×${pick.qty}` : ''} · off a driveway table
+                </span>
+                <span className="faint small">Paid at the sticker, no haggling.</span>
+              </div>
+            </div>
+            <div className="ys-reveal-tally">
+              <span>paid <b>{fmtUsd(pick.paid ?? 0)}</b></span>
+              <span>worth <b>{fmtUsd(pick.value ?? 0)}</b></span>
+              <span className={(pick.value ?? 0) >= (pick.paid ?? 0) ? 'pw-ok' : 'pw-bad'}>
+                {(pick.value ?? 0) >= (pick.paid ?? 0) ? '+' : '−'}
+                {fmtUsd(Math.abs((pick.value ?? 0) - (pick.paid ?? 0)))}
+                {(pick.value ?? 0) >= (pick.paid ?? 0) ? ' under market' : ' over market'}
+              </span>
+            </div>
+            <div className="faint small">It's in your binder now — acquired at a yard sale.</div>
+          </div>
+        </div>
       )}
 
       {reveal && reveal.ok && reveal.cards && (

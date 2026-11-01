@@ -84,6 +84,7 @@ const PORT = Number(process.env.TCGLIFE_PORT || 8787) // ignore ambient PORT (de
 // package.json version, which tracks the same source the build scripts use.
 declare const __TCGLIFE_VERSION__: string | undefined
 import pkg from '../package.json'
+import * as notify from './services/notify'
 const APP_VERSION: string = typeof __TCGLIFE_VERSION__ !== 'undefined' ? __TCGLIFE_VERSION__ : (pkg as { version: string }).version
 
 // ---------------------------------------------------------------------------
@@ -158,6 +159,48 @@ function ensurePackCatalog() {
   console.log('[server] pack catalog seeded:', packs.PRODUCTS.length, 'products')
 }
 
+// The catalog ships the three 30th Celebration RGB Mews mistagged as Common.
+// They are the set's undocumented phantom secret rares — no set symbol,
+// collector numbers R/G/B, ~$3.2k–$4.7k each at ~1 in 12,000 packs per colour.
+// Treated as Commons they price like bulk and deal like bulk, so every boot
+// repairs the rarity and rebuilds that set's pull table to match. Idempotent.
+function repairPhantomRarities() {
+  const updated = db
+    .prepare(
+      `UPDATE cards SET rarity = 'RGB Rare'
+       WHERE id IN ('me55-R', 'me55-G', 'me55-B') AND (rarity IS NULL OR rarity <> 'RGB Rare')`,
+    )
+    .run().changes
+  if (updated > 0) {
+    packs.buildPullTable('me55', 10)
+    console.log('[server] repaired', updated, 'phantom rarity row(s); rebuilt the me55 pull table')
+  }
+}
+
+// The rarity ladder and pack blueprints changed shape, so tables built by
+// older code are wrong: 30C Pikachus sat in the common pool, Trainer Gallery
+// and LEGEND cards dealt like Commons, and no set produced Trainers or Energy
+// at all. Rebuild every booster table once per save.
+function migratePullTableRarities() {
+  const VERSION = '4'
+  if (getMeta('packs:tableVersion') === VERSION) return
+  sealed.ensureFullCatalog()
+  const ids = db
+    .prepare(`SELECT s.id FROM sets s WHERE EXISTS (SELECT 1 FROM pack_products p WHERE p.id = s.id || '-booster')`)
+    .all() as { id: string }[]
+  let n = 0
+  for (const { id } of ids) {
+    try {
+      packs.buildPullTable(id, 10)
+      n++
+    } catch (err) {
+      console.warn('[packs] pull table rebuild failed for', id, err instanceof Error ? err.message : err)
+    }
+  }
+  setMeta('packs:tableVersion', VERSION)
+  console.log(`[packs] rebuilt ${n} pull table(s) on the real rarity ladder`)
+}
+
 function rebuildPullTables() {
   // Products must exist before pull tables (FK constraint) — every synced set
   // gets era-appropriate products, then a booster pull table. Rebuild ALL
@@ -204,6 +247,23 @@ type ChangelogEntry = { version: string; date: string; title: string; features: 
 const CHANGELOG = (changelogData as { entries: ChangelogEntry[] }).entries
 
 app.get('/api/changelog', (c) => c.json({ current: APP_VERSION, entries: CHANGELOG }))
+
+// Notifications — the header bell. A short list, newest first, with read state.
+app.get('/api/notifications', (c) => {
+  notify.prune()
+  return c.json(notify.list(40))
+})
+
+app.post('/api/notifications/read', async (c) => {
+  const body = await c.req.json<{ id?: number }>().catch(() => ({}) as { id?: number })
+  if (body && typeof body.id === 'number') notify.markRead(body.id)
+  return c.json({ ok: true, unread: notify.unreadCount() })
+})
+
+app.post('/api/notifications/read-all', (c) => {
+  notify.markAllRead()
+  return c.json({ ok: true, unread: 0 })
+})
 
 app.get('/api/changelog/seen', (c) => {
   // A save with play history that never opened the changelog is a RETURNING
@@ -363,9 +423,21 @@ app.get('/api/activity', (c) => {
 // ---------------------------------------------------------------------------
 
 app.get('/api/sets', (c) => {
+  // One pass for owned counts rather than a correlated subquery per set: the
+  // gallery needs a completion bar on every row, and it needs to be cheap
+  // enough to refetch on every visit. Same statuses the set page counts
+  // (collection + in-grading), distinct by card so a playset counts once.
   const rows = db.prepare(`
-    SELECT s.*, COUNT(c.id) AS cards_synced
-    FROM sets s LEFT JOIN cards c ON c.set_id = s.id
+    WITH owned AS (
+      SELECT c.set_id, COUNT(DISTINCT i.card_id) AS n
+      FROM inventory i JOIN cards c ON c.id = i.card_id
+      WHERE i.status IN ('collection','grading')
+      GROUP BY c.set_id
+    )
+    SELECT s.*, COUNT(c.id) AS cards_synced, COALESCE(o.n, 0) AS owned
+    FROM sets s
+    LEFT JOIN cards c ON c.set_id = s.id
+    LEFT JOIN owned o ON o.set_id = s.id
     GROUP BY s.id ORDER BY s.release_date DESC
   `).all()
   return c.json(jsonRows(rows))
@@ -929,6 +1001,28 @@ app.post('/api/packs/open', async (c) => {
   try {
     const result = packs.openSealed(body.productId)
     return c.json(result)
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : 'Open failed' }, 400)
+  }
+})
+
+// Boxes open one wrapper at a time: start it (the promo lands in the binder
+// first), then keep asking for the next pack until packsLeft hits zero.
+app.get('/api/packs/boxes', (c) => c.json(packs.openBoxes()))
+
+app.post('/api/packs/box', async (c) => {
+  const body = await c.req.json<{ productId: string }>()
+  try {
+    return c.json(packs.beginBox(body.productId))
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : 'Open failed' }, 400)
+  }
+})
+
+app.post('/api/packs/box/next', async (c) => {
+  const body = await c.req.json<{ boxId: number }>()
+  try {
+    return c.json(packs.openBoxNext(Number(body.boxId)))
   } catch (e) {
     return c.json({ error: e instanceof Error ? e.message : 'Open failed' }, 400)
   }
@@ -1865,7 +1959,10 @@ app.get('/api/tournaments', (c) => c.json(tournaments.tournamentStatus()))
 // ------------------------- Event calendar -------------------------
 
 app.get('/api/calendar', (c) => {
-  const events = schedule.upcoming(3)
+  // The month grid pages either side of today, so the window is a query param
+  // (clamped — these expand weekly slots, they aren't stored rows).
+  const weeks = Math.min(Math.max(Number(c.req.query('weeks') ?? 3) || 3, 1), 16)
+  const events = schedule.upcoming(weeks)
   return c.json({
     events,
     live: events.find((e) => e.now) ?? null,
@@ -2365,7 +2462,9 @@ if (process.env.TCGLIFE_PARENT_PID) {
 ensureGameState()
 migratePerDayCostsTo12hClock()
 ensureDefaultBinder()
+repairPhantomRarities()
 ensurePackCatalog()
+migratePullTableRarities()
 backfillAcquiredRefs()
 backfillNetWorthHistory()
 streaming.recoverOrphanStreams()
@@ -2388,35 +2487,15 @@ function maybeRecordNetWorthSnapshot() {
   setMeta('lastNetworthSnapAt', nowIso())
 }
 
-// Daily price snapshot: when the server starts, copy the latest real prices into
-// the history log if we haven't snapshotted in the last 24h.
-function maybeDailySnapshot() {
-  const last = getMeta('lastSnapshotAt')
-  if (last && Date.now() - new Date(last).getTime() < 24 * 3600_000) return
-  const n = market.takeSnapshot()
-  if (n > 0) console.log(`[snapshot] stored ${n} price points into history`)
-}
-setTimeout(maybeDailySnapshot, 5000)
-setInterval(maybeDailySnapshot, 6 * 3600_000)
+// Price history, real quotes and the simulated market all advance once per
+// GAME DAY now, driven by market.tick → services/pricetick.ts. The old jobs
+// here ran on 24-hour wall-clock gaps, so a 12-hour game day could turn twice
+// with no quote moving at all. This boot kick just seeds the first day.
+setTimeout(() => market.tick(), 4_000)
 
-// Daily owned/wishlist price refresh: re-syncs TCGplayer + Cardmarket prices
-// for the cards you actually hold or want, so the Cardmarket fallback tier
-// (and your portfolio valuation) stays as fresh as the rest of the ladder —
-// without re-running the full 20k-card catalog sync. Cheap: a handful of
-// paged requests for a few hundred cards at most.
-async function maybeDailyPriceRefresh() {
-  const last = getMeta('lastOwnedPriceRefreshAt')
-  if (last && Date.now() - new Date(last).getTime() < 24 * 3600_000) return
-  try {
-    const r = await sync.refreshOwnedPrices()
-    setMeta('lastOwnedPriceRefreshAt', new Date().toISOString())
-    if (r.cards === 0) console.log('[sync] daily price refresh: nothing owned or wishlisted yet — skipped')
-  } catch (err) {
-    console.error('[sync] daily price refresh failed (will retry next interval):', err instanceof Error ? err.message : err)
-  }
-}
-setTimeout(maybeDailyPriceRefresh, 9_000)
-setInterval(maybeDailyPriceRefresh, 6 * 3600_000)
+// Owned/wishlist re-pricing lives in services/pricetick.ts now: it runs on
+// the first tick of each game day (and retries after 30 minutes if the
+// upstream is down), so your portfolio is never a day stale.
 
 // The S&P 500 close cache: tops up twice a day once it covers the save span,
 // retries every five minutes after a failed fetch (boot-time outages catch up
@@ -2448,11 +2527,9 @@ setInterval(maybeWeeklyCatalogDelta, 24 * 3600_000)
 // market prices until the quotas reset.
 setTimeout(() => pricesources.autoStartPriceBackfill(), 12_000)
 
-// Keep the simulated market fresh: regenerate 'simulated' rows for cards with
-// no real price at boot and daily, so the market never goes blank between
-// quota windows. Real rows always outrank simulated ones in resolvePrice.
-setTimeout(() => market.refreshSimulatedMarket(), 8_000)
-setInterval(() => market.refreshSimulatedMarket(), 24 * 3600_000)
+// The simulated market (the fallback tier for cards with no live quote) drifts
+// once per game day from services/pricetick.ts — real rows always outrank
+// simulated ones in resolvePrice, so a fresh day never blanks the market.
 
 sync.startSyncLoop()
 

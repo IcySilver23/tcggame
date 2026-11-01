@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react'
-import { api, type GuestOption, type ShowDealer, type ShowsStatus, type ShowResultRow, type StockableRow, type VendorStockRow } from '../api'
+import { api, type GuestOption, type ShowDealer, type ShowsStatus, type ShowResultRow, type StockableRow } from '../api'
 import { useStore } from '../store'
 import { FirstUseTip, fmtUsd } from '../components'
 
 // ---------------------------------------------------------------------------
-// 🏟 Card Shows — you're the organizer now. Book a hall, price the gate,
-// sell vendor tables to the NPC dealer scene, and live or die by reputation.
-// Once your own doors are open, you can also claim a table as your own booth
-// and sell your stock to the very crowd you paid to gather.
+// 🏟 Card Shows — you're the organizer now. Book a hall, price the gate, sell
+// vendor tables to the NPC dealer scene, and live or die by reputation. Once
+// your own doors are open, you can also claim a table as your own booth and
+// sell your stock to the very crowd you paid to gather.
+//
+// The old screen was one tall panel per state: terms, pricing inputs, guest
+// lineup, your booth and the dealer roster all stacked together, so "can I still
+// change the gate?" and "where do I sign a headliner?" meant scrolling a wall.
+// A booked show is really four small decisions — the deal, the lineup, your own
+// booth, and the dealer scene — so they are four sections now, and which ones
+// are still live depends on whether the doors are open.
 // ---------------------------------------------------------------------------
 
 type VendorStatusTable = Extract<import('../api').VendorStatus, { active: true }>
@@ -22,6 +29,15 @@ const SPECIALTY_LABEL: Record<string, string> = {
   deals: 'Deal Bins', bulk: 'Bulk Tables', vintage: 'Vintage',
   modern: 'Modern', graded: 'Slabs', trap: 'Tourist Trap',
 }
+
+const SHOW_SECTIONS = [
+  { id: 'deal', label: 'The deal', icon: '📋', verb: 'What the hall costs, what the gate and tables are priced at, and the way out' },
+  { id: 'guests', label: 'Guests', icon: '⭐', verb: 'Sign headliners — real money up front, real crowds on the day' },
+  { id: 'booth', label: 'My booth', icon: '🪑', verb: 'Hold a dealer table for yourself and sell your own stock to your crowd' },
+  { id: 'dealers', label: 'Dealers', icon: '🎯', verb: "Who is committing at today's table price — and who thinks you've lost it" },
+] as const
+
+type ShowSection = (typeof SHOW_SECTIONS)[number]['id']
 
 function GateVerdict({ gate }: { gate: number }) {
   const label =
@@ -44,6 +60,26 @@ function TableVerdict({ price, anchor }: { price: number; anchor: number }) {
     : 'nobody pays this — the hall goes empty'
   const cls = ratio < 0.5 ? 'below' : ratio <= 1.05 ? 'at' : 'above'
   return <span className={`badge ${cls}`}>{label}</span>
+}
+
+/** Ticks down from the server's own answer, so a shifted dev clock can't lie. */
+function DoorsCountdown({ minutes }: { minutes: number }) {
+  const [startedAt] = useState(() => Date.now())
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const total = Math.max(0, Math.floor((minutes * 60_000 - (Date.now() - startedAt)) / 1000))
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  return (
+    <div className="show-clock">
+      <div className="show-kicker">doors open in</div>
+      <b>{h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m ${String(s).padStart(2, '0')}s`}</b>
+    </div>
+  )
 }
 
 function HostBoothPanel({ opensInMin, closesInMin, hostBooth, venueName, tablePrice, tablesTotal, refresh }: {
@@ -169,27 +205,37 @@ function DealerRow({ d }: { d: ShowDealer }) {
   )
 }
 
-function ResultsTable({ rows }: { rows: ShowResultRow[] }) {
+/**
+ * Past shows as rows rather than a seven-column table: at the width this game is
+ * played, "Net" was the only column that fit on screen, which is the one number
+ * the history is actually for.
+ */
+function PastShows({ rows }: { rows: ShowResultRow[] }) {
   if (rows.length === 0) return null
   return (
-    <table className="table mt10" style={{ width: '100%' }}>
-      <thead>
-        <tr><th style={{ textAlign: 'left' }}>Show</th><th>Walk-ins</th><th>Tables</th><th>Gate</th><th>Tables rev.</th><th>Rep</th><th className="right">Net</th></tr>
-      </thead>
-      <tbody>
+    <div className="panel mt14">
+      <b className="small">📊 Past shows</b>
+      <div className="show-results">
         {rows.map((r) => (
-          <tr key={r.id}>
-            <td style={{ textAlign: 'left' }}><b className="small">{VENUE_ICON[r.venue] ?? '🏟'} {r.venue.replace(/_/g, ' ')}</b></td>
-            <td className="num">{r.walkins ?? '—'}</td>
-            <td className="num">{r.tables_sold ?? '—'}</td>
-            <td className="num faint">{r.gate_revenue != null ? fmtUsd(r.gate_revenue) : '—'}</td>
-            <td className="num faint">{r.table_revenue != null ? fmtUsd(r.table_revenue) : '—'}</td>
-            <td className="num">{r.rep_delta ? `${r.rep_delta > 0 ? '+' : ''}${r.rep_delta}` : '—'}</td>
-            <td className={`num right ${r.profit >= 0 ? 'delta-up' : 'delta-down'}`}>{r.profit >= 0 ? '+' : ''}{fmtUsd(r.profit)}</td>
-          </tr>
+          <div key={r.id} className="show-result">
+            <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
+              <span className="small"><b>{VENUE_ICON[r.venue] ?? '🏟'} {r.venue.replace(/_/g, ' ')}</b></span>
+              <span className={`small ${r.profit >= 0 ? 'delta-up' : 'delta-down'}`} style={{ fontWeight: 750, fontVariantNumeric: 'tabular-nums' }}>
+                {r.profit >= 0 ? '+' : ''}{fmtUsd(r.profit)}
+              </span>
+            </div>
+            <div className="faint small">
+              {r.walkins ?? '—'} walk-ins · {r.tables_sold ?? '—'} tables · gate {r.gate_revenue != null ? fmtUsd(r.gate_revenue) : '—'} ·
+              {' '}tables {r.table_revenue != null ? fmtUsd(r.table_revenue) : '—'}
+              {r.rep_delta ? ` · rep ${r.rep_delta > 0 ? '+' : ''}${r.rep_delta}` : ''}
+            </div>
+          </div>
         ))}
-      </tbody>
-    </table>
+      </div>
+      {rows.some((r) => r.notes) && (
+        <div className="faint small mt8">{rows.find((r) => r.notes)?.notes}</div>
+      )}
+    </div>
   )
 }
 
@@ -274,6 +320,7 @@ export function CardShowsView() {
   const [tablePrice, setTablePrice] = useState('25')
   const [pickedGuests, setPickedGuests] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
+  const [section, setSection] = useState<ShowSection>('deal')
 
   const load = () => api.shows().then(setStatus).catch(() => {})
   useEffect(() => { load() }, [])
@@ -298,6 +345,7 @@ export function CardShowsView() {
       if (r.ok) {
         toast('Hall booked — dealers are already hearing about it.', 'good')
         setPickedGuests(new Set())
+        setSection('deal')
         load(); refreshState()
       } else toast(r.error ?? 'Booking failed', 'bad')
     } finally { setBusy(false) }
@@ -326,10 +374,8 @@ export function CardShowsView() {
 
   const doLineup = async (guests: string[]) => {
     if (status?.hasShow) {
-      const booked = new Set(status.bookedGuests.map((g) => g.id))
       const dropped = status.bookedGuests.filter((g) => !guests.includes(g.id))
       if (dropped.length > 0 && !confirm(`Drop ${dropped.map((g) => g.name).join(', ')}? Their ${fmtUsd(dropped.reduce((a, g) => a + g.fee, 0))} in fees are already spent and won't come back.`)) return
-      void booked
     }
     setBusy(true)
     try {
@@ -351,125 +397,200 @@ export function CardShowsView() {
       <div className="page-head">
         <div>
           <h1>🏟 Card Shows</h1>
-          <div className="sub">Stop attending shows — run them. Book a hall, price the gate, rent tables to dealers.</div>
+          <div className="sub">Stop attending shows — run them.</div>
         </div>
         <div className="right">
           <div className="faint small">Scene reputation</div>
-          <div className="price" style={{ fontSize: 18 }}>{status.rep}/100 · {status.nextRepTier.label}</div>
+          <div className="price" style={{ fontSize: 18 }}>{status.rep}/100</div>
+          <div className="faint small">{status.nextRepTier.label}</div>
         </div>
       </div>
 
       <FirstUseTip surface="convention">
         <b style={{ color: 'var(--gold)' }}>🏟 First time hosting?</b> Your money comes from two taps: the <b>gate</b> (every
         walk-in pays it) and <b>table rent</b> (NPC dealers pay per table). Price both too high and the hall goes empty — watch the
-        roster react live as you drag the numbers. Deliver a profitable show and your <b>reputation</b> rises, which draws more
+        roster react live as you change the numbers. Deliver a profitable show and your <b>reputation</b> rises, which draws more
         dealers and bigger crowds to the next one. Run a dead hall and the scene remembers.
       </FirstUseTip>
 
       {status.hasShow ? (
         <>
-          <div className="panel" style={{ marginBottom: 16 }}>
-            <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-              <div>
-                <b>{VENUE_ICON[status.show.venue] ?? '🏟'} {status.venue.name} — doors {status.opensInMin > 0 ? `in ${status.opensInMin} min` : 'are OPEN'}</b>
+          <div className={`panel show-banner${status.opensInMin <= 0 ? ' is-live' : ''}`}>
+            <div className="show-banner-top">
+              <div style={{ minWidth: 0 }}>
+                <div className="show-kicker">{status.opensInMin > 0 ? 'The hall is yours' : 'Doors are open'}</div>
+                <div className="show-venue">{VENUE_ICON[status.venue.id] ?? '🏟'} {status.venue.name}</div>
                 <div className="faint small">
-                  {status.opensInMin > 0
-                    ? `Show runs ~${status.closesInMin} min of active play · gate ${fmtUsd(status.show.gate)} · table ${fmtUsd(status.show.table_price)}`
-                    : `Live now · closes in ${status.closesInMin} min of active play`}
+                  {status.opensInMin > 0 ? status.venue.blurb : `closes in ${status.closesInMin} min of active play`}
                 </div>
               </div>
-              <div className="row" style={{ gap: 14 }}>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="faint small">Dealers committed</div>
-                  <div className="price">{status.committed}/{status.show.tables_total}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div className="faint small">Projected gate</div>
-                  <div className="price">{fmtUsd(status.expectedGate)}</div>
-                </div>
-                {status.opensInMin > 0 && (
-                  <button disabled={busy} onClick={doCancel} title="Walk away — the hall keeps half the deposit">
-                    Cancel show
-                  </button>
-                )}
-              </div>
+              {status.opensInMin > 0
+                ? <DoorsCountdown minutes={status.opensInMin} />
+                : <div className="show-live-tag">LIVE</div>}
             </div>
+            <div className="show-stats">
+              <div><span className="faint small">projected walk-ins</span><b>{status.projectedWalkins}</b></div>
+              <div><span className="faint small">gate</span><b>{fmtUsd(status.show.gate)}</b></div>
+              <div><span className="faint small">dealers</span><b>{status.committed}/{status.show.tables_total}</b></div>
+              <div><span className="faint small">projected gate</span><b>{fmtUsd(status.expectedGate)}</b></div>
+            </div>
+          </div>
 
-            {status.opensInMin > 0 && (
-              <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <label className="small faint">Gate $</label>
-                <input className="input" style={{ width: 80 }} inputMode="decimal" value={gate} onChange={(e) => setGate(e.target.value)} />
-                <GateVerdict gate={gateNum} />
-                <label className="small faint" style={{ marginLeft: 10 }}>Table $</label>
-                <input className="input" style={{ width: 80 }} inputMode="decimal" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} />
-                <TableVerdict price={tableNum} anchor={status.tableAnchorHint} />
-                <button className="primary small" disabled={busy} onClick={doPricing}>Update pricing</button>
+          <div className="seg-bar" role="tablist" aria-label="Show planning">
+            {SHOW_SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                role="tab"
+                aria-selected={section === s.id}
+                className={`seg-item${section === s.id ? ' on' : ''}`}
+                title={`${s.label} — ${s.verb}`}
+                onClick={() => setSection(s.id)}
+              >
+                <span aria-hidden>{s.icon}</span> {s.label}
+                {s.id === 'dealers' && <span className="seg-count">{status.committed}</span>}
+              </button>
+            ))}
+          </div>
+
+          {section === 'deal' && (
+            <div className="panel">
+              <b>📋 {status.opensInMin > 0 ? 'The deal on the table' : 'The deal you signed'}</b>
+              <div className="show-terms">
+                <div><span className="faint small">hall rent</span><b>{fmtUsd(status.venue.cost)}</b></div>
+                <div><span className="faint small">deposit</span><b>{fmtUsd(status.venue.deposit)}</b></div>
+                <div><span className="faint small">crowd pull</span><b>×{status.venue.crowd}</b></div>
+                <div><span className="faint small">tables</span><b>{status.show.tables_total}</b></div>
               </div>
-            )}
 
-            {status.bookedGuests.length > 0 && status.opensInMin <= 0 && (
-              <div className="mt10">
-                <b className="small">On the marquee</b>
-                <div className="row mt4" style={{ gap: 6, flexWrap: 'wrap' }}>
-                  {status.bookedGuests.map((g) => <span key={g.id} className="badge hit">⭐ {g.name}</span>)}
+              {status.opensInMin > 0 ? (
+                <>
+                  <div className="faint small mt10">
+                    Price the doors before they open. Dealers walk at a table price they won't pay; casuals balk at a steep gate.
+                  </div>
+                  <div className="show-price-grid mt8">
+                    <label>
+                      <span className="faint small">Gate $</span>
+                      <input className="input" inputMode="decimal" value={gate} onChange={(e) => setGate(e.target.value)} />
+                      <GateVerdict gate={gateNum} />
+                    </label>
+                    <label>
+                      <span className="faint small">Table $</span>
+                      <input className="input" inputMode="decimal" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} />
+                      <TableVerdict price={tableNum} anchor={status.tableAnchorHint} />
+                    </label>
+                  </div>
+                  <div className="row mt10" style={{ gap: 8, justifyContent: 'space-between' }}>
+                    <button disabled={busy} onClick={doCancel} title="Walk away — the hall keeps half the deposit">Cancel show</button>
+                    <button className="primary" disabled={busy} onClick={doPricing}>Update pricing</button>
+                  </div>
+                </>
+              ) : (
+                <div className="faint small mt10">
+                  Pricing is locked at {fmtUsd(status.show.gate)} gate / {fmtUsd(status.show.table_price)} table while the doors are open.
+                  {status.hostBooth ? ' Your own booth is holding one of the dealer tables.' : ''}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {status.opensInMin > 0 && status.guests.length > 0 && (
-              <GuestLineupEditor
-                options={status.guests}
-                booked={status.bookedGuests.map((g) => g.id)}
-                busy={busy}
-                onSave={doLineup}
+          {section === 'guests' && (
+            <div className="panel">
+              <b>⭐ {status.opensInMin > 0 ? 'Special guests' : 'On the marquee'}</b>
+              {status.opensInMin > 0 ? (
+                status.guests.length > 0 ? (
+                  <GuestLineupEditor
+                    options={status.guests}
+                    booked={status.bookedGuests.map((g) => g.id)}
+                    busy={busy}
+                    onSave={doLineup}
+                  />
+                ) : (
+                  <div className="faint small mt8">No headliners are taking your calls yet — reputation brings them around.</div>
+                )
+              ) : (
+                <>
+                  {status.bookedGuests.length > 0 ? (
+                    <div className="row mt8" style={{ gap: 6, flexWrap: 'wrap' }}>
+                      {status.bookedGuests.map((g) => <span key={g.id} className="badge hit">⭐ {g.name}</span>)}
+                    </div>
+                  ) : (
+                    <div className="faint small mt8">No headliners — the crowd is whatever your reputation and pricing pull.</div>
+                  )}
+                  <div className="faint small mt8">The lineup locks when the doors open. Sign the next one before it does.</div>
+                </>
+              )}
+            </div>
+          )}
+
+          {section === 'booth' && (
+            <div className="panel">
+              <b>🪑 Your booth</b>
+              <HostBoothPanel
+                opensInMin={status.opensInMin}
+                closesInMin={status.closesInMin}
+                hostBooth={Boolean(status.hostBooth)}
+                venueName={status.venue.name}
+                tablePrice={status.show.table_price}
+                tablesTotal={status.show.tables_total}
+                refresh={load}
               />
-            )}
-
-            <HostBoothPanel
-              opensInMin={status.opensInMin}
-              closesInMin={status.closesInMin}
-              hostBooth={Boolean(status.hostBooth)}
-              venueName={status.venue.name}
-              tablePrice={status.show.table_price}
-              tablesTotal={status.show.tables_total}
-              refresh={load}
-            />
-          </div>
-
-          <div className="panel" style={{ marginBottom: 16 }}>
-            <b className="small">The dealer scene right now</b>
-            <div className="faint small mt4">Who's in at today's table price — and who thinks you've lost the plot.</div>
-            <div style={{ marginTop: 8 }}>
-              {status.roster.map((d) => <DealerRow key={d.name} d={d} />)}
             </div>
-            <div className="faint small mt8">
-              Roster locks when doors open. Reputation ({status.rep}/100 — {status.nextRepTier.label}) shifts every decision:
-              {status.nextRepTier.next != null ? ` reach ${status.nextRepTier.next} to hit the next tier.` : ' you run this scene now.'}
-            </div>
-            {status.hostBooth && (
-              <div className="row" style={{ justifyContent: 'space-between', padding: '5px 8px', borderBottom: '1px solid var(--border-soft)', background: 'var(--panel-2, rgba(255,255,0,0.04))' }}>
-                <span className="small">🪑 <b>your booth</b> <span className="badge" style={{ fontSize: 9 }}>you</span></span>
-                <span className="badge hit" style={{ fontSize: 9 }}>✓ holding a table</span>
+          )}
+
+          {section === 'dealers' && (
+            <div className="panel">
+              <b>🎯 The dealer scene right now</b>
+              <div className="faint small mt4">Who's in at today's table price — and who thinks you've lost the plot.</div>
+              <div style={{ marginTop: 8 }}>
+                {status.roster.map((d) => <DealerRow key={d.name} d={d} />)}
               </div>
-            )}
-          </div>
+              <div className="faint small mt8">
+                Roster locks when doors open. Reputation ({status.rep}/100 — {status.nextRepTier.label}) shifts every decision:
+                {status.nextRepTier.next != null ? ` reach ${status.nextRepTier.next} to hit the next tier.` : ' you run this scene now.'}
+              </div>
+              {status.hostBooth && (
+                <div className="row" style={{ justifyContent: 'space-between', padding: '5px 8px', borderBottom: '1px solid var(--border-soft)', background: 'var(--panel-2, rgba(255,255,0,0.04))' }}>
+                  <span className="small">🪑 <b>your booth</b> <span className="badge" style={{ fontSize: 9 }}>you</span></span>
+                  <span className="badge hit" style={{ fontSize: 9 }}>✓ holding a table</span>
+                </div>
+              )}
+            </div>
+          )}
         </>
       ) : (
-        <div className="panel" style={{ marginBottom: 16 }}>
-          <b>Pick a hall</b>
-          <div className="row mt4 faint small">
-            Gate <input className="input" style={{ width: 70, margin: '0 6px' }} inputMode="decimal" value={gate} onChange={(e) => setGate(e.target.value)} /> <GateVerdict gate={gateNum} />
-            <span style={{ marginLeft: 14 }}>Table rent</span>
-            <input className="input" style={{ width: 70, margin: '0 6px 0 6px' }} inputMode="decimal" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} />
-            <TableVerdict price={tableNum} anchor={status.tableAnchorHint} />
+        <>
+          <div className="panel">
+            <b>🎚️ Price the doors</b>
+            <div className="faint small mt4">
+              The gate is what every walk-in pays. Table rent is what dealers pay for a spot. Both decide who shows up.
+            </div>
+            <div className="show-price-grid mt10">
+              <label>
+                <span className="faint small">Gate $</span>
+                <input className="input" inputMode="decimal" value={gate} onChange={(e) => setGate(e.target.value)} />
+                <GateVerdict gate={gateNum} />
+              </label>
+              <label>
+                <span className="faint small">Table $</span>
+                <input className="input" inputMode="decimal" value={tablePrice} onChange={(e) => setTablePrice(e.target.value)} />
+                <TableVerdict price={tableNum} anchor={status.tableAnchorHint} />
+              </label>
+            </div>
           </div>
+
           {status.guests.length > 0 && (
-            <div style={{ marginTop: 12 }}>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <b className="small">Special guests</b>
-                {pickedGuests.size > 0 && <span className="badge hit" style={{ fontSize: 9 }}>+{fmtUsd(status.guests.filter((o) => pickedGuests.has(o.guest.id)).reduce((a, o) => a + o.guest.fee, 0))} in fees</span>}
+            <div className="panel mt14">
+              <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                <b>⭐ Special guests</b>
+                {pickedGuests.size > 0 && (
+                  <span className="badge hit" style={{ fontSize: 9 }}>
+                    +{fmtUsd(status.guests.filter((o) => pickedGuests.has(o.guest.id)).reduce((a, o) => a + o.guest.fee, 0))} in fees
+                  </span>
+                )}
               </div>
-              <div className="faint small mt4">Headliners cost real money up front — and pull real crowds. Click to add to the booking.</div>
+              <div className="faint small mt4">
+                Headliners cost real money up front and pull real crowds. Picked here, they're signed when you book the hall.
+              </div>
               <div className="grid cols3" style={{ marginTop: 8 }}>
                 {status.guests.map((opt) => (
                   <GuestCard key={opt.guest.id} opt={opt} selected={pickedGuests.has(opt.guest.id)} feeKnown={false} onToggle={() => toggleGuest(opt.guest.id)} />
@@ -477,35 +598,44 @@ export function CardShowsView() {
               </div>
             </div>
           )}
-          <div className="grid cols3" style={{ marginTop: 12 }}>
-            {status.venues.map((v) => (
-              <div key={v.id} className="panel conv-booth" style={{ margin: 0, cursor: 'default' }}>
-                <div style={{ fontSize: 26 }}>{VENUE_ICON[v.id] ?? '🏟'}</div>
-                <b>{v.name}</b>
-                <div className="faint small" style={{ margin: '4px 0' }}>{v.blurb}</div>
-                <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-                  <span className="badge">{v.capacity} tables</span>
-                  <span className="badge">crowd ×{v.crowd}</span>
+
+          <div className="panel mt14">
+            <b>🏟 Pick a hall</b>
+            <div className="faint small mt4">
+              You pay rent and a refundable deposit at booking. Every dealer table you sell is income; every empty one is rent you ate.
+            </div>
+            <div className="grid cols3" style={{ marginTop: 10 }}>
+              {status.venues.map((v) => (
+                <div key={v.id} className="panel conv-booth" style={{ margin: 0 }}>
+                  <div className="row" style={{ justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 26 }}>{VENUE_ICON[v.id] ?? '🏟'}</div>
+                    <span className="badge" style={{ fontSize: 9 }}>{v.capacity} tables</span>
+                  </div>
+                  <b>{v.name}</b>
+                  <div className="faint small" style={{ margin: '4px 0' }}>{v.blurb}</div>
+                  <div className="hall-facts">
+                    <span className="badge" style={{ fontSize: 9 }}>crowd ×{v.crowd}</span>
+                    <span className="badge" style={{ fontSize: 9 }}>{v.capacity} spots</span>
+                  </div>
+                  <div className="small">
+                    <b>{fmtUsd(v.total)}</b> down <span className="faint small">({fmtUsd(v.cost)} rent + {fmtUsd(v.deposit)} deposit)</span>
+                  </div>
+                  {tableNum > 0 && (
+                    <div className="hall-math">
+                      sell every table at {fmtUsd(tableNum)} → {fmtUsd(v.capacity * tableNum)} back
+                    </div>
+                  )}
+                  <button className="primary small" style={{ marginTop: 8, width: '100%' }} disabled={busy} onClick={() => doBook(v.id)}>
+                    Book this hall
+                  </button>
                 </div>
-                <div className="small mt8"><b>{fmtUsd(v.total)}</b> down <span className="faint small">({fmtUsd(v.cost)} rent + {fmtUsd(v.deposit)} refundable deposit)</span></div>
-                <button className="primary small" style={{ marginTop: 8, width: '100%' }} disabled={busy} onClick={() => doBook(v.id)}>
-                  Book this hall
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
-      {status.recent.length > 0 && (
-        <div className="panel">
-          <b className="small">Past shows</b>
-          <ResultsTable rows={status.recent} />
-          {status.recent.some((r) => r.notes) && (
-            <div className="faint small mt8">{status.recent.find((r) => r.notes)?.notes}</div>
-          )}
-        </div>
-      )}
+      <PastShows rows={status.recent} />
     </div>
   )
 }
