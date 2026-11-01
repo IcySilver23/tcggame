@@ -1,6 +1,16 @@
 {
   "entries": [
     {
+      "version": "0.7.5",
+      "date": "2026-11-01",
+      "title": "The premium, checked at the counter",
+      "features": [
+        "The estate house premium was verified end to end against a throwaway copy of the save, and the check found a second bug behind it: a lot larger than your free shelf charged the whole hammer plus premium, then only moved the cards that fit into your binder. You paid for the estate's leftovers. Lots now prorate — the per-card share of the hammer and premium, charged only for the copies that come home — and the activity line says exactly how many stayed behind.",
+        "Profit on an estate lot is now measured against what you actually paid for what you actually received, not against the whole box's contents. The earlier version could report a triumphant percentage on a lot where most of the cards never reached you, which is the worst kind of wrong: flattering, plausible, and quietly untrue.",
+        "The audit's own recommendations were worth having: the premium itself was correct all along — hammer quoted, 12% on top, the right card art and the right cash leaving the till — but only a runtime check on a real lot could show that the row-level accounting underneath it was lying."
+      ]
+    },
+    {
       "version": "0.7.4",
       "date": "2026-11-01",
       "title": "The war that nobody wins",

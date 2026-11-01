@@ -281,7 +281,8 @@ export function buyEstateLot(lotId: number) {
   const state = db.prepare(`SELECT cash FROM game_state WHERE id = 1`).get() as { cash: number }
   // The house takes a premium on the hammer — estate tables are liquidations,
   // the resale desk is a private fee-free trade. That is the difference.
-  const charged = round2(lot.ask * (1 + ESTATE_PREMIUM))
+  let charged = round2(lot.ask * (1 + ESTATE_PREMIUM))
+  const fullCharge = charged
   if (state.cash < charged) return { ok: false as const, error: `Hammer ${lot.ask.toFixed(2)} plus ${Math.round(ESTATE_PREMIUM * 100)}% house premium — need ${charged.toFixed(2)}` }
 
   const cards = db
@@ -293,10 +294,7 @@ export function buyEstateLot(lotId: number) {
     .all(lotId) as { card_id: string; condition: string; name: string; image_small: string | null; rarity: string | null; set_name: string }[]
   if (cards.length === 0) return { ok: false as const, error: 'Lot is empty — vendor error' }
 
-  const realized = round2(
-    cards.reduce((a, c) => a + valueOf(c.card_id, 'normal', c.condition as Condition), 0),
-  )
-  const perCard = round2(charged / cards.length)
+  // Cost and value are both settled after storage — see below.
 
   const insertInv = db.prepare(
     `INSERT INTO inventory (card_id, variant, condition, quantity, status, acquired_via, acquired_ref, cost_basis, acquired_at)
@@ -310,36 +308,50 @@ export function buyEstateLot(lotId: number) {
     return { ok: false as const, error: 'Estate lot: no room on the shelf — sell or scrap before buying another lot.' }
   }
 
+  // Prorate: the per-card share of the full hammer+premium, charged only for the
+  // copies that come home, with profit measured against those copies. Before
+  // this, a lot bigger than the free shelf billed the whole estate box and
+  // scored profit on cards it kept.
+  const kept = cards.slice(0, admitted)
+  const perCard = round2(fullCharge / cards.length)
+  charged = round2(perCard * admitted)
+  const realized = round2(
+    kept.reduce((a, c) => a + valueOf(c.card_id, 'normal', c.condition as Condition), 0),
+  )
+  if (state.cash < charged) {
+    return { ok: false as const, error: `Only ${admitted} of ${cards.length} cards fit, and that still costs $${charged.toFixed(2)} — not enough cash` }
+  }
+
   const tx = db.transaction(() => {
     db.prepare(`UPDATE estate_lots SET status = 'sold', bought_at = ?, true_value = ? WHERE id = ?`).run(nowIso(), realized, lotId)
     db.prepare(`UPDATE game_state SET cash = cash - ? WHERE id = 1`).run(charged)
-    for (const c of cards.slice(0, admitted)) insertInv.run(c.card_id, c.condition, String(show.id), perCard, nowIso())
-    const delta = realized - lot.ask
-    const pct = lot.ask > 0 ? Math.round((delta / lot.ask) * 100) : 0
+    for (const c of kept) insertInv.run(c.card_id, c.condition, String(show.id), perCard, nowIso())
+    const delta = round2(realized - charged)
+    const pct = charged > 0 ? Math.round((delta / charged) * 100) : 0
     const verdict =
-      realized >= lot.ask * 2
+      realized >= charged * 2
         ? 'You robbed the estate.'
         : realized > lot.seller_estimate
           ? 'Better than the estate claimed.'
-          : realized >= lot.ask * 0.9
+          : realized >= charged * 0.9
             ? 'About what you paid for.'
             : 'The estate won this one.'
     logActivity(
       'buy',
-      `Bought ${lot.seller_name} (${cards.length} cards) at ${show.name} for $${lot.ask.toFixed(2)} — worth $${realized.toFixed(2)} (${delta >= 0 ? '+' : ''}${pct}%)`,
+      `Bought ${lot.seller_name} (${kept.length} of ${cards.length} cards) at ${show.name} for $${charged.toFixed(2)} — worth $${realized.toFixed(2)} (${delta >= 0 ? '+' : ''}${pct}%)`,
       -charged,
     )
   })
   tx()
 
   const delta = round2(realized - lot.ask)
-  const pct = lot.ask > 0 ? Math.round((delta / lot.ask) * 100) : 0
+  const pct = charged > 0 ? Math.round((delta / charged) * 100) : 0
   const verdict =
-    realized >= lot.ask * 2
+    realized >= charged * 2
       ? 'You robbed the estate.'
       : realized > lot.seller_estimate
         ? 'Better than the estate claimed.'
-        : realized >= lot.ask * 0.9
+        : realized >= charged * 0.9
           ? 'About what you paid for.'
           : 'The estate won this one.'
 
