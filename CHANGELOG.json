@@ -1,6 +1,16 @@
 {
   "entries": [
     {
+      "version": "0.7.4",
+      "date": "2026-11-01",
+      "title": "The war that nobody wins",
+      "features": [
+        "A price war could only ever end one way: on the calendar. The rival had a fold — the \"blinks first\" branch that walks its cuts back and costs it reputation — but the condition behind it asked for a till under $25, and wars open with a $60 war chest in the register. A funded rival could not get there in the two to four days a war runs, so in twenty simulated thirty-day campaigns the branch fired exactly zero times out of one hundred and seven wars.",
+        "The fold now triggers on the thing that actually happens in a losing fight: the rival has been undercutting you for two game-days, the war has cost it money, and it has won no sales. That is a war worth walking away from. In the same simulation it now folds in about one war in eight, loses two reputation doing it, and the comeback arc runs for the first time — roughly three days of humble, honest pricing before its confidence returns.",
+        "The balance holds: most wars still end on the calendar with your nerve rewarded, and the block notices. A rival that folds is a rival that comes back, so winning one is a window rather than a knockout."
+      ]
+    },
+    {
       "version": "0.7.3",
       "date": "2026-11-01",
       "title": "A shop that pays for itself",

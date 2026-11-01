@@ -148,7 +148,7 @@ function endWarRestore(): number {
         restored += db.prepare(`UPDATE rival_cases SET ask = ? WHERE card_id = ?`).run(ask, cardId).changes
       }
     } catch { /* corrupt snapshot — nothing to restore */ }
-    db.prepare(`DELETE FROM meta WHERE key = 'rival:warasks'`).run()
+    db.prepare(`DELETE FROM meta WHERE key IN ('rival:warasks', 'rival:warstart', 'rival:warstartat')`).run()
   }
   db.prepare(`UPDATE rival_shop SET price_war_until = NULL WHERE id = 1`).run()
   return restored
@@ -231,6 +231,15 @@ export function rivalTick() {
   // Price wars: slow stock + confidence = a sale across the street.
   // Expired = the until date has passed (so inWar is false) but the stamp is
   // still set — time to stand down, walk the cuts back, and log the peace.
+  // What the till held when this war opened (stamped below), so "the money is
+  // gone" can mean "half the war chest is gone" rather than a fixed $25 that a
+  // funded war never touches.
+  const warStart = Number(getMeta('rival:warstart') ?? 0)
+  const warAt = getMeta('rival:warstartat')
+  const warDays = warAt ? (Date.now() - Date.parse(warAt)) / gameDayMs() : 0
+  const warSales = warAt
+    ? (db.prepare(`SELECT COUNT(*) AS n FROM rival_sales WHERE sold_at > ?`).get(warAt) as { n: number }).n
+    : 0
   const warDone = !inWar(r) && !!r.price_war_until
   if (warDone) {
     endWarRestore()
@@ -238,7 +247,14 @@ export function rivalTick() {
     // their war chest bled out on the calendar pays in word of mouth.
     const held = db.prepare(`UPDATE shop SET reputation = MAX(0, MIN(100, reputation + 2)) WHERE id = 1`).run().changes > 0
     logActivity('shop', `The price war across the street is over — ${r.name} walked the cuts back and restocked at sane prices. Your window display is yours again.${held ? ' The block watched you hold your nerve through the whole fight — word of mouth is spreading (+2 rep).' : ''}`, 0)
-  } else if (inWar(r) && r.cash < 25 && Math.random() < ((25 - r.cash) / 25) * 0.5) {
+  } else if (
+    inWar(r) &&
+    warStart > 0 &&
+    warDays >= 2 &&
+    r.cash <= warStart &&   // the fight has cost them money
+    warSales === 0 &&       // ...and won them nothing
+    Math.random() < 0.15    // a slow fold, not the routine exit
+  ) {
     // They blink first: a till this DRY can't fund a fight. Wars are meant to
     // end on the calendar most days — the blink is a last-resort fold, not the
     // routine exit, so the threshold sits deep and the odds run slow.
@@ -273,6 +289,10 @@ export function rivalTick() {
       // The owner commits a war chest up front — fights start funded, so most
       // run to their planned end instead of collapsing into an early fold.
       r.cash = round2(r.cash + 60)
+      // Stamp the war chest so the blink branch can tell a funded fight from a
+      // losing one. Cleared by endWarRestore() like the price snapshot.
+      setMeta('rival:warstart', String(r.cash))
+      setMeta('rival:warstartat', nowIso())
       logActivity('shop', `⚔️ Price war: ${r.name} is undercutting your cases on ${cuts} card${cuts === 1 ? '' : 's'} by 5–20% through ${until}. Hold your price and lose browse time, match them and lose margin, or wait them out — the owner just dropped a war chest in the register, and their till isn't bottomless.`, 0)
     }
   }
@@ -320,7 +340,7 @@ export function offerBuyout(amount: number) {
     db.prepare(`UPDATE game_state SET cash = cash - ? WHERE id = 1`).run(amount)
     db.prepare(`UPDATE rival_shop SET sold = 1, buyout_bump = 1 WHERE id = 1`).run()
     db.prepare(`DELETE FROM rival_cases`).run()
-    db.prepare(`DELETE FROM meta WHERE key IN ('rival:closed', 'rival:humbled', 'rival:warasks', 'rival:stakes')`).run()
+    db.prepare(`DELETE FROM meta WHERE key IN ('rival:closed', 'rival:humbled', 'rival:warasks', 'rival:stakes', 'rival:warstart', 'rival:warstartat')`).run()
     db.prepare(`INSERT INTO meta (key, value) VALUES ('rival:closed', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`).run(nowIso())
     pnlBook(amount, stockValue)
   })
@@ -353,7 +373,7 @@ export function matchPrices() {
     }
     // Parity is peace — the war ends the moment you match (no cuts left to walk back).
     db.prepare(`UPDATE rival_shop SET price_war_until = NULL WHERE id = 1`).run()
-    db.prepare(`DELETE FROM meta WHERE key = 'rival:warasks'`).run()
+    db.prepare(`DELETE FROM meta WHERE key IN ('rival:warasks', 'rival:warstart', 'rival:warstartat')`).run()
   })
   tx()
   if (matched > 0) {
