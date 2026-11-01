@@ -3111,3 +3111,22 @@ to{opacity:1;transform:none}
    every narrow table in the game. */
 .table-wrap button,.table-wrap .btn{white-space:nowrap}
 .table-wrap thead th{position:sticky;top:0;z-index:1;background:var(--panel2);backdrop-filter:blur(2px)}
+
+/* Which door pays most — four sell routes, one bar each. */
+.sr{margin:10px 0;padding:9px 10px;background:var(--panel2);border:1px solid var(--border-soft);border-radius:11px}
+.sr-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px}
+.sr-head b{font-size:11.5px;letter-spacing:.3px}
+.sr-rows{display:flex;flex-direction:column;gap:5px}
+.sr-row{display:grid;grid-template-columns:minmax(0,1fr) 46px auto;gap:7px;align-items:center}
+.sr-label{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text-dim);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-label em{font-style:normal;font-size:8.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px}
+.sr-tick{color:var(--green);font-weight:900}
+.sr-bar{height:6px;border-radius:4px;background:var(--track);overflow:hidden}
+.sr-bar i{display:block;height:100%;border-radius:4px;background:var(--blue-text);opacity:.55}
+.sr-row.best .sr-bar i{background:var(--green);opacity:1}
+.sr-net{display:flex;align-items:baseline;gap:4px;justify-content:flex-end}
+.sr-net b{font-size:11.5px;white-space:nowrap}
+.sr-net em{font-style:normal;font-size:9px;color:var(--text-faint)}
+.sr-row.best .sr-net b{color:var(--green)}
+.sr-foot{margin-top:7px;font-size:10px;color:var(--text-faint);line-height:1.4}
+.sr-compact .sr-label em{display:none}

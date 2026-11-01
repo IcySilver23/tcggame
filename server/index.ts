@@ -56,6 +56,7 @@ import * as streaming from './services/streaming'
 import * as tcgcsv from './services/tcgcsv'
 import * as sponsors from './services/sponsors'
 import * as resale from './services/resale'
+import * as sellroutes from './services/sellroutes'
 import * as ebay from './services/ebay'
 import * as shipping from './services/shipping'
 import * as schedule from './services/schedule'
@@ -2147,6 +2148,12 @@ app.post('/api/resale/instant/:inventoryId', (c) => {
 })
 
 app.get('/api/resale/ledger', (c) => c.json(resale.ledger()))
+
+// Which door pays most — every sell route priced for one card, from the same
+// services that pay them.
+app.get('/api/sell-routes/:inventoryId', (c) => {
+  return c.json(sellroutes.forCard(Number(c.req.param('inventoryId'))))
+})
 
 app.post('/api/battles/start', async (c) => {
   const body = await c.req.json<{ productId: string; opponentId: string }>()

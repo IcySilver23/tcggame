@@ -1,6 +1,15 @@
 {
   "entries": [
     {
+      "version": "0.7.2",
+      "date": "2026-11-01",
+      "title": "Which door pays most",
+      "features": [
+        "Every card's detail sheet now answers the question the sell screens never did: of the four ways to turn this card into money, which pays the most? Market listing, buylist counter, instant dealer and pawn counter are lined up side by side with what each actually puts in your pocket, a bar for the share of market value, and how long the money takes.",
+        "The numbers are read from the same services that pay them — the dealer's own stable rate, the market's 10% commission, the buylist's best rate, the pawn shop's 40% of fire-sale value — so the comparison cannot drift out of step with what the counters hand over. The panel names the best door and how many dollars you would leave on the table by taking the worst one."
+      ]
+    },
+    {
       "version": "0.7.1",
       "date": "2026-11-01",
       "title": "Two kinds of lot",

@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { CardImg, ConditionBadge, EyeSkill, fmtDate, fmtUsd, Modal, OverflowMenu, PriceChart, PriceTag, RarityBadge, slabLabel, SlabCard, SourceBadge, SubStatBars } from '../components'
 import type { Condition } from '../types'
 import { CardTradePanel } from './CardTradePanel'
+import { SellRoutes } from './SellRoutes'
 
 const CONDITIONS: Condition[] = ['NM', 'LP', 'MP', 'HP', 'DM']
 const CONDITION_LABEL: Record<Condition, string> = {
@@ -144,6 +145,8 @@ export function CardDetailModal() {
   const price = card.price
   const history = (histRange ? detail.history.slice(-histRange) : detail.history)
   const tradeRow = detail.owned.find((o) => o.id === tradeInvId)
+  // The first copy you can actually sell — the comparison prices that row.
+  const compareRow = detail.owned.find((o) => o.status === 'collection')
   // Hero art goes in a slab when any owned copy is graded — the big picture
   // should match what's actually sitting in your collection.
   const firstOwnedSlab = detail.owned.find((o) => o.graded_grade)
@@ -169,6 +172,7 @@ export function CardDetailModal() {
             {card.hp && <span className="badge">{card.hp} HP</span>}
           </div>
 
+          {compareRow && <SellRoutes inventoryId={compareRow.id} compact />}
           {ownedSlabs.length > 0 && (
             <div className="panel" style={{ margin: '12px 0 0', padding: '10px 12px' }}>
               <div className="faint small" style={{ letterSpacing: 1, marginBottom: 8 }}>■ SLAB CERTIFIER</div>

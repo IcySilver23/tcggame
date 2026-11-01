@@ -255,7 +255,7 @@ const DEALER_NAMES = ['QuickFlip Quinns', 'CaseFresh Cards', 'The Buylist Bin', 
  * shelf AND rolled again inside the sale — so the displayed offer was not the
  * offer you got, and reloading was a way to reroll your own quote.
  */
-function dealerMultiplier(inventoryId: number): number {
+export function dealerMultiplier(inventoryId: number): number {
   const x = Math.sin(inventoryId * 12.9898) * 43758.5453
   const frac = x - Math.floor(x)
   return 0.7 + frac * 0.22
