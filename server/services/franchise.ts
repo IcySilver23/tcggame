@@ -897,9 +897,11 @@ function franchiseTickStore(f: FranchiseRow) {
     if (anchor <= 0) continue
     const unitAsk = ask / Math.max(1, r.quantity)
     const ratio = unitAsk / anchor
-    const priceFactor = Math.min(1.5, Math.max(0.02, 1.45 - ratio))
+    // Selling under market draws a crowd; selling over it still costs traffic,
+    // but a sane 10–20% margin no longer halves the door.
+  const priceFactor = Math.min(1.5, Math.max(0.02, 1.55 - ratio))
     const liq = 1 / liquidityFactor(anchor)
-    const chance = Math.min(0.28, 0.08 * hour * rep * managerDraw * priceFactor * liq)
+    const chance = Math.min(0.28, 0.095 * hour * rep * managerDraw * priceFactor * liq)
     if (Math.random() >= chance) continue
 
     const buyer = pick(BUYER_NAMES)

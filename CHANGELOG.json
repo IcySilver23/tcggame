@@ -1,6 +1,16 @@
 {
   "entries": [
     {
+      "version": "0.7.3",
+      "date": "2026-11-01",
+      "title": "A shop that pays for itself",
+      "features": [
+        "Satellite shops sold cards at less than a third the rate they should, because the walk-in formula punished margin far harder than it punished gouging. A store charging market × 1.15 — the sane default, since a shop has to make something — got less than a third of the traffic of a store giving cards away, while paying the same rent. The penalty is gentler now (1.55 − price ratio instead of 1.45 − ratio) and the base walk-in rate is up a fifth, so charging a fair margin no longer starves the door.",
+        "In thirty-day simulations that change is the difference between a trap and a business: every run used to finish the month down — between $619 and $1,711 in the red — and every run now finishes up, between $462 and $1,096, which is $15–37 a day after rent, wages and manager theft. That lands inside the audit sim's own target of $25–45 a day for a well-run store.",
+        "Honest caveat: star managers still do not reliably out-earn cheap ones in these runs. A 5★ manager costs about $16 a day more than a 1★ and the traffic draw is meant to more than cover it, but across nine runs the quality ladder is flat to slightly negative. That is the next thing to tune on this chain, and it is why the sim exists."
+      ]
+    },
+    {
       "version": "0.7.2",
       "date": "2026-11-01",
       "title": "Which door pays most",
