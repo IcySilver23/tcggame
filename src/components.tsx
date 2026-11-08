@@ -1,3 +1,4 @@
+import { hashKey } from './holo'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ResolvedPrice, HistoryPoint } from './types'
@@ -132,7 +133,20 @@ function derivedTcgUrl(cardId: string): string | null {
   return `https://images.pokemontcg.io/${cardId.slice(0, cut)}/${cardId.slice(cut + 1)}.png`
 }
 
-export function CardImg({ src, alt, className, wrapProps, cardId }: { src: string | null | undefined; alt: string; className?: string; wrapProps?: React.HTMLAttributes<HTMLDivElement>; cardId?: string | null }) {
+import { FoilOverlay } from './foil/FoilOverlay'
+
+export function CardImg({ src, alt, className, wrapProps, cardId, rarity, variant }: {
+  src: string | null | undefined
+  alt: string
+  className?: string
+  wrapProps?: React.HTMLAttributes<HTMLDivElement>
+  cardId?: string | null
+  /** Which foil this printing wears — used by the overlay, not by the <img>. */
+  variant?: string | null
+  /** Rarity, for printings whose foil follows rarity rather than variant. */
+  rarity?: string | null
+}) {
+  const wrapRef = useRef<HTMLDivElement | null>(null)
   // Fallback chain: the row's URL → the derived pokemontcg.io URL → the row's
   // URL once more (covers transient CDN/rate-limit failures). Exhausting the
   // chain shows the error card; one flaky response no longer kills the art
@@ -179,7 +193,7 @@ export function CardImg({ src, alt, className, wrapProps, cardId }: { src: strin
     : {}
   return (
     <>
-      <div className={`card-img-wrap ${className ?? ''} ${zoom ? 'zoomable' : ''}`} {...zoomHandlers} {...wrapProps}>
+      <div ref={wrapRef} className={`card-img-wrap ${className ?? ''} ${zoom ? 'zoomable' : ''}`} {...zoomHandlers} {...wrapProps}>
         {state === 'loading' && <div className="img-loading"><span className="spinner" /></div>}
         {state === 'error' && (
           <div className="img-error">
@@ -198,6 +212,11 @@ export function CardImg({ src, alt, className, wrapProps, cardId }: { src: strin
             onError={onImgError}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: state === 'ok' ? 1 : 0, transition: 'opacity 0.25s' }}
           />
+        )}
+        {/* Foil sits ABOVE the scan and stays invisible until the pointer is over
+            the card, so a card at rest is the artwork exactly. */}
+        {url && state === 'ok' && (
+          <FoilOverlay wrapRef={wrapRef} src={url} cardId={cardId} rarity={rarity} variant={variant} />
         )}
       </div>
       {pos && zoom && createPortal(
@@ -266,9 +285,21 @@ export function slabLabel(alt: string | null | undefined, grade: string | null |
   return { ...g, cert: slabCert(alt ?? '', grade ?? '') }
 }
 
-export function SlabCard({ src, alt, grade, setName, cardNo, className, cardId }: { src: string | null | undefined; alt: string; grade: string | null | undefined; setName?: string | null; cardNo?: string | null; className?: string; cardId?: string | null }) {
+export function SlabCard({ src, alt, grade, setName, cardNo, className, cardId, variant, rarity }: {
+  src: string | null | undefined
+  alt: string
+  grade: string | null | undefined
+  setName?: string | null
+  cardNo?: string | null
+  className?: string
+  cardId?: string | null
+  /** Which foil this printing wears — used by the overlay, not by the <img>. */
+  variant?: string | null
+  /** Rarity, for printings whose foil follows rarity rather than variant. */
+  rarity?: string | null
+}) {
   const g = gradeParts(grade)
-  if (!g) return <CardImg src={src} alt={alt} className={className} cardId={cardId} />
+  if (!g) return <CardImg src={src} alt={alt} className={className} cardId={cardId} variant={variant} rarity={rarity} />
   const cert = slabCert(alt ?? '', grade ?? '')
   const no = cardNo && /^\d+$/.test(cardNo) ? String(Number(cardNo)) : cardNo
   return (
@@ -291,7 +322,7 @@ export function SlabCard({ src, alt, grade, setName, cardNo, className, cardId }
           <span className="psa-cert">{cert}</span>
         </div>
       </div>
-      <div className="psa-well"><CardImg src={src} alt={alt} cardId={cardId} /></div>
+      <div className="psa-well"><CardImg src={src} alt={alt} cardId={cardId} variant={variant} rarity={rarity} /></div>
       <div className="psa-glare" />
     </div>
   )

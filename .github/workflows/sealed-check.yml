@@ -1,0 +1,37 @@
+name: Sealed catalog check
+
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  sealed-check:
+    name: Typecheck and sealed audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Require the full catalog seed
+        run: |
+          test -s data/catalog-seed.db || {
+            echo "data/catalog-seed.db is missing; commit the tracked full-catalog seed." >&2
+            exit 1
+          }
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Sealed audit
+        run: npm run check:sealed

@@ -183,10 +183,13 @@ export function ForumView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Community</h1>
-          <div className="sub">The local collector forum. Post pulls, answer newbies, write guides — standing here unlocks real privileges around town.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>💬</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Community</h1>
+            <div className="sub">The local collector forum. Post pulls, answer newbies, write guides — standing here unlocks real privileges around town.</div>
+          </div>
         </div>
       </div>
 

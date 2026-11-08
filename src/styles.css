@@ -243,6 +243,9 @@ input::placeholder{color:var(--text-faint)}
 .card-cell.silhouette{opacity:.45;filter:grayscale(.6)}
 .card-img-wrap{position:relative;border-radius:8px;overflow:hidden;background:var(--img-bg);aspect-ratio:245 / 342}
 .card-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+/* Foil overlay. Above the untouched scan, never hit-testable (the wrapper keeps
+   its own hover/zoom/click handlers), and transparent until the card is hovered. */
+.card-img-wrap .foil-canvas{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:none;pointer-events:none;opacity:0;transition:opacity .18s ease-out;border-radius:inherit}
 .card-img-wrap .img-loading{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:11px}
 .card-img-wrap .img-error{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;color:var(--text-faint);font-size:11px;text-align:center;padding:8px;background:repeating-linear-gradient(45deg,var(--img-bg),var(--img-bg) 8px,var(--img-stripe) 8px,var(--img-stripe) 16px)}
 .card-img-wrap .qty-badge{position:absolute;top:6px;right:6px;background:var(--navy);border:1px solid var(--navy);color:var(--yellow);font-weight:700;font-size:11px;border-radius:7px;padding:1px 7px}
@@ -2524,6 +2527,8 @@ to{opacity:1;transform:none}
 .bay-label em{font-size:8.5px;font-style:normal;opacity:.7}
 .bay-label i{font-size:8.5px;font-style:normal;font-weight:850;margin-left:2px;padding-left:4px;border-left:1px solid rgba(0,0,0,.18)}
 .bay-label i.good{color:#0b6b45}.bay-label i.mid{color:#8a5a00}.bay-label i.low{color:#a11c1c}
+/* Sequin shelf tag: what the foil slot of a cereal mini pack actually holds. */
+.bay-sequin{font-size:8px;font-weight:900;letter-spacing:.5px;padding:1px 6px;border-radius:999px;color:#bff5e2;background:rgba(46,230,168,.14);border:1px solid rgba(46,230,168,.42);cursor:help;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .bay-rip{position:absolute;bottom:34px;right:5px;font:inherit;font-size:9.5px;font-weight:900;letter-spacing:.4px;padding:2px 6px;border-radius:5px;border:1px solid #f2c400;background:var(--yellow);color:#20180a;cursor:pointer;z-index:3}
 .bay-rip:disabled{opacity:.5;cursor:not-allowed}
 /* The till — fixed furniture beside the floor. */
@@ -2539,6 +2544,12 @@ to{opacity:1;transform:none}
 .till-price{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--yellow);line-height:1.1}
 .till-line{height:1px;background:repeating-linear-gradient(90deg,var(--border) 0 6px,transparent 6px 10px)}
 .till-say{margin:0;font-size:11.5px;line-height:1.45;color:var(--text-dim)}
+.till-slots{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03)}
+.till-slots-head{font-size:9.5px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim)}
+.till-slot{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;font-size:10.5px;line-height:1.35}
+.till-slot-count{font-weight:800;color:var(--yellow);min-width:18px;font-variant-numeric:tabular-nums}
+.till-slot-label{font-weight:700}
+.till-slot-note{color:var(--text-dim);font-size:10px;flex:1 1 100%;padding-left:23px}
 .till .ev-caption{font-size:10.5px}
 .till-nums{display:flex;gap:10px;flex-wrap:wrap;font-size:10.5px;color:var(--text-dim);font-variant-numeric:tabular-nums}
 .till-pay{width:100%;justify-content:center}
@@ -3130,3 +3141,9 @@ to{opacity:1;transform:none}
 .sr-row.best .sr-net b{color:var(--green)}
 .sr-foot{margin-top:7px;font-size:10px;color:var(--text-faint);line-height:1.4}
 .sr-compact .sr-label em{display:none}
+
+/* --- Foil: disabled -------------------------------------------------------
+   The previous foil engine (CSS stamps, GPU overlay, pointer light) was removed
+   rather than tuned. Coverage now lives in src/foil/mask.ts, which only says
+   where foil physically exists; appearance layers get rebuilt on top of it one
+   phase at a time. Nothing in this file draws foil. --- */

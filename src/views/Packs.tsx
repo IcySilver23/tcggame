@@ -49,6 +49,7 @@ const AISLE_LABEL: Record<string, string> = {
   etb: 'Elite Trainer Boxes',
   display: 'Displays & cases',
   tin: 'Tins & special',
+  special: 'Counter stock',
   other: 'Counter stock',
 }
 const aisleRank = (kind: string) => {
@@ -91,6 +92,30 @@ function ripLine(p: ProductRow): string {
   return `${p.packs} pack${p.packs > 1 ? 's' : ''} × ${p.cards_per_pack} cards — a typical rip returns ${fmtUsd(p.est.p50)} on ${fmtUsd(priceOf(p))}.${oop}`
 }
 
+/** A mini pack's foil slot, as the server measures it. */
+type SequinOdds = NonNullable<ProductRow['mini']>
+
+/** The shelf tag for that slot: "SEQUIN 1 IN 8", or "SEQUIN IN EVERY PACK". */
+function sequinBadge(m: SequinOdds): string {
+  if (m.guaranteed.length > 0) return 'SEQUIN IN EVERY PACK'
+  if (m.draws === 1 && m.cards.length === m.pool) return `SEQUIN 1 IN ${m.pool}`
+  if (m.pool > 0) return `SEQUIN ${m.cards.length} IN ${m.pool}`
+  return 'SEQUIN'
+}
+
+/** The hover card: every named Sequin printing, its value and its chance. */
+function sequinDetail(m: SequinOdds): string {
+  const pct = (p: number) => {
+    const s = (p * 100).toFixed(1).replace(/\.0$/, '')
+    return `${s}%`
+  }
+  const head = m.guaranteed.length > 0
+    ? `One Sequin card in every pack, plus ${m.draws} more draw${m.draws === 1 ? '' : 's'} from ${m.pool}.`
+    : `One of the pack's ${m.cardsPerPack} cards is a Sequin Holofoil draw from ${m.pool}.`
+  const rows = m.cards.map((c) => `  ${c.name} ${fmtUsd(c.value)} — ${pct(c.chance)}`)
+  return `Sequin Holofoil: ${pct(m.anyChance)} of packs hold one.\n${head}\n${rows.join('\n')}`
+}
+
 export function PacksView() {
   const { toast, refreshState } = useStore()
   const cash = useStore((s) => s.state?.cash ?? 0)
@@ -117,7 +142,10 @@ export function PacksView() {
   const buy = async (p: ProductRow, qty: number, openNow: boolean) => {
     setBusy(p.id)
     try {
-      const res = await api.buyProduct(p.id, qty, openNow)
+      // Buy the stock only — the rip belongs to the ceremony. Asking the
+      // server to open it here (openNow) rips every pack server-side and
+      // leaves the ceremony an empty shelf: "No sealed product in inventory".
+      await api.buyProduct(p.id, qty, false)
       refreshState()
       if (openNow) {
         // Opening is a ceremony, not a bulk rip: hand the first pack and the
@@ -332,6 +360,11 @@ export function PacksView() {
                             <em>{packsIn(p) > 1 ? `${packsIn(p)} pk` : '1 pk'}</em>
                             <i className={tone}>TYP {ratioLabel(typical)}</i>
                           </span>
+                          {p.mini && (
+                            <span className="bay-sequin" title={sequinDetail(p.mini)}>
+                              {sequinBadge(p.mini)}
+                            </span>
+                          )}
                           {active && (
                             <button
                               className="bay-rip"
@@ -366,6 +399,18 @@ export function PacksView() {
                 <div className="till-price">{fmtUsd(selPrice)}</div>
                 <div className="till-line" aria-hidden />
                 <p className="till-say">“{ripLine(selProduct)}”</p>
+                {selProduct.slots && selProduct.slots.length > 0 && (
+                  <div className="till-slots" aria-label="What is in the pack">
+                    <div className="till-slots-head">In the pack</div>
+                    {selProduct.slots.map((s) => (
+                      <div className="till-slot" key={s.slot} title={s.detail}>
+                        <span className="till-slot-count">{s.count}×</span>
+                        <span className="till-slot-label">{s.label}</span>
+                        <span className="till-slot-note">{s.detail}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="ev-bar" title={`Typical rip ${fmtUsd(selProduct.est.p50 * packsIn(selProduct))} against a ${fmtUsd(selPrice)} purchase`}>
                   <span
                     className={selP50 >= 1 ? 'good' : selP50 >= 0.5 ? '' : 'low'}

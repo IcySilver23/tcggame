@@ -1,7 +1,7 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { round2, valueOf } from './market'
 import { rollPack } from './packs'
-import { priceOf as sealedPriceOf } from './sealed'
+import { priceOf as sealedPriceOf, sellsOwnPacks } from './sealed'
 import { nowMs } from './schedule'
 import { VIEWER_AVATARS, cardName } from './streaming'
 import { walkInMultiplier } from './seasonal'
@@ -233,15 +233,17 @@ function showProductFor(h: { style: string }): { id: string; name: string; cost:
      WHERE EXISTS (SELECT 1 FROM pack_product_cards ppc WHERE ppc.pack_product_id = p.id)
      ORDER BY COALESCE(p.msrp, 999) ASC`,
   ).all() as { id: string; name: string; set_id: string; msrp: number | null }[]
-  if (rows.length === 0) throw new Error('no-seed-product')
+  // A show cannot rip a subset-only set: there is no honest pack to deal.
+  const sold = rows.filter((r) => sellsOwnPacks(r.set_id))
+  if (sold.length === 0) throw new Error('no-seed-product')
   // $1 rooms rotate between the two cheapest; the auction room takes the
   // priciest (vintage msrps sort last); everyone else lands mid-tier.
   const idx = h.style === 'sudden'
-    ? Math.floor(Math.random() * Math.min(2, rows.length))
+    ? Math.floor(Math.random() * Math.min(2, sold.length))
     : h.style === 'auction'
-      ? rows.length - 1
-      : Math.min(rows.length - 1, Math.floor(rows.length / 2))
-  const row = rows[idx]
+      ? sold.length - 1
+      : Math.min(sold.length - 1, Math.floor(sold.length / 2))
+  const row = sold[idx]
   return { id: row.id, name: row.name, cost: round2(sealedPriceOf(row.id).market || row.msrp || 4), setId: row.set_id }
 }
 
@@ -264,11 +266,13 @@ function ensureSeedProducts(slot: string): { id: string; name: string; cost: num
     if (pool > 0) return { id: row.id, name: row.name, cost: round2(sealedPriceOf(row.id).market || row.msrp), setId: row.set_id }
   }
   // Fallback: any synced booster pool.
-  const any = db.prepare(
-    `SELECT p.id, p.name, p.set_id, p.msrp FROM pack_products p
-     WHERE EXISTS (SELECT 1 FROM pack_product_cards ppc WHERE ppc.pack_product_id = p.id)
-     ORDER BY p.msrp ASC LIMIT 1`,
-  ).get() as { id: string; name: string; set_id: string; msrp: number } | undefined
+  const any = (
+    db.prepare(
+      `SELECT p.id, p.name, p.set_id, p.msrp FROM pack_products p
+       WHERE EXISTS (SELECT 1 FROM pack_product_cards ppc WHERE ppc.pack_product_id = p.id)
+       ORDER BY p.msrp ASC`,
+    ).all() as { id: string; name: string; set_id: string; msrp: number }[]
+  ).find((r) => sellsOwnPacks(r.set_id))
   if (!any) throw new Error('no-seed-product')
   return { id: any.id, name: any.name, cost: round2(sealedPriceOf(any.id).market || any.msrp), setId: any.set_id }
 }

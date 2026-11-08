@@ -30,6 +30,10 @@ import { CardDetailModal } from './views/CardDetail'
 import { StartingTutorial } from './views/Tutorial'
 import { ChangelogModal, useWhatsNewBadge } from './views/WhatsNew'
 import { NotificationBell } from './views/Notifications'
+import { HoloDebugLauncher } from './foil/HoloDebug'
+
+/** Dev-only surfaces. A packaged build has no inspector and no way to open one. */
+const DEV_BUILD = Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV)
 
 export type ViewId =
   | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'settings' | 'pulls-history' | 'achievements'
@@ -306,6 +310,7 @@ export default function App() {
 
   return (
     <div className="app">
+      {DEV_BUILD && <HoloDebugLauncher />}
       <aside className="sidebar">
         <div className="brand">
           <span className="pokeball" aria-hidden />

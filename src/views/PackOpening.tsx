@@ -111,7 +111,7 @@ function RevealCard({ card, tier, stage, fast, hold, flip, hue }: {
           <img className="po-back-art" src={cardBack} alt="" />
         </div>
         <div className="po-face po-front">
-          <CardImg src={src} alt={card.cardId} cardId={card.cardId} />
+          <CardImg src={src} alt={card.cardId} cardId={card.cardId} variant={card.variant} rarity={card.rarity} />
         </div>
       </div>
       {stage === 'landed' && big && <div className="po-flash" aria-hidden />}
@@ -247,8 +247,10 @@ export function PackOpeningView() {
     const setName = product?.set_name ?? first?.setName ?? 'Booster pack'
     // What comes off is a PACK: an ETB hands you nine booster wrappers, so the
     // stage wears the set's booster art and the booster's name, never the tin.
+    // A single-wrapper product (the General Mills mini packs ship one three-card
+    // pack) is not a box, so it keeps its own name rather than the booster's.
     const catalog = productsRef.current.length > 0 ? productsRef.current : products
-    const booster = product && product.kind !== 'booster'
+    const booster = product && product.kind !== 'booster' && product.packs > 1
       ? catalog.find((p) => p.set_id === product.set_id && p.kind === 'booster')
       : undefined
     const face = booster ?? product
@@ -780,7 +782,7 @@ function SummaryCell({ card, index = 0, fast = false, record }: { card: OpenedCa
       {record && <span className="record-tag">👑 BEST</span>}
       {card.isNew && <span className="new-tag">✨ NEW</span>}
       {card.variant && card.variant.startsWith('1stEdition') && <span className="ghost-tag">1st</span>}
-      <CardImg src={src} alt={card.cardId} cardId={card.cardId} />
+      <CardImg src={src} alt={card.cardId} cardId={card.cardId} variant={card.variant} rarity={card.rarity} />
       <div className="val">{card.isHit ? 'HIT · ' : ''}{fmtUsd(card.value)}</div>
     </div>
   )

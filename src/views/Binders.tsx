@@ -85,10 +85,13 @@ export function BindersView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Binders</h1>
-          <div className="sub">Nine pockets a page. Group cards, flip through them, keep the good stuff where you can see it.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>📒</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Binders</h1>
+            <div className="sub">Nine pockets a page. Group cards, flip through them, keep the good stuff where you can see it.</div>
+          </div>
         </div>
         {!creating && <button className="primary" onClick={() => setCreating(true)}>+ New binder</button>}
       </div>

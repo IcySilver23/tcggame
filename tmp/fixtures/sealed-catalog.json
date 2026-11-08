@@ -1,0 +1,22 @@
+{
+  "set": {
+    "id": "sv1",
+    "name": "Sealed Fixture Set",
+    "series": "Scarlet & Violet",
+    "release_date": "2026-06-01",
+    "printed_total": 10,
+    "total": 10
+  },
+  "cards": [
+    { "id": "sv1-1", "number": "1", "name": "Fixture Common 1", "rarity": "Common", "supertype": "Pokémon" },
+    { "id": "sv1-2", "number": "2", "name": "Fixture Common 2", "rarity": "Common", "supertype": "Pokémon" },
+    { "id": "sv1-3", "number": "3", "name": "Fixture Common 3", "rarity": "Common", "supertype": "Pokémon" },
+    { "id": "sv1-4", "number": "4", "name": "Fixture Common 4", "rarity": "Common", "supertype": "Pokémon" },
+    { "id": "sv1-5", "number": "5", "name": "Fixture Common 5", "rarity": "Common", "supertype": "Pokémon" },
+    { "id": "sv1-6", "number": "6", "name": "Fixture Uncommon 1", "rarity": "Uncommon", "supertype": "Pokémon" },
+    { "id": "sv1-7", "number": "7", "name": "Fixture Uncommon 2", "rarity": "Uncommon", "supertype": "Pokémon" },
+    { "id": "sv1-8", "number": "8", "name": "Fixture Uncommon 3", "rarity": "Uncommon", "supertype": "Pokémon" },
+    { "id": "sv1-9", "number": "9", "name": "Fixture Rare", "rarity": "Rare", "supertype": "Pokémon" },
+    { "id": "sv1-10", "number": "10", "name": "Fixture Double Rare", "rarity": "Double Rare", "supertype": "Pokémon" }
+  ]
+}

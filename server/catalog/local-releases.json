@@ -1,0 +1,3357 @@
+{
+ "release": "Delta Reign and the 30th Celebration Wave 4 products, 2026-11-06",
+ "note": "Releases newer than the upstream catalog. Card identity, numbering and rarity from the published Delta Reign card list (Serebii + YesTCG), prices are TCGplayer market as relayed by YesTCG on 2026-11-05, images from the same image service the catalog uses. Supertype/subtype/type/HP come from Serebii cards. Subtypes of Pokémon are not published in the sources read here, so they stay null rather than being guessed.",
+ "sets": [
+  {
+   "id": "me6",
+   "name": "Delta Reign",
+   "series": "Mega Evolution",
+   "printed_total": 103,
+   "total": 141,
+   "ptcgo_code": "DLR",
+   "release_date": "2026/11/06",
+   "symbol_url": "https://images.scrydex.com/pokemon/me6-symbol/symbol",
+   "logo_url": "https://images.scrydex.com/pokemon/me6-logo/logo"
+  }
+ ],
+ "cards": [
+  {
+   "id": "me6-1",
+   "set_id": "me6",
+   "name": "Heracross",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "1",
+   "position": 1,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-1/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-1/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-2",
+   "set_id": "me6",
+   "name": "Surskit",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "2",
+   "position": 2,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 50,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-2/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-2/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-3",
+   "set_id": "me6",
+   "name": "Masquerain",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "3",
+   "position": 3,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-3/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-3/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-4",
+   "set_id": "me6",
+   "name": "Cacnea",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "4",
+   "position": 4,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-4/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-4/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.17,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-5",
+   "set_id": "me6",
+   "name": "Cacturne",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "5",
+   "position": 5,
+   "rarity": "Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-5/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-5/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-6",
+   "set_id": "me6",
+   "name": "Combee",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "6",
+   "position": 6,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 50,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-6/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-6/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-7",
+   "set_id": "me6",
+   "name": "Vespiquen",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "7",
+   "position": 7,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-7/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-7/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.08,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-8",
+   "set_id": "me6",
+   "name": "Shaymin",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "8",
+   "position": 8,
+   "rarity": "Uncommon",
+   "types": [
+    "Grass"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-8/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-8/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.11,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-9",
+   "set_id": "me6",
+   "name": "Virizion",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "9",
+   "position": 9,
+   "rarity": "Uncommon",
+   "types": [
+    "Grass"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-9/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-9/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.11,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-10",
+   "set_id": "me6",
+   "name": "Wimpod",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "10",
+   "position": 10,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-10/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-10/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-11",
+   "set_id": "me6",
+   "name": "Mega Golisopod ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "11",
+   "position": 11,
+   "rarity": "Double Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 340,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-11/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-11/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.99,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-12",
+   "set_id": "me6",
+   "name": "Sprigatito",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "12",
+   "position": 12,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-12/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-12/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-13",
+   "set_id": "me6",
+   "name": "Floragato",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "13",
+   "position": 13,
+   "rarity": "Uncommon",
+   "types": [
+    "Grass"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-13/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-13/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.11,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-14",
+   "set_id": "me6",
+   "name": "Meowscarada ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "14",
+   "position": 14,
+   "rarity": "Double Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 320,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-14/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-14/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.39,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-15",
+   "set_id": "me6",
+   "name": "Smoliv",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "15",
+   "position": 15,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-15/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-15/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.16,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-16",
+   "set_id": "me6",
+   "name": "Dolliv",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "16",
+   "position": 16,
+   "rarity": "Common",
+   "types": [
+    "Grass"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-16/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-16/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-17",
+   "set_id": "me6",
+   "name": "Arboliva",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "17",
+   "position": 17,
+   "rarity": "Uncommon",
+   "types": [
+    "Grass"
+   ],
+   "hp": 150,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-17/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-17/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-18",
+   "set_id": "me6",
+   "name": "Growlithe",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "18",
+   "position": 18,
+   "rarity": "Common",
+   "types": [
+    "Fire"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-18/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-18/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.16,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-19",
+   "set_id": "me6",
+   "name": "Arcanine",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "19",
+   "position": 19,
+   "rarity": "Rare",
+   "types": [
+    "Fire"
+   ],
+   "hp": 150,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-19/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-19/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.16,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-20",
+   "set_id": "me6",
+   "name": "Magmar",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "20",
+   "position": 20,
+   "rarity": "Uncommon",
+   "types": [
+    "Fire"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-20/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-20/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.12,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-21",
+   "set_id": "me6",
+   "name": "Magmortar",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "21",
+   "position": 21,
+   "rarity": "Rare",
+   "types": [
+    "Fire"
+   ],
+   "hp": 140,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-21/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-21/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.22,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-22",
+   "set_id": "me6",
+   "name": "Torkoal",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "22",
+   "position": 22,
+   "rarity": "Common",
+   "types": [
+    "Fire"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-22/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-22/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.11,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-23",
+   "set_id": "me6",
+   "name": "Heat Rotom ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "23",
+   "position": 23,
+   "rarity": "Double Rare",
+   "types": [
+    "Fire"
+   ],
+   "hp": 190,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-23/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-23/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.47,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-24",
+   "set_id": "me6",
+   "name": "Heatmor",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "24",
+   "position": 24,
+   "rarity": "Common",
+   "types": [
+    "Fire"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-24/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-24/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-25",
+   "set_id": "me6",
+   "name": "Mantine",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "25",
+   "position": 25,
+   "rarity": "Common",
+   "types": [
+    "Water"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-25/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-25/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.1,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-26",
+   "set_id": "me6",
+   "name": "Kyogre",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "26",
+   "position": 26,
+   "rarity": "Rare",
+   "types": [
+    "Water"
+   ],
+   "hp": 150,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-26/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-26/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.25,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-27",
+   "set_id": "me6",
+   "name": "Frillish",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "27",
+   "position": 27,
+   "rarity": "Common",
+   "types": [
+    "Water"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-27/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-27/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-28",
+   "set_id": "me6",
+   "name": "Jellicent",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "28",
+   "position": 28,
+   "rarity": "Uncommon",
+   "types": [
+    "Water"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-28/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-28/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.18,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-29",
+   "set_id": "me6",
+   "name": "Wishiwashi ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "29",
+   "position": 29,
+   "rarity": "Double Rare",
+   "types": [
+    "Water"
+   ],
+   "hp": 260,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-29/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-29/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.6,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-30",
+   "set_id": "me6",
+   "name": "Electabuzz",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "30",
+   "position": 30,
+   "rarity": "Common",
+   "types": [
+    "electric"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-30/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-30/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-31",
+   "set_id": "me6",
+   "name": "Electivire",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "31",
+   "position": 31,
+   "rarity": "Uncommon",
+   "types": [
+    "electric"
+   ],
+   "hp": 140,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-31/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-31/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-32",
+   "set_id": "me6",
+   "name": "Jolteon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "32",
+   "position": 32,
+   "rarity": "Uncommon",
+   "types": [
+    "electric"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-32/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-32/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-33",
+   "set_id": "me6",
+   "name": "Raikou ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "33",
+   "position": 33,
+   "rarity": "Double Rare",
+   "types": [
+    "electric"
+   ],
+   "hp": 200,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-33/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-33/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.71,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-34",
+   "set_id": "me6",
+   "name": "Rotom",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "34",
+   "position": 34,
+   "rarity": "Common",
+   "types": [
+    "electric"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-34/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-34/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-35",
+   "set_id": "me6",
+   "name": "Thundurus",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "35",
+   "position": 35,
+   "rarity": "Uncommon",
+   "types": [
+    "electric"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-35/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-35/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.12,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-36",
+   "set_id": "me6",
+   "name": "Pincurchin",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "36",
+   "position": 36,
+   "rarity": "Common",
+   "types": [
+    "electric"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-36/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-36/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.16,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-37",
+   "set_id": "me6",
+   "name": "Pawmi",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "37",
+   "position": 37,
+   "rarity": "Common",
+   "types": [
+    "electric"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-37/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-37/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-38",
+   "set_id": "me6",
+   "name": "Pawmo",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "38",
+   "position": 38,
+   "rarity": "Common",
+   "types": [
+    "electric"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-38/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-38/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-39",
+   "set_id": "me6",
+   "name": "Pawmot",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "39",
+   "position": 39,
+   "rarity": "Uncommon",
+   "types": [
+    "electric"
+   ],
+   "hp": 150,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-39/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-39/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-40",
+   "set_id": "me6",
+   "name": "Wattrel",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "40",
+   "position": 40,
+   "rarity": "Common",
+   "types": [
+    "electric"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-40/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-40/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-41",
+   "set_id": "me6",
+   "name": "Kilowattrel",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "41",
+   "position": 41,
+   "rarity": "Uncommon",
+   "types": [
+    "electric"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-41/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-41/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-42",
+   "set_id": "me6",
+   "name": "Miraidon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "42",
+   "position": 42,
+   "rarity": "Uncommon",
+   "types": [
+    "electric"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-42/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-42/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.1,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-43",
+   "set_id": "me6",
+   "name": "Drowzee",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "43",
+   "position": 43,
+   "rarity": "Common",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-43/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-43/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.1,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-44",
+   "set_id": "me6",
+   "name": "Hypno",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "44",
+   "position": 44,
+   "rarity": "Common",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-44/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-44/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.09,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-45",
+   "set_id": "me6",
+   "name": "Giratina",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "45",
+   "position": 45,
+   "rarity": "Rare",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-45/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-45/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.3,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-46",
+   "set_id": "me6",
+   "name": "Golett",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "46",
+   "position": 46,
+   "rarity": "Common",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-46/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-46/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.17,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-47",
+   "set_id": "me6",
+   "name": "Mega Golurk ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "47",
+   "position": 47,
+   "rarity": "Double Rare",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 350,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-47/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-47/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.82,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-48",
+   "set_id": "me6",
+   "name": "Enamorus",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "48",
+   "position": 48,
+   "rarity": "Uncommon",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-48/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-48/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-49",
+   "set_id": "me6",
+   "name": "Sandshrew",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "49",
+   "position": 49,
+   "rarity": "Common",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-49/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-49/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-50",
+   "set_id": "me6",
+   "name": "Sandslash",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "50",
+   "position": 50,
+   "rarity": "Common",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-50/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-50/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-51",
+   "set_id": "me6",
+   "name": "Onix",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "51",
+   "position": 51,
+   "rarity": "Common",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-51/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-51/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-52",
+   "set_id": "me6",
+   "name": "Steelix",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "52",
+   "position": 52,
+   "rarity": "Rare",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 190,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-52/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-52/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-53",
+   "set_id": "me6",
+   "name": "Groudon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "53",
+   "position": 53,
+   "rarity": "Rare",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 150,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-53/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-53/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.23,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-54",
+   "set_id": "me6",
+   "name": "Landorus",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "54",
+   "position": 54,
+   "rarity": "Uncommon",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-54/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-54/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-55",
+   "set_id": "me6",
+   "name": "Nidoran F",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "55",
+   "position": 55,
+   "rarity": "Common",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-55/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-55/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-56",
+   "set_id": "me6",
+   "name": "Nidorina",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "56",
+   "position": 56,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-56/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-56/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.12,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-57",
+   "set_id": "me6",
+   "name": "Nidoqueen",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "57",
+   "position": 57,
+   "rarity": "Rare",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 170,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-57/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-57/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.2,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-58",
+   "set_id": "me6",
+   "name": "Spinarak",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "58",
+   "position": 58,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-58/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-58/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.09,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-59",
+   "set_id": "me6",
+   "name": "Ariados",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "59",
+   "position": 59,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 100,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-59/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-59/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-60",
+   "set_id": "me6",
+   "name": "Sableye",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "60",
+   "position": 60,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-60/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-60/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.16,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-61",
+   "set_id": "me6",
+   "name": "Carvanha",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "61",
+   "position": 61,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-61/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-61/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.16,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-62",
+   "set_id": "me6",
+   "name": "Sharpedo",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "62",
+   "position": 62,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-62/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-62/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.18,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-63",
+   "set_id": "me6",
+   "name": "Darkrai",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "63",
+   "position": 63,
+   "rarity": "Uncommon",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-63/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-63/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.18,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-64",
+   "set_id": "me6",
+   "name": "Purrloin",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "64",
+   "position": 64,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-64/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-64/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-65",
+   "set_id": "me6",
+   "name": "Liepard",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "65",
+   "position": 65,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-65/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-65/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.11,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-66",
+   "set_id": "me6",
+   "name": "Zorua",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "66",
+   "position": 66,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-66/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-66/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-67",
+   "set_id": "me6",
+   "name": "Zoroark ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "67",
+   "position": 67,
+   "rarity": "Double Rare",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 270,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-67/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-67/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.53,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-68",
+   "set_id": "me6",
+   "name": "Inkay",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "68",
+   "position": 68,
+   "rarity": "Common",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-68/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-68/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.21,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-69",
+   "set_id": "me6",
+   "name": "Mega Malamar ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "69",
+   "position": 69,
+   "rarity": "Double Rare",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 320,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-69/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-69/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 1.04,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-70",
+   "set_id": "me6",
+   "name": "Morpeko",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "70",
+   "position": 70,
+   "rarity": "Uncommon",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-70/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-70/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-71",
+   "set_id": "me6",
+   "name": "Zarude",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "71",
+   "position": 71,
+   "rarity": "Uncommon",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-71/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-71/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-72",
+   "set_id": "me6",
+   "name": "Druddigon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "72",
+   "position": 72,
+   "rarity": "Uncommon",
+   "types": [
+    "Dragon"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-72/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-72/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.09,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-73",
+   "set_id": "me6",
+   "name": "Jangmo-o",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "73",
+   "position": 73,
+   "rarity": "Common",
+   "types": [
+    "Dragon"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-73/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-73/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.09,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-74",
+   "set_id": "me6",
+   "name": "Hakamo-o",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "74",
+   "position": 74,
+   "rarity": "Common",
+   "types": [
+    "Dragon"
+   ],
+   "hp": 100,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-74/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-74/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.09,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-75",
+   "set_id": "me6",
+   "name": "Kommo-o",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "75",
+   "position": 75,
+   "rarity": "Rare",
+   "types": [
+    "Dragon"
+   ],
+   "hp": 160,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-75/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-75/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.17,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-76",
+   "set_id": "me6",
+   "name": "Cyclizar",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "76",
+   "position": 76,
+   "rarity": "Common",
+   "types": [
+    "Dragon"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-76/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-76/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.13,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-77",
+   "set_id": "me6",
+   "name": "Tauros",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "77",
+   "position": 77,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 130,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-77/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-77/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.08,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-78",
+   "set_id": "me6",
+   "name": "Eevee",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "78",
+   "position": 78,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-78/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-78/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-79",
+   "set_id": "me6",
+   "name": "Delibird",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "79",
+   "position": 79,
+   "rarity": "Uncommon",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-79/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-79/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.1,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-80",
+   "set_id": "me6",
+   "name": "Azurill",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "80",
+   "position": 80,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 30,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-80/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-80/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.12,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-81",
+   "set_id": "me6",
+   "name": "Swablu",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "81",
+   "position": 81,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 50,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-81/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-81/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.17,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-82",
+   "set_id": "me6",
+   "name": "Altaria",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "82",
+   "position": 82,
+   "rarity": "Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-82/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-82/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.2,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-83",
+   "set_id": "me6",
+   "name": "Kecleon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "83",
+   "position": 83,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-83/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-83/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-84",
+   "set_id": "me6",
+   "name": "Mega Rayquaza ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "84",
+   "position": 84,
+   "rarity": "Double Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 280,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-84/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-84/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 6.94,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-85",
+   "set_id": "me6",
+   "name": "Tornadus",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "85",
+   "position": 85,
+   "rarity": "Uncommon",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-85/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-85/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.14,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-86",
+   "set_id": "me6",
+   "name": "Fletchling",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "86",
+   "position": 86,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-86/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-86/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.12,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-87",
+   "set_id": "me6",
+   "name": "Fletchinder",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "87",
+   "position": 87,
+   "rarity": "Common",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-87/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-87/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.12,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-88",
+   "set_id": "me6",
+   "name": "Talonflame ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "88",
+   "position": 88,
+   "rarity": "Double Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 280,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-88/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-88/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 6.69,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-89",
+   "set_id": "me6",
+   "name": "Aarune",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "89",
+   "position": 89,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-89/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-89/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.26,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-90",
+   "set_id": "me6",
+   "name": "Adventure Lantern",
+   "supertype": "Trainer",
+   "subtypes": null,
+   "number": "90",
+   "position": 90,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-90/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-90/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-91",
+   "set_id": "me6",
+   "name": "Custom Vest",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Pokémon Tool"
+   ],
+   "number": "91",
+   "position": 91,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-91/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-91/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.18,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-92",
+   "set_id": "me6",
+   "name": "Emcee's Hype",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "92",
+   "position": 92,
+   "rarity": "Common",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-92/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-92/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-93",
+   "set_id": "me6",
+   "name": "Grisham",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "93",
+   "position": 93,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-93/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-93/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-94",
+   "set_id": "me6",
+   "name": "Legendary Pyroduct",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Stadium"
+   ],
+   "number": "94",
+   "position": 94,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-94/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-94/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.99,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-95",
+   "set_id": "me6",
+   "name": "Legendary Pyroduct",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Stadium"
+   ],
+   "number": "95",
+   "position": 95,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-95/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-95/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.86,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-96",
+   "set_id": "me6",
+   "name": "Legendary Summit",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Stadium"
+   ],
+   "number": "96",
+   "position": 96,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-96/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-96/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.25,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-97",
+   "set_id": "me6",
+   "name": "Legendary Summit",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Stadium"
+   ],
+   "number": "97",
+   "position": 97,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-97/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-97/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.23,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-98",
+   "set_id": "me6",
+   "name": "Legendary Trench",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Stadium"
+   ],
+   "number": "98",
+   "position": 98,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-98/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-98/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.47,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-99",
+   "set_id": "me6",
+   "name": "Legendary Trench",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Stadium"
+   ],
+   "number": "99",
+   "position": 99,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-99/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-99/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.47,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-100",
+   "set_id": "me6",
+   "name": "Mega Rayquaza Cap",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Pokémon Tool"
+   ],
+   "number": "100",
+   "position": 100,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-100/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-100/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.19,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-101",
+   "set_id": "me6",
+   "name": "Tasty Rice Ball",
+   "supertype": "Trainer",
+   "subtypes": null,
+   "number": "101",
+   "position": 101,
+   "rarity": "Common",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-101/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-101/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.18,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-102",
+   "set_id": "me6",
+   "name": "Tate & Liza's Training",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "102",
+   "position": 102,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-102/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-102/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.15,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-103",
+   "set_id": "me6",
+   "name": "Zinnia's Trust",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "103",
+   "position": 103,
+   "rarity": "Uncommon",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-103/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-103/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 0.21,
+    "variant": "normal"
+   }
+  },
+  {
+   "id": "me6-104",
+   "set_id": "me6",
+   "name": "Masquerain",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "104",
+   "position": 104,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-104/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-104/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 4.77,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-105",
+   "set_id": "me6",
+   "name": "Sprigatito",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "105",
+   "position": 105,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-105/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-105/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 9.61,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-106",
+   "set_id": "me6",
+   "name": "Growlithe",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "106",
+   "position": 106,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Fire"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-106/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-106/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 15.91,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-107",
+   "set_id": "me6",
+   "name": "Magmortar",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "107",
+   "position": 107,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Fire"
+   ],
+   "hp": 140,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-107/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-107/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.23,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-108",
+   "set_id": "me6",
+   "name": "Electivire",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "108",
+   "position": 108,
+   "rarity": "Illustration Rare",
+   "types": [
+    "electric"
+   ],
+   "hp": 140,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-108/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-108/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.31,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-109",
+   "set_id": "me6",
+   "name": "Pincurchin",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "109",
+   "position": 109,
+   "rarity": "Illustration Rare",
+   "types": [
+    "electric"
+   ],
+   "hp": 80,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-109/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-109/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 4.25,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-110",
+   "set_id": "me6",
+   "name": "Enamorus",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "110",
+   "position": 110,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 120,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-110/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-110/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 2.6,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-111",
+   "set_id": "me6",
+   "name": "Groudon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "111",
+   "position": 111,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Fighting"
+   ],
+   "hp": 150,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-111/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-111/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 15.56,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-112",
+   "set_id": "me6",
+   "name": "Zorua",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "112",
+   "position": 112,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-112/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-112/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 6.78,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-113",
+   "set_id": "me6",
+   "name": "Inkay",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "113",
+   "position": 113,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 60,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-113/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-113/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.7,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-114",
+   "set_id": "me6",
+   "name": "Eevee",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "114",
+   "position": 114,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 70,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-114/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-114/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 20.6,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-115",
+   "set_id": "me6",
+   "name": "Azurill",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "115",
+   "position": 115,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 30,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-115/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-115/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 5.17,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-116",
+   "set_id": "me6",
+   "name": "Altaria",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "116",
+   "position": 116,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 110,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-116/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-116/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 6.39,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-117",
+   "set_id": "me6",
+   "name": "Kecleon",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "117",
+   "position": 117,
+   "rarity": "Illustration Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 90,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-117/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-117/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 14.57,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-118",
+   "set_id": "me6",
+   "name": "Mega Golisopod ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "118",
+   "position": 118,
+   "rarity": "Ultra Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 340,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-118/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-118/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.52,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-119",
+   "set_id": "me6",
+   "name": "Heat Rotom ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "119",
+   "position": 119,
+   "rarity": "Ultra Rare",
+   "types": [
+    "Fire"
+   ],
+   "hp": 190,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-119/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-119/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 1.18,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-120",
+   "set_id": "me6",
+   "name": "Wishiwashi ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "120",
+   "position": 120,
+   "rarity": "Ultra Rare",
+   "types": [
+    "Water"
+   ],
+   "hp": 260,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-120/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-120/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 5.93,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-121",
+   "set_id": "me6",
+   "name": "Raikou ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "121",
+   "position": 121,
+   "rarity": "Ultra Rare",
+   "types": [
+    "electric"
+   ],
+   "hp": 200,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-121/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-121/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 1.73,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-122",
+   "set_id": "me6",
+   "name": "Mega Golurk ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "122",
+   "position": 122,
+   "rarity": "Ultra Rare",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 350,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-122/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-122/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.72,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-123",
+   "set_id": "me6",
+   "name": "Mega Malamar ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "123",
+   "position": 123,
+   "rarity": "Ultra Rare",
+   "types": [
+    "Darkness"
+   ],
+   "hp": 320,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-123/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-123/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.4,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-124",
+   "set_id": "me6",
+   "name": "Talonflame ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "124",
+   "position": 124,
+   "rarity": "Ultra Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 280,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-124/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-124/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 12.27,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-125",
+   "set_id": "me6",
+   "name": "Aarune",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "125",
+   "position": 125,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-125/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-125/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.68,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-126",
+   "set_id": "me6",
+   "name": "Adventure Lantern",
+   "supertype": "Trainer",
+   "subtypes": null,
+   "number": "126",
+   "position": 126,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-126/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-126/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 5.8,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-127",
+   "set_id": "me6",
+   "name": "Custom Vest",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Pokémon Tool"
+   ],
+   "number": "127",
+   "position": 127,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-127/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-127/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 1.43,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-128",
+   "set_id": "me6",
+   "name": "Emcee's Hype",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "128",
+   "position": 128,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-128/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-128/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.39,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-129",
+   "set_id": "me6",
+   "name": "Pokemon Catcher",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Item"
+   ],
+   "number": "129",
+   "position": 129,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-129/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-129/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.84,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-130",
+   "set_id": "me6",
+   "name": "Tate & Liza's Training",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "130",
+   "position": 130,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-130/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-130/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 5.26,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-131",
+   "set_id": "me6",
+   "name": "Zinnia's Trust",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "131",
+   "position": 131,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-131/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-131/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 7.22,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-132",
+   "set_id": "me6",
+   "name": "Bubbly W Energy",
+   "supertype": "Energy",
+   "subtypes": [
+    "Basic"
+   ],
+   "number": "132",
+   "position": 132,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-132/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-132/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 2.05,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-133",
+   "set_id": "me6",
+   "name": "Growing G Energy",
+   "supertype": "Energy",
+   "subtypes": [
+    "Basic"
+   ],
+   "number": "133",
+   "position": 133,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-133/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-133/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 3.72,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-134",
+   "set_id": "me6",
+   "name": "Nitro R Energy",
+   "supertype": "Energy",
+   "subtypes": [
+    "Basic"
+   ],
+   "number": "134",
+   "position": 134,
+   "rarity": "Ultra Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-134/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-134/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 9,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-135",
+   "set_id": "me6",
+   "name": "Mega Golisopod ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "135",
+   "position": 135,
+   "rarity": "Special Illustration Rare",
+   "types": [
+    "Grass"
+   ],
+   "hp": 340,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-135/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-135/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 21.12,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-136",
+   "set_id": "me6",
+   "name": "Raikou ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "136",
+   "position": 136,
+   "rarity": "Special Illustration Rare",
+   "types": [
+    "electric"
+   ],
+   "hp": 200,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-136/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-136/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 81.56,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-137",
+   "set_id": "me6",
+   "name": "Mega Golurk ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "137",
+   "position": 137,
+   "rarity": "Special Illustration Rare",
+   "types": [
+    "Psychic"
+   ],
+   "hp": 350,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-137/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-137/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 32.05,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-138",
+   "set_id": "me6",
+   "name": "Mega Rayquaza ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "138",
+   "position": 138,
+   "rarity": "Special Illustration Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 280,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-138/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-138/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 327.81,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-139",
+   "set_id": "me6",
+   "name": "Aarune",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "139",
+   "position": 139,
+   "rarity": "Special Illustration Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-139/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-139/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 11.81,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-140",
+   "set_id": "me6",
+   "name": "Zinnia's Trust",
+   "supertype": "Trainer",
+   "subtypes": [
+    "Supporter"
+   ],
+   "number": "140",
+   "position": 140,
+   "rarity": "Special Illustration Rare",
+   "types": null,
+   "hp": null,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-140/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-140/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 38.42,
+    "variant": "holofoil"
+   }
+  },
+  {
+   "id": "me6-141",
+   "set_id": "me6",
+   "name": "Mega Rayquaza ex",
+   "supertype": "Pokémon",
+   "subtypes": null,
+   "number": "141",
+   "position": 141,
+   "rarity": "Mega Hyper Rare",
+   "types": [
+    "Colorless"
+   ],
+   "hp": 280,
+   "artist": null,
+   "dex_numbers": null,
+   "image_small": "https://images.scrydex.com/pokemon/me6-141/small",
+   "image_large": "https://images.scrydex.com/pokemon/me6-141/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 349.35,
+    "variant": "holofoil"
+   }
+  }
+ ],
+ "products": [
+  {
+   "id": "me6-booster",
+   "set_id": "me6",
+   "name": "Delta Reign Booster Pack",
+   "kind": "booster",
+   "msrp": 4.49,
+   "packs": 1,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "10 cards per pack."
+  },
+  {
+   "id": "me6-bundle",
+   "set_id": "me6",
+   "name": "Delta Reign Booster Bundle",
+   "kind": "bundle",
+   "msrp": 26.94,
+   "packs": 6,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "Six booster packs."
+  },
+  {
+   "id": "me6-etb",
+   "set_id": "me6",
+   "name": "Delta Reign Elite Trainer Box",
+   "kind": "etb",
+   "msrp": 49.99,
+   "packs": 9,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "Nine booster packs, sleeves, dice, a coin and the Kyogre promo."
+  },
+  {
+   "id": "me6-display",
+   "set_id": "me6",
+   "name": "Delta Reign Booster Display (36 packs)",
+   "kind": "display",
+   "msrp": 161.64,
+   "packs": 36,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "36 booster packs."
+  },
+  {
+   "id": "me55-upc-day",
+   "set_id": "me55",
+   "name": "30th Celebration Ultra-Premium Collection — Day",
+   "kind": "special",
+   "msrp": 179.99,
+   "packs": 29,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Espeon ex promos, playmat, sleeves, deck box and coin."
+  },
+  {
+   "id": "me55-upc-night",
+   "set_id": "me55",
+   "name": "30th Celebration Ultra-Premium Collection — Night",
+   "kind": "special",
+   "msrp": 179.99,
+   "packs": 29,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Umbreon ex promos, playmat, sleeves, deck box and coin."
+  },
+  {
+   "id": "me55-ditto-premium",
+   "set_id": "me55",
+   "name": "30th Celebration Ditto Premium Collection",
+   "kind": "special",
+   "msrp": 39.99,
+   "packs": 8,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "Eight booster packs, a Ditto promo and an acrylic card display."
+  },
+  {
+   "id": "me55-figure-mew",
+   "set_id": "me55",
+   "name": "30th Celebration Figure Collection — Mew",
+   "kind": "special",
+   "msrp": 29.99,
+   "packs": 5,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "Five booster packs, a Mew foil promo and oversize card, and a sculpted figure."
+  },
+  {
+   "id": "me55-figure-mewtwo",
+   "set_id": "me55",
+   "name": "30th Celebration Figure Collection — Mewtwo",
+   "kind": "special",
+   "msrp": 29.99,
+   "packs": 5,
+   "cards_per_pack": 10,
+   "release_date": "2026/11/06",
+   "description": "Five booster packs, a Mewtwo foil promo and oversize card, and a sculpted figure."
+  }
+ ]
+}

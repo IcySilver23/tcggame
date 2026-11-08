@@ -8,6 +8,7 @@ import {
 } from '../api'
 import { useStore } from '../store'
 import { CardImg, FirstUseTip, fmtUsd, TipList } from '../components'
+import { variantTag } from '../variant-label'
 import { ShipSection } from './ShipBay'
 
 // ---------------------------------------------------------------------------
@@ -36,6 +37,8 @@ type Row = {
   set_name: string | null
   image_small: string | null
   condition: string
+  /** A named printing — Sequin Holofoil or a stamped reverse — if this copy has one. */
+  variant?: string
   qty: number
   price: number
   market: number
@@ -329,6 +332,11 @@ function ResultCard({
         </a>
         <div className="bb-meta">
           {r.condition && <span className="bb-cond">{r.condition}</span>}
+          {variantTag(r.variant) && (
+            <span className="bb-fmt" title="A separate printing of this number — different paper, not a condition">
+              {variantTag(r.variant)}
+            </span>
+          )}
           {r.set_name && <span className="bb-set">{r.set_name}</span>}
           {isAuction && (
             <span className="bb-fmt bb-fmt-auction" title="Bidding — proxy max is escrowed">
@@ -629,7 +637,7 @@ export function BidBayView() {
           .filter((r) => r.status === 'collection' && !r.graded_grade)
           .map((r) => ({
             id: r.id as number,
-            label: `${r.name} (${r.condition})${(r.quantity as number) > 1 ? ` ×${r.quantity}` : ''}`,
+            label: `${r.name} (${r.condition}${variantTag(r.variant) ? ` · ${variantTag(r.variant)}` : ''})${(r.quantity as number) > 1 ? ` ×${r.quantity}` : ''}`,
             value: r.value as number,
             qty: r.quantity as number,
           })),
@@ -643,21 +651,21 @@ export function BidBayView() {
     for (const l of market) {
       out.push({
         key: `m${l.id}`, kind: 'buy', card_id: l.card_id, name: l.name, set_name: l.set_name,
-        image_small: l.image_small, condition: l.condition, qty: l.quantity, price: l.ask,
+        image_small: l.image_small, condition: l.condition, variant: l.variant, qty: l.quantity, price: l.ask,
         market: l.market_at_list, seller: l.seller, closing: l.expires_at,
       })
     }
     for (const a of npcLots) {
       out.push({
         key: `n${a.id}`, kind: 'auction', card_id: a.card_id, name: a.name, set_name: a.set_name,
-        image_small: a.image_small, condition: a.condition, qty: a.quantity, price: a.current_bid,
+        image_small: a.image_small, condition: a.condition, variant: a.variant, qty: a.quantity, price: a.current_bid,
         market: a.market_at_list, seller: 'The room', closing: a.closes_at, npc: a,
       })
     }
     for (const l of data?.live ?? []) {
       out.push({
         key: `l${l.id}`, kind: 'mine', card_id: l.card_id, name: l.name, set_name: l.set_name,
-        image_small: l.image_small, condition: l.condition, qty: l.quantity, price: l.ask,
+        image_small: l.image_small, condition: l.condition, variant: l.variant, qty: l.quantity, price: l.ask,
         market: l.market_at_list, seller: 'You', views: l.views, watchers: l.watchers,
         listing: l, closing: l.listed_at,
       })
@@ -665,7 +673,7 @@ export function BidBayView() {
     for (const a of lots) {
       out.push({
         key: `o${a.id}`, kind: 'mineAuction', card_id: a.card_id, name: a.name, set_name: a.set_name,
-        image_small: a.image_small, condition: a.condition, qty: a.quantity, price: a.current_bid || a.start,
+        image_small: a.image_small, condition: a.condition, variant: a.variant, qty: a.quantity, price: a.current_bid || a.start,
         market: a.market_at_list, seller: 'You', closing: a.closes_at, own: a,
       })
     }

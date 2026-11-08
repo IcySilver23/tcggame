@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import fs from 'node:fs'
 import path from 'node:path'
+import { variantTag } from '../src/variant-label'
 import { db, getMeta, setMeta, getSetting, setSetting, logActivity, nowIso } from './lib/db'
 import { gameDayMs, gameDayStart, gameDayEnd, gameDayNumber, gameDayHours, resetGameDayCache } from './lib/gameday'
 import * as sync from './services/sync'
@@ -10,6 +11,7 @@ import * as deliveries from './services/deliveries'
 import { portfolio } from './services/portfolio'
 import { refreshBenchmarkCache, benchmarkStatus } from './services/benchmark'
 import * as packs from './services/packs'
+import * as gmpacks from './services/gmpacks'
 import * as binders from './services/binders'
 import * as pricesources from './services/pricesources'
 import * as grading from './services/grading'
@@ -43,6 +45,7 @@ import * as buylist from './services/buylist'
 import * as pawn from './services/pawn'
 import * as yardsale from './services/yardsale'
 import * as estatebuyout from './services/estatebuyout'
+import { applyLocalReleases } from './services/localcatalog'
 import * as forum from './services/forum'
 import * as wishlistAgents from './services/wishlistagents'
 import * as psarush from './services/psarush'
@@ -157,7 +160,8 @@ function ensurePackCatalog() {
     }
   })
   tx()
-  console.log('[server] pack catalog seeded:', packs.PRODUCTS.length, 'products')
+  const minis = gmpacks.ensureMiniPacks()
+  console.log('[server] pack catalog seeded:', packs.PRODUCTS.length, 'products +', minis, 'General Mills mini packs')
 }
 
 // The catalog ships the three 30th Celebration RGB Mews mistagged as Common.
@@ -182,8 +186,20 @@ function repairPhantomRarities() {
 // older code are wrong: 30C Pikachus sat in the common pool, Trainer Gallery
 // and LEGEND cards dealt like Commons, and no set produced Trainers or Energy
 // at all. Rebuild every booster table once per save.
+// 6: Scarlet & Violet's Illustration and Special Illustration Rares moved from
+//    the rare pool to the second reverse slot, so a table built by 5 would deal
+//    them from the wrong slot (and leave the new pool empty).
+// 7: the nine subset-only products and Celebrations got their own pack
+//    blueprints; a table built by 6 files those cards as hits and would deal a
+//    single-card pack.
+// 8: the bonus subsets moved into their host sets' packs, so host tables built
+//    by 7 lack the subset pool and would never show those cards.
+// 9: WotC packs stopped reserving an Energy slot their set never printed and a
+//    reverse slot the era never dealt; McDonald's 2021/22, Detective Pikachu
+//    and Dragon Vault got their real four/five-card shapes, and Dragon Vault's
+//    whole set is filed as foil.
 function migratePullTableRarities() {
-  const VERSION = '4'
+  const VERSION = '9'
   if (getMeta('packs:tableVersion') === VERSION) return
   sealed.ensureFullCatalog()
   const ids = db
@@ -246,6 +262,27 @@ function cardWithPrices(row: Record<string, unknown>): Record<string, unknown> {
 import changelogData from '../CHANGELOG.json'
 type ChangelogEntry = { version: string; date: string; title: string; features: string[] }
 const CHANGELOG = (changelogData as { entries: ChangelogEntry[] }).entries
+
+// Card art on the app's own origin, for anything that has to READ the pixels.
+//
+// images.pokemontcg.io sends no Access-Control-Allow-Origin, so a browser can
+// display a card but cannot copy it into a canvas from another origin — which is
+// exactly what the foil renderer and the dev holofoil inspector must do. Without
+// this, the overlay silently degrades to "no foil" and the inspector has nothing
+// to inspect. Read-only, path-restricted, one upstream image per request.
+app.get('/api/art/:setId/:file', async (c) => {
+  const setId = c.req.param('setId')
+  const file = c.req.param('file')
+  if (!/^[a-z0-9]+$/i.test(setId) || !/^[a-z0-9_]+(\.png)?$/i.test(file)) return c.text('bad request', 400)
+  const name = file.endsWith('.png') ? file : `${file}.png`
+  const upstream = await fetch(`https://images.pokemontcg.io/${setId}/${name}`).catch(() => null)
+  if (!upstream || !upstream.ok) return c.text('not found', 404)
+  const bytes = new Uint8Array(await upstream.arrayBuffer())
+  return c.body(bytes, 200, {
+    'content-type': upstream.headers.get('content-type') ?? 'image/png',
+    'cache-control': 'public, max-age=86400',
+  })
+})
 
 app.get('/api/changelog', (c) => c.json({ current: APP_VERSION, entries: CHANGELOG }))
 
@@ -508,8 +545,43 @@ app.get('/api/cards/search', (c) => {
     ).all(...ids) as { card_id: string; qty: number }[]
     for (const o of owned) ownedMap.set(o.card_id, o.qty)
   }
-  const priced = rows.map(cardWithPrices).map((r) => ({ ...r, ownedQty: ownedMap.get(r.id as string) ?? 0 }))
+  // Which PRINTINGS the player holds, for the binder's label. A plain copy needs
+  // no tag, so only labelled variants (a stamped reverse, the Sequin copy)
+  // survive — that keeps the payload small and the label means something.
+  const variantMap = new Map<string, { variant: string; label: string; qty: number }[]>()
+  if (rows.length > 0) {
+    const ids = rows.map((r) => r.id as string)
+    const held = db.prepare(
+      `SELECT card_id, variant, SUM(quantity) AS qty FROM inventory
+       WHERE status IN ('collection','grading') AND card_id IN (${ids.map(() => '?').join(',')})
+       GROUP BY card_id, variant`,
+    ).all(...ids) as { card_id: string; variant: string; qty: number }[]
+    for (const h of held) {
+      const label = variantTag(h.variant)
+      if (!label) continue
+      const list = variantMap.get(h.card_id) ?? []
+      list.push({ variant: h.variant, label, qty: h.qty })
+      variantMap.set(h.card_id, list)
+    }
+  }
+  const priced = rows.map(cardWithPrices).map((r) => ({
+    ...r,
+    ownedQty: ownedMap.get(r.id as string) ?? 0,
+    ownedVariants: variantMap.get(r.id as string) ?? [],
+  }))
   return c.json({ total: totalRow.n, cards: priced })
+})
+
+// Rarity/set for a batch of card ids. The client uses it to decide which foil a
+// thumbnail wears: asking per tile would be one request per card, so surfaces
+// send one batch and cache the answers for the session.
+app.get('/api/cards/meta', (c) => {
+  const ids = (c.req.query('ids') ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 300)
+  if (ids.length === 0) return c.json([])
+  const rows = db
+    .prepare('SELECT id, rarity, set_id, types, supertype FROM cards WHERE id IN (' + ids.map(() => '?').join(',') + ')')
+    .all(...ids) as { id: string; rarity: string | null; set_id: string; types: string | null; supertype: string | null }[]
+  return c.json(rows)
 })
 
 app.get('/api/cards/facets', (c) => {
@@ -966,10 +1038,30 @@ app.get('/api/shop/products', (c) => {
     ORDER BY s.release_date DESC,
       CASE p.kind WHEN 'booster' THEN 1 WHEN 'bundle' THEN 2 WHEN 'etb' THEN 3 WHEN 'display' THEN 4 ELSE 5 END
   `).all() as Record<string, unknown>[]
-  const out = rows.map((r) => {
+  // Subset-only sets have no wrapper of their own on a real shelf and their
+  // pool cannot fill a pack, so they are not offered (their rows are kept so
+  // stock already in a save still resolves).
+  const out = rows.filter((r) => sealed.sellsOwnPacks(String(r.set_id))).map((r) => {
     const detail = sealed.priceDetail(r.id as string)
-    const est = packs.estimatePackValue(r.set_id as string)
-    return { ...r, market_price: detail.market, price_source: detail.source, oop: detail.oop, oop_months: detail.oopMonths, oop_status: detail.status, est }
+    const mini = gmpacks.miniPackFor(r.id as string)
+    const est = mini
+      ? gmpacks.estimateMiniPack(r.id as string)
+      : packs.estimatePackValue(r.set_id as string)
+    // A mini pack's Sequin slot rides along with the shelf row, so the shop can
+    // print its odds rather than leaving a player to guess what three cards hold.
+    return {
+      ...r,
+      market_price: detail.market,
+      price_source: detail.source,
+      oop: detail.oop,
+      oop_months: detail.oopMonths,
+      oop_status: detail.status,
+      est,
+      mini: mini ? gmpacks.miniSequinOdds(r.id as string) : undefined,
+      // The era's own slot breakdown, so the shelf can show which card in a
+      // pack comes from which slot. A mini pack prints its Sequin odds instead.
+      slots: mini ? undefined : packs.packSlots(r.set_id as string, r.cards_per_pack as number),
+    }
   })
   return c.json(out)
 })
@@ -2471,6 +2563,7 @@ migratePerDayCostsTo12hClock()
 ensureDefaultBinder()
 repairPhantomRarities()
 ensurePackCatalog()
+applyLocalReleases()
 migratePullTableRarities()
 backfillAcquiredRefs()
 backfillNetWorthHistory()

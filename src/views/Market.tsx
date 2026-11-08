@@ -4,6 +4,7 @@ import type { MarketRegimes, MarketScene, MarketSeasonal } from '../api'
 import { useStore } from '../store'
 import { CardImg, ConditionBadge, DensityToggle, EmptyState, fmtUsd, OverflowHint, SortSelect } from '../components'
 import type { ListingRow } from '../types'
+import { variantTag } from '../variant-label'
 
 // ---------------------------------------------------------------------------
 // ⇄ Marketplace — the price desk (roadmap problem #1: no two venues share a shape).
@@ -86,6 +87,8 @@ type Quote = {
   setName: string | null
   rarity: string | null
   condition: string
+  /** The printing this line prices — a Sequin copy is not the plain promo. */
+  variant: string
   /** Market anchor for this exact condition — null when nothing is published. */
   market: number | null
   anchorKind: string | null
@@ -135,11 +138,15 @@ export function MarketView() {
 
   // COLLAPSE THE FEED INTO QUOTES. A listing is a seller's opinion; the quote
   // is what the card costs right now. Grouping by card+condition is the whole
-  // difference between this screen and BidBay's result list.
+  // difference between this screen and BidBay's result list — and the variant
+  // rides in the key, because a Sequin Holofoil copy or a stamped reverse is a
+  // different printing at a different price, not the same quote with a note on
+  // it. Merging them would compare a cereal promo's ask against the plain
+  // card's anchor and print a spread that belongs to neither.
   const quotes = useMemo(() => {
     const byCard = new Map<string, ListingRow[]>()
     for (const l of listings) {
-      const key = `${l.card_id}|${l.condition}`
+      const key = `${l.card_id}|${l.condition}|${l.variant || 'normal'}`
       const bucket = byCard.get(key)
       if (bucket) bucket.push(l)
       else byCard.set(key, [l])
@@ -156,6 +163,7 @@ export function MarketView() {
         setName: best.set_name ?? null,
         rarity: best.rarity,
         condition: best.condition,
+        variant: best.variant || 'normal',
         market: best.market?.usd ?? null,
         anchorKind: best.market?.kind ?? null,
         asks,
@@ -375,6 +383,11 @@ export function MarketView() {
                   <div className="radar-title">
                     <b className="radar-name" onClick={() => openCard(c.cardId)}>{c.name}</b>
                     <ConditionBadge cond={c.condition} />
+                    {variantTag(c.variant) && (
+                      <span className="badge" title="A separate printing of this number — the asks and the anchor on this line are that printing's">
+                        {variantTag(c.variant)}
+                      </span>
+                    )}
                     <span className={`badge ${v === 'steal' ? 'warn' : v === 'over' ? 'above' : v === 'at' ? 'at' : 'below'}`}>{VERDICT_LABEL[v]}</span>
                     <span className="quote-sellers" title="Distinct sellers offering this card in this condition">
                       {c.sellers} seller{c.sellers === 1 ? '' : 's'}

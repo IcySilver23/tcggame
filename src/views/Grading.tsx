@@ -126,10 +126,13 @@ export function GradingView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Grading</h1>
-          <div className="sub">Your grading operation — what's worth slabbing, what's in the queue, and what the lab has actually been worth.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🔬</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Grading</h1>
+            <div className="sub">Your grading operation — what's worth slabbing, what's in the queue, and what the lab has actually been worth.</div>
+          </div>
         </div>
       </div>
 

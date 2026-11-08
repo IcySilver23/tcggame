@@ -60,6 +60,16 @@ export function loadBrowseMode(): BrowseMode {
   return localStorage.getItem(BROWSE_KEY) === 'byset' ? 'byset' : 'flat'
 }
 
+/**
+ * Card foil effects. PARKED: off unless the player switches it on, so every card
+ * shows its scan flat. This is a display gate only — the renderer, the printing
+ * database and every paper stay in the tree, and one switch brings them back.
+ */
+const FOIL_KEY = 'tcglife.foil'
+function loadFoil(): boolean {
+  return localStorage.getItem(FOIL_KEY) === 'on'
+}
+
 /** Chrome darkness. Dark is the default; light is the paper TCG look. */
 export type Theme = 'dark' | 'light'
 const THEME_KEY = 'tcglife.theme'
@@ -79,6 +89,8 @@ type Store = {
   toasts: Toast[]
   theme: Theme
   setTheme: (t: Theme) => void
+  foil: boolean
+  setFoil: (v: boolean) => void
   density: Density
   setDensity: (d: Density) => void
   browse: BrowseMode
@@ -107,6 +119,11 @@ export const useStore = create<Store>((set, get) => ({
     localStorage.setItem(THEME_KEY, t)
     document.documentElement.dataset.theme = t
     set({ theme: t })
+  },
+  foil: loadFoil(),
+  setFoil: (v) => {
+    localStorage.setItem(FOIL_KEY, v ? 'on' : 'off')
+    set({ foil: v })
   },
   density: loadDensity(),
   setDensity: (d) => {

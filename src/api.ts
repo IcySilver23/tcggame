@@ -30,6 +30,9 @@ export const api = {
   },
   cardDetail: (id: string) => req<import('./types').CardDetailResponse>(`/api/cards/${encodeURIComponent(id)}`),
   facets: () => req<{ rarities: { rarity: string; n: number }[]; types: string[] }>('/api/cards/facets'),
+  /** Rarity + set for a batch of card ids — how a thumbnail picks its foil. */
+  cardMeta: (ids: string[]) =>
+    req<{ id: string; rarity: string | null; set_id: string; types: string | null; supertype: string | null }[]>('/api/cards/meta?ids=' + encodeURIComponent(ids.join(','))),
 
   marketListings: (params: Record<string, string | number | undefined>) => {
     const qs = new URLSearchParams()
@@ -2570,6 +2573,7 @@ export type FlipStock = {
     name: string
     image: string | null
     condition: string
+    variant?: string
     quantity: number
     costBasis: number
     market: number
@@ -2714,6 +2718,8 @@ export type EbayMarketListing = {
   quantity: number
   ask: number
   market_at_list: number
+  /** The printing on offer: a Sequin copy is the same number on different paper. */
+  variant: string
   seller: string
   listed_at: string
   expires_at: string
@@ -2726,6 +2732,7 @@ export type EbayAuction = {
   id: number
   inventory_id: number
   card_id: string
+  variant?: string
   condition: string
   quantity: number
   start: number
@@ -2747,6 +2754,7 @@ export type EbayAuction = {
 export type EbayNpcAuction = {
   id: number
   card_id: string
+  variant?: string
   condition: string
   quantity: number
   market_at_list: number

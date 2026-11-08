@@ -3,6 +3,7 @@ import { api } from '../api'
 import type { TradeOfferRow, TradeReply, TraderRow } from '../api'
 import { useStore } from '../store'
 import { CardImg, fmtUsd } from '../components'
+import { variantTag } from '../variant-label'
 
 // ---------------------------------------------------------------------------
 // Trading Post — negotiate with collectors.
@@ -349,7 +350,12 @@ function TradersPanel({ traders, onChanged }: { traders: TraderRow[]; onChanged:
         setCollection(
           rows
             .filter((r) => r.status === 'collection' && !r.graded_grade && (r.quantity as number) === 1)
-            .map((r) => ({ id: r.id as number, name: `${r.name} (${r.condition})`, condition: r.condition as string, value: r.value as number })),
+            .map((r) => ({
+              id: r.id as number,
+              name: `${r.name} (${r.condition}${variantTag(r.variant) ? ` · ${variantTag(r.variant)}` : ''})`,
+              condition: r.condition as string,
+              value: r.value as number,
+            })),
         ),
       )
       .catch(() => {})

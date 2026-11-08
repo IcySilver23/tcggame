@@ -91,10 +91,13 @@ export function CollectionView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>Collection</h1>
-          <div className="sub">Every card you own — priced from real TCGplayer market data.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🗂</span>
+          <div>
+            <h1>Collection</h1>
+            <div className="sub">Every card you own — priced from real TCGplayer market data.</div>
+          </div>
         </div>
         <div className="right">
           <div className="faint small">Cards shown</div>
@@ -157,13 +160,22 @@ export function CollectionView() {
                   empty={null}
                   render={(c) => (
                     <div className="card-cell" onClick={() => openCard(c.id)}>
-                      <CardImg src={c.image_small} alt={c.name} cardId={c.id} />
+                      <CardImg src={c.image_small} alt={c.name} cardId={c.id} rarity={c.rarity} />
                       <div className="card-meta">
                         <div className="nm">{c.name}</div>
                         <div className="st">#{c.number}</div>
                         <div className="card-row-between">
                           <RarityBadge rarity={c.rarity} />
                           {(c.ownedQty ?? 0) > 1 && <span className="badge">×{c.ownedQty}</span>}
+                          {(c.ownedVariants ?? []).map((v) => (
+                            <span
+                              key={v.variant}
+                              className="badge"
+                              title={`You own this as ${v.label} — a separate printing of #${c.number}, not the plain card`}
+                            >
+                              {v.label}{v.qty > 1 ? ` ×${v.qty}` : ''}
+                            </span>
+                          ))}
                         </div>
                         <div className="card-row-between">
                           <PriceTag price={c.price} />
@@ -184,13 +196,22 @@ export function CollectionView() {
           empty={null}
           render={(c) => (
             <div className={`card-cell ${ownedOnly ? '' : 'silhouette'}`} onClick={() => openCard(c.id)}>
-              <CardImg src={c.image_small} alt={c.name} cardId={c.id} />
+              <CardImg src={c.image_small} alt={c.name} cardId={c.id} rarity={c.rarity} />
               <div className="card-meta">
                 <div className="nm">{c.name}</div>
                 <div className="st">{c.set_name} · {c.number}</div>
                 <div className="card-row-between">
                   <RarityBadge rarity={c.rarity} />
                   {(c.ownedQty ?? 0) > 1 && <span className="badge">×{c.ownedQty}</span>}
+                  {(c.ownedVariants ?? []).map((v) => (
+                    <span
+                      key={v.variant}
+                      className="badge"
+                      title={`You own this as ${v.label} — a separate printing of #${c.number}, not the plain card`}
+                    >
+                      {v.label}{v.qty > 1 ? ` ×${v.qty}` : ''}
+                    </span>
+                  ))}
                 </div>
                 <div className="card-row-between">
                   <PriceTag price={c.price} />

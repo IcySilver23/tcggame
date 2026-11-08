@@ -562,10 +562,13 @@ export function StreamView() {
 
 function StreamHead() {
   return (
-    <div className="page-head">
-      <div>
-        <h1>📡 Stream</h1>
-        <div className="sub">Run your own pack-opening stream — real product, real rips, chat that never sleeps.</div>
+    <div className="page-head desk">
+      <div className="ph-id">
+        <span className="ph-mark" aria-hidden>📡</span>
+        <div>
+          <h1>Stream</h1>
+          <div className="sub">Run your own pack-opening stream — real product, real rips, chat that never sleeps.</div>
+        </div>
       </div>
     </div>
   )

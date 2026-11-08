@@ -1,7 +1,9 @@
 import { db, nowIso, getMeta, setMeta, logActivity } from '../lib/db'
-import { round2, valueOf } from './market'
+import { round2 } from './market'
 import { fetchPriceCharting, pcAuthFailed, markPcAuthFailure } from './pricesources'
 import { sealedFactor } from './demographics'
+import { expectedPackValue, planFor } from './packodds'
+import { miniPackFor } from '../catalog/general-mills'
 
 // ---------------------------------------------------------------------------
 // Sealed catalog for EVERY set. WotC sets get boosters + 36-pack displays;
@@ -37,7 +39,65 @@ function promoLike(setId: string): boolean {
   return /(^|)(mcp|swshp|smp|xyp|pop\d*|bwp|dpp|hgssp)$/.test(setId) || setId.endsWith('p') && setId.length <= 6
 }
 
+/**
+ * Sets that only ever came inside another set's packs: Shiny Vault (Hidden Fates,
+ * Shining Fates), the four Trainer Galleries, Crown Zenith's Galarian Gallery,
+ * and the Basic Energy set. None has a wrapper of its own on a real shelf, and
+ * their catalogue is pure chase cards, so a ten-card pack is either a lie (one
+ * card dealt) or a money printer (a $4 wrapper worth hundreds). No sealed
+ * product is sold for them; their cards stay in the catalogue.
+ *
+ * The two Classic Collection subsets belong here too: their cards came inside
+ * 30th Celebration and Celebrations packs, never in a wrapper of their own.
+ */
+export const SUBSET_ONLY_SETS = new Set([
+  'sma',
+  'swsh45sv',
+  'swsh9tg',
+  'swsh10tg',
+  'swsh11tg',
+  'swsh12tg',
+  'swsh12pt5gg',
+  'sve',
+  'cel25c',
+  'me55c',
+])
+
+/**
+ * Sets whose cards never shipped in a randomised booster of their own. These
+ * are not subset-only — each is a set with its own name — but a ten-card
+ * wrapper over them is still fabricated: the cards came in decks, promo
+ * giveaways, a fixed binder, or one per toy. Their rows stay so owned stock
+ * resolves; the shop, pack battles and live shows refuse them.
+ */
+export const NO_BOOSTER_SETS = new Set([
+  'si1', // English Southern Islands: a fixed 18-card binder plus 3 boosters from other sets
+  'xy0', // Kalos Starter Set: three theme decks, no booster
+  'tk1a', // EX Trainer Kit Latias: a fixed two-deck kit
+  'tk1b', // EX Trainer Kit Latios
+  'tk2a', // EX Trainer Kit 2 Plusle
+  'tk2b', // EX Trainer Kit 2 Minun
+  'fut20', // Pokémon Futsal: promotional cards, never a pack
+  'ru1', // Pokémon Rumble: promotional cards, never a booster
+  // 2011–2019 McDonald's cards came one per toy. Only 2021 and 2022 shipped
+  // the four-card Happy Meal pack.
+  'mcd11',
+  'mcd12',
+  'mcd14',
+  'mcd15',
+  'mcd16',
+  'mcd17',
+  'mcd18',
+  'mcd19',
+])
+
+/** True when this set has sealed product of its own to sell. */
+export function sellsOwnPacks(setId: string): boolean {
+  return !SUBSET_ONLY_SETS.has(setId) && !NO_BOOSTER_SETS.has(setId)
+}
+
 export function productsForSet(setId: string, setName: string, series: string, releaseDate: string): EraProducts['kinds'] {
+  if (!sellsOwnPacks(setId)) return []
   if (promoLike(setId)) return []
   const era = seriesEra(series, releaseDate)
   if (era === 'none') return []
@@ -71,13 +131,20 @@ export function ensureFullCatalog(): number {
     `INSERT OR IGNORE INTO pack_products (id, set_id, name, kind, msrp, market_price, packs, cards_per_pack, release_date, description)
      VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, NULL)`,
   )
+  // A product's card count is the plan the roller deals, not a fixed ten:
+  // Celebrations' real pack is four. Existing rows are corrected too, so a
+  // save that seeded them as ten stops advertising a pack it never deals.
+  const updatePerPack = db.prepare('UPDATE pack_products SET cards_per_pack = ? WHERE id = ? AND cards_per_pack <> ?')
   let added = 0
   const tx = db.transaction(() => {
     for (const s of sets) {
       if (s.n === 0) continue // no synced cards → nothing to rip
+      const perPack = planFor(s.id, 10).reduce((a, slot) => a + slot.count, 0)
       for (const k of productsForSet(s.id, s.name, s.series, s.release_date)) {
-        const r = insert.run(`${s.id}-${k.kind}`, s.id, k.name, k.kind, k.msrp, k.packs, 10, s.release_date)
+        const id = `${s.id}-${k.kind}`
+        const r = insert.run(id, s.id, k.name, k.kind, k.msrp, k.packs, perPack, s.release_date)
         added += r.changes
+        if (r.changes === 0) updatePerPack.run(perPack, id, perPack)
       }
     }
   })
@@ -156,6 +223,26 @@ export function oopMultiplier(m: number, kind = 'booster'): number {
   return 1 + (cap - 1) * (1 - Math.exp(-m / 48))
 }
 
+/**
+ * A sold sealed product may not cost less than the packs it contains are
+ * expected to deal.
+ *
+ * In-print shelves used to sit at MSRP even when the chase EV was several
+ * times higher, so a $4.49 booster could be a guaranteed money printer and a
+ * six-pack bundle inherited the same gap. The floor is per-pack EV × the
+ * product's real pack count, applied to stored real quotes too. It skips
+ * hidden products: their rows are kept for owned stock, not sold, so
+ * repricing a fabricated wrapper at its pull EV would only inflate inventory.
+ * Mini packs price from their own three-card composition and return before
+ * this floor is reached.
+ */
+function atLeastPackEv(setId: string, packs: number | null, market: number): number {
+  if (!sellsOwnPacks(setId)) return market
+  const n = Math.max(1, Math.floor(packs ?? 1))
+  const ev = expectedPackValue(setId) * n
+  return ev > market ? round2(ev) : market
+}
+
 export function priceDetail(productId: string): {
   market: number
   source: 'pricecharting' | 'estimated'
@@ -165,9 +252,19 @@ export function priceDetail(productId: string): {
   status: 'in print' | 'out of print'
 } {
   const row = db
-    .prepare(`SELECT set_id, kind, msrp FROM pack_products WHERE id = ?`)
-    .get(productId) as { set_id: string; kind: string; msrp: number } | undefined
+    .prepare(`SELECT set_id, kind, msrp, packs FROM pack_products WHERE id = ?`)
+    .get(productId) as { set_id: string; kind: string; msrp: number; packs: number | null } | undefined
   if (!row) return { market: 0, source: 'estimated', oopMonths: 0, oop: false, multiplier: 1, status: 'in print' }
+  // A General Mills mini pack holds three cards, not ten: the per-pack EV model
+  // below is a booster's shape and would price it like a display. It sits at its
+  // own shelf price, and a PriceCharting lookup is never run for it (that would
+  // match some other product's listing and overwrite the price).
+  const mini = miniPackFor(productId)
+  if (mini) {
+    const rel = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(row.set_id) as { release_date: string } | undefined
+    const m = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
+    return { market: round2(mini.msrp), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: 1, status: m > 0 ? 'out of print' : 'in print' }
+  }
   const release = db
     .prepare(`SELECT release_date FROM sets WHERE id = ?`)
     .get(row.set_id) as { release_date: string } | undefined
@@ -181,9 +278,9 @@ export function priceDetail(productId: string): {
   const scene = m > 0 ? sealedFactor(row.set_id) : 1
   const stored = storedPrice(productId)
   if (stored && stored.source === 'pricecharting' && stored.market > 0) {
-    return { market: round2(stored.market * scene), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+    return { market: atLeastPackEv(row.set_id, row.packs, round2(stored.market * scene)), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
   }
-  return { market: round2(derivedPrice(row.set_id, row.kind) * scene), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+  return { market: atLeastPackEv(row.set_id, row.packs, round2(derivedPrice(row.set_id, row.kind) * scene)), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
 }
 
 function storedPrice(productId: string): SealedPriceRow | null {
@@ -199,31 +296,29 @@ export function derivedPrice(setId: string, kind: string): number {
   const cacheKey = setId + '|' + kind
   const cached = derivedCache.get(cacheKey)
   if (cached !== undefined) return cached
-  const slots = db
-    .prepare(`SELECT slot, card_id, weight FROM pack_product_cards WHERE pack_product_id = ?`)
-    .all(`${setId}-booster`) as { slot: string; card_id: string; weight: number }[]
-  const avg = (s: string) => {
-    const rows = slots.filter((r) => r.slot === s)
-    if (rows.length === 0) return 0
-    return rows.reduce((a, r) => a + valueOf(r.card_id) * r.weight, 0)
-  }
-  const perPack = 5 * avg('common') + 3 * avg('uncommon') + avg('holo') + avg('hit') * 1.6
+  // Same structure and odds the roller uses: 4 commons, 3 uncommons, a rare,
+  // a reverse holo, and the final card at the era's real hit odds. Sealed boxes
+  // trade on the chase cards, and that is now measured rather than fudged.
+  const perPack = expectedPackValue(setId)
   if (perPack <= 0) return msrpFallback(setId, kind)
+  // The row's own pack count, not a kind guess: a special collection can hold
+  // five, eight or twenty-nine packs instead of a display's thirty-six.
+  const productRow = db.prepare(`SELECT packs FROM pack_products WHERE id = ?`).get(`${setId}-${kind}`) as { packs: number | null } | undefined
+  const packs = Math.max(1, Math.floor(productRow?.packs ?? 1))
   // IN-PRINT sets sell at retail, not at chase-card EV: store shelves price a
   // pack at MSRP no matter what the hit slot comps at — the rip-risk (and the
   // rare double-hit) is the buyer's gamble, and supply is unlimited while the
-  // presses run. The pull-EV estimate only takes over once the product is OUT
-  // OF PRINT and sealed supply is what's left. (This is the 30th Celebration
-  // bug: a fresh $4.49 pack priced at the $30 chase-EV cap.)
+  // presses run. The pull-EV floor is the exception: a wrapper may not sell
+  // below the cards it is expected to deal.
   const rel = db.prepare(`SELECT release_date FROM sets WHERE id = ?`).get(setId) as { release_date: string } | undefined
   if (rel) {
     const oopNow = monthsOutOfPrint(rel.release_date, kind, setId)
-    if (oopNow <= 0) return msrpFallback(setId, kind)
+    if (oopNow <= 0) return atLeastPackEv(setId, packs, msrpFallback(setId, kind))
   }
   // Anchor every kind to the booster EV, then scale with pack count. Real sealed
   // boxes trade BELOW per-pack × count (dealers discount the rip-risk), with ETBs
   // holding value best (exclusive promos) and raw boxes discounting hardest.
-  const packs = kind === 'booster' ? 1 : kind === 'bundle' ? BUNDLE_PACKS : kind === 'etb' ? ETB_PACKS : DISPLAY_PACKS
+  // That discount cannot go below the raw content EV — see atLeastPackEv below.
   const cap = kind === 'booster' ? 30 : kind === 'bundle' ? 90 : kind === 'etb' ? 350 : 700
   const boxFactor = kind === 'booster' ? 1 : kind === 'bundle' ? 1.0 : kind === 'etb' ? 0.92 : 0.8
   // Out-of-print appreciation: sealed only gets rarer after the print run ends —
@@ -234,7 +329,7 @@ export function derivedPrice(setId: string, kind: string): number {
     : 1
   const est = Math.min(perPack * packs * boxFactor, cap * oop) * oop
   const floor = kind === 'booster' ? 2.5 : kind === 'bundle' ? 18 : kind === 'etb' ? 32 : 90
-  const result = round2(Math.max(floor, est))
+  const result = atLeastPackEv(setId, packs, round2(Math.max(floor, est)))
   derivedCache.set(cacheKey, result)
   return result
 }
@@ -313,8 +408,11 @@ const insertSealed = db.prepare(
 )
 
 export async function refreshSealedPrice(productId: string): Promise<'pricecharting' | 'unchanged'> {
-  const p = db.prepare(`SELECT set_id, kind, msrp FROM pack_products WHERE id = ?`).get(productId) as { set_id: string; kind: string; msrp: number } | undefined
+  const p = db.prepare(`SELECT set_id, kind, msrp, packs FROM pack_products WHERE id = ?`).get(productId) as { set_id: string; kind: string; msrp: number; packs: number | null } | undefined
   if (!p) return 'unchanged'
+  // Mini packs are a cereal promotion with no sealed listing of its own; a set
+  // name + kind query would return a different product's price.
+  if (miniPackFor(productId)) return 'unchanged'
   const setName = (db.prepare(`SELECT name FROM sets WHERE id = ?`).get(p.set_id) as { name: string } | undefined)?.name
   if (!setName) return 'unchanged'
   const derived = derivedPrice(p.set_id, p.kind)
@@ -323,8 +421,9 @@ export async function refreshSealedPrice(productId: string): Promise<'pricechart
     if (price == null || price <= 0) return 'unchanged'
     // Sanity: reject wild mismatches (>30x the derived estimate) — wrong product.
     if (price > Math.max(derived * 30, 500)) return 'unchanged'
-    insertSealed.run(productId, price, nowIso())
-    db.prepare(`UPDATE pack_products SET market_price = ? WHERE id = ?`).run(round2(price), productId)
+    const quoted = atLeastPackEv(p.set_id, p.packs, round2(price))
+    insertSealed.run(productId, quoted, nowIso())
+    db.prepare(`UPDATE pack_products SET market_price = ? WHERE id = ?`).run(quoted, productId)
     return 'pricecharting'
   } catch {
     return 'unchanged'

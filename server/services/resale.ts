@@ -284,6 +284,7 @@ export function flipStock() {
       name: r.name,
       image: r.image,
       condition: r.condition,
+      variant: r.variant,
       quantity: r.quantity,
       costBasis: basis,
       market,

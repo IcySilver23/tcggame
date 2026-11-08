@@ -2,6 +2,21 @@ import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
 import { valueOf, firstEditionValueOf, round2 } from './market'
 import * as sealed from './sealed'
 import * as vault from './vault'
+import { rollMiniPack } from './gmpacks'
+import { planFor, profileFor, eraOf, upgradeOdds, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, HOST_SUBSETS, type SecondSlotOutcome } from './packodds'
+import { rareVariantFor } from './finish-odds'
+import { ascendedVariantFor } from '../../src/foil/ball-stamps'
+import {
+  BALL_VARIANTS,
+  ENERGY_REVERSE_VARIANT,
+  ballEligible,
+  ballVariantFor,
+  energyReverseEligible,
+  hasEnergyReverse,
+  isSpecialSet,
+  specialBallFor,
+  specialSlotChancesFor,
+} from './special-reverse'
 
 // Migration: pull_history rows written before the owner column existed are all
 // attributable by session-id convention — stamp the known NPC shapes (live-wing
@@ -138,10 +153,6 @@ export const PRODUCTS: ProductDef[] = [
 // Pull table construction — built ONLY from the set's real rarity distribution
 // ---------------------------------------------------------------------------
 
-type SlotPlan = {
-  common: number; uncommon: number; holo: number; hit: number
-}
-
 // Every rarity label the catalog uses. Anything missing here fell through to
 // rank 1 and dealt like a Common — which is exactly why a 'Pikachu Rare' was as
 // common as a Vulpix, a 'LEGEND' reprint was bulk, and the Trainer Gallery was
@@ -191,40 +202,10 @@ const TIER_ODDS: Record<string, number> = {
   'Trainer Gallery Rare Holo': 0.10,
 }
 
-type PackSlot = 'common' | 'uncommon' | 'holo' | 'hit' | 'subset'
-
-/**
- * Documented pack structures. Anything not listed falls back to the era default
- * (5 common · 3 uncommon · 1 holo · 1 hit at ten cards).
- */
-const BLUEPRINTS: Record<string, { slot: PackSlot; count: number }[]> = {
-  // 30th Celebration, real pack of 6: 2 Commons + 1 flex + 1 rare-or-better +
-  // 1 guaranteed Pikachu + 1 foil Basic Energy. Stretched to the game's ten
-  // cards the Pikachu slot stays a guaranteed draw that closes the pack.
-  me55: [
-    { slot: 'common', count: 7 },
-    { slot: 'holo', count: 1 },
-    { slot: 'hit', count: 1 },
-    { slot: 'subset', count: 1 },
-  ],
-  // Classic Collection: the whole set is the 30-card reprint subset, so there
-  // is no rarity ladder at all — every card in the pack is a classic.
-  me55c: [{ slot: 'subset', count: 10 }],
-  cel25c: [{ slot: 'subset', count: 10 }],
-}
-
-/** The slot plan a set's packs are dealt from. */
-export function planFor(setId: string, cardsPerPack = 10): { slot: PackSlot; count: number }[] {
-  const bp = BLUEPRINTS[setId]
-  if (bp) return bp.map((s) => ({ ...s }))
-  const tail = 5 // three uncommons + a rare + a special rare
-  return [
-    { slot: 'common', count: Math.max(1, cardsPerPack - tail) },
-    { slot: 'uncommon', count: 3 },
-    { slot: 'holo', count: 1 },
-    { slot: 'hit', count: 1 },
-  ]
-}
+// Structure and hit odds live in packodds.ts, so the roller, the shop's
+// ESTIMATE line and the sealed-price anchor all read one table.
+export { planFor, packSlots } from './packodds'
+export type { PackSlot, PackSlotInfo, SlotPlan } from './packodds'
 
 // Rarities at or above this rank don't share the rare slot — they have their
 // own dice (see PHANTOM_ODDS), because a ~1-in-12,000 card cannot be expressed
@@ -245,22 +226,42 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
     .prepare(`SELECT id, name, rarity, supertype, number FROM cards WHERE set_id = ?`)
     .all(setId) as { id: string; name: string; rarity: string | null; supertype: string; number: string }[]
 
+  // A bonus subset prints inside this set's packs, not in a product of its own.
+  const bonusSetId = HOST_SUBSETS[setId]
+  const bonus = bonusSetId
+    ? (db
+        .prepare(`SELECT id, name, rarity, supertype, number FROM cards WHERE set_id = ?`)
+        .all(bonusSetId) as typeof cards)
+    : []
+
   if (cards.length === 0) return
 
   const commons: typeof cards = []
   const uncommons: typeof cards = []
   const holos: typeof cards = []
   const hits: typeof cards = []
+  // Scarlet & Violet's second reverse slot, not the rare slot, prints the
+  // Illustration and Special Illustration Rares.
+  const reverse2Hits: typeof cards = []
   const phantoms: typeof cards = []
   const subsets: typeof cards = []
+  const energies: typeof cards = []
 
   // Classic Collection keeps each reprint's original rarity label, so the only
   // honest classification is "every card in this set is the subset".
-  const allSubset = BLUEPRINTS[setId]?.every((s) => s.slot === 'subset') ?? false
+  const allSubset = isAllSubset(setId)
+  const svEra = eraOf(setId) === 'sv'
 
   for (const c of cards) {
     if (allSubset) {
       subsets.push(c)
+      continue
+    }
+    // Every Dragon Vault card — the three unlabelled Trainers included — was
+    // printed Holofoil, so the whole set fills the foil pool and a five-card
+    // pack can draw any of it.
+    if (setId === 'dv1') {
+      holos.push(c)
       continue
     }
     const rank = rarityRank(c.rarity)
@@ -269,23 +270,29 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
     // Bracketed segments are form/letter labels — 'Unown [V]' is a common, not
     // a special-art V.
     const special = /\b(ex|v|gx|vmax|vstar|v-union)\b/i.test(c.name.replace(/\[[^\]]*\]/g, ' '))
-    if (SUBSET_RARITIES.has(c.rarity ?? '')) subsets.push(c)
+    // Basic Energy is its own card in the pack, never a common: energy sitting
+    // in the common pool is how a pack ended up holding two of them.
+    if (c.supertype === 'Energy' && rank <= 1) energies.push(c)
+    else if (SUBSET_RARITIES.has(c.rarity ?? '')) subsets.push(c)
     else if (rank >= PHANTOM_RANK) phantoms.push(c)
     else if (rank <= 1 && !special) commons.push(c)
     else if (rank === 2) uncommons.push(c)
     else if (rank === 3) holos.push(c)
+    else if (svEra && isSecondSlotRarity(c.rarity)) reverse2Hits.push(c)
     else hits.push(c)
   }
+  // The subset's cards are the pack's guaranteed bonus card, never a common or
+  // a rare pull of the host set, whatever rarity label the subset prints.
+  for (const c of bonus) subsets.push(c)
 
   const clear = db.prepare('DELETE FROM pack_product_cards WHERE pack_product_id = ?')
   const insert = db.prepare(
     'INSERT OR IGNORE INTO pack_product_cards (pack_product_id, card_id, slot, weight) VALUES (?, ?, ?, ?)',
   )
 
-  // 151-style structure: 5 commons + 3 uncommons + 1 reverse-ish holo + 1 hit-ish slot.
-  const plan: SlotPlan = { common: 5, uncommon: 3, holo: 1, hit: 1 }
-  if (commons.length < 5) { plan.common = Math.max(1, commons.length); plan.uncommon = Math.min(4, uncommons.length + (5 - plan.common)) }
-  if (cardsPerPack === 10 && holos.length > 0) plan.holo = 1
+  // The era's real rare split and upgrade odds, for this set.
+  const profile = profileFor(setId)
+  const odds = upgradeOdds(setId)
 
   db.transaction(() => {
     // Every set rips from its own booster table — kind products (bundle/ETB/
@@ -294,21 +301,42 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
     clear.run(pid)
     estimateCache.delete(setId)
     sealed.invalidateDerivedPrices(setId)
+    invalidatePackOdds(setId)
     const wCommon = commons.length ? 1 / commons.length : 0
     for (const c of commons) insert.run(pid, c.id, 'common', wCommon)
     const wUncommon = uncommons.length ? 1 / Math.max(1, uncommons.length) : 0
     for (const c of uncommons) insert.run(pid, c.id, 'uncommon', wUncommon)
-    const wHolo = holos.length ? 1 / holos.length : 0
-    for (const c of holos) insert.run(pid, c.id, 'holo', wHolo)
-    // Hits are not a flat pool: each card carries its tier's real odds divided
-    // by how many cards share that tier, so the slot draws an SIR ~5% of the
-    // time and a Double Rare ~20% of the time instead of splitting evenly.
+    // Rare slot: the era's real split between plain rares and holo rares.
+    const plainRares = holos.filter((c) => !/holo/i.test(c.rarity ?? ''))
+    const holoRares = holos.filter((c) => /holo/i.test(c.rarity ?? ''))
+    for (const c of plainRares) insert.run(pid, c.id, 'holo', profile.rare.plain / plainRares.length)
+    for (const c of holoRares) insert.run(pid, c.id, 'holo', profile.rare.holo / holoRares.length)
+    // The final card is the only place a hit comes from, so every card carries
+    // its tier's REAL per-pack odds divided by how many cards share that tier.
+    // Summed, the pool is the pack's upgrade chance — an SIR at 1 in 36 stays
+    // 1 in 36 instead of being a share of an always-hit slot.
     const tierCount = new Map<string, number>()
     for (const c of hits) tierCount.set(c.rarity ?? '', (tierCount.get(c.rarity ?? '') ?? 0) + 1)
     for (const c of hits) {
       const tier = c.rarity ?? ''
-      insert.run(pid, c.id, 'hit', (TIER_ODDS[tier] ?? 0.04) / (tierCount.get(tier) ?? 1))
+      insert.run(pid, c.id, 'hit', (odds[tier] ?? TIER_ODDS[tier] ?? 0.02) / (tierCount.get(tier) ?? 1))
     }
+    // The IR/SIR pool rides in the second reverse slot at that slot's own
+    // per-pack rates, so the rare slot's summed weights no longer include them.
+    const secondOdds = new Map(secondSlotUpgradeOdds(setId).map((u) => [u.rarity.toLowerCase(), u.odds]))
+    const secondCount = new Map<string, number>()
+    for (const c of reverse2Hits) {
+      const tier = (c.rarity ?? '').toLowerCase()
+      secondCount.set(tier, (secondCount.get(tier) ?? 0) + 1)
+    }
+    for (const c of reverse2Hits) {
+      const tier = (c.rarity ?? '').toLowerCase()
+      insert.run(pid, c.id, 'reverse2hit', (secondOdds.get(tier) ?? 0) / (secondCount.get(tier) ?? 1))
+    }
+    // Basic Energy ships as the pack's final card — at most one per pack.
+    // Bulk-weighted like a common: basic Energy is set completion, not chase.
+    const wEnergy = energies.length ? 1 / Math.max(1, commons.length + uncommons.length + energies.length) : 0
+    for (const c of energies) insert.run(pid, c.id, 'energy', wEnergy)
     const wSubset = subsets.length ? 1 / subsets.length : 0
     for (const c of subsets) insert.run(pid, c.id, 'subset', wSubset)
     const wPhantom = phantoms.length ? 1 / phantoms.length : 0
@@ -334,30 +362,57 @@ const estimateCache = new Map<string, PackEstimate>()
 export function estimatePackValue(setId: string): PackEstimate {
   const hit = estimateCache.get(setId)
   if (hit) return hit
-  const loadPool = (slot: string) =>
+  // The rare slot prices each card at the finish it pulls as: a holo rare is a
+  // foil card, so its value is the holo printing's, not the plain one's.
+  const finishVariant = (slot: string, cardId: string) =>
+    slot === 'holo' || slot === 'hit'
+      ? setId === 'dv1'
+        ? 'holofoil'
+        : rareVariantFor(setId, cardMeta(cardId).rarity)
+      : 'normal'
+  const loadPool = (slot: string, variant?: string) =>
     (db.prepare(`SELECT card_id, weight FROM pack_product_cards WHERE pack_product_id = ? AND slot = ?`).all(`${setId}-booster`, slot) as { card_id: string; weight: number }[])
-      .map((r) => ({ ...r, v: valueOf(r.card_id) }))
-  // The same plan the roll uses — including a guaranteed subset slot when the
-  // set has one (every 30C pack lands a Pikachu, so the estimate must too).
-  const slots = planFor(setId, 10).map((s) => ({ slot: s.slot as string, count: s.count }))
-  const pools = new Map(slots.map((s) => [s.slot, loadPool(s.slot)]))
-  if (loadPool('subset').length > 0) {
-    const sub = loadPool('subset')
-    if (!pools.has('subset')) {
-      slots.push({ slot: 'subset', count: 1 })
-      pools.set('subset', sub)
-    } else {
-      pools.set('subset', sub)
-    }
+      .map((r) => ({ ...r, v: valueOf(r.card_id, variant ?? finishVariant(slot, r.card_id)) }))
+  // The same plan the roll uses: the era's ten game cards — commons, 3
+  // uncommons, reverse holo(s), and one rare-or-hit that upgrades at the era's
+  // real odds. A subset-only blueprint still adds its subset slot.
+  const slots = planFor(setId, 10)
+  if (loadPool('subset').length > 0 && !slots.some((s) => s.slot === 'subset')) slots.push({ slot: 'subset', count: 1 })
+  const reverse = [
+    ...loadPool('common', 'reverseHolofoil'),
+    ...loadPool('uncommon', 'reverseHolofoil'),
+    ...(isSpecialSet(setId) ? loadPool('holo', 'reverseHolofoil') : []),
+  ]
+  const energy = loadPool('energy')
+  const hitPool = loadPool('hit')
+  const reverse2HitPool = loadPool('reverse2hit')
+  // Ascended Heroes stamps the drawn card with its own paper, so its slot value
+  // is the weighted average of each eligible card printed with that card's paper.
+  const assignedPool = reverse
+    .filter((r) => ascendedVariantFor(r.card_id))
+    .map((r) => ({ ...r, v: valueOf(r.card_id, ascendedVariantFor(r.card_id)!) }))
+  const ballPools = new Map<keyof typeof BALL_VARIANTS, { weight: number; v: number }[]>()
+  const ballPool = (ball: keyof typeof BALL_VARIANTS) => {
+    const cached = ballPools.get(ball)
+    if (cached) return cached
+    const rows = reverse
+      .filter((r) => ballEligible(ball, cardMeta(r.card_id)))
+      .map((r) => ({ ...r, v: valueOf(r.card_id, BALL_VARIANTS[ball]) }))
+    ballPools.set(ball, rows)
+    return rows
   }
-
-  // Weights are relative, not probabilities — normalise before averaging.
-  const weightedAvg = (rows: { weight: number; v: number }[]) => {
-    let total = 0
-    for (const r of rows) if (r.weight > 0) total += r.weight
-    if (total <= 0) return 0
-    return rows.reduce((acc, r) => acc + r.v * (Math.max(0, r.weight) / total), 0)
+  const upgradePools = new Map<string, { weight: number; v: number }[]>()
+  const upgradePool = (rarity: string) => {
+    const key = rarity.toLowerCase()
+    const cached = upgradePools.get(key)
+    if (cached) return cached
+    const rows = [...hitPool, ...reverse2HitPool].filter((r) => (cardMeta(r.card_id).rarity ?? '').toLowerCase() === key)
+    upgradePools.set(key, rows)
+    return rows
   }
+  const avgOr = (rows: { weight: number; v: number }[], fallback: number) => (rows.length > 0 ? weightedAvg(rows) : fallback)
+  const reverseValue = weightedAvg(reverse)
+  const chance = Math.min(0.85, hitPool.reduce((a, r) => a + Math.max(0, r.weight), 0))
   const draw = (rows: { weight: number; v: number }[]) => {
     let total = 0
     for (const r of rows) if (r.weight > 0) total += r.weight
@@ -370,17 +425,97 @@ export function estimatePackValue(setId: string): PackEstimate {
     }
     return rows[rows.length - 1].v
   }
+  const drawSlot = (slot: 'first' | 'second') => {
+    if (slot === 'second') {
+      const table = secondSlotOdds(setId)
+      if (!table) return draw(reverse)
+      let roll = Math.random()
+      for (const { outcome, odds } of table) {
+        roll -= odds
+        if (roll > 0) continue
+        if (outcome.kind === 'ball') return draw(ballPool(outcome.ball))
+        if (outcome.kind === 'assigned') return draw(assignedPool)
+        if (outcome.kind === 'upgrade') return draw(upgradePool(outcome.rarity))
+        return draw(reverse)
+      }
+      return draw(reverse)
+    }
+    const chances = specialSlotChancesFor(setId, slot)
+    if (!chances) return draw(reverse)
+    const roll = Math.random()
+    let acc = 0
+    for (const ball of chances.balls) {
+      acc += ball.odds
+      if (roll < acc) return draw(ballPool(ball.ball))
+    }
+    if (chances.assigned > 0) {
+      acc += chances.assigned
+      if (roll < acc) return draw(assignedPool)
+    }
+    for (const upgrade of chances.upgrades) {
+      acc += upgrade.odds
+      if (roll < acc) return draw(upgradePool(upgrade.rarity))
+    }
+    return draw(reverse)
+  }
+  const slotValue = (slot: 'first' | 'second') => {
+    if (slot === 'second') {
+      const table = secondSlotOdds(setId)
+      if (!table) return reverseValue
+      let value = 0
+      for (const { outcome, odds } of table) {
+        if (outcome.kind === 'ball') value += odds * avgOr(ballPool(outcome.ball), reverseValue)
+        else if (outcome.kind === 'assigned') value += odds * avgOr(assignedPool, reverseValue)
+        else if (outcome.kind === 'upgrade') value += odds * avgOr(upgradePool(outcome.rarity), reverseValue)
+        else value += odds * reverseValue
+      }
+      return value
+    }
+    const chances = specialSlotChancesFor(setId, slot)
+    if (!chances) return reverseValue
+    let value = chances.reverse * reverseValue
+    for (const ball of chances.balls) value += ball.odds * avgOr(ballPool(ball.ball), reverseValue)
+    value += chances.assigned * avgOr(assignedPool, reverseValue)
+    for (const upgrade of chances.upgrades) value += upgrade.odds * avgOr(upgradePool(upgrade.rarity), reverseValue)
+    return value
+  }
+  const slotEv = (slot: string) => {
+    if (slot === 'reverse') return slotValue('first')
+    if (slot === 'reverse2') return slotValue('second')
+    // The rare slot upgrades at the set's odds, else it is the plain/holo rare.
+    if (slot === 'hit') return chance * weightedAvg(hitPool) + (1 - chance) * weightedAvg(loadPool('holo'))
+    return weightedAvg(loadPool(slot))
+  }
+  const expected = slots.reduce((acc, s) => acc + s.count * slotEv(s.slot), 0)
 
-  const expected = slots.reduce((acc, s) => acc + s.count * weightedAvg(pools.get(s.slot) ?? []), 0)
+  // The simulation draws the same pools 300 times, so price each slot's pool
+  // ONCE. Re-querying and re-pricing it per iteration cost ~30k valueOf() calls
+  // on a 200-card set (22s), and the shop prices every set in one request.
+  const simPools = new Map<string, { weight: number; v: number }[]>()
+  const simPool = (slot: string) => {
+    const hit = simPools.get(slot)
+    if (hit) return hit
+    const rows = loadPool(slot)
+    simPools.set(slot, rows)
+    return rows
+  }
 
   // Simulate 300 packs to estimate p50/p90 outcomes.
   const sims: number[] = []
   for (let i = 0; i < 300; i++) {
     let v = 0
     for (const s of slots) {
-      const rows = pools.get(s.slot) ?? []
-      if (rows.length === 0) continue
-      for (let k = 0; k < s.count; k++) v += draw(rows)
+      for (let k = 0; k < s.count; k++) {
+        if (s.slot === 'hit') {
+          const rares = simPool('holo')
+          v += Math.random() < chance && hitPool.length > 0 ? draw(hitPool) : rares.length > 0 ? draw(rares) : draw(reverse)
+        } else if (s.slot === 'reverse' || s.slot === 'reverse2') {
+          v += drawSlot(s.slot === 'reverse2' ? 'second' : 'first')
+        } else {
+          const rows = simPool(s.slot)
+          if (rows.length > 0) v += draw(rows)
+        }
+      }
     }
     sims.push(v)
   }
@@ -392,7 +527,7 @@ export function estimatePackValue(setId: string): PackEstimate {
       .prepare(
         `SELECT c.id, c.name, c.rarity FROM pack_product_cards ppc
          JOIN cards c ON c.id = ppc.card_id
-         WHERE ppc.pack_product_id = ? AND ppc.slot IN ('hit', 'phantom')`,
+         WHERE ppc.pack_product_id = ? AND ppc.slot IN ('hit', 'reverse2hit', 'phantom')`,
       )
       .all(`${setId}-booster`) as { id: string; name: string; rarity: string }[]
   )
@@ -419,61 +554,226 @@ export function invalidatePackEstimate(setId: string) {
 // Pull rolling
 // ---------------------------------------------------------------------------
 
+
+const cardMetaCache = new Map<string, { rarity: string | null; supertype: string; subtypes: string }>()
+
+/** Rarity, supertype + subtypes for a card, cached — the roller asks once per card.
+ * Subtypes decide ball eligibility: 'ex' and 'ACE SPEC' are excluded by name. */
+function cardMeta(cardId: string): { rarity: string | null; supertype: string; subtypes: string } {
+  const hit = cardMetaCache.get(cardId)
+  if (hit) return hit
+  const row = db.prepare('SELECT rarity, supertype, subtypes FROM cards WHERE id = ?').get(cardId) as { rarity: string | null; supertype: string; subtypes: string } | undefined
+  const meta = { rarity: row?.rarity ?? null, supertype: row?.supertype ?? '', subtypes: row?.subtypes ?? '' }
+  cardMetaCache.set(cardId, meta)
+  return meta
+}
+
 export function rollPack(setId: string, sessionId: string, productKind = 'booster', cardsPerPack = 10, owner: 'player' | 'other' = 'player') {
   const pid = `${setId}-booster`
-  const rows = db.prepare(`SELECT card_id, weight, slot FROM pack_product_cards WHERE pack_product_id = ?`).all(pid) as { card_id: string; weight: number; slot: string }[]
+  const rows = db.prepare('SELECT card_id, weight, slot FROM pack_product_cards WHERE pack_product_id = ?').all(pid) as { card_id: string; weight: number; slot: string }[]
   if (rows.length === 0) return null
 
+  const pool = (slot: string) => rows.filter((r) => r.slot === slot)
+  const commonPool = pool('common')
+  const uncommonPool = pool('uncommon')
+  // A special set's ordinary reverse paper covers Rare cards too, and
+  // Prismatic's second reverse slot is a real slot, so both the pool and the
+  // slot list have to widen for these sets.
+  const reversePool = [...commonPool, ...uncommonPool, ...(isSpecialSet(setId) ? pool('holo') : [])]
+  const hitPool = pool('hit')
+  const reverse2HitPool = pool('reverse2hit')
+  const energyPool = pool('energy')
+  // A pack's upgrade chance IS the sum of its pool's per-pack weights, so a
+  // tier this set never prints cannot inflate the tiers it does print.
+  const hitChance = Math.min(0.85, hitPool.reduce((a, r) => a + Math.max(0, r.weight), 0))
+
   // Structure comes from the set's blueprint (30C closes on a guaranteed
-  // Pikachu, Classic Collection is all subset) or the era default. Empty pools
-  // drop out rather than padding the pack with repeats of nothing.
-  const slots: { slot: string; count: number }[] = planFor(setId, cardsPerPack).filter(
-    (s) => s.slot !== 'holo' || holosCount(setId) > 0,
-  )
-  if (rows.some((r) => r.slot === 'subset') && !slots.some((s) => s.slot === 'subset')) {
+  // Pikachu, Classic Collection is all subset) or the era's ten game cards:
+  // commons, 3 uncommons, reverse holo(s), one rare-or-hit. Empty pools drop
+  // out rather than padding the pack with repeats of nothing.
+  const slots = planFor(setId, cardsPerPack).filter((s) => {
+    if (s.slot === 'holo') return holosCount(setId) > 0
+    if (s.slot === 'uncommon') return uncommonPool.length > 0
+    if (s.slot === 'reverse' || s.slot === 'reverse2') return reversePool.length > 0
+    if (s.slot === 'energy') return energyPool.length > 0
+    return true
+  })
+  if (pool('subset').length > 0 && !slots.some((s) => s.slot === 'subset')) {
     slots.push({ slot: 'subset', count: 1 })
   }
 
   const ghost = GHOST_SETS[setId] ?? null
+  type Picked = { cardId: string; variant: string; value: number; rarity: string | null; supertype: string; isHit: boolean }
+  const picked: Picked[] = []
+
+  // One roll decides the second reverse slot: a stamp where the set prints one,
+  // an IR/SIR where it prints those, otherwise an ordinary reverse.
+  const secondTable = secondSlotOdds(setId)
+  const rollSecondSlot = (): SecondSlotOutcome | null => {
+    if (!secondTable) return null
+    let roll = Math.random()
+    for (const { outcome, odds } of secondTable) {
+      roll -= odds
+      if (roll <= 0) return outcome
+    }
+    return { kind: 'reverse' }
+  }
+
+  const take = (from: { card_id: string; weight: number }[], slot: string, isHit = false) => {
+    if (from.length === 0) return
+    // Ascended Heroes' second reverse slot is not always a ball: its measured
+    // IR/SIR replacements take the slot instead. Resolve the outcome before
+    // choosing a card so an upgrade draws from the named rarity, not from the
+    // ordinary reverse pool.
+    const outcome = slot === 'reverse2' ? rollSecondSlot() : null
+    let upgrade = outcome?.kind === 'upgrade' ? outcome.rarity : null
+    let source = from
+    if (upgrade) {
+      const wanted = upgrade.toLowerCase()
+      const pool = reverse2HitPool.filter((r) => (cardMeta(r.card_id).rarity ?? '').toLowerCase() === wanted)
+      if (pool.length > 0) source = pool
+      else upgrade = null
+    }
+    // Ascended Heroes' second slot carries the card's OWN paper, so the slot has
+    // to draw a card that was assigned one. A Pokémon ex never carries a reverse,
+    // so it is excluded by the assignment table rather than by a second rule.
+    if (outcome?.kind === 'assigned') {
+      const assigned = source.filter((r) => ascendedVariantFor(r.card_id))
+      if (assigned.length > 0) source = assigned
+    }
+    // Ascended Heroes' first reverse slot is the Energy-pattern printing, and
+    // only a regular Pokémon carries it. Draw from eligible cards so a Trainer
+    // cannot displace the stamp; if the set has no eligible card in the pool,
+    // fall back to the ordinary reverse below.
+    const energySlot = slot === 'reverse' && hasEnergyReverse(setId)
+    if (energySlot) {
+      const eligible = source.filter((r) => energyReverseEligible(cardMeta(r.card_id)))
+      if (eligible.length > 0) source = eligible
+    }
+    let cardId = weightedPick(source)
+    let meta = cardMeta(cardId)
+    // WotC-era ghost: this card prints with the 1st Edition stamp.
+    const stamp = ghost && Math.random() < ghost.perSlot ? ghostValue(setId, cardId, slot) : null
+    // The reverse slot(s) of a special set roll their ball papers; every other
+    // slot (including the final-card fallback) stays an ordinary printing, so a
+    // pack can only hold the balls its real slots allow. An IR/SIR upgrade is a
+    // normal hit printing, not a reverse printing.
+    let variant = stamp
+      ? stamp.variant
+      : upgrade
+        ? 'normal'
+        : outcome?.kind === 'ball'
+          ? BALL_VARIANTS[outcome.ball]
+          : outcome?.kind === 'assigned'
+            ? ascendedVariantFor(cardId) ?? 'reverseHolofoil'
+            : slot === 'reverse' && hasEnergyReverse(setId)
+            ? energyReverseEligible(meta)
+              ? ENERGY_REVERSE_VARIANT
+              : 'reverseHolofoil'
+            : slot === 'reverse'
+              // An ordinary set has no ball/assigned slot, so its reverse slot is
+              // a plain reverse printing — never a normal one.
+              ? ballVariantFor(setId, 'first', Math.random, cardId) ?? 'reverseHolofoil'
+              : slot === 'reverse2'
+              ? 'reverseHolofoil'
+              // The rare slot is one card that either upgrades or is the rare the
+              // set prints, and a holo rare is a foil card: it pulls and prices as
+              // 'holofoil', never as the plain printing of its number.
+              : slot === 'rare' || slot === 'hit' || slot === 'holo'
+              ? setId === 'dv1'
+                ? 'holofoil'
+                : rareVariantFor(setId, meta.rarity)
+              : 'normal'
+    // The stamp is a per-pack roll, so when it lands the slot must hold a card
+    // that can carry it: a Master Ball is never printed on a Trainer or Energy.
+    const ball = specialBallFor(variant)
+    if (ball && !ballEligible(ball, meta, cardId)) {
+      const eligible = from.filter((r) => ballEligible(ball, cardMeta(r.card_id), r.card_id))
+      if (eligible.length === 0) {
+        variant = 'reverseHolofoil'
+      } else {
+        cardId = weightedPick(eligible)
+        meta = cardMeta(cardId)
+      }
+    }
+    picked.push({
+      cardId,
+      variant,
+      value: stamp ? stamp.value : valueOf(cardId, variant),
+      rarity: meta.rarity,
+      supertype: meta.supertype,
+      isHit: isHit || !!upgrade,
+    })
+  }
+
+  for (const { slot, count } of slots) {
+    if (slot === 'hit') {
+      // The final card: a hit at the era's real odds, otherwise the pack's
+      // basic Energy (or a second reverse holo in a set that prints none).
+      for (let i = 0; i < count; i++) {
+        // One rare-or-hit card: the hit replaces the rare at the era's real
+        // odds, and a miss deals the plain/holo rare the set prints.
+        if (hitPool.length > 0 && Math.random() < hitChance) take(hitPool, 'hit', true)
+        else if (pool('holo').length > 0) take(pool('holo'), 'rare')
+        else if (energyPool.length > 0) take(energyPool, 'energy')
+        else take(reversePool, 'reverse-fallback')
+      }
+      continue
+    }
+    const from = slot === 'reverse' || slot === 'reverse2' ? reversePool : pool(slot)
+    for (let i = 0; i < count; i++) take(from, slot, slot === 'subset')
+  }
+
+  // Never hand back an empty rip: a gallery-only set has no commons to pad
+  // with, so one card out of its own pool is the whole pack.
+  if (picked.length === 0) take(hitPool.length > 0 ? hitPool : rows, 'hit', hitPool.length > 0)
+
+  // One BASIC Energy per pack, full stop. The guard covers only the energy
+  // slot's own cards: sets like Neo Genesis print Darkness and Metal Energy at
+  // Rare, and those are a legitimate rare-slot pull, not a second basic Energy.
+  const basicEnergyIds = new Set(energyPool.map((r) => r.card_id))
+  let energySeen = 0
+  for (const card of picked) {
+    if (card.supertype !== 'Energy' || !basicEnergyIds.has(card.cardId)) continue
+    energySeen++
+    if (energySeen <= 1) continue
+    const nonEnergy = reversePool.filter((r) => cardMeta(r.card_id).supertype !== 'Energy')
+    const swapTo = weightedPick(nonEnergy.length > 0 ? nonEnergy : reversePool)
+    const meta = cardMeta(swapTo)
+    card.cardId = swapTo
+    // A reverse-slot Energy stays a reverse printing when it is redrawn as a
+    // Pokémon/Trainer; a ball can never land here because Energy is ineligible.
+    card.value = valueOf(swapTo, card.variant === 'reverseHolofoil' ? 'reverseHolofoil' : 'normal')
+    card.rarity = meta.rarity
+    card.supertype = meta.supertype
+    card.isHit = false
+  }
+
   const insertPull = db.prepare(
     `INSERT INTO pull_history (session_id, pack_product_id, card_id, variant, value, rarity, is_hit, opened_at, owner)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
   const at = nowIso()
-  const results: { cardId: string; isHit: boolean; value: number; variant: string }[] = []
-
   const tx = db.transaction(() => {
-    for (const { slot, count } of slots) {
-      const pool = rows.filter((r) => r.slot === slot)
-      if (pool.length === 0 || count === 0) continue
-      for (let i = 0; i < count; i++) {
-        const cardId = weightedPick(pool)
-        // WotC-era ghost: this card prints with the 1st Edition stamp.
-        const stamp = ghost && Math.random() < ghost.perSlot ? ghostValue(setId, cardId, slot) : null
-        const variant = stamp ? stamp.variant : 'normal'
-        const value = stamp ? stamp.value : valueOf(cardId)
-        const rarity = (db.prepare('SELECT rarity FROM cards WHERE id = ?').get(cardId) as { rarity: string | null } | undefined)?.rarity ?? null
-        const isHit = slot === 'hit' || slot === 'subset'
-        insertPull.run(sessionId, pid, cardId, variant, value, rarity ?? null, isHit ? 1 : 0, at, owner)
-        results.push({ cardId, isHit, value, variant })
-      }
+    for (const card of picked) {
+      insertPull.run(sessionId, pid, card.cardId, card.variant, card.value, card.rarity, card.isHit ? 1 : 0, at, owner)
     }
     // Phantom tier — the 30th Celebration RGB Mews. No published rate exists;
     // ~1 in 12,000 packs per colour is the community estimate, so a 36-pack
     // display very rarely holds one. It rides on top of the pack rather than
     // taking the rare slot, matching how these appear in real openings.
-    const phantomPool = rows.filter((r) => r.slot === 'phantom')
+    const phantomPool = pool('phantom')
     if (phantomPool.length > 0 && Math.random() < phantomPool.length * PHANTOM_PER_CARD_ODDS) {
       const cardId = weightedPick(phantomPool)
+      const meta = cardMeta(cardId)
       const value = valueOf(cardId)
-      const rarity = (db.prepare('SELECT rarity FROM cards WHERE id = ?').get(cardId) as { rarity: string | null } | undefined)?.rarity ?? null
-      insertPull.run(sessionId, pid, cardId, 'normal', value, rarity ?? null, 1, at, owner)
-      results.push({ cardId, isHit: true, value, variant: 'normal' })
+      insertPull.run(sessionId, pid, cardId, 'normal', value, meta.rarity, 1, at, owner)
+      picked.push({ cardId, variant: 'normal', value, rarity: meta.rarity, supertype: meta.supertype, isHit: true })
     }
   })
   tx()
 
-  return results
+  return picked.map((card) => ({ cardId: card.cardId, isHit: card.isHit, value: card.value, variant: card.variant }))
 }
 
 // ---------------------------------------------------------------------------
@@ -497,7 +797,7 @@ const GHOST_SETS: Record<string, { perSlot: number }> = {
 /** Resolve the real value + variant of a ghosted card given its slot. */
 export function ghostValue(setId: string, cardId: string, slot: string): { variant: string; value: number } | null {
   if (!GHOST_SETS[setId]) return null
-  const holo = slot === 'holo' || slot === 'hit'
+  const holo = slot === 'holo' || slot === 'hit' || slot === 'rare'
   const value = firstEditionValueOf(cardId, holo)
   if (value <= 0) return null
   return { variant: '1stEdition' + (holo ? 'Holofoil' : 'Normal'), value }
@@ -529,6 +829,9 @@ function weightedPick(pool: { card_id: string; weight: number }[]): string {
 export function buySealed(productId: string, qty: number) {
   const product = db.prepare('SELECT * FROM pack_products WHERE id = ?').get(productId) as { id: string; set_id: string; msrp: number; market_price: number | null; name: string } | undefined
   if (!product) throw new Error('Unknown product')
+  // A subset-only set has no wrapper to sell (its cards came inside another
+  // set's packs); its shelf rows survive only so owned stock still resolves.
+  if (!sealed.sellsOwnPacks(product.set_id)) throw new Error('That product is not sold')
   // Buy at what the shop actually charges — the market price (appreciation
   // included), falling back to MSRP only for brand-new catalog rows.
   const unit = round2(sealed.priceOf(productId).market || product.msrp)
@@ -551,7 +854,7 @@ export function openSealed(productId: string) {
     const anyLeft = db.prepare('SELECT COUNT(*) AS n FROM sealed_inventory WHERE product_id = ? AND quantity > 0').get(productId) as { n: number }
     throw new Error(anyLeft.n > 0 ? 'That stock is posted as loan collateral — redeem it from the futures desk first' : 'No sealed product in inventory')
   }
-  const product = db.prepare('SELECT * FROM pack_products WHERE id = ?').get(row.product_id) as { set_id: string; cards_per_pack: number; name: string; kind: string; packs: number | null } | undefined
+  const product = db.prepare('SELECT * FROM pack_products WHERE id = ?').get(row.product_id) as { id: string; set_id: string; cards_per_pack: number; name: string; kind: string; packs: number | null } | undefined
   if (!product) throw new Error('Product missing')
 
   // A bundle/ETB/display is a BOX of packs — ripping it opens every pack
@@ -576,7 +879,9 @@ export function openSealed(productId: string) {
   let totalValue = 0
   for (let i = 0; i < packsInBox; i++) {
     const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-    const packCards = rollPack(product.set_id, sessionId, 'booster', product.cards_per_pack)
+    // A General Mills mini pack rolls its own researched composition (one
+    // Sequin card + reprints); everything else rolls the set's booster table.
+    const packCards = rollMiniPack(product.id, sessionId) ?? rollPack(product.set_id, sessionId, 'booster', product.cards_per_pack)
     if (!packCards) {
       if (sessions.length === 0) throw new Error('Pull table missing — sync this set first')
       break
@@ -712,9 +1017,9 @@ function grantPromo(product: { id: string; set_id: string; kind: string; release
 
 /** Roll one pack out of a box and count it down. */
 function ripNextPack(box: BoxRow) {
-  const product = db.prepare('SELECT name FROM pack_products WHERE id = ?').get(box.product_id) as { name: string } | undefined
+  const product = db.prepare('SELECT id, name FROM pack_products WHERE id = ?').get(box.product_id) as { id: string; name: string } | undefined
   const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-  const packCards = rollPack(box.set_id, sessionId, 'booster', box.cards_per_pack)
+  const packCards = rollMiniPack(box.product_id, sessionId) ?? rollPack(box.set_id, sessionId, 'booster', box.cards_per_pack)
   if (!packCards) throw new Error('Pull table missing — sync this set first')
 
   type OpenedCard = { cardId: string; isHit: boolean; value: number; variant?: string; setName?: string; rarity?: string | null; image?: string | null; isNew?: boolean }

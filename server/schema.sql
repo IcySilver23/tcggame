@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS price_records (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   card_id TEXT NOT NULL REFERENCES cards(id),
   kind TEXT NOT NULL,                 -- 'tcgplayer' | 'cardmarket'
-  variant TEXT NOT NULL,              -- 'normal' | 'holofoil' | 'reverseHolofoil' | '1stEditionNormal' | '1stEditionHolofoil'
+  variant TEXT NOT NULL,              -- 'normal' | 'holofoil' | 'reverseHolofoil' | 'reverseHolofoilPokeBall' | 'reverseHolofoilMasterBall' | '1stEditionNormal' | '1stEditionHolofoil'
   low REAL, mid REAL, high REAL,
   market REAL,
   direct_low REAL,

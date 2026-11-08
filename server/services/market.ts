@@ -6,6 +6,7 @@ import { factor as regimeFactor } from './regimes'
 import { eraSupply } from './demographics'
 import { copyMultiplier, revealWithRead, marketFactor } from './substats'
 import { slabPremium } from './psarush'
+import { BALL_VALUE_MULT, isEnergyReverseVariant, specialBallFor } from './special-reverse'
 
 // ---------------------------------------------------------------------------
 // Conditions & variants
@@ -21,6 +22,15 @@ export const VARIANT_LABELS: Record<string, string> = {
   normal: 'Normal',
   holofoil: 'Holofoil',
   reverseHolofoil: 'Reverse Holofoil',
+  reverseHolofoilPokeBall: 'Poké Ball Reverse Holofoil',
+  reverseHolofoilMasterBall: 'Master Ball Reverse Holofoil',
+  reverseHolofoilLoveBall: 'Love Ball Reverse Holofoil',
+  reverseHolofoilFriendBall: 'Friend Ball Reverse Holofoil',
+  reverseHolofoilQuickBall: 'Quick Ball Reverse Holofoil',
+  reverseHolofoilDuskBall: 'Dusk Ball Reverse Holofoil',
+  reverseHolofoilTeamRocket: 'Team Rocket Reverse Holofoil',
+  reverseHolofoilEnergy: 'Energy Reverse Holofoil',
+  sequinHolofoil: 'Sequin Holofoil',
   '1stEditionNormal': '1st Edition (Normal)',
   '1stEditionHolofoil': '1st Edition (Holo)',
 }
@@ -58,8 +68,38 @@ export type ResolvedPrice = {
  * Resolve a USD value for a card variant. Anchored on the REAL TCGplayer
  * `market` price for the requested variant (or holofoil/normal fallbacks for
  * older sets). Every other tier is a transparent multiplier, labeled estimated.
+ *
+ * A ball reverse prices from the same card's ordinary reverse row and then a
+ * LABELLED premium (1.5x Poké Ball, 8x Master Ball). The anchor is real; the
+ * premium is this build's flat model, so the result is reported as estimated.
+ *
+ * An Energy-pattern reverse has no researched premium here, so it prices at the
+ * same card's ordinary reverse anchor and keeps its own variant token.
  */
 export function resolvePrice(cardId: string, variant = 'normal', condition: Condition = 'NM'): ResolvedPrice {
+  const ball = specialBallFor(variant)
+  const energy = isEnergyReverseVariant(variant)
+  // A General Mills Sequin copy is its own printing but has no price row of its own, and no
+  // source read here measures a premium for it, so it anchors on the same card's ordinary
+  // price — exactly the policy the Energy-pattern reverse follows — and keeps its token so
+  // the copy stays identifiable.
+  const sequin = /sequin/i.test(variant)
+  const base = resolveBasePrice(cardId, ball || energy ? 'reverseHolofoil' : variant, condition)
+  if (energy || sequin) return { ...base, variant }
+  if (!ball) return base
+  const mult = BALL_VALUE_MULT[ball]
+  return {
+    ...base,
+    usd: base.usd != null ? round2(base.usd * mult) : null,
+    low: base.low != null ? round2(base.low * mult) : null,
+    high: base.high != null ? round2(base.high * mult) : null,
+    source: 'estimated',
+    kind: 'model',
+    variant,
+  }
+}
+
+function resolveBasePrice(cardId: string, variant: string, condition: Condition): ResolvedPrice {
   const rows = db
     .prepare(
       `SELECT kind, variant, low, mid, high, market, retrieved_at
@@ -314,13 +354,16 @@ export function firstEditionValueOf(cardId: string, holo: boolean): number {
 // ---------------------------------------------------------------------------
 
 export function priceHistory(cardId: string, variant = 'normal') {
+  // Ball and Energy variants have no price rows of their own; their chart is the
+  // same card's ordinary reverse history the premium (or anchor) is applied to.
+  const lookup = specialBallFor(variant) || isEnergyReverseVariant(variant) ? 'reverseHolofoil' : variant
   return db
     .prepare(
       `SELECT market, retrieved_at FROM price_records
        WHERE card_id = ? AND variant = ? AND market IS NOT NULL AND kind != 'simulated'
        ORDER BY retrieved_at ASC`,
     )
-    .all(cardId, variant) as { market: number; retrieved_at: string }[]
+    .all(cardId, lookup) as { market: number; retrieved_at: string }[]
 }
 
 // Snapshot retention: the price-history chart is only ever viewed for cards the

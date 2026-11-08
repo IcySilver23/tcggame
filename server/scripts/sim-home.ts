@@ -32,12 +32,33 @@ export function prepareSimHome(): string {
 }
 
 /**
+ * A simulated day IS a game-day: 12 real hours by default (SIM_DAY_HOURS=24
+ * pins the save's 24h cadence instead), aligned to the same UTC boundaries
+ * gameDayStart() uses — 00:00 and 12:00.
+ *
+ * That alignment is the whole point. Rent and payroll key on gameDayKey(), so a
+ * sim day that spans MORE than one game-day charges rent more than once and
+ * reports a store as far more expensive than a player would ever experience.
+ * The earlier fullday clock advanced 24h per simulated day and pinned a fresh
+ * hour every tick; the guard fired ~2.8× per day, which inflated rent and
+ * payroll by that factor and made the manager-quality ladder look flat.
+ */
+function dayMs(): number {
+  return Number(process.env.SIM_DAY_HOURS ?? 12) * 3_600_000
+}
+
+/** Start of the game-day containing `ms` — the same buckets gameDayStart() picks. */
+function bucketStart(ms: number): number {
+  return Math.floor(ms / dayMs()) * dayMs()
+}
+
+/**
  * Install the simulated clock BEFORE any service import: Date.now() and
- * `new Date()` return sim time, which advances one day per advance() call.
+ * `new Date()` return sim time, which advances one game-day per advance() call.
  * Every date computation inside the services (day keys, war windows, expiries)
- * then agrees with the simulated calendar. The clock pins to SIM_HOUR local
- * (default 18:30 — the walk-in evening peak) so every simulated day samples
- * the same hour instead of whatever real time the sim happened to start at.
+ * then agrees with the simulated calendar. Ticks are pinned INSIDE the current
+ * game-day, so the day key is constant for a whole simulated day and every
+ * once-a-day charge fires exactly once.
  *
  * SIM_HOUR=night samples the late band instead (70% 21–24, 30% 0–6) — the
  * unwatched hours where manager skims live. Run the economy sims both ways:
@@ -62,9 +83,12 @@ export function installSimClock(): () => void {
     return r < 0.7 ? 21 + Math.random() * 3 : Math.random() * 6 // 21–24 staffless close, 0–6 deep night
   }
   const hour = mixed ? mixedHour() : night ? nightHour() : fullday ? 10 : Number(mode)
-  const d = new Date()
-  d.setHours(Math.floor(hour), Math.round((hour % 1) * 60), 0, 0)
-  let simNow = d.getTime()
+
+  const realNow = Date
+  const simBoot = new realNow()
+  simBoot.setHours(Math.floor(hour), Math.round((hour % 1) * 60), 0, 0)
+  let simNow = bucketStart(simBoot.getTime())
+
   const RealDate = Date
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const SimDate: any = function (this: unknown, ...args: any[]) {
@@ -76,36 +100,32 @@ export function installSimClock(): () => void {
   SimDate.parse = RealDate.parse
   SimDate.UTC = RealDate.UTC
   globalThis.Date = SimDate
+
+  /**
+   * Pin a clock hour INSIDE the current game-day. The hour is mapped proportionally
+   * into the day (h/24 of the day's length), so a 12h game-day covers its own half
+   * of the clock: the simulated session still lands at plausible trading hours,
+   * while the day key — and therefore rent, payroll and every daily rollover —
+   * stays fixed. Consecutive days alternate am/pm buckets, so a multi-day run
+   * samples the whole clock instead of one fixed band.
+   */
+  const pin = (h: number) => {
+    const span = dayMs()
+    const off = Math.max(0, Math.min(span - 60_000, Math.round((h / 24) * span)))
+    simNow = bucketStart(simNow) + off
+  }
+  pin(hour)
+
   const advance = () => {
-    simNow += 86_400_000
-    if (mixed || night) {
-      const h = mixed ? mixedHour() : nightHour()
-      const nd = new RealDate(simNow)
-      nd.setHours(Math.floor(h), Math.round((h % 1) * 60), 0, 0)
-      simNow = nd.getTime()
-    }
+    simNow = bucketStart(simNow) + dayMs()
+    if (mixed || night) pin(mixed ? mixedHour() : nightHour())
     // fullday keeps the clock where the runner last pinned it — the runner
     // re-pins every tick from simDayPlan anyway.
   }
   ;(globalThis as { advanceSimDay?: () => void }).advanceSimDay = advance
-  // Re-pin the LOCAL hour within the current sim-day (fullday mode: the
-  // runner sets each tick's hour from simDayPlan so one simulated day spans
-  // the clock). The pin must never move the instant off the current UTC
-  // calendar day — every day-guard in the services keys on the UTC date —
-  // so after pinning we shift ±24h if the UTC date wandered (early-morning
-  // local pins regress a day in UTC+ zones; late-evening ones jump ahead in
-  // UTC− zones). Services keep reading getHours() (local), so the night band
-  // they see is exactly the band the plan asked for.
-  ;(globalThis as { setSimHour?: (h: number) => void }).setSimHour = (h) => {
-    const utcDay = new RealDate(simNow).toISOString().slice(0, 10)
-    const nd = new RealDate(simNow)
-    nd.setHours(Math.floor(h), Math.round((h % 1) * 60), 0, 0)
-    let t = nd.getTime()
-    const pinnedDay = new RealDate(t).toISOString().slice(0, 10)
-    if (pinnedDay < utcDay) t += 86_400_000
-    else if (pinnedDay > utcDay) t -= 86_400_000
-    simNow = t
-  }
+  // Re-pin the hour within the current game-day (fullday mode: the runner sets
+  // each tick's hour from simDayPlan so one simulated day spans the clock).
+  ;(globalThis as { setSimHour?: (h: number) => void }).setSimHour = pin
   return advance
 }
 

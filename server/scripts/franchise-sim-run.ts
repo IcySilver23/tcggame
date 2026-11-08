@@ -114,7 +114,7 @@ const byQ = (q: number) => results.filter((r) => r.quality === q)
 const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0)
 console.log(`
 ================ franchise audit: ${RUNS} runs × ${DAYS} days ================
-per manager quality   sales/day   gross/day   skim%   (rent $36 + wage/d)
+per manager quality   sales/day   gross/day   skim%   (rent $11 + wage/d)
 ${[1, 2, 3, 4, 5].map((q) => {
   const rs = byQ(q)
   if (!rs.length) return `  ${q}★ (no runs)`

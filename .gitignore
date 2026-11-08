@@ -1,7 +1,7 @@
 node_modules/
 dist/
 dist-server/
-data/
+data/*
 release/
 *.log
 .vite/
@@ -11,6 +11,10 @@ saves/
 *.db
 *.db-shm
 *.db-wal
+
+# The offline catalog seed is tracked on purpose: CI uses it to build the full
+# sealed audit without a player save. Everything else under data/ stays local.
+!data/catalog-seed.db
 
 # scratch: sandboxes, UI-test runs, profiling artifacts
 .sandbox/

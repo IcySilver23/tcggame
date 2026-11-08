@@ -1,6 +1,933 @@
 {
   "entries": [
     {
+      "version": "0.66.0",
+      "date": "2026-11-08",
+      "title": "A box cannot cost less than its packs",
+      "features": [
+        "Bundles, Elite Trainer Boxes, displays and special collections now use the same expected-value floor as boosters: per-pack EV × the number of packs actually in the product. A six-pack bundle is floored at six packs' value, an ETB at nine, a display at thirty-six, and a five-, eight- or twenty-nine-pack special at its own count instead of being treated as a display.",
+        "The floor is applied to stored PriceCharting quotes as well, so a real sealed listing below the content value cannot reopen the money printer. The shelf, pack battles, breaks, sealed futures and the dashboard value read the floored quote.",
+        "The sealed audit now measures product-level EV, not only booster EV. It reports no offered booster, bundle, ETB, display or special with an expected value more than 1.25× its shelf price.",
+        "The honest part: this is raw content EV, with no bulk discount. It can lift an in-print display far above its old MSRP — the point is that the wrapper no longer sells for less than its packs are expected to deal. Variance still lets one box beat the average, and hidden/owned products are not repriced."
+      ]
+    },
+    {
+      "version": "0.65.0",
+      "date": "2026-11-08",
+      "title": "A pack cannot cost less than its cards",
+      "features": [
+        "In-print boosters now cost the greater of their shelf price and their expected pull value. The ten packs the sealed audit flagged were selling below the cards they deal — Delta Reign at $4.49 against $15.85 of expected value, Phantasmal Flames at $4.49 against $13.41, and Black Bolt and White Flare also in the list — so the shop was handing out a guaranteed profit on every rip. Those prices now start at the pack's own EV.",
+        "The floor uses the same weighted pull table as the roller and applies to a stored PriceCharting quote as well, so a real listing below the pack's EV cannot reopen the gap. The Pack Shop, pack battles, sealed futures and the sealed-value figure on the dashboard all read the same quote.",
+        "Hidden products are left alone. Their rows exist only so cards and stock already owned still resolve, and repricing a fabricated wrapper at its pull EV would inflate inventory without putting anything honest on the shelf.",
+        "The honest part: this is a modelled break-even price, not a claim that a pack is worth exactly that. Variance still lets one rip beat the average, and the estimate moves with card prices. The floor is on boosters; bundle, ETB and display rows keep their existing retail and out-of-print pricing."
+      ]
+    },
+    {
+      "version": "0.64.0",
+      "date": "2026-11-08",
+      "title": "Every wrapper earns its cards",
+      "features": [
+        "The WotC-era boosters (Base through Legendary Collection, plus the Neo sets) now deal the ten cards their wrapper advertises. They had been reserving a Basic Energy slot their set never printed and, on the 2002 sets, a reverse-holo slot that era never had, so Jungle, Fossil, Team Rocket and the rest quietly handed back nine cards. The energy slot is now only planned when the set actually contains Basic Energy; the 2002 sets get their tenth card back as a common.",
+        "Three products now deal the real pack they sold: McDonald's Collection 2021 and 2022 deal four cards (one Confetti holo and three non-holo in the real wrapper), Detective Pikachu deals four (three commons and one rare), and Dragon Vault deals five Holofoil cards. Dragon Vault's whole 21-card set is filed as foil, so any of its cards can appear in the five.",
+        "Wrappers that never existed are off the shelf: Pokémon Futsal, the Kalos Starter Set, the four EX Trainer Kits, Pokémon Rumble, Southern Islands, the 2011–2019 McDonald's one-card toys, and the 30th Celebration and Celebrations Classic Collection subsets. Their cards stay in the catalogue and in owned stock; the shop, pack battles and live shows no longer offer a fabricated pack for them.",
+        "The honest limits. McDonald's real pack guarantees one Confetti holo, but the catalogue holds one row per card with no holo/non-holo split, so the four cards can all come out non-holo; the guaranteed foil is not modelled. The WotC sets also keep the game's ten-card shape rather than rebuilding the eleven-card 1999 wrapper. And the bundle, ETB and display rows for these small promotions are still the shelf's generic pack multiples, not products those promotions actually sold."
+      ]
+    },
+    {
+      "version": "0.63.0",
+      "date": "2026-11-08",
+      "title": "The bonus card rides along",
+      "features": [
+        "Shiny Vault (Hidden Fates, Shining Fates), the four Trainer Galleries and Crown Zenith's Galarian Gallery now come inside their host set's booster again — one subset card in the reverse-holo position, with the pack still dealing ten cards. Those cards stopped being purchasable last update when their fake wrappers came off the shelf; this is how a real pack carries them.",
+        "The host set keeps its own shape and odds: five commons, the subset card where the reverse holo sat, the rare-or-hit, then three uncommons. The subset card takes that one slot, so it does not add an eleventh card or change the rare slot.",
+        "The honest part: one subset card in every host pack is this build's shape, not a measured rate. The galleries are not guaranteed in every real pack, and no source read here gives a per-pack Trainer Gallery or Galarian Gallery figure, so the model deals one every time and the Pack Shop's till says 'Bonus subset' instead of implying odds.",
+        "The eight subset-only wrappers stay off the shelf and the Basic Energy set stays unsold; saves rebuild their pull tables once so the host packs pick up the new slot."
+      ]
+    },
+    {
+      "version": "0.62.0",
+      "date": "2026-11-08",
+      "title": "No wrapper for a subset",
+      "features": [
+        "Eight products are off the shelf: Shiny Vault (Hidden Fates and Shining Fates), the Brilliant Stars, Astral Radiance, Lost Origin and Silver Tempest Trainer Galleries, Crown Zenith's Galarian Gallery, and Scarlet & Violet Energies. Each sold a ten-card booster over a set that only ever came inside another set's packs, so the wrapper could fill one slot and nothing else — the one-card pack the audit found.",
+        "Their cards stay in the catalogue and in the game; what goes away is the fake wrapper. Selling a ten-card pack made of nothing but chase cards would have turned a $4 booster into a payout worth hundreds, so there is no honest shape to give these products here. This build does not move those cards into the host set's packs.",
+        "Celebrations still sells, and now deals four cards — the size its real booster pack prints — instead of one. Its Classic Collection reprints remain their own product rather than riding along in this one.",
+        "The Pack Shop and the pack-battle picker stop offering the eight; stock already sitting in a save still opens exactly as it did. The shop's slot line now shows Celebrations as three rares plus one rare-or-better card."
+      ]
+    },
+    {
+      "version": "0.61.0",
+      "date": "2026-11-08",
+      "title": "The second parallel earns its hits",
+      "features": [
+        "In Scarlet & Violet packs, Illustration Rares and Special Illustration Rares now come out of the second reverse slot instead of the rare slot. The rare slot keeps its own ladder — Double Rare, Ultra Rare, Hyper Rare, ACE SPEC and the shiny tiers — so a pack can finally show an ex and an illustration rare side by side, and the art card sits in the position a real wrapper prints it in.",
+        "The per-card odds did not change, only where the card comes from. An Illustration Rare is still about 1 in 11 packs in the sets that print one, and the Special Illustration Rare keeps its set's own figure: 1 in 32 for 151, 1 in 45 for Prismatic Evolutions, 1 in 40 for Paldean Fates, 1 in 85 for Surging Sparks. The Pack Shop's second-parallel line now prints those rates where it used to say the card was missing from the slot.",
+        "Ascended Heroes keeps its measured second slot unchanged: 11.25% Illustration Rare and 1.44% Special Illustration Rare, with the card's own stamp in the rest. Prismatic Evolutions keeps its 5% Master Ball second slot, and the generic art-card rates fill what is left of that slot. One slot holds one card, so a pack cannot show both the Master Ball and an art rare.",
+        "The shop's ESTIMATE and the sealed-price anchor follow the move: the second parallel is priced as its own roll, and the rare slot's hit chance is lower by the art-card share, so a pack's expected value stays where it was instead of counting the same card twice. Pull History marks the moved cards as hits, exactly as it did before.",
+        "The honest simplification: for Prismatic Evolutions the art-card rates are the era's, not a measurement of that set's second slot — the source that measured the set counted its Master Ball, not its Illustration Rare split. Ascended Heroes is the one set whose art-card slot rates are measured, and it keeps them. Prismatic Evolutions prints no Illustration Rares at all — its 32 art rares are all Special Illustration Rares — so that slot rolls only the SIR (1 in 45), the 5% Master Ball, and otherwise ordinary reverses. Nothing was added to its card list: both Bulbapedia's breakdown and TCGplayer's 1,200-pack study count 32 SIRs and no IRs."
+      ]
+    },
+    {
+      "version": "0.60.0",
+      "date": "2026-11-07",
+      "title": "Where the cards come from",
+      "features": [
+        "The Pack Shop till now prints the pack's slots for whatever you have picked: how many commons, how many uncommons, the reverse holo or holos, the rare-or-better card, and any Basic Energy or guaranteed classic — with a line saying what fills each one. You can see where a card comes from before you pay for the wrapper.",
+        "It is the same plan the roller deals, so the label cannot drift from the pull. A Base Set pack shows its Basic Energy and no reverse holo; Scarlet & Violet shows two parallels with the rarest card last; 30th Celebration shows its guaranteed Pikachu; a set with a second reverse slot says so.",
+        "The rare-or-better line carries the real share of packs that upgrade, read from that set's own pull table rather than a rounded profile figure, and names the era's paper — Cosmos, Tinsel, Line, Mirage and so on. A pack whose rare slot never upgrades says that too, instead of implying a hit.",
+        "The honest parts. This describes the model's structure, not a guarantee for one physical wrapper: the slot is a rule, and the card inside it is still a draw. Scarlet & Violet's second parallel is labelled as the slot where an Illustration or Special Illustration Rare replaces it in a real pack, which is not what this build deals yet. General Mills mini packs keep their own Sequin odds readout instead of a ten-card breakdown."
+      ]
+    },
+    {
+      "version": "0.59.9",
+      "date": "2026-11-07",
+      "title": "One paper per era",
+      "features": [
+        "Holo cards are now a small set of generic finishes instead of a per-card research project: plain, holo, reverse holo, Cosmos, Cracked Ice, Tinsel, Mirror, Water Web, Line, Mirage, Starlight, Crosshatch, Confetti and Sequin. Each one points at the sheet the renderer already draws and at the price a pulled copy uses, so a finish is a family of paper rather than a claim about one specific card.",
+        "The rare slot now pulls the finish the era actually printed. Base, Jungle and Fossil wear Starlight; Base Set 2 through Call of Legends wear Cosmos; Black & White wears Tinsel; XY wears Mirror; Sun & Moon wears Water Web; Sword & Shield wears Line; Scarlet & Violet wears Mirage. A holo rare therefore comes out as a foil printing and is valued at the foil price — before this, every rare-slot pull was stored as a plain printing, so a holo rare was worth its non-holo counterpart. Scarlet & Violet rares are all foil, as the set itself says.",
+        "The odds are the era's, not a guess: the rare slot's plain-versus-foil share comes from the set's own rare split, a hit is always foil, and the reverse slot is always a reverse printing. The coin you see on the odds screen and the card you pull now describe the same finish.",
+        "The honest parts. This is a family-level layer: it says a 2004 holo rare wears Cosmos, not which exact sheet that card prints, and the per-card printing database is still what answers a card-by-card question. Cracked Ice, Crosshatch, Confetti and Sequin are registered so a set can roll them, but no set rolls them yet — they need the same per-card evidence the others have before they appear in packs. And the foil itself is still parked behind Settings → Appearance, so the finish decides what a card is and what it is worth, not what it looks like today."
+      ]
+    },
+    {
+      "version": "0.59.8",
+      "date": "2026-11-07",
+      "title": "The pack, as printed",
+      "features": [
+        "A pack now holds one rare-or-hit card instead of a guaranteed rare plus a separate bonus hit. That second card was the biggest lie in the odds: every pack was quietly richer than the set it came from, and the hit rates on the Odds screen described a slot that sat on top of the rare. The rare slot is the hit slot now — it upgrades at the set's real per-pack odds, and when it does not, you get the plain or holo rare the era actually printed.",
+        "Each era's pack has its own shape. Base through Neo Destiny carries a Basic Energy and no reverse holo; Legendary Collection (2002) starts the reverse slot and drops the Energy; Diamond & Pearl through Sword & Shield are five commons, three uncommons, a reverse and the rare; Scarlet & Violet is four commons, three uncommons, two reverse holos and the rare, with the rarest card last. Packs open in the order they are collated, so the reverse holo and the rare sit where they do in a real rip rather than wherever the code felt like putting them.",
+        "The reverse slot is now recorded as a reverse printing. It used to be dealt as a plain copy of the card, so the binder and the market valued the reverse holo you pulled at the ordinary card's price. Reverse holos you already own keep the printing they were saved with; new pulls say what they are.",
+        "The honest parts. Packs in this game are ten cards, and real ones are not always: WotC packs were eleven with two Energies (one is dropped here), e-Card and EX packs were nine (the tenth card is an extra uncommon), and the Basic Energy and code card in modern packs sit outside the ten game cards, so they are not dealt. Scarlet & Violet's Illustration and Special Illustration Rares replace the second reverse holo in a real pack; here they still come out of the rare slot, which keeps their odds honest but not their slot. And a rare-card Energy — Neo Genesis prints Darkness and Metal Energy at Rare — is no longer mistaken for a second Basic Energy and swapped for bulk.",
+        "Shop estimates and sealed prices move with all of this, because they price the same plan the roller deals: a display's expected value no longer counts a hit it was never going to give you."
+      ]
+    },
+    {
+      "version": "0.59.7",
+      "date": "2026-11-07",
+      "title": "Hammer price, exact",
+      "features": [
+        "An estate lot you can take in full now costs exactly the price the table quotes — the hammer plus the 12% house premium — instead of a few cents under it. The per-card split used to round each card's share before adding the shares back up, which on a large lot came out as much as a dime short.",
+        "Nothing changes for a lot the shelf cannot hold: those still charge only the cards that come home, and your cost basis on a full lot now adds up to what left the till rather than a rounded version of it."
+      ]
+    },
+    {
+      "version": "0.59.6",
+      "date": "2026-11-07",
+      "title": "Foil on standby",
+      "features": [
+        "Card foil is off everywhere: every card now shows its scan flat, at rest and under the pointer, with no reflection, no iridescence and no tilt. The holofoil work had turned into a research project of its own, and the cards are easier to read while it sits still.",
+        "Nothing was deleted to do it. The renderer, the printing database, every paper, the audit reports and their checks are all still in the tree, and one switch brings the foil back instantly: Settings → Appearance → Turn card foil on. The choice is remembered per browser.",
+        "Honest about what \"off\" means: this is a display switch, not a removal. Cards keep their identified printing, the binder and market labels still name the paper, and the dev inspector (Shift+H) still draws every layer for anyone poking at the foil system."
+      ]
+    },
+    {
+      "version": "0.59.5",
+      "date": "2026-11-07",
+      "title": "Plain paper",
+      "features": [
+        "The δ Delta Species holo rares now render on the plain foil they were printed on, not the era's Cosmos sheet. Bulbapedia gives those holos a plain, patternless foil, and the game had been painting them with the starfield paper because it never read the δ marker — which is part of the card's printed name. Fifty holo rares across EX Delta Species, EX Holon Phantoms, EX Crystal Guardians and EX Dragon Frontiers now say so, everywhere they are drawn.",
+        "The rest of the family is untouched on purpose: Rare Holo EX and Gold Star δ cards keep their own treatments, a reverse printing still carries its set's reverse paper, and POP4's Deoxys δ — the one δ card Bulbapedia gives the cosmic design — still resolves to Cosmos, because it is a promo from a different product with its own record.",
+        "The honest parts. No source read here states the foil area for these printings, so the illustration window is the default and the record says as much. The paper itself is uniform light by definition — there is nothing to draw — so it samples no sheet, and the registry names plain foil as a finish rather than letting a missing texture look like a gap."
+      ]
+    },
+    {
+      "version": "0.59.4",
+      "date": "2026-11-07",
+      "title": "Sold as what it is",
+      "features": [
+        "BidBay labels the printing on every row. A Sequin Holofoil copy — or a stamped reverse — used to read as the plain card of the same number at an odd price, whether it was a seller's ask, your own listing or an auction lot. The printing now sits beside the condition, and the Sell tab's collection picker names it too, so two copies of one number can be told apart before one goes up.",
+        "The sell paths say it out loud. Listing from the Inventory row menu, listing or auctioning on BidBay, selling from a card's page, the Resale Desk's shelf and the trade picker all print the printing next to the card's name — a copy can no longer be handed over as the plain one.",
+        "The honest parts. A plain copy stays unlabelled rather than stamped “Normal”, because plain is the default and a badge on every card says nothing. The label says what a copy is, not what it is worth: a Sequin copy is still valued at the ordinary card's anchor, so its line can read cheap or dear for reasons the paper did not cause. And it can only show a printing the listing actually saved — older listings keep whatever they were recorded with."
+      ]
+    },
+    {
+      "version": "0.59.3",
+      "date": "2026-11-07",
+      "title": "The printing, everywhere it matters",
+      "features": [
+        "The Collection binder names the printings you actually hold. A Sequin Holofoil copy — or a stamped reverse, Poké Ball through Team Rocket — now carries that name on its tile instead of sitting there looking like the plain card of the same number. Both binder layouts show it, flat and by set, with a count when you own more than one.",
+        "The Marketplace prices each printing on its own line. A seller's Sequin copy or stamped reverse used to be folded into the plain card's cheapest-ask line, where its ask was measured against a different printing's anchor; printings are split apart now, each with its own ladder and spread, and any line that is a special printing says which one.",
+        "The honest parts: only printings the game already names get a label — a plain copy stays unlabelled rather than being stamped Normal — and the split only separates printings that exist as their own inventory variant. The Sequin copy is still valued at the ordinary card's price anchor, so its line can read cheap or dear for reasons the paper did not cause."
+      ]
+    },
+    {
+      "version": "0.59.2",
+      "date": "2026-11-07",
+      "title": "Odds on the shelf",
+      "features": [
+        "The three General Mills mini packs now print their foil slot on the shelf tag. The Sun & Moon and Let's Go, Kanto! packs read SEQUIN 1 IN 8 and SEQUIN 1 IN 5, because one of their three cards is always drawn from that many named Sequin promos; the 25th Anniversary pack reads SEQUIN IN EVERY PACK, because its Pikachu SWSH039 is in every single pack and two further draws follow it.",
+        "Hover the tag and you get the actual contents: every Sequin Holofoil printing the pack can show, with its market value and the chance a rip holds that exact card — 12.5% each for the eight Sun & Moon promos, 20% each for the five Kanto reprints, 100% for the Pikachu and 17.4% each for the five 25th-anniversary Sequin promos — plus the chance the pack contains a Sequin card at all.",
+        "The honest parts: the sources name the cards in each pack's foil slot but never their probabilities, so the even weighting behind those percentages is this game's choice, and the odds travel with it. The values are the ordinary price anchors with the game's price weather, so the list tells you what the pack can contain, not what it will pay back — one card can still swing a rip far past the typical percent on the sticker."
+      ]
+    },
+    {
+      "version": "0.59.1",
+      "date": "2026-11-07",
+      "title": "Named where you look",
+      "features": [
+        "A Sequin card you rip now says so in the binder. The Inventory table and the card detail's YOUR COPIES list both label the General Mills copy Sequin Holofoil, the same name it carries in the card inspector — so the cereal promo reads as its own printing instead of a promo number you have to remember. It was already a separate row at its own cost basis; the label was simply missing from those two views.",
+        "The card detail's copies list also disambiguates two copies of one number: a Sequin Holofoil copy and the plain promo sit in the same table, and now each says which printing it is.",
+        "The pack-opening stage names a cereal pack correctly. A General Mills mini pack used to be introduced as a Sun & Moon booster before the wrapper came off, because the ceremony stands every multi-pack box in for the set's booster; a product that is a single three-card wrapper now keeps its own name, while ETBs and bundles still show the booster they contain."
+      ]
+    },
+    {
+      "version": "0.59.0",
+      "date": "2026-11-07",
+      "title": "Sequins, sewn on",
+      "features": [
+        "Nineteen General Mills promos wear their real paper now: the eight Sun & Moon mini-pack promos from Rowlet to the two Pikachus, the five Let's Go, Kanto! reprints (Eevee, Charmander, Cubone, Bulbasaur, Pikachu), and the six 25th Anniversary promos from Gossifleur to Hatenna. They draw Sequin — a field of small reflective polygons that glint as the card tilts — instead of flat foil.",
+        "The list is complete, not a guess. Bulbapedia's Holofoil page carries a Sequin table for each series, naming every card and the mini pack it came in, and all nineteen are resolved card by card in the printing database. Pokumon's own Sequin catalogue lists only fifteen — it misses Wooloo, Morpeko, Bulbasaur and the Shining Legends Pikachu — so the game follows the source that names the whole set.",
+        "The honest parts: the polygon sheet is the game's drawing from Bulbapedia's one-sentence description, not a scan, so the card inspector marks the texture unverified. No source says which part of the card carries the paper, so the foil stays inside the illustration window as a modelled default. The plain promo or booster card of each number is a different physical printing, so it stays plain: the General Mills copy is its own variant, labelled Sequin Holofoil in your binder, and the two sit side by side as separate cards. It is valued at the ordinary card's price because no source measures a premium for it.",
+        "Three cereal-box products are on the shelf: the General Mills Sun & Moon Mini Pack, the Let's Go, Kanto! Mini Pack and the 25th Anniversary Mini Pack. Each is a real three-card pack — one Sequin card plus the reprints it shipped beside — and every 25th Anniversary pack carries the stamped Sequin Pikachu, SWSH039. Ripping one hands you the Sequin printing, not the plain promo of the same number.",
+        "The honest parts of the packs: the sources name each pack's Sequin cards and say two of its three cards were reprints, but never which ones, so those slots draw from the host expansion's own pool. The 25th-anniversary promotion also names two Rebel Clash reprints this catalogue does not hold, so it draws on the six Sword & Shield reprints it does, and any anniversary stamping on those reprints is not modelled. A cereal promo never had a retail price, so each pack carries this game's own shelf price rather than a sourced one — and it is priced like a three-card pack, not a booster display.",
+        "The Pack Shop's first listing opens in seconds now. It was pricing every card pool three hundred times over while simulating a typical rip — about a third of a minute per set, and over half an hour for the whole catalogue — and now prices each pool once. Same estimates, same odds, no more waiting for the shelves."
+      ]
+    },
+    {
+      "version": "0.58.0",
+      "date": "2026-11-07",
+      "title": "A finish with a grain",
+      "features": [
+        "Shiny Vault cards wear the finish the photographs actually show: a fine granular sparkle instead of the diagonal etch. All 316 shiny cards from Hidden Fates, Shining Fates and Paldean Fates switch to it, and numbered full arts keep the lattice they had.",
+        "The change came from measuring, not taste. A 3024×4032 macro still of the English Charizard VMAX (SV107) was tested for a repeat and has none — not even where the old lattice's 105-pixel pitch would be obvious at that card width — while a flat scan of the same card produces peaks just as strong. High resolution ruled out the camera, so the finish is a grain, and it is drawn as one.",
+        "The honest part: the photographs settle that this finish is granular, not the grain's scale or depth — those are the game's drawing, and the card inspector marks the surface unverified. The paper is still unnamed, so no foil sheet is borrowed, the relief still stops at the illustration window, and Paldean Fates' documented silver border remains unmodelled."
+      ]
+    },
+    {
+      "version": "0.57.0",
+      "date": "2026-11-07",
+      "title": "Embossed, not borrowed",
+      "features": [
+        "Shiny Vault cards catch the light now. All 316 shiny cards from Hidden Fates, Shining Fates and Paldean Fates draw a fine etched relief — the press of the card, not a printed pattern — so a page of them reads as embossed rather than as flat foil with a shine on it.",
+        "The finish is what the sources describe; the paper is still unnamed. Bulbapedia calls the Shiny Vault finish \"a special embossed Holofoil treatment\", Shining Fates promises \"beautiful etched cards\" and Paldean Fates carries a \"holographic, silver, textured foil border\". None of them names the foil stock, so the cards keep their illustration-window foil and gain the emboss instead of borrowing a sheet. The collector label \"Galaxy holo\" is documented as another name for Cosmos, the 2000–2011 paper, and stays refused.",
+        "The honest part: the relief is the game's own drawing, not a scan. The fine etch is a modelled lattice and the card inspector marks the surface unverified, the same disclosure numbered full arts carry. Paldean Fates' documented silver border is not modelled — the foil still stops at the illustration window — and these cards stay on the unnamed-finish report with the evidence that would name their paper."
+      ]
+    },
+    {
+      "version": "0.56.0",
+      "date": "2026-11-07",
+      "title": "The sheen, turned sideways",
+      "features": [
+        "Scarlet & Violet holos have their paper. All 338 standard holos from the Scarlet & Violet sets and the Mega Evolution sets now draw Mirage — a smooth sheen whose bright bands run up and down the card and shift as you tilt it, instead of flat foil with nothing on it.",
+        "It follows Bulbapedia's description: Mirage is \"visually similar to the Sheen Holofoil used during the XY Series, but refracts light horizontally rather than diagonally\". So the bands run up and down the card while the light crosses them sideways, the foil between bands never goes dark because a sheen is continuous light rather than bright marks on black, and each card samples its own crop so a binder page isn't one repeated stamp.",
+        "The honest part: the sources name the axis the light crosses, not a band count, a contrast or which way the band travels — the reveal footage we measured rocks the card back and forth, so the game doesn't claim a left-to-right sweep. The spacing was measured from that same footage, which is why the sweep is about one and a half broad bands across a card rather than a tight ripple — the first drawing was a third too tight and was redrawn. That spacing comes from dividing two tilted frames of the same card, which cancels the art and leaves the light — and a single still frame cannot tell a band of reflected light from a printed one, so read it as the sheen's spacing rather than a measurement of the paper's own pattern. The band count and contrast are still the game's own drawing and the card inspector marks the texture unverified. The paper is identified for the whole era rather than card by card, the silver foil border Bulbapedia documents on standard holos isn't modelled (the foil still stops at the illustration window, so that border stays flat), and a reverse holo of these cards keeps its own reverse pattern."
+      ]
+    },
+    {
+      "version": "0.55.0",
+      "date": "2026-11-07",
+      "title": "Waves, flowing",
+      "features": [
+        "Sun & Moon holos have their water. All 400 standard holos from Sun & Moon through Cosmic Eclipse now draw Water Web: wavy bands that flow down the card and catch the light, instead of flat foil with no pattern.",
+        "The look follows Bulbapedia, which says Water Web \"consists of a wavy pattern similar to flowing water\" and ran from Sun & Moon to Cosmic Eclipse. The waves really move: each band swings sideways as it travels down the card, the foil between crests stays bright because this is a continuous foil rather than white ribbons on black, and every card samples its own patch so a binder page doesn't repeat one stamp.",
+        "The honest part: no source gives a band count, an amplitude or a repeat, so those are the game's own drawing and the card inspector marks the texture unverified. The paper is identified for the whole era rather than card by card, the reverse holo of these cards still wears its own reverse pattern, and the foil border on Japanese printings isn't modelled because the game holds English cards."
+      ]
+    },
+    {
+      "version": "0.54.0",
+      "date": "2026-11-07",
+      "title": "Lines you can see",
+      "features": [
+        "Sword & Shield holos have their real paper. All 541 standard holos across the 21 Sword & Shield sets and Pokémon GO now draw Line — thin vertical ridges that catch the light and shift gently from the top of the image to the bottom, instead of flat foil with no marks at all.",
+        "It follows the description rather than inventing a look: Bulbapedia says Line ran from Sword & Shield through Crown Zenith and consists of \"thin vertical lines that refract light from the top to the bottom of the Pokémon's image\". The lines are ruled at a fine pitch, the valleys stay bright because the paper reads as a vertical sheen and not as white stripes on black, and each card samples its own crop so a page of holos isn't one repeated stamp.",
+        "Honest about the limits: the pitch, the line width and how far the brightness drifts are the game's own drawing — no source gives a count — so the card inspector marks the texture unverified. The paper is identified for the whole era rather than card by card, the reverse holo of these cards still wears its own reverse pattern, and the foil borders on Japanese printings aren't modelled because the game holds English cards."
+      ]
+    },
+    {
+      "version": "0.53.0",
+      "date": "2026-11-07",
+      "title": "Confetti, finally painted",
+      "features": [
+        "The Classic Collection reprints have their confetti foil. All 30 from the 2026 30th Celebration and all 25 from Celebrations stop drawing flat foil and instead show the blocky flakes the paper is named for — small reflective chips scattered over the card, with each card sampling its own patch of the sheet so a binder page isn't one repeated stamp.",
+        "The same sheet now paints the McDonald's Collections too: 136 cards across the ten promo sets. One honest limit — those cards exist as both Non Holofoil and Confetti Holofoil printings and a save holds one row per card, so every McDonald's card shows the foil rather than the plain copy.",
+        "It is a drawing, not a scan. The flakes' size, density and brightness are the game's reading of Bulbapedia's description (\"small, blocky reflective shapes scattered across the image, resembling pieces of confetti\") because no source gives a count or a repeat, so the card inspector marks the texture unverified, the sheet wraps so any patch can be sampled, and the emboss implied by \"textured\" is not faked. One card is deliberately left out: the Celebrations Shining Magikarp is documented as special textured foil rather than confetti, so it keeps its own claim instead of wearing someone else's flakes."
+      ]
+    },
+    {
+      "version": "0.52.0",
+      "date": "2026-11-07",
+      "title": "Out today, in the game",
+      "features": [
+        "Delta Reign is in the game on its release day. All 141 cards — 103 main-set cards plus 38 secrets, from Heracross through the gold Mega Rayquaza ex — arrive with their published rarities, types, HP, official images and opening-day TCGplayer prices, so packs, the market, trade-ins and your collection all know the set. Its booster, bundle, Elite Trainer Box and display match the real products and their prices, and the set opens in the same ten-card packs the rest of the era uses.",
+        "The 30th Celebration's final wave is on the shelves too: the Day and Night Ultra-Premium Collections with 29 packs and a three-card Classic Collection pack, the Ditto Premium Collection with eight packs, and the Mew and Mewtwo Figure Collections with five apiece, at their real $179.99, $39.99 and $29.99.",
+        "Two blanks are deliberate. The published lists read here do not state Pokémon stage subtypes, so Delta Reign's Pokémon are filed without Basic, Stage 1 or Stage 2 rather than guessed. And no source names the set's holo paper — only its store promos are described as Cosmos — so its holos take the game's generic modern foil instead of claiming a paper nobody has documented for them."
+      ]
+    },
+    {
+      "version": "0.52.0",
+      "date": "2026-11-06",
+      "title": "The last unknown shiny, named",
+      "features": [
+        "The 30th Celebration Shining Celebi is no longer the one shiny whose finish the game could not name. Bulbapedia documents the paper it was reprinted on — Classic Collection cards carry a textured confetti holofoil pattern, printed behind a gold border and the anniversary logo — so the card reports that finish and cites its source instead of leaving a blank.",
+        "The other 29 Classic Collection reprints report the same paper, and that replaces a guess. The subset used to be painted with an HD Cosmos foil this build chose itself because no source had been found; now that one has, those cards draw plain foil until the confetti sheet is painted, which is more honest than showing a pattern the cards never carried.",
+        "The confetti paper itself is still unbuilt. No source states its spacing, so the game names it and waits, and the report lists it among the identified-but-unpainted papers rather than pretending to a scan."
+      ]
+    },
+    {
+      "version": "0.50.0",
+      "date": "2026-11-06",
+      "title": "Every shiny, on the record",
+      "features": [
+        "Shiny Vault cards no longer report their foil as unknown. All 316 across Hidden Fates, Shining Fates and Paldean Fates now carry their real finish: the special embossed holofoil the first two sets describe, and the holographic silver textured border the English Paldean Fates cards gained that the Japanese set never had. The card inspector shows the finish and its source instead of a blank.",
+        "They still render as plain foil, and that is deliberate. No source states the spacing or repeat of these embossed papers, so painting one would be a guess dressed as evidence; the sheet stays unbuilt until a source or a measured photograph names its pattern. The foil area is left unclaimed for the same reason.",
+        "Two lookalike papers are refused in writing. The 1999 Starlight sheet is not evidence for a starry 2019 card, and the popular \"Galaxy holo\" label turns out to be another name for the 2000-2011 Cosmos paper, so neither is applied. The report now prints those refusals beside the sources rather than leaving them implicit."
+      ]
+    },
+    {
+      "version": "0.49.0",
+      "date": "2026-11-06",
+      "title": "Etched in silver",
+      "features": [
+        "Radiant Pokémon now show their etched silver instead of plain foil. All fifteen — from Radiant Greninja in Astral Radiance through Lost Origin, Silver Tempest, Crown Zenith and Pokémon GO — carry a fine engraved lattice inside a wider diamond grid across the whole face, because the sources describe the finish as etched silver covering the entire card.",
+        "The sheet is a drawing, not a photograph. The sources name the finish and its area but not its spacing, so the 16-pixel etch, the 128-pixel diamond grid and the contrast are this build's reading of it; the card inspector reports the texture as unverified rather than presenting it as a scan. The embossed depth is not modelled at all, since nothing here measures it.",
+        "Each card gets its own cut of the sheet, so two Radiant cards side by side do not line up, and the pattern stays still as you tilt the card. Radiant Pokémon is also kept strictly apart from Radiant Collection: the 2013 subset's per-card motifs are a different paper and are unchanged."
+      ]
+    },
+    {
+      "version": "0.48.0",
+      "date": "2026-11-06",
+      "title": "Every shiny on its own paper",
+      "features": [
+        "Shining, Gold Star, Radiant and Shiny Vault cards now carry their own foil instead of the wrong one, or none at all. Shining Gyarados and Shining Magikarp (Neo Revelation) show the Cosmos they were printed with, Neo Destiny and Shining Legends foil the Pokémon, the fifteen Radiant Pokémon wear their whole-card silver, and the 316 Shiny Vault cards are foil again after being treated as plain card.",
+        "Where the paper is known but no sheet exists yet, the card draws plain, unmarked foil rather than borrowing another paper: that is what Gold Star's gold-tinted treatment, the Celebrations and 30th Celebration reprints and the three Shining promos do. Shiny Vault is more honest still — its foil is certain, its paper is not, so the card says the paper is unknown instead of guessing Cosmos or Star. Nothing is painted with dots or stars it was never printed with.",
+        "Two areas are documented but cannot be reproduced. Neo Destiny and Shining Legends put the foil on the Pokémon itself and Gold Star spreads it over \"various parts\" of the card; the game can only foil the illustration window, so it does, and the card inspector marks that area unverified and says the window is an approximation. The 2026 30th Celebration Shining Celebi also loses the HD Cosmos it used to be given by guesswork, because no source describes that reprint's foil."
+      ]
+    },
+    {
+      "version": "0.47.0",
+      "date": "2026-11-06",
+      "title": "The whole face, not a strip",
+      "features": [
+        "The three textured Black & White promos — Landorus BW43, Darkrai BW73 and Giratina BW74 — now catch the light across the whole card face. They are full-art printings, so their embossed sheen belongs over the full-art field; the old area was the standard illustration window, which on these cards covers only the top third of the artwork.",
+        "That relief is still a drawing, not a scan, and now the game says so with evidence. Two sellers' photographs of a slabbed Darkrai were measured with the card's own back as the control: under that light neither shows the embossed lattice, so the ridge spacing, depth and direction remain this build's choice and every textured surface still reports itself unverified.",
+        "One price catalogue counts only two Black & White promos as textured while two other sources name three: the game follows the sources that name the card, and the disagreement is written down in the report rather than smoothed over."
+      ]
+    },
+    {
+      "version": "0.46.0",
+      "date": "2026-11-06",
+      "title": "Three promos that catch the light",
+      "features": [
+        "BW43 Landorus, BW73 Darkrai and BW74 Giratina now show their real textured paper instead of flat foil. These are embossed cards, not printed patterns: hold one off-axis and the ridges catch the light on one side and fall into shadow on the other, while face-on the card is still exactly the scan it always was.",
+        "The relief is a drawing, not a copy. The three cards are identified as textured from the treatment catalogue, but the ridge spacing, depth and strength are this build’s own reading of Black & White’s deep etched full art — so treat the sheen as a likeness of the paper rather than a measurement of it.",
+        "What foil covers is still unclaimed: these cards render as foiled over the illustration window because that is the database default, and the inspector says the area is not documented rather than implying it is."
+      ]
+    },
+    {
+      "version": "0.45.0",
+      "date": "2026-11-06",
+      "title": "The Victory Cup lattice",
+      "features": [
+        "Three BW promos were still showing plain card: the Victory Cup cards BW29, BW30 and BW31. They carry Crosshatch, the paper handed out at Play! Pokémon events, and now render it — two sets of thin diagonal lines crossing into a grid of diamonds.",
+        "The lattice sits on the card body rather than the illustration, which is how Bulbapedia describes the treatment: the crosshatch effect is \"often applied to the background of the card, as in a Reverse Holo card\". So the Pokémon stays on a matte window while the border and text box carry the grid. The two crossing line families come from the source; the spacing, thickness and small breaks are this build's drawings rather than a scan.",
+        "Crosshatch was retired after the 2015-16 season in favour of Mirror and then the standard parallel paper, so later Play! Pokémon awards are deliberately left unpainted instead of being assigned a foil by habit, and the three textured BW promos still show plain card. One card, BW32 Victini, still answers nothing because no source lists it."
+      ]
+    },
+    {
+      "version": "0.44.0",
+      "date": "2026-11-06",
+      "title": "The mirror promos shine",
+      "features": [
+        "Nine BW Black Star Promos were showing plain card: Thundurus, Tornadus, Mewtwo-EX, Darkrai-EX, Rayquaza-EX, Lillipup, Genesect, N and Genesect. They carry the Mirror finish — a smooth mirror-bright foil with no pattern at all — and now render that instead of flat card.",
+        "A mirror prints no dots, stars or stripes, so this finish is not a pattern: the surface is uniform foil that brightens along one diagonal, from bottom right to top left the way English cards are cut. At rest the card is the scan untouched, and the sheen shows as you tilt it — the artwork is never dimmed by the dark gaps a marked foil has.",
+        "Four of the nine exist only as reverse printings — Thundurus, Tornadus, Lillipup and N — so they wear the foil on the body with a matte illustration window, while N's plain printing still shows as plain card. The sheen runs the English way; Japanese printings refract the other direction and are not modelled. Three Crosshatch and three textured BW promos still show plain foil, because those papers have not been drawn."
+      ]
+    },
+    {
+      "version": "0.43.0",
+      "date": "2026-11-06",
+      "title": "Every promo has an answer",
+      "features": [
+        "The last four promo groups stop answering nothing. BW Black Star Promos, Southern Islands, Pokémon Rumble and Best of Game are now classified card by card, so 143 of their 144 cards wear the foil they were printed with instead of showing as plain card.",
+        "The BW promos really do change paper from card to card, which is why the set could never be a rule: 51 Cosmos, 15 Tinsel stripes, 9 Mirror, 3 Cracked Ice, 3 Crosshatch, 3 textured, one Poké Ball reverse and 15 plain. Southern Islands alternates one holographic card per three-card island scene — six reverse holos with a starry body and twelve plain. Pokémon Rumble gives three cards the all-foil treatment (Venusaur, Pikachu, Mewtwo) and leaves thirteen carrying only a foil logo. Best of Game applies its reverse-holographic finish to five cards and left four plain.",
+        "Where the evidence thins out, the game says so rather than dressing it up. The Southern Islands checklists name the finish but never the paper, so that pattern is presented as inferred from the Mew scan; Rumble's product copy says three all-foil cards without saying which, and two price catalogues supply the names, so that paper is modelled. No promo in these four groups claims a researched foil area — the illustration window stays a disclosed default — and one card, BW32 Victini, still answers nothing because no source lists it."
+      ]
+    },
+    {
+      "version": "0.42.0",
+      "date": "2026-11-06",
+      "title": "The e-League three were reverse holo",
+      "features": [
+        "The last three unanswered promos are settled: Nintendo's Treecko 003, Torchic 008 and Mudkip 010 were printed in exactly one finish, and it is reverse holo. Their scans show a dotted foil field across the card body and text box with the illustration window left flat, and every market record that carries them sells a single reverse-holofoil version, so all three now show that foil instead of plain card.",
+        "Because there is no plain printing to compare against, the card itself carries the answer rather than a variant tag, and a marketplace 'holofoil' label lands on the same reverse printing rather than inventing a second one. The paper is the EX-era reverse finish rather than a pattern a source names for these three cards, and the foil area comes from looking at the scans, so both are presented as modelled rather than researched.",
+        "That closes the four pre-2012 promo programmes completely: 103 cards on Cosmos, 64 plain, 4 on Cracked Ice and 3 reverse holo across 174 rows, with nothing left making no claim. Each answer still names its own source — a catalogue, a card page, or in this case a scan and three independent market records."
+      ]
+    },
+    {
+      "version": "0.41.0",
+      "date": "2026-11-06",
+      "title": "The French promos were Cosmos",
+      "features": [
+        "DP54 Beginning Door and DP55 Ultimate Zone were the two promos nobody could answer for: French-only printings with no foil on record. Their own card pages settle it — each names a Cosmos Holofoil version released as a DP Black Star Promo exclusively in French — so both now show the retro Cosmos paper instead of plain card.",
+        "The sources disagree about these two, and the game says so. A card-research catalogue files both as non-holo, while Bulbapedia names Cosmos and two other records describe the cards as holographic; the printing follows the source that actually names the paper, and the note on each card records the disagreement instead of quietly picking a side.",
+        "That leaves three promos still unanswered on purpose — the Nintendo Treecko, Torchic and Mudkip. No treatment catalogue lists them, their card pages mention no foil, and the one database that tries gives flags that contradict themselves, so they keep making no claim. Across the four pre-2012 programmes the final tally is 103 on Cosmos, 64 plain, 4 on Cracked Ice and 3 openly unknown."
+      ]
+    },
+    {
+      "version": "0.40.0",
+      "date": "2026-11-06",
+      "title": "The last nine promos speak up",
+      "features": [
+        "Nine promos were still answering nothing at all. Their own card pages close four of them: HGSS Plusle, Minun, Hitmonchan and Hitmonlee are each named as Cracked Ice Holofoil prints, the fractured-glass paper from the Undaunted blisters, so they now show that foil instead of plain card. The pattern is the documented part; which part of the card it covers is not, so the illustration window stays a disclosed default.",
+        "The other five stay unanswered, now with a reason attached instead of silence. DP54 Beginning Door and DP55 Ultimate Zone are recorded as holographic — a card database lists them as holo with no plain print — while naming no paper at all, and Bulbapedia's Cosmos Holofoil print of Beginning Door is a Japanese prize card rather than these French-only promos. The Nintendo Treecko, Torchic and Mudkip promos appear in no treatment catalogue and their database entry contradicts itself, so nothing is asserted for them.",
+        "Nothing was guessed to make the numbers look finished. That leaves 101 promos on Cosmos, 64 plain, 4 on Cracked Ice and 5 openly unknown across the four pre-2012 programmes — every one of them now saying which it is, including the five that say they do not know."
+      ]
+    },
+    {
+      "version": "0.39.0",
+      "date": "2026-11-06",
+      "title": "Every promo answers for itself",
+      "features": [
+        "The old Black Star Promos finally say what they are. Wizards, Nintendo, DP and HGSS promos used to leave their foil unanswered because a promo set is a mix of treatments; now 165 of the 174 cards have a real answer — 101 on Cosmos holo, 64 as plain non-holo — read card by card rather than assumed from the set. A non-holo promo can no longer be painted with a foil a marketplace tag claims it has.",
+        "The split is not cosmetic. Most Nintendo and DP promos turn out to be Cosmos after all, which is why the old \"promos vary by card\" shrug was costing you foil on cards like the Wizards promo Mew and Eevee, and nearly all of the DP run. The Cosmos cards show the retro paper, because every one of these programmes was printed before the 2013 sheet existed.",
+        "Nine cards are still unanswered on purpose: DP54 and DP55, HGSS Plusle, Minun, Hitmonchan and Hitmonlee, and the Nintendo Treecko, Torchic and Mudkip promos. Neither catalogue consulted lists a treatment for them, so they keep making no claim instead of being guessed into one. Where the foil sits on these promos is also unknown, so the illustration window is a disclosed default rather than a researched area."
+      ]
+    },
+    {
+      "version": "0.38.0",
+      "date": "2026-11-06",
+      "title": "Promo packs tell the truth",
+      "features": [
+        "POP Series 1 through 9 — 153 cards — no longer leave their foil unanswered. Every POP page names the holographic versions as separate products sold in gift packs, blisters and tins, which makes the card in the POP booster a non-holo printing. The binder now records that as a verified answer instead of a shrug, and a marketplace \"holofoil\" tag can no longer paint foil onto a card that never had it.",
+        "The holographic versions themselves are now their own printings. Thirty-eight of them resolve to the paper the source names — Cosmos Holo gift packs and blisters, and the Cracked Ice versions that came in the later Showdown and Trainer's Challenge boxes — but only when the copy you own is that version. Three more (POP9's Manaphy, Regigigas and Raichu's reverse) have a recorded holo whose paper the source never names, so they stay unanswered rather than guessed.",
+        "Dragon Vault's 21 cards are all foil and now show Tinsel, the Black & White era paper, because the set is a Generation V product whose five-card packs were entirely holofoil. The pattern is inferred from the era rule rather than read off the set, and the set page never says which part of the card carries it, so the foil area stays modelled rather than claimed."
+      ]
+    },
+    {
+      "version": "0.37.0",
+      "date": "2026-11-06",
+      "title": "Stripes across the artwork",
+      "features": [
+        "The Black & White era finally has its own foil. Holo rares from Black & White through Legendary Treasures — 152 cards across eleven sets — now show Tinsel: fine horizontal stripes crossing the illustration, with the frame and text box left matte. Before, those cards fell back to plain foil with no pattern at all.",
+        "The stripes are drawn, not scanned. Bulbapedia names the pattern and describes it as horizontal stripes across the image, but no photograph of a Tinsel card exists here, so the sheet is a reconstruction and the line spacing is this build's own choice. It is not presented as factory artwork, and the pattern never brightens a printed highlight or moves when you tilt the card.",
+        "The 2025 return is deliberately not painted. Bulbapedia says Tinsel came back once in Black Bolt and White Flare, but its own set page marks the pattern on three poster-collection promos while the rarity page says the sets' holo rares carry it on the border. Those 22 holo rares therefore keep no Tinsel claim until the sources agree, rather than being painted on a guess."
+      ]
+    },
+    {
+      "version": "0.36.0",
+      "date": "2026-11-05",
+      "title": "Every Pokémon gets its own ball",
+      "features": [
+        "Ascended Heroes' second reverse slot now shows the paper the card was actually printed with instead of one generic Poké Ball. Love Ball, Friend Ball, Quick Ball and Dusk Ball join it, and Team Rocket's Pokémon carry their R stamp where the ball would sit.",
+        "The card decides its foil, not the slot. Misdreavus wears a Dusk Ball and Chikorita a Friend Ball because that is what their cards say: 34 Poké Ball, 25 Love Ball, 23 Friend Ball, 22 Quick Ball, 26 Dusk Ball and 10 Team Rocket across the set's 140 regular Pokémon. A plain reverse still keeps the ordinary reverse paper, and a mismatched tag can no longer paint a card with a ball it never wore.",
+        "The five new papers price at 1.5× the same card's ordinary reverse, like the Poké Ball, and the Team Rocket mark is labelled as its own stamp rather than a ball. The ball's size now comes from a real photograph of the set's Snorunt Poké Ball reverse: its ring measures 0.434 of the card's width, about 6% larger than the geometry the papers had borrowed from Prismatic Evolutions, so Ascended Heroes' ball is a little bigger and is now drawn from its own sheet. The heart, flower, bolt, crescent and R inside the other papers remain drawings, because the photograph is of a plain Poké Ball card."
+      ]
+    },
+    {
+      "version": "0.35.0",
+      "date": "2026-11-05",
+      "title": "The first reverse finds its symbol",
+      "features": [
+        "Ascended Heroes' first reverse slot now shows its real Energy-pattern paper: one large Energy symbol for the card's own type behind the attack text, with the frame and text box foil and the illustration left matte. Before, that slot borrowed the set's plain reverse finish even though the pack structure was already right.",
+        "The stamp follows the card, not the set: Water Pokémon get Water, Fire Pokémon get Fire, and Trainers, Energy cards, Pokémon ex and cards with an unknown type stay plain rather than receiving a wrong symbol.",
+        "The paper is a reconstruction, not a scan. A real Snorunt Energy reverse establishes the single-stamp layout, the body-only foil and an approximate 0.45-card-width size; the glyph strokes are stylised drawings, and normalising every type into the same 0.45 × 0.43 stamp box is this build's disclosed choice. It prices at the same card's ordinary reverse anchor because no Energy-paper premium was measured."
+      ]
+    },
+    {
+      "version": "0.34.0",
+      "date": "2026-11-05",
+      "title": "The estimate counts both",
+      "features": [
+        "The shop's pack ESTIMATE and the sealed-price anchor now use Ascended Heroes' measured second reverse slot: 87.31% Poké Ball, 11.25% Illustration Rare and 1.44% Special Illustration Rare. Before, every reverse slot was priced as an ordinary reverse, so the estimate missed both the ball and the hit.",
+        "Poké Ball and Master Ball reverses are now counted at their labelled 1.5× and 8× premiums, and the upgraded second slot is priced from the set's Illustration Rare and Special Illustration Rare pool. The estimate therefore follows the same outcomes as the pack roller instead of averaging the slot away.",
+        "The multipliers remain a flat model, not live ball comps, so popular Pokémon are still understated and bulk is still overstated. Ordinary reverse slots now use reverse prices rather than normal-card prices in both estimates."
+      ]
+    },
+    {
+      "version": "0.33.0",
+      "date": "2026-11-05",
+      "title": "The second slot brings a hit",
+      "features": [
+        "Ascended Heroes' second reverse slot no longer falls back to an ordinary reverse when the Poké Ball does not land. It now upgrades to an Illustration Rare at 11.25% or a Special Illustration Rare at 1.44%, the measured rates from TCGplayer's 2,000+ pack study.",
+        "The upgraded card is a normal full-art hit placed in the reverse slot, not a ball or ordinary reverse, so the pack can contain an Energy-slot reverse, a second-slot Illustration Rare and a separate rare-or-hit card. The 87.31% Poké Ball rate is unchanged."
+      ]
+    },
+    {
+      "version": "0.32.0",
+      "date": "2026-11-05",
+      "title": "Both Ascended Heroes reverses",
+      "features": [
+        "Ascended Heroes packs now carry two reverse-holo cards instead of one. The first is the Energy-pattern reverse slot and the second is the Pokémon's assigned Poké Ball, with four commons, three uncommons and one rare-or-hit card filling out the ten.",
+        "The second slot keeps the measured 87.31% Poké Ball rate, so a pack can now show both a plain Energy-slot reverse and a ball reverse. The first slot is still using the set's ordinary reverse paper because the Energy-pattern foil itself is not painted yet; the pack structure is right even though that texture is not."
+      ]
+    },
+    {
+      "version": "0.31.1",
+      "date": "2026-11-05",
+      "title": "Ascended Heroes gets its real ball odds",
+      "features": [
+        "Ascended Heroes Poké Ball reverses now appear in 87.31% of packs instead of the placeholder 1-in-3. The number comes from TCGplayer's 2,000+ pack study: in the second reverse slot, Illustration Rare took 11.25% ± 1.33% and Special Illustration Rare 1.44% ± 0.50%, leaving the Poké Ball to fill the rest.",
+        "The rate is marked derived rather than directly counted, because the study measured the two hits that replace the ball, not the ball itself. The real set splits Energy and Poké Ball across two reverse slots; the game still models one, so 87.31% is the pack-level chance that the second slot is a ball and the first slot is not modelled."
+      ]
+    },
+    {
+      "version": "0.31.0",
+      "date": "2026-11-05",
+      "title": "The rows find their rhythm",
+      "features": [
+        "Black Bolt and White Flare ball reverses now alternate a large ball with a small one across each row, with the next row staggered half a step, instead of repeating a single ball size.",
+        "The balls are sized from the published Black Bolt Poké Ball and White Flare Master Ball images: five columns across the card, with the large outer ring about 16.7% of the card's width and the small one about 9.6%. The images put the rings at about 56px and 32px on a 335px-wide card, with about 67.5px between columns and 69px between rows. The pattern is sampled to the card's proportions, so the balls stay round rather than stretching into ovals.",
+        "The five-column lattice and ball sizes are measured from the references; the glyphs, facet spacing and exact row registration are still drawn for this game. The texture remains marked unverified in the report."
+      ]
+    },
+    {
+      "version": "0.30.0",
+      "date": "2026-11-05",
+      "title": "The etch crosses the art",
+      "features": [
+        "Poké Ball and Master Ball reverse holos now carry the fine etched field across the artwork as well as the frame. Tilting one shows the faint crosshatch running over the picture, as it does on the printed card, instead of stopping at the illustration window.",
+        "The ball foil still stops at the artwork. The etch is a separate neutral relief, so the Poké Ball or Master Ball itself never appears over the Pokémon; only light and shadow cross the picture. At rest the card is still the untouched scan.",
+        "The relief is the fine etched lattice already used for modern textured cards, not a scan of a Prismatic ball reverse. Its exact spacing and depth are a drawing made for this game, and the report marks the relief as modelled rather than verified."
+      ]
+    },
+    {
+      "version": "0.29.1",
+      "date": "2026-11-05",
+      "title": "The ball sits where the card does",
+      "features": [
+        "Poké Ball reverse holos now draw the large ball at the size and height printed on the card. A real Prismatic Evolutions Sylveon photo, backed by the published Terastal Festival render, measures the ball at about half the card's width with its centre a little below two-thirds down; the old drawing was noticeably wider and higher.",
+        "The correction applies to both large ball papers — Poké Ball and Master Ball — so the stamp sits behind the attack text rather than floating above it. The rows papers are unchanged.",
+        "The ball artwork is still a drawing, not a traced sheet: the silhouette, size and placement are photo-checked, while the glyph, facet spacing and the fine etch across the artwork remain approximations. The new reference is recorded in reports/special-reverse-printings.md."
+      ]
+    },
+    {
+      "version": "0.29.0",
+      "date": "2026-11-05",
+      "title": "The balls are in the binder",
+      "features": [
+        "Poké Ball and Master Ball reverse holos now come out of packs. Prismatic Evolutions, Black Bolt, White Flare and Ascended Heroes roll them in the reverse slot, so a rip can hand you the stamped paper instead of another ordinary reverse — and the card wears the real ball pattern in your binder.",
+        "The odds are the published ones where a study exists: a Poké Ball in about 1 in 3 packs, and a Master Ball in 1 in 20 Prismatic Evolutions packs or 1 in 19 Black Bolt and White Flare packs. Ascended Heroes only prints the Poké Ball version here, at a modelled 1 in 3 because no measured rate was available.",
+        "Ball reverses price at a premium over the same card's ordinary reverse: 1.5× for Poké Ball and 8× for Master Ball. That is a flat model, labelled estimated in the game rather than presented as a live price — real comps run from about 1.5× up to 15× depending on the Pokémon, so this understates the popular ones and overstates bulk.",
+        "Your binder now tags these copies as Poké Ball or Master Ball, so a stamped pull is distinguishable from the ordinary reverse at a glance. Opening a copy carries that same ball into the large card view — the foil follows the copy rather than falling back to the set's ordinary reverse paper. Prismatic Evolutions now models its real two reverse slots — Poké Ball in the first, Master Ball in the second — so one lucky pack can hold both. Black Bolt, White Flare and Ascended Heroes have a single reverse slot, so those packs hold at most one ball."
+      ]
+    },
+    {
+      "version": "0.28.0",
+      "date": "2026-11-05",
+      "title": "Older foils, deeper bite",
+      "features": [
+        "Textured cards no longer all share one surface. Black & White and XY full arts now carry a coarser, deeper etched relief, while Sun & Moon, Sword & Shield and Scarlet & Violet tiers keep the finer one, so a 2012 full art and a modern illustration rare do not read as the same paper.",
+        "The split comes from how the eras are described: early full arts are called heavy with deeply etched texture, later ones lighter and finer. The exact spacing and depth are still a drawing made for this game rather than a measurement of a real card, and both reliefs are labelled as modelled.",
+        "Scarlet & Violet textures are genuinely art-specific in print. Using one fine relief across that era is a simplification this update admits rather than a claim about any single card.",
+        "The Shift+H inspector now opens Reshiram (Black & White) beside Tarountula (Scarlet & Violet), so the two reliefs can be compared directly with sliders for depth and light angle."
+      ]
+    },
+    {
+      "version": "0.27.0",
+      "date": "2026-11-03",
+      "title": "Cards you can feel",
+      "features": [
+        "Textured ultra rares now catch the light. Illustration rares, special illustration rares, ultra rares, hyper rares, rare ultras, rare secrets and full arts carry a fine etched relief that shades as you tilt the card, so ridges fall into shadow on one side and glint on the other instead of lying flat.",
+        "The relief only appears when the card is tilted: at rest you see the scan, pixel for pixel, and the effect fades away as the card returns to face-on. It never leaves the foil area, never changes the card’s hue and never touches the transparent edge.",
+        "The pattern is a drawing made for this game, not a scan of a real card, so the depth and spacing are an approximation of the etched look rather than a measurement. Shiny cards and reverse holos keep their existing finish rather than borrowing it.",
+        "A new report, reports/surface-printings.md, lists which rarities wear the relief and says plainly that it is modelled. Phase 11 is now partly done; the remaining work is evidence for the relief and surfaces for other eras."
+      ]
+    },
+    {
+      "version": "0.26.0",
+      "date": "2026-11-03",
+      "title": "Every reverse, accounted for",
+      "features": [
+        "The last reverse-holo families now render their real paper. EX Hidden Legends through Team Rocket Returns show the card’s own energy symbol behind the Pokémon, inside the picture window; EX Delta Species through Power Keepers get plain foil in the artwork background; Aquapolis, Skyridge, the early EX sets and every Mega Evolution set carry the plain body finish.",
+        "That closes the reverse catalogue: 112 of 112 expansions validated, each checked against its own mask, eligibility and a render rather than assumed from a shared paper. Ten papers are painted in all.",
+        "The energy symbols are the same stylised glyph drawings as the Black & White paper, chosen from the card — so a Grass Pokémon gets the leaf and a Trainer the Poké Ball, while an unknown type shows plain foil rather than a borrowed mark.",
+        "Two limits are stated rather than smoothed over. The background foil on EX Delta Species through Power Keepers is approximated: the real print also excludes the Pokémon itself and the game cannot cut out the subject, so the whole picture window is used. And the set logos and stamped promos of that era are printed decoration, not foil, so they are not imitated.",
+        "The What’s New panel now describes the complete reverse paper set; the dev inspector’s mask kinds and verification labels are unchanged."
+      ]
+    },
+    {
+      "version": "0.25.0",
+      "date": "2026-11-03",
+      "title": "The last recorded paper",
+      "features": [
+        "Scarlet & Violet reverses now render their intricate paper: nested rounded tiles with the card’s own type symbol repeated at more than one size, artwork matte, Poké Ball for Trainers. It covers SV1 through SV10, Prismatic Evolutions, Journey Together, Destined Rivals, White Flare and Black Bolt — 16 expansions.",
+        "The type still comes from the card, so a Water Pokémon gets the droplet, a Trainer the Poké Ball, and a card whose type the game cannot read gets plain foil rather than the wrong mark.",
+        "The sheet tiles and each card registers itself against it, so two copies do not sit identically while the pattern stays put under tilt. The nesting is this build’s reconstruction of “nested tiles with type symbols of different sizes”, not a traced factory stamp.",
+        "The glyphs are stylised drawings made for the game, not official icons, and no sheet has been checked against a photograph. The paper’s identity is documented; the artwork and the exact repetition are disclosed as modelled.",
+        "Every recorded reverse paper is now painted: reverse-holo validation stands at 90 of 112 expansions. The remaining 22 are the smaller families — flat-background, energy-symbol and still-unvalidated plain-paper sets — listed rather than guessed."
+      ]
+    },
+    {
+      "version": "0.24.0",
+      "date": "2026-11-03",
+      "title": "Tiles with the card inside them",
+      "features": [
+        "Sword & Shield reverses now show their real paper: a staggered lattice of rounded tiles, each carrying the card’s own type symbol, with the artwork matte and the Poké Ball for Trainers. That covers SWSH1 through SWSH12, Crown Zenith, Pokémon GO and the Futsal promo — 15 more expansions.",
+        "As on the earlier type papers, the symbol is chosen from the card rather than the set: Grass gets the leaf, Darkness the moon, a Trainer the Poké Ball. A card whose type the game cannot read shows plain foil instead of a borrowed symbol.",
+        "Each sheet tiles, so a card can start anywhere in the lattice; the registration is seeded from the card so two copies do not line up identically, and the pattern holds still under tilt while the light moves.",
+        "The lattice and glyphs are drawings made for this game, not official icon artwork, and no sheet has been checked against a photograph. The paper’s identity is the documented part; whether the real print repeated exactly is not known, so tiling is disclosed as this build’s choice.",
+        "Reverse-holo validation now stands at 74 of 112 expansions. The last recorded paper, Scarlet & Violet’s intricate nested tiles, is still unpainted and reported as such."
+      ]
+    },
+    {
+      "version": "0.23.0",
+      "date": "2026-11-03",
+      "title": "One big symbol, on the left",
+      "features": [
+        "The Sun & Moon reverse holos now wear their own paper: a single large type symbol on the left of the card body, with the artwork matte and the Poké Ball standing in for Trainers. It covers SM1 through SM12 and Detective Pikachu — 13 more expansions.",
+        "The symbol is chosen from the card, exactly like the Black & White and XY papers: Grass gets the leaf, Lightning the bolt, a Trainer the Poké Ball. A card whose type the game does not know shows plain foil instead of borrowing a symbol that is not its own.",
+        "This is not a repeating field stretched over the card. The symbol sits where the print put it — one mark on the left — and the rest of the body is plain foil. Each card’s window is anchored with a little per-card variation so two copies do not sit identically.",
+        "The artwork is a reconstruction and says so: the glyphs are stylised drawings made for the game, not the official icons, and no sheet has been checked against a photograph. The paper’s identity is the documented part.",
+        "Reverse-holo validation now covers 59 of 112 expansions. Still unpainted and reported rather than faked: Sword & Shield’s tile paper and Scarlet & Violet’s intricate-tile paper."
+      ]
+    },
+    {
+      "version": "0.22.0",
+      "date": "2026-11-03",
+      "title": "Reverse holos that know their type",
+      "features": [
+        "Black & White 2 through Black & White 11, and the whole XY run, now wear the reverse paper they were printed with: the card’s own type symbol repeated across the card body, with the artwork left matte. Trainers get the Poké Ball, exactly as the print did.",
+        "The symbol is chosen from the card, never from the set. A Grass Pokémon gets the leaf, a Lightning Pokémon the bolt, a Trainer the Poké Ball; if the game does not know a card’s type it shows plain foil rather than borrowing the wrong symbol.",
+        "Twelve glyph sheets are new, one per type plus the Trainer ball, and each repeats across the card with its own registration so two cards of a set do not line up. The pattern moves with tilt like every other foil; the symbols themselves hold still.",
+        "This is a reconstruction of the artwork, not of the claim. Bulbapedia identifies the type-symbol paper for this run; the glyphs are stylised geometric drawings made for the game, not the official icons, and no sheet has been checked against a photograph. The game labels them as such.",
+        "That brings reverse-holo validation to 46 of 112 expansions: all of Diamond & Pearl, Platinum, HeartGold & SoulSilver, Call of Legends, Black & White 1, and these 24 BW/XY sets, each checked against its own mask, eligibility rule and render.",
+        "Still unpainted, and reported rather than faked: Sun & Moon’s large type symbol, Sword & Shield’s tiles and Scarlet & Violet’s intricate tiles."
+      ]
+    },
+    {
+      "version": "0.21.0",
+      "date": "2026-11-03",
+      "title": "Shattered glass on one small card",
+      "features": [
+        "Cracked Ice is in, and it is deliberately narrow. Frost Rotom from Rising Rivals (RT2) now wears faceted shards separated by thin bright cracks, with the foil over the card body, name bar and rules text and the artwork left matte — the area Bulbapedia describes for this exact printing.",
+        "The shards are a fracture, not a sparkle: flat facets of different reflectivity meeting at angular boundaries, and the cracked lines catch the light as the card tilts. The pattern repeats across the card because the sheet is cut to tile, which is this build’s choice rather than a documented fact.",
+        "This is a drawing, not a scan. No photograph or tilt video of a Cracked Ice card exists here, so the game labels the texture a reconstruction while treating the card identification and its foil area as verified.",
+        "Only one Cracked Ice printing is claimed. The catalogue holds no Platinum, HeartGold & SoulSilver or Black & White theme decks, and the game does not invent cards it cannot look up; reports/crackedice-printings.md lists that gap instead of papering over it.",
+        "A wrong assignment is gone: the four EX Trainer Kits were being painted Cracked Ice because their set ids start with “tk”. They shipped in 2004 and 2005, years before the pattern existed, so their 44 cards now render plain rather than borrowing a foil nothing documents.",
+        "The holofoil inspector (Shift+H in a development build) now opens Frost Rotom beside the other showcase cards and shows the fracture, the outside-art mask and the reconstruction badge."
+      ]
+    },
+    {
+      "version": "0.20.0",
+      "date": "2026-11-03",
+      "title": "The stars the first cards wore",
+      "features": [
+        "Base, Jungle and Fossil holos no longer render as flat foil. They wear Starlight: four-point starbursts of several sizes, spread evenly across the illustration, with the slightly soft edge the 1999 print had. It moves with tilt like every other foil, and the frame, name bar and rules text stay matte.",
+        "Each card takes its own cut of the sheet. Real copies were cut from a large printed sheet, so the stars fall differently on every card; the game now models that with a fixed cut per card and a per-set sheet orientation, so two cards of the same set no longer line up and the pattern never swims while you tilt.",
+        "This is the honest version of a pattern we could not scan. The identification is verified — Bulbapedia names Starlight for Holo cards in Base, Jungle and Fossil, and Fossil is the last set to use it — but the texture is a drawing made from that description, not a photograph of a factory sheet, and the game labels it a reconstruction.",
+        "All 47 holo rares across the three sets were checked, not just a sample: every one resolves to Starlight with the illustration window as its foil area. Base Set 2 still resolves to Cosmos, which is the paper it actually switched to.",
+        "Three cards are render-validated end to end (Base Charizard, Jungle Clefable, Fossil Aerodactyl): untouched at rest, light only inside the window at tilt, and no second copy of a printed white decoration. What is still missing is a tilted photo of a real card to check fidelity against, so that claim is not made.",
+        "Two limits worth knowing: Base Set 1st Edition and Unlimited share the same foil, and the catalog holds one row per card, so they look identical here. Some Base Set Machamp cards were misprinted on Cosmos; the card data carries no marker, so those copies still show Starlight.",
+        "A reverse-holo flag can no longer invent a printing on Base, Jungle or Fossil. Those sets predate reverse holos entirely — Legendary Collection is the first — so the flag now answers with nothing, as it already did for Base Set 2 and Team Rocket.",
+        "The holofoil inspector (Shift+H in a development build) now includes the three showcase cards and shows the cut, the sheet and the verified-or-reconstruction state of each layer."
+      ]
+    },
+    {
+      "version": "0.19.0",
+      "date": "2026-11-03",
+      "title": "Plain foil where there is no texture",
+      "features": [
+        "Printings with no researched texture — Starlight, Tinsel, Sheen, Water Web, Line, Mirage, Confetti and the textured rarities — used to show the Radiant Collection’s hearts and sparkles. They now render as plain foil: the same tilt, sweep and iridescence, spread evenly, with no marks. Borrowing another card’s motif was never a pattern; it was a claim.",
+        "Base, Jungle and Fossil holos still identify as Starlight and still foil exactly the illustration window. What changed is that the game no longer pretends to draw a starfield it does not have. The missing sheet is tracked in the roadmap rather than approximated.",
+        "The holofoil inspector (Shift+H, dev builds) now says “no texture for this printing — plain foil, no marks” and labels the pattern readout the same way, so the honest state is visible instead of disguised as a generic tile.",
+        "Textured printings are untouched: Radiant motifs, the Cosmos sheet, the reverse papers and all five validated reverse expansions render exactly as before. A one-layer frame still matches the previous pipeline byte for byte.",
+        "The RC6 reference sheet’s tile is no longer wired to any non-Radiant card. It remains available to the lab and its own suite as a sample of that sheet."
+      ]
+    },
+    {
+      "version": "0.18.0",
+      "date": "2026-11-03",
+      "title": "Three more reverse papers",
+      "features": [
+        "EX Emerald and EX Unseen Forces now carry their Poké Ball and star foil, EX Deoxys its pinwheel, and the Diamond & Pearl run its plain mirror finish. That is six expansions validated end to end, from a database of 112.",
+        "These are the first reverse patterns that live INSIDE the picture window rather than on the card body, so the window lights up at a tilt while the frame, name bar and rules text stay matte — the foil placement the old single mask got backwards.",
+        "The Poké Ball and pinwheel marks are drawn as real glyphs, not sparkle noise: a ball with its band and centre button, and spiral blades with a faint rim. Both sheets repeat across the card, so a card samples a cut of a pattern rather than one stretched image.",
+        "Diamond & Pearl is deliberately modelled as uniform light with no marks at all. A plain reverse foil has no printed pattern, so inventing dots for it would be a lie about the card.",
+        "Validation is now per expansion and the report says which is which: 6 validated, 106 waiting for their own end-to-end check, with the pattern and mask each one needs in reports/reverse-printings.md.",
+        "Every texture is still a procedural reconstruction with no photograph behind it, and each file says so. The inspector opens all five validated cases."
+      ]
+    },
+    {
+      "version": "0.17.0",
+      "date": "2026-11-03",
+      "title": "Reverse holos wear their own foil",
+      "features": [
+        "Reverse holo cards are no longer one generic shine. Legendary Collection now carries its fireworks design, Expedition the plain mirror finish it was printed with, and the rest of the reverse era is mapped: 112 expansions with a researched reverse paper, 12,987 reverse printings in this catalog, and 4,022 cards that correctly get none.",
+        "The foil area is different per expansion, and the game no longer pretends otherwise. Legendary Collection, Expedition and the Diamond & Pearl run foil the card body; EX Hidden Legends through EX Power Keepers put the pattern inside the picture window — so on those cards the window lights up and the body stays matte, which is the opposite of what the old single rule did. Where a mask is an approximation, the inspector says so.",
+        "A \"Reverse Holo\" listing can no longer invent a card that was never printed that way. Base Set 2 and Team Rocket predate reverse holos entirely; Aquapolis and Skyridge holos were renumbered with an H and skipped them; ultra rares, secret rares, LV.X, LEGEND, Prime and Gold Star never got one. Those cards now render plain instead of gaining foil from a marketplace flag.",
+        "Two patterns are finished and validated end to end — fireworks and the plain finish — so the rest is not being faked. The other eight patterns have their expansion rules, masks and eligibility recorded, and reports/reverse-printings.md lists exactly which sets are waiting for their texture.",
+        "Every reverse texture is a procedural reconstruction, not a scanned factory sheet or a photograph, and the metadata says so on every file. The plain finish is deliberately modelled as uniform light with no invented marks; a dot pattern here would be a lie about a card that has none.",
+        "The holofoil inspector (Shift+H in a development build) now opens reverse cards beside the Cosmos ones and shows the printing, the mask, the isolated pattern, the tilt composite and an honesty badge — verified or approximation — for each expansion."
+      ]
+    },
+    {
+      "version": "0.16.0",
+      "date": "2026-11-03",
+      "title": "Every holo knows which card it came from",
+      "features": [
+        "The game now identifies the physical printing, not just the set. A new printing database resolves each card to a pattern, a foil area, a product, a language, a source and a verification status, and the foil you see is read from that answer — so a standard holo, a promotional Cosmos printing, a reverse holo and a non-holo card are four different things even when they share a name.",
+        "969 Cosmos holo printings are identified: 913 verified against a source, 26 inferred from a verified set rule, and 30 modelled by this build (the 30th-anniversary Classic Collection reprints, disclosed as our choice rather than a documented fact).",
+        "Promotional Cosmos now needs a name. Thirteen printings are catalogued with their products — _____'s Pikachu, Arceus and Arceus LV.X, Ampharos, Absol, Alolan Meowth twice, Alolan Raichu, Alcremie, Arcanine, and the 151 Poster Collection trio. Promo, POP and promo-programme sets are no longer foiled just for being old: 488 card rows across BW, DP, Wizards, Nintendo, HGSS and POP promos, Dragon Vault, Southern Islands and Pokémon Rumble now render plain instead of borrowing a pattern nothing verified.",
+        "The 2000–2011 era is one paper, not two. Cosmos ran from Base Set 2 to Call of Legends on the same coarse sheet; the smoother HD paper only arrives around 2013 with promotional printings, and the 151 promos are documented on both — early runs are retro, later ones HD. The old dense/sparse split inside the era had no source behind it and is gone.",
+        "Reverse holos are no longer treated as Cosmos. They wear their set's own reverse design — Legendary Collection's fireworks, the flat Expedition-era finish, the type-symbol and tile patterns of later sets — and Base Set 2 and Team Rocket had no reverse printing at all, so a marketplace \"Reverse Holo\" flag can no longer invent one.",
+        "Press Shift+H in a development build and the inspector now names the printing it resolved, its status, its product, which papers it exists on, and links the source it came from — so \"verified\" and \"we think so\" are visibly different claims.",
+        "The honest limits are in the game, not just in a commit message. English only for now: Japanese and Korean printings are a separate axis with no entries yet, so they make no foil claim rather than borrowing the English one. The four Cosmos textures remain procedural concept art. δ Delta Species holo rares cannot be told apart from ordinary ones by the card data. Promo coverage areas are mostly undocumented even where the Cosmos identity is verified.",
+        "The full numbers, including every unresolved set, are written to reports/cosmos-printings.md by the new report script."
+      ]
+    },
+    {
+      "version": "0.15.0",
+      "date": "2026-11-02",
+      "title": "The circles the old cards actually wore",
+      "features": [
+        "Cosmos is in. Holo rares from Base Set 2 through Call of Legends now wear the real family of marks — a few large foil planets, many medium orbs, a fine speckle, and the little four-point stars of the vintage paper — instead of a generic sparkle. The marks hold perfectly still; only the light moves as you tilt the card.",
+        "The foil stays where the printing put it. On an ordinary holo rare that is the illustration window, with the yellow frame, name bar and rules text left matte; on a reverse holo it is everything except the window. Pokémon-ex cards light up their border as well, because that is what the print did, and LEGEND cards are foil across the whole face.",
+        "Every card gets its own cut of the sheet. Real Cosmos sheets were cut differently for each card, which is why one copy catches a swirl and the next does not; that is now modelled per card, and the sheet's orientation flips between sets the way it did in print. Two different cards of the same set no longer line up.",
+        "Two honest limits. The four Cosmos textures are procedural concept art from a new pack, not scans of a factory sheet, and the game says so wherever the pattern is described. And a save counts how many copies you own rather than tracking each physical copy, so two copies of the same card share one cut — the variation runs between cards, not between two copies of the same card.",
+        "Promo printings that use Cosmos are marked as modelled rather than verified. Collectors catalogue them, but no source documents every promo card individually, so the game says 'unverified' instead of pretending. EX Delta Species' plain-foil holo rares are a known gap the card data cannot yet identify.",
+        "The holofoil inspector now lists the Cosmos showcase cards beside the Radiant ones and shows which sheet a card was cut from, the cut position and whether its coverage is verified."
+      ]
+    },
+    {
+      "version": "0.14.0",
+      "date": "2026-11-02",
+      "title": "Every Radiant card gets its own foil",
+      "features": [
+        "Radiant Collection cards no longer share one pattern. Each of the 57 cards now wears its own motif, matched by set and collector number — Legendary Treasures RC6 is Piplup, Generations RC6 is Flareon-EX, and they finally have different foil instead of one texture pretending to be both.",
+        "These motifs are reconstructed concept art from a new asset pack, not scanned factory stamps. The pack says so on every card and the game will not claim otherwise: what you are seeing is the right shape for a Radiant foil, not a replica of one.",
+        "Thirteen cards that had no foil now show none. The Generations Radiant Collection commons — Chikorita, Charmander, Snorunt and the rest — are plain printings, and they were being lit up by a rule that treated every RC-numbered card as holographic. They show the scan and nothing else.",
+        "The motif decides where light lands and nothing more. Those pastel bows do not tint the card, and a mark fades out over print that is already bright, so a decoration the card already carries is never doubled by its own reflection.",
+        "Coverage is judged separately from the texture, and not everything is certain: RC6 is foil edge to edge from photographs, RC16 is the illustration window from a scan, and the remaining Generations printings are a reasoned guess that the game marks as unverified rather than dressing up as fact.",
+        "A holofoil inspector ships in development builds only: press Shift+H to see any Radiant card one layer at a time — artwork, motif, motif alpha, coverage mask, reflection, composite — with sliders for reflection, pattern opacity, iridescence, texture scale and light angle."
+      ]
+    },
+    {
+      "version": "0.13.0",
+      "date": "2026-11-02",
+      "title": "The hearts come back as foil",
+      "features": [
+        "The foil on Radiant Collection cards is no longer a generic sprinkle of dots. It is the pattern from the reference sheet itself: large glossy hearts and four-point sparkles, taken pixel for pixel off the asset sheet and laid once across the card, so the glints land exactly where the reference puts them.",
+        "This settles a question the last version left open. The hearts on Flareon-EX RC6 were assumed to be printed artwork with the foil only in the dots between them, because two photos disagreed. The sheet draws them as foil, and the angle examples show them lighting up as the card tilts, so they are foil now — and they glint.",
+        "The hearts are the light now, not a texture over it. Where the pattern has a mark the foil glints, and the bare field between the marks stays quiet instead of being lifted along with everything else — that is what makes a heart read as a heart at card size rather than as faint mottling.",
+        "The pattern is a card-shaped map rather than a repeating patch, which is how the sheet lays it out. Its own edges do not quite meet, so tiling it would show a seam line behind the light; at one copy per card there is no join to see.",
+        "Nothing about the effect changed: the pattern still only takes light away, never adds its own and never touches the colour of a mark, and a card you are not pointing at is still the scan exactly."
+      ]
+    },
+    {
+      "version": "0.12.0",
+      "date": "2026-11-02",
+      "title": "The foil comes back as light",
+      "features": [
+        "Holographic cards shine again, and they shine on the card instead of over it: a card you are not pointing at is the scan itself, at its own colours and brightness, with nothing tinted, dimmed or washed. The old engine changed the artwork; this one cannot.",
+        "Hover a card and it tips toward the pointer. A broad band of light sweeps across the foil and the sweep is genuinely bright — on a dark-printed card like Yveltal RC16 it lifts the illustration window by about a quarter of full brightness at a steep angle — and the light picks up colour as it travels: a pastel sheen at a shallow tilt, a full iridescent sweep at a steep one, with the hue sliding as you keep moving.",
+        "Only the foil is lit. On a regular holo that is the illustration window, on a reverse holo everything but the window, and on Flareon-EX RC6 and the rest of the Radiant Collection EX cards the whole face. Frames, name bars and rules text stay flat, whatever the angle.",
+        "The pattern is a seamless tile of dots and sparkles that sits in the light rather than painted on top: it decides whether a spot of foil glints or stays quiet, and it can only ever take light away, never add its own.",
+        "Two honest simplifications. The sheen is a smooth band rather than the relief of a real printed pattern, and the colour ramp is tuned by eye rather than traced from a scan. RC6's hearts also stay where the printing put them instead of being drawn by the effect — the two reference photos disagree about whether they are foil, so nothing claims to know. And where the foil is close to white already, the coloured highlight comes out a little dimmer than a plain white one would: a glint that carries colour puts its light into one channel at a time, which is what the real thing does, and it is capped so it can never shine brighter than the white sweep at the same angle."
+      ]
+    },
+    {
+      "version": "0.11.0",
+      "date": "2026-11-02",
+      "title": "Foil switched off",
+      "features": [
+        "Every card in the game now shows its original artwork and nothing else. The animated sheen, the colour washes, the sparkles and the floating particles are gone — not dimmed — so what you see is the scan itself, at its own colours, contrast and brightness.",
+        "This is on purpose and it is temporary. The old foil engine was changing the card instead of lighting it, so it has been removed rather than tuned, and it will come back one layer at a time, each layer checked against the artwork before the next one is added.",
+        "The first piece is already in place: every printing now carries a foil coverage mask that says, in black and white, exactly which part of the card is holographic. On Flareon-EX RC6 that is the whole face; on a regular card it is the illustration window; on a reverse holo it is everything except the window.",
+        "The mask is the boundary the next layers must obey: anything black in it will never receive a highlight, and no mask is allowed to recolour the card. A render at zero reflection is now byte-identical to the source image, and that is enforced by a pixel comparison."
+      ]
+    },
+    {
+      "version": "0.10.4",
+      "date": "2026-11-02",
+      "title": "The hearts, where the card puts them",
+      "features": [
+        "The foil hearts are now placed where the reference photo shows them instead of being generated: twenty-nine hearts traced in card coordinates — a run down the left border, the cluster of large pastel hearts around Flareon, and the smaller ones through the text panel — so the foil follows the card's layout rather than a repeating grid.",
+        "Hearts are pastel now, not just glare. Each one carries a warm pink-to-gold tint that shifts from the top of the card to the bottom, the way the printed hearts run, and the tint lights up inside the heart while the rim catches the highlight.",
+        "The dot-and-sparkle glitter is a separate texture underneath, tiled across the face, so the hearts read as shapes and the spaces between them read as foil.",
+        "The renderer was rebuilt around two maps: a card-space heart map (coverage plus rim height) and a tiled dot map. That replaces the single generated stamp, where hearts and dots fought for the same pixels."
+      ]
+    },
+    {
+      "version": "0.10.3",
+      "date": "2026-11-02",
+      "title": "Hearts over the dots",
+      "features": [
+        "The foil hearts are back, and they no longer replace the glitter — both live in the same foil stamp now. Flareon-EX RC6 carries heart motifs through the illustration and a dot-and-sparkle field that is most obvious in the bare border, so building either one alone was half the pattern.",
+        "Hearts are stamped as rims, not slabs: the silhouette is the real implicit heart curve across three size bands, and each heart has a ridge just inside its outline so light runs around the edge while the middle stays dark. That is the version that reads as foil rather than as white shapes.",
+        "Dots and four-point sparkles sit underneath at two-thirds strength, so the spaces between hearts glitter the way the border does on the physical card.",
+        "The printed hearts in the artwork are still untouched — this layer only adds light over them, so the card keeps the printing's own heart positions."
+      ]
+    },
+    {
+      "version": "0.10.2",
+      "date": "2026-11-02",
+      "title": "Dots, not hearts",
+      "features": [
+        "Flareon-EX RC6's foil is corrected again, this time from photographs of the actual card: the foil is a dense field of small dots with four-point sparkles — the pattern collectors call Radiant Collection dots — not hearts.",
+        "The proof is the border, where no ink covers the foil: on the reference photos it is white specks and stars on bare foil. The hearts are printed shapes sitting on top of that foil, which is why they look glossy, and they stay in the card artwork where the printing put them.",
+        "The stamp is now about 820 domed dots of varied size plus 34 four-point sparkles, each a low dome so it glints as a point of light rather than a flat disc. Relief and gain are raised to suit the finer detail.",
+        "This reverses 0.10.1's heart stamp, which was built on a mistaken reading of the pattern. The heart shapes were landing as separate white shapes instead of the glitter the card actually has."
+      ]
+    },
+    {
+      "version": "0.10.1",
+      "date": "2026-11-02",
+      "title": "The heart is the foil",
+      "features": [
+        "Flareon-EX RC6's foil is a heart pattern, and the renderer now builds it that way. The etched-lines texture from 0.10.0 was the wrong family of pattern entirely: it produced generic diagonal sheen instead of the shape the card is actually stamped with.",
+        "The stamp is generated from the real heart silhouette — the implicit heart curve, not a handful of bezier blobs — laid out in three size bands with jitter and slight rotation, softened at the rim so the edge of each heart is where the light catches hardest. That is why the hearts read as foil in the border on the physical card.",
+        "Small studs and fine grain break up the sheen between hearts, so the reflection arrives as glints rather than a clean repeating vector pattern.",
+        "Nothing about the printed artwork changed: the hearts inside the illustration are still ink in the scan, and the renderer only adds light over the top. The hearts you now see responding to the light are the foil underneath them.",
+        "The light catches the hearts as rims, not slabs. Each heart carries a ridge just inside its outline, so the middle stays dark and only the edge glints — the first pass lit the whole heart as a solid white shape and had to be thrown out. Specular gain came down with it."
+      ]
+    },
+    {
+      "version": "0.10.0",
+      "date": "2026-11-02",
+      "title": "Foil stops being a texture and becomes light",
+      "features": [
+        "Flareon-EX RC6 is now rendered by a real foil renderer instead of a translucent image laid over the scan. A WebGL layer draws only light — specular highlight, iridescence and a stamped height field — onto a transparent canvas above the card, so the artwork and its printed hearts are never touched or duplicated.",
+        "The foil has a surface now. The Radiant Collection etch is built as a height field with a 45-degree etch, a finer cross-etch and multi-octave mottling, and normals are derived from it per pixel. That is what breaks the highlight into glints that travel as the card tilts, instead of a flat pattern sliding around.",
+        "The highlight follows the light, not the card. Pointer position drives the light direction, the specular is computed from the surface normal against the half-vector, and a slow room sweep keeps a card at rest alive. The printed pattern underneath never moves.",
+        "Foil coverage is a real mask with rounded corners and a feathered edge, drawn in the shader from the card's foil region, rather than a rectangular CSS clip.",
+        "There is a foil lab for this card: reference scan, then the rendered card with switchable layers — stamp, mask, reflection and final — plus three viewing angles, so the renderer's contribution can be inspected on its own."
+      ]
+    },
+    {
+      "version": "0.9.1",
+      "date": "2026-11-02",
+      "title": "Sheen, and only where the foil is",
+      "features": [
+        "Corrected the Radiant Collection's finish. Bulbapedia documents Sheen as the finish for all XY-era holo cards, and Generations is an XY-era set, so every RC card now wears the Sheen pattern — diagonal refracting lines — instead of the inferred etch from the last build. Cleverer-looking, but not what the cards have.",
+        "Radiant Collection cards no longer all share one mask. Yveltal RC16/117, checked against its own scan, is a regular card in a yellow frame with the foil confined to the illustration window; Flareon-EX RC6 is a full-art card with foil across the whole face. The region now comes from the frame, not from the subset.",
+        "Sheen is much easier to see. The lines are stronger and the layer now blends in overlay rather than screen, so the foil both brightens and deepens the art the way a real stamp does, instead of only adding white on a pale card.",
+        "Reverses of RC cards foil the frame and text but leave the illustration flat, which is the reverse-holo construction.",
+        "The invented Radiant Collection etch pattern is deleted rather than left in the code unused, so nothing invites it back."
+      ]
+    },
+    {
+      "version": "0.9.0",
+      "date": "2026-11-02",
+      "title": "Real foil, from the real card",
+      "features": [
+        "The holographic effects are rebuilt from references instead of invented. Each finish is now its own stamped texture — Starlight's soft starbursts, Cosmos's scattered dots, Tinsel's horizontal stripes, Sheen's diagonal refraction, Cracked Ice's shards, Crosshatch's grid, Water Web's waves, Line's verticals, Mirage's horizontal banding, the McDonald's confetti grid — with the size, spacing and density of the real thing rather than one reusable sparkle.",
+        "Flareon-EX RC6 is the reference card, checked against a scan of the actual card. The first thing that check showed: the hearts and four-point sparkles on it are printed ink, already part of the artwork, so the foil layer no longer redraws them. What was a field of floating translucent hearts is now the Radiant Collection's fine etched finish across the whole face, with the card's own printed hearts reading through it, exactly as on the physical card.",
+        "Foil now respects the region it belongs to. Standard holos foil the illustration window, reverse holos foil everything except it, and border and text-panel masks exist for the printings that need them — the mask comes from each printing's metadata, not from one universal assumption.",
+        "The pattern stays bolted to the card and only the light moves across it. Previously the texture drifted with the pointer, which made printed designs appear to swim; now the alignment is fixed per card and a drifting sheen plus a slow sweeping highlight supply the tilt effect.",
+        "Every finish is labelled with what it rests on. A pattern confirmed against a reference is marked verified; one reconstructed from a written description only is flagged as needing a reference, and draws more faintly so it cannot pass for accurate.",
+        "Known limit, stated plainly: the RC subset's other cards are masked full-face like RC6 but their individual printings have not been checked scan by scan, so they are flagged unverified. The same goes for the Poké Ball and Fireworks reverse patterns, which are drawn from descriptions, not photographs."
+      ]
+    },
+    {
+      "version": "0.8.7",
+      "date": "2026-11-02",
+      "title": "Foils that catch the light",
+      "features": [
+        "Holo cards are always foil now. Before, the pattern sat at 20% and only came up on hover, so a binder page of holos read as flat art until you pointed at one. The pattern now sits at half strength at rest, with the artwork still legible underneath.",
+        "The shine moves by itself. A highlight band sweeps across every foil card every few seconds on a loop, and the delay is staggered per card, so a full binder page glitters unevenly instead of pulsing in lockstep.",
+        "Hovering still does something: the foil brightens and the sweep speeds up from 5.5 seconds to 2.2, so the card reacts to the pointer rather than only waking up when touched.",
+        "Reduced motion is respected — the foil is still visible, the sweep just holds still instead of looping.",
+        "Radiant Collection cards keep their own drawn designs from 0.8.6 and get the same always-on treatment, a little brighter than the rest because the design is the whole point of that subset."
+      ]
+    },
+    {
+      "version": "0.8.6",
+      "date": "2026-11-02",
+      "title": "The Radiant Collection, card by card",
+      "features": [
+        "Every Radiant Collection card now has its own named foil instead of a shared pattern at a different offset. Pikachu wears the field of big outlined stars it actually has, Jirachi the flowing pink-violet ribbons, and Mew the dense confetti with its green flecks — the three I could check against real cards.",
+        "The other 54 follow the same rule: the design is matched to the artwork. Reshiram, Charizard and the Flareons get licking flames; Snivy, Chikorita and Wally get leaves; Piplup and Swirlix get bubbles; Emolga, Dedenne and Elesa get zigzag bolts; Snorunt and Froslass get six-arm snowflakes; Flabébé, Floette, Shaymin and the Floral Crown get blossoms; Gardevoir and Meowstic get orbital rings; Yveltal and Purrloin get spiral galaxies; Audino gets hearts; Altaria and Swablu get cloud puffs; Diancie gets prism bands.",
+        "The shapes are real vector geometry — star polygons, bezier ribbons, zigzags, teardrops — drawn per card from the card id, not gradient noise. Each design keeps its own alignment between screenshots and reloads, because the placement is seeded from the id and never from Math.random.",
+        "Colours come from the printed foil where I know it: Pikachu's starfield runs pink-red over the yellow card even though Pikachu is Lightning, and Mew's confetti is pink rather than Psychic violet.",
+        "Honest about the limits: these are reconstructions from the printed designs, not photographs. Fifteen motifs across 57 cards means a few cards share a motif — they do not share a drawing, because the count, size, angle and placement of every shape is seeded per card, but a Grass card and another Grass card can be recognisably the same family of foil."
+      ]
+    },
+    {
+      "version": "0.8.5",
+      "date": "2026-11-02",
+      "title": "Every Radiant card, its own foil",
+      "features": [
+        "The Radiant Collection is no longer one pattern with a per-card offset. Each RC card now gets its own composition from a set of six — a fine sparkle field, a ray burst, bokeh, diagonal streaks, glitter crosshatch, and a star field — chosen by hashing the card id, so the subset reads as dozens of different foils rather than dozens of copies of one.",
+        "Each card is also tinted by its Pokemon's type: Grass comes out green, Fire orange, Water blue, Psychic violet, Fighting red, Darkness deep purple, Metal steel blue, Fairy pink, Dragon gold, Lightning yellow. The tint comes from the card's own type in the catalog, fetched alongside its rarity, so a Fairy card and a Water card in the same subset do not look related.",
+        "Scale and angle are per card as well: the pattern tiles from 0.8x to 1.24x and rotates in 45-degree steps, which is what keeps two cards of the same type from landing on the same grid.",
+        "This only changes how the subset draws. Nothing about rarity, value, pulls or prices moved, and every other printing keeps the era pattern it already had.",
+        "Honest note, same as before: these are CSS recreations of a foil look, not photographs of the physical cards. Six compositions with per-card tint, scale and angle is a stand-in for the real hand-drawn foils, not a pixel match to any one of them."
+      ]
+    },
+    {
+      "version": "0.8.4",
+      "date": "2026-11-02",
+      "title": "The whole pattern book",
+      "features": [
+        "Every standard foil pattern is in, mapped the way the printings actually ran: Starlight for Base, Jungle and Fossil; Cosmos from Base Set 2 through Call of Legends; Tinsel for Black and White through Legendary Treasures; Sheen for XY and Generations; Water Web for Sun and Moon through Cosmic Eclipse; Line for Sword and Shield through Crown Zenith; Mirage from Scarlet and Violet onward; and the cracked-ice shard foil for the Trainer Kits.",
+        "Pixel/Confetti turned out to be the right answer for two sets I had guessed at: both the McDonald's collections and the Celebrations Classic Collection are printed in the blocky confetti pattern, so the Classic Collection is no longer treated as Cosmos.",
+        "Radiant Collection cards now each get their own alignment. Every RC card is foil, and the pattern is seeded from the card id, so no two cards in a binder page sit on the same grid of the pattern.",
+        "Reverse holos wear the era's pattern rather than one generic rainbow — a reverse Cosmos card reads as Cosmos through the mask, a reverse Water Web as Water Web — with the artwork window punched out so only the border, frame and text panel catch the light.",
+        "Scarlet and Violet made every plain Rare holofoil, so those now show their Mirage foil instead of reading as bulk. Earlier eras keep plain Rares flat, because they were flat.",
+        "Still honest about the edges: these are CSS approximations rather than photographs; promotional patterns that never appear in this catalog (General Mills sequin, Play! crosshatch, theme-deck cracked ice on individual cards) cannot be identified from the data; and the first and last sets of each era boundary are approximate."
+      ]
+    },
+    {
+      "version": "0.8.3",
+      "date": "2026-11-02",
+      "title": "Printings that are their own pattern",
+      "features": [
+        "Some printings are their own foil, and the game now knows it instead of falling back to the era. Radiant Collection — every RC-numbered card in Legendary Treasures and Generations, commons included — wears the RC iridescent confetti, because that subset was foil-only in real life.",
+        "Every McDonald's promo set, 2011 through 2022, gets the promo sparkle: larger stars over a warm gold-to-pink sheen, visibly not a normal holo.",
+        "25th anniversary: the Celebrations main set carries its ray-burst anniversary foil, and the Celebrations Classic Collection reprints wear the Cosmos foil they were famous for.",
+        "30th anniversary: the main set wears the gold confetti anniversary foil, with plain commons left flat because those are not foil in the real packs; the 30th Classic Collection also wears Cosmos.",
+        "Where the guess would be a lie, it does not guess. These are still recreations, not photographs, the subset match comes from the catalog's set id and the RC card prefix, and every Classic Collection reprint is treated as Cosmos even though a few of them reprint modern cards whose original foil was different — close beats falsely precise.",
+        "Reverse holo still wins over all of it: if the copy in your binder is a reverse holo, that is what you see."
+      ]
+    },
+    {
+      "version": "0.8.2",
+      "date": "2026-11-02",
+      "title": "Foil on every card",
+      "features": [
+        "The foil now follows a card everywhere it appears. Binder peeks, auction lots, market radar rows, ship bay and storage thumbnails, wishlist cards, trade offers, resale lots and the home rails were still flat because they never handed the renderer a variant — so a thumbnail now resolves its own rarity through a single batched lookup and picks its pattern from that.",
+        "One request per screen, not one per tile: visible cards queue for about 40 milliseconds and resolve together, and the answers are cached for the session, so scrolling back through a set costs nothing. A failed lookup leaves the card flat rather than breaking the grid.",
+        "Reverse holo stays exact where the game knows the copy. Inventory rows and the pack-opening ceremony pass the real variant, so those show the frame-and-text foil with the art window punched out. A surface that only knows the catalog rarity shows the printing is holo pattern instead, which is the honest answer for a card you do not own a specific copy of.",
+        "Foil is decoration and is treated as such: it never touches a price, an odds table or a save, and it degrades to a plain image if the lookup fails or the browser cannot composite the mask."
+      ]
+    },
+    {
+      "version": "0.8.1",
+      "date": "2026-11-02",
+      "title": "The card in your hand",
+      "features": [
+        "Holo cards look holographic now. Every holo carries the pattern its print run actually used: the Cosmos starfield on Wizards-era holos, the rainbow bar on modern holos, the soft sheen bands of Diamond & Pearl and HGSS, the fine etched crosshatch on Double Rare, Ultra Rare and the V-era cards, the starlight texture on Special Illustration Rares, and the diagonal sparkle on Shiny and Shining printings.",
+        "The foil is interactive. Move the pointer across a card and the shine travels with it — the print catches the light at the cursor instead of shimmering on a fixed loop. At rest a card keeps a faint sheen, and it brightens as you hover, so a binder page still reads as cards rather than a row of lamps.",
+        "Reverse holo is foiled where the real card is foiled. The art window is masked out, so the light lands on the border, the frame and the text panel and the artwork itself stays flat — which is exactly what lets you tell a reverse holo from a plain holo at a glance.",
+        "It shows on the collection grid, set pages, inventory rows, the card detail modal, and both the pack-opening ceremony and its summary; a graded slab keeps the raw card's foil behind the label.",
+        "Honest about the fidelity: these are CSS recreations of the patterns, not photographs of real foil, and the design is picked from the card's variant and rarity — holo variants and holo rarities get their era's pattern, and Wizards-era sets are mapped to Cosmos by set id. Surfaces that don't pass a variant or rarity (some thumbnails, market listings) stay flat for now."
+      ]
+    },
+    {
+      "version": "0.8.0",
+      "date": "2026-11-02",
+      "title": "Every pack, its own odds",
+      "features": [
+        "Booster packs used to guarantee a hit. The ten cards were five commons, three uncommons, a holo rare and a separate \"hit\" card, and that hit slot always produced something — so every single pack had a rare-or-better in it and a Special Illustration Rare turned up about once in eleven packs. A pack is now the physical ten: four commons, three uncommons, one reverse holo, one rare or holo rare, and a final card that upgrades at the era's real odds or is the pack's bulk. Measured over 500 packs per set: Sun & Moon 18.2% any hit against a 17.6% target, Sword & Shield 26.6% against 29.6%, Surging Sparks 46.6% against 47.3%, 151 46.0% against 44.2%.",
+        "The odds are per era and named. Sun & Moon comes from Elite Fourum's 7,020-pack study (GX 11.15%, full art 4.22%, rainbow 1.47%, gold 0.81%); Scarlet & Violet from TCGplayer and Pullmarket community samples (Double Rare ~1 in 5, Ultra ~1 in 9, Illustration Rare ~1 in 11, Hyper Rare ~1 in 100); Wizards-era holo rares are 1 in 3 packs from pokegym's box study. EX, Diamond & Pearl and Black & White have no large public sample, so those three use era-typical estimates and the code says so.",
+        "Special Illustration Rare is the tier the hobby argues about most, so the loaded and tight sets get their own numbers: 151 at 1 in 32, Prismatic Evolutions at 1 in 45, Paldean Fates at 1 in 40, Surging Sparks at 1 in 85.",
+        "Energy is now one card, never a common. Basic Energy was sitting in the common pool, which is how a pack could hold three of them; it is its own card now, and any Energy at all — special Energy included — is capped at one per pack, with an extra redrawn as bulk. Wizards, EX and Diamond & Pearl packs carry exactly one, as the real ones did; modern packs usually carry none. Across 5,500 simulated packs the highest count seen was one.",
+        "Being straight about the limits: The Pokémon Company has never published English pull rates, so every figure here is reconstructed from community sampling, not read off a spec sheet. A set whose catalog has no higher rarity (Base Set has no shinings) gets a zero upgrade chance rather than invented odds, and a gallery-only subset like the Crown Zenith Galarian Gallery still opens as a single card because it has no commons to build a pack from.",
+        "The shop's ESTIMATE line and the sealed-box prices now read the same table, so a pack's expected value reflects those odds instead of a flat 1.6× bonus on every hit. Existing saves rebuild their pull tables once on the next launch."
+      ]
+    },
+    {
+      "version": "0.7.7",
+      "date": "2026-11-02",
+      "title": "The box that was already open",
+      "features": [
+        "Buying sealed product in the Pack Shop with the open-it-now option answered \"No sealed product in inventory\" every single time. The shop told the server to buy the box and rip all of it in one go, then handed the same box to the opening ceremony — which looked at the shelf and found it already empty. The shop now buys the stock and leaves the tearing to the ceremony: the promo card first, then one wrapper at a time, exactly as it works when you open a box from Inventory.",
+        "Nothing was actually lost in the broken version — the packs really did open on the server, the cash left the till, and those cards are sitting in your collection — but you never got to see the reveal. If a purchase ended on that error, the pulls from it are already in your binder.",
+        "The packs themselves are untouched: same sets, same pull tables, same prices. Only the hand-off between buying and opening changed."
+      ]
+    },
+    {
+      "version": "0.7.6",
+      "date": "2026-11-02",
+      "title": "One counter, every screen",
+      "features": [
+        "Fourteen screens were still wearing the old header: a capitals title behind a yellow bar, no mark, and no line telling you what the screen was for. Collection, Portfolio, Grading, Binders, Wishlist, Achievements, Stream, Community, Pack Battles, Auction House, Storage, Settings and Pull History now carry the same counter header as Inventory, Shop and Convention — a mark, a title in sentence case, and its tagline underneath.",
+        "Three screens had their emoji stranded inside the title itself. Stream, Auction House and Storage now put the icon where the other screens put theirs, on the left as a badge, and read plainly beside it. Long taglines were left alone: a header that explains what a screen is for is worth two lines.",
+        "Presentation only — no price, odd, wage or timer moved in this update. If a screen looks different tonight, it still behaves exactly as it did.",
+        "The simulator behind last update's economy numbers also got its clock fixed: it advanced a full day at a time while the game rolls a new game-day every twelve hours, so it charged rent and wages roughly 2.8 times per day. None of that reaches your save, but every simulated cost was inflated; on the corrected clock a satellite that read as barely breaking even actually nets about $45 a day."
+      ]
+    },
+    {
       "version": "0.7.5",
       "date": "2026-11-01",
       "title": "The premium, checked at the counter",

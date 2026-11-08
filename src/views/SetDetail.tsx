@@ -238,7 +238,7 @@ export function SetDetailView({ setId }: { setId: string }) {
         empty={null}
         render={(c) => (
           <div className={`card-cell ${(c.ownedQty ?? 0) === 0 ? 'silhouette' : ''}`} onClick={() => openCard(c.id)}>
-            <CardImg src={c.image_small} alt={c.name} cardId={c.id} />
+            <CardImg src={c.image_small} alt={c.name} cardId={c.id} rarity={c.rarity} />
             <div className="card-meta">
               <div className="nm">{c.name}</div>
               <div className="st">{c.number} · {c.rarity ?? '—'}</div>

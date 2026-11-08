@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api, type FlipStock, type ResaleDeal, type ResaleLedger } from '../api'
 import { useStore } from '../store'
 import { byNum, CardImg, EmptyState, FirstUseTip, fmtUsd, SortSelect } from '../components'
+import { variantTag } from '../variant-label'
 
 // ---------------------------------------------------------------------------
 // 💼 Resale desk — the business screen.
@@ -311,7 +312,7 @@ export function ResaleView() {
                     <div className="rd-flip-body">
                       <div className="rd-flip-name">{l.name}</div>
                       <div className="rd-flip-meta">
-                        {l.condition} · held {heldText(l.heldSince)}
+                        {l.condition}{variantTag(l.variant) ? ` · ${variantTag(l.variant)}` : ''} · held {heldText(l.heldSince)}
                       </div>
                       <div className="rd-flip-nums">
                         <span>cost {fmtUsd(l.costBasis)}</span>

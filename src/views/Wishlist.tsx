@@ -146,10 +146,13 @@ export function WishlistView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Wishlist</h1>
-          <div className="sub">Cards you're hunting — priced live, with a target you'd actually pay and agents that buy for you.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>⭐</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Wishlist</h1>
+            <div className="sub">Cards you're hunting — priced live, with a target you'd actually pay and agents that buy for you.</div>
+          </div>
         </div>
       </div>
 

@@ -314,7 +314,15 @@ export function buyEstateLot(lotId: number) {
   // scored profit on cards it kept.
   const kept = cards.slice(0, admitted)
   const perCard = round2(fullCharge / cards.length)
-  charged = round2(perCard * admitted)
+  // A whole lot costs exactly the quoted hammer + premium. Multiplying the
+  // rounded per-card share back up drifts by up to half a cent a card — a 40-card
+  // lot came out 10¢ under the price the table quoted. Proration is for the case
+  // it exists for: a lot the shelf cannot take in full.
+  charged = admitted === cards.length ? fullCharge : round2(perCard * admitted)
+  // Cost basis follows the charge: a whole lot is split unrounded so the basis
+  // sums to exactly what left the till, while a partial lot uses the rounded
+  // per-card share the charge was built from.
+  const basisEach = admitted === cards.length ? fullCharge / cards.length : perCard
   const realized = round2(
     kept.reduce((a, c) => a + valueOf(c.card_id, 'normal', c.condition as Condition), 0),
   )
@@ -325,7 +333,7 @@ export function buyEstateLot(lotId: number) {
   const tx = db.transaction(() => {
     db.prepare(`UPDATE estate_lots SET status = 'sold', bought_at = ?, true_value = ? WHERE id = ?`).run(nowIso(), realized, lotId)
     db.prepare(`UPDATE game_state SET cash = cash - ? WHERE id = 1`).run(charged)
-    for (const c of kept) insertInv.run(c.card_id, c.condition, String(show.id), perCard, nowIso())
+    for (const c of kept) insertInv.run(c.card_id, c.condition, String(show.id), basisEach, nowIso())
     const delta = round2(realized - charged)
     const pct = charged > 0 ? Math.round((delta / charged) * 100) : 0
     const verdict =

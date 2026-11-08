@@ -293,10 +293,13 @@ export function StorageUnitsView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>🗝️ Storage & Auctions</h1>
-          <div className="sub">Your shelf holds 100 cards free — rent extra storage in the panel below when it fills. The auctions? Delinquent lockers sold sight-unseen to the highest bidder: bid, win, sort the haul — keep the good stuff, scrap the rest for fast cash.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🗝️</span>
+          <div>
+            <h1>Storage & Auctions</h1>
+            <div className="sub">Your shelf holds 100 cards free — rent extra storage in the panel below when it fills. The auctions? Delinquent lockers sold sight-unseen to the highest bidder: bid, win, sort the haul — keep the good stuff, scrap the rest for fast cash.</div>
+          </div>
         </div>
       </div>
 

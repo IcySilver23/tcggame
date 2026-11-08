@@ -130,10 +130,13 @@ export function PortfolioView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Portfolio</h1>
-          <div className="sub">The collection as an investment: what went in, what it's worth, and what the index would have done with the same money.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>📈</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Portfolio</h1>
+            <div className="sub">The collection as an investment: what went in, what it's worth, and what the index would have done with the same money.</div>
+          </div>
         </div>
       </div>
 

@@ -136,10 +136,13 @@ export function PackBattlesView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Pack Battles</h1>
-          <div className="sub">Both sides rip the same sealed product — best total pull value takes the pot. Everyone keeps their pulls.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>⚔️</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Pack Battles</h1>
+            <div className="sub">Both sides rip the same sealed product — best total pull value takes the pot. Everyone keeps their pulls.</div>
+          </div>
         </div>
       </div>
 

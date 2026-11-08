@@ -105,10 +105,13 @@ export function AchievementsView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div style={{ minWidth: 0 }}>
-          <h1>Achievements</h1>
-          <div className="sub">Thirty trophies on five shelves. Every one you own is lit; the rest are the shape of what's missing.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🏆</span>
+          <div style={{ minWidth: 0 }}>
+            <h1>Achievements</h1>
+            <div className="sub">Thirty trophies on five shelves. Every one you own is lit; the rest are the shape of what's missing.</div>
+          </div>
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import { api } from '../api'
 import { useStore } from '../store'
 import { CardImg, ConditionBadge, EyeSkill, fmtDate, fmtUsd, Modal, OverflowMenu, PriceChart, PriceTag, RarityBadge, slabLabel, SlabCard, SourceBadge, SubStatBars } from '../components'
 import type { Condition } from '../types'
+import { variantTag } from '../variant-label'
 import { CardTradePanel } from './CardTradePanel'
 import { SellRoutes } from './SellRoutes'
 
@@ -110,7 +111,8 @@ export function CardDetailModal() {
     const price = Math.round(detail.card.price.usd * 100) / 100
     try {
       await api.listItem(owned.id, price)
-      toast(`${detail.card.name} listed at market — watch Inventory for the sale`, 'good')
+      const printing = variantTag(owned.variant) ? ` · ${variantTag(owned.variant)}` : ''
+      toast(`${detail.card.name}${printing} listed at market — watch Inventory for the sale`, 'good')
       await refresh()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Listing failed', 'bad')
@@ -165,7 +167,7 @@ export function CardDetailModal() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 340px) 1fr', gap: 22 }}>
         <div>
-          <SlabCard src={card.image_large} alt={card.name} grade={firstOwnedSlab?.graded_grade} setName={card.set_name} cardNo={card.number} />
+          <SlabCard src={card.image_large} alt={card.name} grade={firstOwnedSlab?.graded_grade} setName={card.set_name} cardNo={card.number} cardId={card.id} rarity={card.rarity} variant={compareRow?.variant ?? firstOwnedSlab?.variant ?? null} />
           <div className="row mt8">
             <RarityBadge rarity={card.rarity} />
             {card.types && <span className="badge">{JSON.parse(card.types).join(' / ')}</span>}
@@ -406,6 +408,11 @@ export function CardDetailModal() {
                     <tr key={o.id}>
                       <td>
                         <ConditionBadge cond={o.condition} />
+                        {variantTag(o.variant) && (
+                          <span className="badge" style={{ marginLeft: 6 }} title="A separate printing of this number — same price anchor as the plain copy">
+                            {variantTag(o.variant)}
+                          </span>
+                        )}
                         {substatRow(o)}
                       </td>
                       <td className="small">{o.status === 'listed' ? `Listed ${fmtUsd(o.listing_price)}` : o.status}</td>

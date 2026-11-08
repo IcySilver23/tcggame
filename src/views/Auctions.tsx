@@ -211,12 +211,15 @@ export function AuctionView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>🔨 Auction House</h1>
-          <div className="sub">
-            One lot under the hammer at a time. Hidden maxes, proxy bidding, a 45-second snipe guard — and a
-            hammer price that settles against real market.
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>🔨</span>
+          <div>
+            <h1>Auction House</h1>
+            <div className="sub">
+              One lot under the hammer at a time. Hidden maxes, proxy bidding, a 45-second snipe guard — and a
+              hammer price that settles against real market.
+            </div>
           </div>
         </div>
         <div className="chip-row">

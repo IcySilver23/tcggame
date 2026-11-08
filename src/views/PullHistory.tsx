@@ -40,10 +40,13 @@ export function PullHistoryView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>Pull History</h1>
-          <div className="sub">Every pack you've ripped — and whether luck was on your side.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>📦</span>
+          <div>
+            <h1>Pull History</h1>
+            <div className="sub">Every pack you've ripped — and whether luck was on your side.</div>
+          </div>
         </div>
       </div>
 

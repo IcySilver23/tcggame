@@ -35,6 +35,8 @@ export type CardRow = {
   set_release_date?: string
   set_total?: number | null
   price?: ResolvedPrice
+  /** Copies you hold in a labelled printing (a stamped reverse, a Sequin copy) — plain copies are not listed. */
+  ownedVariants?: { variant: string; label: string; qty: number }[]
   market_price?: number | null
   market_at?: string | null
   ownedQty?: number
@@ -147,6 +149,33 @@ export type ProductRow = {
     p90: number
     topChases: { id: string; name: string; rarity: string; value: number }[]
   }
+  /** A General Mills mini pack's Sequin contents and odds; absent on every other product. */
+  mini?: MiniSequinOdds | null
+  /** The era's slot breakdown for one pack: which cards come from which slot. */
+  slots?: PackSlotInfo[]
+}
+
+/** One slot in a pack, as the shelf prints it. */
+export type PackSlotInfo = {
+  slot: string
+  count: number
+  label: string
+  detail: string
+}
+
+/** What a mini pack's foil slot can hand you — the shelf prints this as odds. */
+export type MiniSequinOdds = {
+  cardsPerPack: number
+  /** Sequin printings that can appear, with the chance a rip holds each. */
+  cards: { id: string; name: string; value: number; chance: number }[]
+  /** Named entries the Sequin draws pick from. */
+  pool: number
+  /** Draws that can land a Sequin card besides one in every pack. */
+  draws: number
+  /** Chance a rip holds at least one Sequin card, 0–1. */
+  anyChance: number
+  /** Sequin printings stamped into every pack. */
+  guaranteed: string[]
 }
 
 export type OpenedCard = { cardId: string; isHit: boolean; value: number; variant?: string; setName?: string; rarity?: string | null; image?: string | null; name?: string; /** Zero copies owned before this rip — first copy only. */ isNew?: boolean }

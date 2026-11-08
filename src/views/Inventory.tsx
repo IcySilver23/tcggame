@@ -7,6 +7,7 @@ import { byNum, byStr, CardImg, ConditionBadge, BrowseToggle, CapacityStrip, Den
 import type { MenuItem } from '../components'
 import type { InventoryRow } from '../types'
 import type { SaleRow } from '../api'
+import { variantTag } from '../variant-label'
 
 export function InventoryView() {
   const { toast, refreshState, openCard, density, browse, state } = useStore()
@@ -211,7 +212,7 @@ export function InventoryView() {
   const listOne = async (i: InventoryRow, price: number) => {
     try {
       await api.listItem(i.id, price)
-      toast(`${i.name} listed for ${fmtUsd(price)}`, 'good')
+      toast(`${i.name}${variantTag(i.variant) ? ` · ${variantTag(i.variant)}` : ''} listed for ${fmtUsd(price)}`, 'good')
       await load()
       refreshState()
     } catch (e) {
@@ -1098,7 +1099,7 @@ export function InventoryView() {
                       return (
                         <div key={i.id} className="inv-group-row">
                           <div style={{ width: 34, cursor: 'pointer', flex: '0 0 34px' }} onClick={() => openCard(i.card_id)}>
-                            <SlabCard src={i.image_small} alt={i.name} grade={i.graded_grade} setName={i.set_name} cardNo={i.number} cardId={i.card_id} />
+                            <SlabCard src={i.image_small} alt={i.name} grade={i.graded_grade} setName={i.set_name} cardNo={i.number} cardId={i.card_id} variant={i.variant} rarity={i.rarity} />
                           </div>
                           <div className="grow" style={{ minWidth: 0 }}>
                             <div className="small" style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -1108,6 +1109,7 @@ export function InventoryView() {
                             </div>
                             <div className="faint" style={{ fontSize: 11 }}>
                               {i.condition}
+                              {variantTag(i.variant) ? ` · ${variantTag(i.variant)}` : ''}
                               {i.graded_grade ? '' : i.protection ? ` · 🛡 ${PROT_LABEL[i.protection]}` : ''}
                             </div>
                           </div>
@@ -1136,11 +1138,11 @@ export function InventoryView() {
                 render={(i) => (
                   <div className="card-cell">
                     <div onClick={() => openCard(i.card_id)} style={{ cursor: 'pointer' }}>
-                      <SlabCard src={i.image_small} alt={i.name} grade={i.graded_grade} setName={i.set_name} cardNo={i.number} cardId={i.card_id} />
+                      <SlabCard src={i.image_small} alt={i.name} grade={i.graded_grade} setName={i.set_name} cardNo={i.number} cardId={i.card_id} variant={i.variant} rarity={i.rarity} />
                     </div>
                     <div className="card-meta">
                       <div className="nm">{i.name}</div>
-                      <div className="st">{i.set_name} · {i.condition}</div>
+                      <div className="st">{i.set_name} · {i.condition}{variantTag(i.variant) ? ` · ${variantTag(i.variant)}` : ''}</div>
                       <div className="card-row-between">
                         <PriceTag price={i.source} />
                         {i.graded_grade && <span className="badge hit">{GRADE_BADGE[i.graded_grade] ?? i.graded_grade}</span>}
@@ -1181,12 +1183,15 @@ export function InventoryView() {
                     <td><input type="checkbox" checked={selected.has(i.id)} onChange={() => toggle(i.id)} /></td>
                     <td>
                       <div className="row" style={{ cursor: 'pointer' }} onClick={() => openCard(i.card_id)}>
-                        <div style={{ width: 34 }}><SlabCard src={i.image_small} alt={i.name} grade={i.graded_grade} setName={i.set_name} cardNo={i.number} cardId={i.card_id} /></div>
+                        <div style={{ width: 34 }}><SlabCard src={i.image_small} alt={i.name} grade={i.graded_grade} setName={i.set_name} cardNo={i.number} cardId={i.card_id} variant={i.variant} rarity={i.rarity} /></div>
                         <b className="small">{i.name}</b>
                       </div>
                     </td>
                     <td>
                       <ConditionBadge cond={i.condition} />
+                      {variantTag(i.variant) && (
+                        <span className="badge" title="A separate printing of this number, not a condition — priced at the ordinary card's anchor">{variantTag(i.variant)}</span>
+                      )}
                       {!i.graded_grade && i.protection && <span className="badge prot" title="Protected — condition holds while stored">🛡 {PROT_LABEL[i.protection]}</span>}
                       {!i.graded_grade && !i.protection && i.value >= 1 && i.status === 'collection' && (
                         <span className="badge prot bare" title="Bare — loose cards can slip a grade (and lose value) over time">bare</span>

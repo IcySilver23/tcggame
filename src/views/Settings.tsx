@@ -8,7 +8,7 @@ import { soundEnabled, setSoundEnabled } from '../audio'
 type SettingsData = Awaited<ReturnType<typeof api.settings>>
 
 export function SettingsView() {
-  const { toast, refreshState, state: st, theme, setTheme } = useStore()
+  const { toast, refreshState, state: st, theme, setTheme, foil, setFoil } = useStore()
   const replayTutorial = async () => {
     await api.tutorialReplay()
     await refreshState()
@@ -222,10 +222,13 @@ export function SettingsView() {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>Settings</h1>
-          <div className="sub">Data sources, sync management, and save controls.</div>
+      <div className="page-head desk">
+        <div className="ph-id">
+          <span className="ph-mark" aria-hidden>⚙️</span>
+          <div>
+            <h1>Settings</h1>
+            <div className="sub">Data sources, sync management, and save controls.</div>
+          </div>
         </div>
       </div>
 
@@ -485,8 +488,18 @@ export function SettingsView() {
           </span>
           <span className="faint small">
             {theme === 'dark'
-              ? 'Dark — the night chrome: card art and foil carry the colour.'
+              ? 'Dark — the night chrome: card art carries the colour.'
               : 'Light — the paper TCG look: white cards on a blue-checked playmat.'}
+          </span>
+        </div>
+        <div className="row" style={{ alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
+          <button className={foil ? 'ghost' : 'primary'} onClick={() => setFoil(!foil)}>
+            {foil ? 'Turn card foil off' : 'Turn card foil on'}
+          </button>
+          <span className="faint small">
+            {foil
+              ? 'On — holo cards shimmer, tint and tilt under the pointer.'
+              : 'Off — every card shows its scan flat. The holofoil work is parked, not deleted: this switch is the whole of it, and this browser remembers your choice.'}
           </span>
         </div>
       </div>
