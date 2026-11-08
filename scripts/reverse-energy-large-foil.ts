@@ -1,0 +1,181 @@
+// Ascended Heroes' Energy-pattern reverse → shipped sheets + generated index.
+//
+// Run: ./node_modules/.bin/tsx scripts/reverse-energy-large-foil.ts
+//
+// The source describes one large Energy symbol for the card's own type behind the
+// attack text on the card body, with the artwork matte. The glyphs are the same
+// stylised drawings as the BW/XY type-symbol paper: geometric approximations, not
+// official icons. The single-stamp layout and approximate size are taken from a
+// real Snorunt Energy reverse reference; the strokes are not traced.
+
+import fs from 'node:fs'
+import path from 'node:path'
+import zlib from 'node:zlib'
+import Database from 'better-sqlite3'
+import {
+  ENERGY_REVERSE_GLYPHS,
+  ENERGY_REVERSE_SEED,
+  ENERGY_REVERSE_SHEET_SIZE,
+  ENERGY_REVERSE_STAMP_HEIGHT,
+  ENERGY_REVERSE_STAMP_WIDTH,
+  ENERGY_REVERSE_WINDOW,
+  renderEnergyReverseSheet,
+} from '../src/foil/reverse-energy-large-sheet'
+import { GLYPH_LABEL } from '../src/foil/type-glyph'
+
+const OUT_DIR = 'public/foil/reverse/energy'
+const INDEX_FILE = 'src/foil/reverse-energy-large-index.ts'
+const DB_FILE = 'data/tcglife.db'
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256)
+  for (let n = 0; n < 256; n++) {
+    let c = n
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    t[n] = c >>> 0
+  }
+  return t
+})()
+function crc32(buf: Buffer): number {
+  let c = 0xffffffff
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 255] ^ (c >>> 8)
+  return (c ^ 0xffffffff) >>> 0
+}
+function chunk(type: string, data: Buffer): Buffer {
+  const len = Buffer.alloc(4)
+  len.writeUInt32BE(data.length, 0)
+  const body = Buffer.concat([Buffer.from(type, 'ascii'), data])
+  const crc = Buffer.alloc(4)
+  crc.writeUInt32BE(crc32(body), 0)
+  return Buffer.concat([len, body, crc])
+}
+function encodePng(w: number, h: number, rgba: Uint8ClampedArray): Buffer {
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6
+  const stride = w * 4
+  const raw = Buffer.alloc((stride + 1) * h)
+  for (let y = 0; y < h; y++) {
+    raw[y * (stride + 1)] = 0
+    Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride).copy(raw, y * (stride + 1) + 1)
+  }
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+const problems: string[] = []
+fs.mkdirSync(OUT_DIR, { recursive: true })
+type Measured = {
+  id: string; label: string; texture: string; coverage: number; peak: number
+  centerU: number; centerV: number
+}
+const measured: Measured[] = []
+for (const glyph of ENERGY_REVERSE_GLYPHS) {
+  const sheet = renderEnergyReverseSheet(glyph, ENERGY_REVERSE_SHEET_SIZE, ENERGY_REVERSE_SEED)
+  if (sheet.coverage < 0.01 || sheet.coverage > 0.24) {
+    problems.push(`${glyph}: coverage ${(sheet.coverage * 100).toFixed(2)}% is wrong for one large symbol`)
+  }
+  if (sheet.peak < 0.8) problems.push(`${glyph}: peak ${sheet.peak.toFixed(2)} too dim`)
+  if (Math.abs(sheet.centerU - 0.5) > 0.02 || Math.abs(sheet.centerV - 0.5) > 0.02) {
+    problems.push(`${glyph}: centre ${sheet.centerU.toFixed(3)},${sheet.centerV.toFixed(3)} is not the sheet centre`)
+  }
+  const file = path.join(OUT_DIR, `${glyph}.png`)
+  fs.writeFileSync(file, encodePng(sheet.size, sheet.size, sheet.rgba))
+  measured.push({
+    id: glyph,
+    label: GLYPH_LABEL[glyph],
+    texture: `/foil/reverse/energy/${glyph}.png`,
+    coverage: Number(sheet.coverage.toFixed(5)),
+    peak: Number(sheet.peak.toFixed(5)),
+    centerU: Number(sheet.centerU.toFixed(4)),
+    centerV: Number(sheet.centerV.toFixed(4)),
+  })
+}
+
+type Showcase = {
+  cardId: string; setId: string; number: string; name: string; rarity: string
+  types: string | null; supertype: string | null; variant: string
+}
+const showcase: Showcase[] = []
+if (fs.existsSync(DB_FILE)) {
+  const db = new Database(DB_FILE, { readonly: true })
+  const rows = db.prepare(
+    `select id, set_id, number, name, rarity, types, supertype
+     from cards where set_id = 'me2pt5' and supertype = 'Pokémon' and types is not null
+     order by cast(number as integer) limit 3`,
+  ).all() as {
+    id: string; set_id: string; number: string; name: string; rarity: string | null
+    types: string | null; supertype: string | null
+  }[]
+  db.close()
+  for (const r of rows) showcase.push({
+    cardId: r.id, setId: r.set_id, number: r.number, name: r.name, rarity: r.rarity ?? '',
+    types: r.types, supertype: r.supertype, variant: 'reverseHolofoilEnergy',
+  })
+} else problems.push('card database missing')
+
+const entries = measured.map((m) =>
+  `  ${m.id}: { id: ${JSON.stringify(m.id)}, label: ${JSON.stringify(m.label)}, texture: ${JSON.stringify(m.texture)}, coverage: ${m.coverage}, peak: ${m.peak}, centerU: ${m.centerU}, centerV: ${m.centerV} },`,
+).join('\n')
+
+const index = `// GENERATED by scripts/reverse-energy-large-foil.ts — do not hand-edit.
+//
+// Ascended Heroes' Energy-pattern reverse. Each sheet holds ONE large glyph for
+// the card's own type, sampled around the sheet centre; nothing tiles. The glyphs
+// are stylised geometric drawings, not official Energy icons, and no sheet is
+// verified against a scan or clean photograph.
+//
+// Measured reference: a real Snorunt Energy reverse shows one large symbol behind
+// the attack text, about 0.45 card widths across. The sampler targets that size
+// and the same 0.675-down centre as the large ball reverse.
+
+export type EnergyReverseGlyph =
+  | 'grass' | 'fire' | 'water' | 'lightning' | 'psychic' | 'fighting'
+  | 'darkness' | 'metal' | 'dragon' | 'fairy' | 'colorless'
+
+export type EnergyReverseAsset = {
+  id: EnergyReverseGlyph
+  label: string
+  texture: string
+  coverage: number
+  peak: number
+  /** Glyph centre in sheet space, used to anchor the card window. */
+  centerU: number
+  centerV: number
+}
+
+export const ENERGY_REVERSE_ASSETS: Record<EnergyReverseGlyph, EnergyReverseAsset> = {
+${entries}
+}
+
+export const ENERGY_REVERSE_TEXTURE_VERIFIED = false
+export const ENERGY_REVERSE_NOTE =
+  'One large stylised Energy symbol behind the attack text on the card body; a reconstruction of Ascended Heroes’ Energy-pattern reverse, not official icon artwork.'
+export const ENERGY_REVERSE_REFERENCE =
+  'https://www.pokebeach.com/2026/01/ascended-heroes-set-guide-full-set-list-god-packs-reverse-holos-product-lineup-and-more'
+export const ENERGY_REVERSE_GEOMETRY = {
+  sheet: ${ENERGY_REVERSE_SHEET_SIZE},
+  stampWidth: ${ENERGY_REVERSE_STAMP_WIDTH},
+  stampHeight: ${ENERGY_REVERSE_STAMP_HEIGHT},
+  window: ${ENERGY_REVERSE_WINDOW},
+  targetU: 0.5,
+  targetV: 0.675,
+} as const
+
+export const ENERGY_REVERSE_SHOWCASE: {
+  cardId: string; setId: string; number: string; name: string; rarity: string
+  types: string | null; supertype: string | null; variant: string
+}[] = ${JSON.stringify(showcase, null, 2)}
+`
+fs.writeFileSync(INDEX_FILE, index)
+console.log(`${measured.length} Energy reverse sheets → ${OUT_DIR}`)
+console.log(measured.map((m) =>
+  `${m.id}: ${(m.coverage * 100).toFixed(2)}% peak ${m.peak.toFixed(2)} at ${m.centerU.toFixed(2)},${m.centerV.toFixed(2)}`,
+).join('\n'))
+console.log(`index: ${INDEX_FILE} (${showcase.length} showcase cards)`)
+if (problems.length) {
+  console.log(`PROBLEMS (${problems.length}):`)
+  for (const p of problems) console.log(' -', p)
+  process.exitCode = 1
+} else console.log('every Energy reverse sheet passes its gates')

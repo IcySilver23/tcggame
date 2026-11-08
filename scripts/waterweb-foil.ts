@@ -1,0 +1,184 @@
+// Water Web sheet → shipped texture + generated index.
+//
+// Run: ./node_modules/.bin/tsx scripts/waterweb-foil.ts
+//
+// No Water Web asset pack, scan or photograph exists in this repository, so this script
+// DRAWS the sheet from Bulbapedia's description — "a wavy pattern similar to flowing
+// water" — at eight bands across the sheet, and records that it is a drawing.
+//
+// It measures what it can: the field's coverage and contrast, that the valley stays
+// bright (a continuous foil, not ribbons on black), that a band's crest really moves
+// sideways down the sheet (this is a wave, not Line's ruled stripes), and the wrap step
+// across the sheet's own edges.
+
+import fs from 'node:fs'
+import path from 'node:path'
+import zlib from 'node:zlib'
+import {
+  waterwebInkAt,
+  waterwebInternalStep,
+  waterwebSeamMismatch,
+  WATERWEB_MARK_LINE,
+  WATERWEB_SHEET_SIZE,
+  WATERWEB_VALLEY,
+  WATERWEB_WAVES,
+  renderWaterwebSheet,
+} from '../src/foil/waterweb-sheet'
+
+const OUT_DIR = 'public/foil/waterweb'
+const OUT_FILE = path.join(OUT_DIR, 'sheet.png')
+const INDEX_FILE = 'src/foil/waterweb-index.ts'
+
+// --------------------------------------------------------------------------
+// Minimal PNG writer (RGBA8, no interlace), same shape as the other sheets.
+// --------------------------------------------------------------------------
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256)
+  for (let n = 0; n < 256; n++) {
+    let c = n
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    t[n] = c >>> 0
+  }
+  return t
+})()
+const crc32 = (buf: Buffer): number => {
+  let c = 0xffffffff
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 255] ^ (c >>> 8)
+  return (c ^ 0xffffffff) >>> 0
+}
+const chunk = (type: string, data: Buffer): Buffer => {
+  const len = Buffer.alloc(4)
+  len.writeUInt32BE(data.length, 0)
+  const body = Buffer.concat([Buffer.from(type, 'ascii'), data])
+  const crc = Buffer.alloc(4)
+  crc.writeUInt32BE(crc32(body), 0)
+  return Buffer.concat([len, body, crc])
+}
+function encodePng(w: number, h: number, rgba: Uint8ClampedArray): Buffer {
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(w, 0)
+  ihdr.writeUInt32BE(h, 4)
+  ihdr[8] = 8
+  ihdr[9] = 6
+  const stride = w * 4
+  const raw = Buffer.alloc((stride + 1) * h)
+  for (let y = 0; y < h; y++) {
+    raw[y * (stride + 1)] = 0
+    Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride).copy(raw, y * (stride + 1) + 1)
+  }
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', zlib.deflateSync(raw, { level: 9 })),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+// --------------------------------------------------------------------------
+
+const problems: string[] = []
+const sheet = renderWaterwebSheet(WATERWEB_SHEET_SIZE)
+const seam = waterwebSeamMismatch(sheet.rgba, sheet.size)
+const internal = waterwebInternalStep(sheet.rgba, sheet.size)
+const contrast = sheet.peak / sheet.valley
+
+if (sheet.valley < 0.25) problems.push(`valley ${sheet.valley.toFixed(3)} is too dark: Water Web is a continuous foil`)
+if (sheet.peak < 0.75) problems.push(`crest ${sheet.peak.toFixed(3)} is too dim to catch light`)
+if (contrast < 1.8) problems.push(`contrast ${contrast.toFixed(2)}x is too flat to read as waves`)
+if (sheet.coverage < 0.35 || sheet.coverage > 0.85) problems.push(`coverage ${(sheet.coverage * 100).toFixed(1)}% is outside the wave range`)
+if (seam > internal + 0.01) {
+  problems.push(`wrap step ${(seam * 100).toFixed(2)}% exceeds one pixel of a band's slope (${(internal * 100).toFixed(2)}%)`)
+}
+
+// WAVY, not ruled: at a crest column the ink must change markedly down the sheet,
+// because the band swings away and back. A straight stripe sheet would move only by its
+// slow drift.
+{
+  const atCrest = [0, 128, 256, 384, 512, 640, 768, 896, 1023].map((y) => waterwebInkAt(0, y))
+  const swing = Math.max(...atCrest) - Math.min(...atCrest)
+  if (swing < 0.25) problems.push(`the bands barely move: a crest column varies by only ${swing.toFixed(3)}`)
+}
+
+// Eight bands across a row: count LOCAL MAXIMA, not threshold crossings. The slow swell
+// can leave one crest hovering at the threshold, which would count twice.
+{
+  const row = 0
+  let crests = 0
+  for (let x = 0; x < WATERWEB_SHEET_SIZE; x++) {
+    const prev = waterwebInkAt((x - 1 + WATERWEB_SHEET_SIZE) % WATERWEB_SHEET_SIZE, row)
+    const here = waterwebInkAt(x, row)
+    const next = waterwebInkAt((x + 1) % WATERWEB_SHEET_SIZE, row)
+    if (here > prev && here >= next && here >= 0.6) crests++
+  }
+  if (crests !== WATERWEB_WAVES) problems.push(`a row crosses ${crests} crests, expected ${WATERWEB_WAVES}`)
+}
+
+fs.mkdirSync(OUT_DIR, { recursive: true })
+fs.writeFileSync(OUT_FILE, encodePng(sheet.size, sheet.size, sheet.rgba))
+
+const per = (v: number) => (v * 100).toFixed(2)
+
+const index = `// GENERATED by scripts/waterweb-foil.ts — do not hand-edit.
+//
+// The Water Web sheet is NOT in this repository: no scan, no photograph, no asset pack.
+// This texture is a PROCEDURAL RECONSTRUCTION of the pattern Bulbapedia describes — "a
+// wavy pattern similar to flowing water" — drawn at ${sheet.size}px as ${sheet.waves} bands
+// across the sheet, each undulating twice as it runs down the card, over foil whose
+// valleys stay bright.
+//
+// Measured from the shipped file:
+//   coverage ${per(sheet.coverage)}% of the sheet is crest above the mark line.
+//   valley   ${sheet.valley.toFixed(3)} alpha between two crests. Water Web is a continuous foil with
+//            waves in it, not bright ribbons on a black field, so the field stays bright.
+//   crest    ${sheet.peak.toFixed(3)} alpha at a lit crest.
+//   contrast ${contrast.toFixed(2)}x between crest and valley.
+//   seam     ${per(seam)}% step across the edges that meet when the sheet wraps, no larger
+//            than one pixel of a band's own slope, so a card may sample any window.
+//
+// The band count, the sideways amplitude, the vertical cycles and the slow swell are this
+// build's choices: the sources name the look and the era, not a repeat. Nothing is
+// embossed as relief.
+//
+// The paper is identified at the SET level, not per printing: Bulbapedia says Water Web
+// ran from Sun & Moon to Cosmic Eclipse, and no printing record in this build claims a
+// Water Web card. Japanese printings also foil the border; that is not modelled here,
+// because this catalogue holds English rows.
+
+export const WATERWEB_SHEET = {
+  pattern: '/foil/waterweb/sheet.png',
+  size: ${sheet.size},
+  waves: ${sheet.waves},
+  coverage: ${sheet.coverage.toFixed(5)},
+  valley: ${sheet.valley.toFixed(5)},
+  peak: ${sheet.peak.toFixed(5)},
+  mean: ${sheet.mean.toFixed(5)},
+  markLine: ${WATERWEB_MARK_LINE},
+  seamMismatch: ${seam.toFixed(5)},
+  tiling: 'disclosed choice: the phase is whole turns, seam measured',
+  concept: true,
+  textureVerified: false,
+  reproduction: 'procedural reconstruction',
+  source: 'https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)',
+  description: 'wavy bands that flow like water',
+} as const
+
+/** What the source says, quoted so the report cannot drift from it. */
+export const WATERWEB_CLAIM =
+  'Bulbapedia, Holofoil: "Water Web Holofoil is the standard Holofoil pattern used for cards from Sun & Moon expansion to Cosmic Eclipse. It consists of a wavy pattern similar to flowing water." Its Rarity page adds: "These cards refract light in a wave-like pattern in all releases. However, only the Japanese releases cover the border with the pattern."'
+
+/** What this build does not claim. */
+export const WATERWEB_LIMITATION =
+  'The sources name the era and the look, not the geometry: the ${sheet.waves} bands, their sideways amplitude, the two undulations down the sheet and the slow swell are this build\\'s drawing. The paper is identified at the SET level — no printing record claims a Water Web card — and Japanese printings\\' foil borders are not modelled because this catalogue holds English rows.'
+`
+
+fs.writeFileSync(INDEX_FILE, index)
+
+console.log(`Water Web sheet: coverage ${per(sheet.coverage)}%, valley ${sheet.valley.toFixed(3)}, crest ${sheet.peak.toFixed(3)}, contrast ${contrast.toFixed(2)}x`)
+console.log(`  ${sheet.waves} bands, wrap step ${per(seam)}% vs internal ${per(internal)}%`)
+console.log(`  wrote ${OUT_FILE} (${(fs.statSync(OUT_FILE).size / 1024).toFixed(1)} KB) and ${INDEX_FILE}`)
+if (problems.length) {
+  console.log('\nPROBLEMS:')
+  for (const p of problems) console.log(`  - ${p}`)
+  process.exit(1)
+}

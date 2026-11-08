@@ -1,0 +1,198 @@
+// Mirage sheet → shipped texture + generated index.
+//
+// Run: ./node_modules/.bin/tsx scripts/mirage-foil.ts
+//
+// No Mirage asset pack, scan or photograph exists in this repository, and the source
+// describes light rather than marks — "visually similar to the Sheen Holofoil used during
+// the XY Series, but refracts light horizontally rather than diagonally" — so this script
+// DRAWS a smooth horizontal sweep and records that it is a drawing.
+//
+// What it measures:
+//   - the field depends only on x: a column is constant, which is what "horizontal
+//     refraction" is taken to mean here;
+//   - the floor stays high (a sheen never stops reflecting);
+//   - the wrap step across the sheet's own edges, against the sweep's internal slope;
+//   - contrast and coverage, so a flat fill cannot pass as a sheen.
+
+import fs from 'node:fs'
+import path from 'node:path'
+import zlib from 'node:zlib'
+import {
+  mirageInkAt,
+  mirageInternalStep,
+  mirageSeamMismatch,
+  MIRAGE_FLOOR,
+  MIRAGE_MARK_LINE,
+  MIRAGE_MEASURED,
+  MIRAGE_PEAK,
+  MIRAGE_SHEET_SIZE,
+  MIRAGE_WAVES,
+  renderMirageSheet,
+} from '../src/foil/mirage-sheet'
+
+const OUT_DIR = 'public/foil/mirage'
+const OUT_FILE = path.join(OUT_DIR, 'sheet.png')
+const INDEX_FILE = 'src/foil/mirage-index.ts'
+
+// --------------------------------------------------------------------------
+// Minimal PNG writer (RGBA8, no interlace), same shape as the other sheets.
+// --------------------------------------------------------------------------
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256)
+  for (let n = 0; n < 256; n++) {
+    let c = n
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
+    t[n] = c >>> 0
+  }
+  return t
+})()
+const crc32 = (buf: Buffer): number => {
+  let c = 0xffffffff
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 255] ^ (c >>> 8)
+  return (c ^ 0xffffffff) >>> 0
+}
+const chunk = (type: string, data: Buffer): Buffer => {
+  const len = Buffer.alloc(4)
+  len.writeUInt32BE(data.length, 0)
+  const body = Buffer.concat([Buffer.from(type, 'ascii'), data])
+  const crc = Buffer.alloc(4)
+  crc.writeUInt32BE(crc32(body), 0)
+  return Buffer.concat([len, body, crc])
+}
+function encodePng(w: number, h: number, rgba: Uint8ClampedArray): Buffer {
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(w, 0)
+  ihdr.writeUInt32BE(h, 4)
+  ihdr[8] = 8
+  ihdr[9] = 6
+  const stride = w * 4
+  const raw = Buffer.alloc((stride + 1) * h)
+  for (let y = 0; y < h; y++) {
+    raw[y * (stride + 1)] = 0
+    Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride).copy(raw, y * (stride + 1) + 1)
+  }
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', zlib.deflateSync(raw, { level: 9 })),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+// --------------------------------------------------------------------------
+
+const problems: string[] = []
+const sheet = renderMirageSheet(MIRAGE_SHEET_SIZE)
+const seam = mirageSeamMismatch(sheet.rgba, sheet.size)
+const internal = mirageInternalStep(sheet.rgba, sheet.size)
+const contrast = sheet.peak / sheet.floor
+
+if (sheet.floor < 0.5) problems.push(`floor ${sheet.floor.toFixed(3)} is too low: a sheen never stops reflecting`)
+// The sweep's exact extremum falls between two pixel columns at this size, so the rendered
+// floor and peak are approached rather than hit; the band itself is bounded by the constants.
+if (sheet.floor < MIRAGE_FLOOR - 1e-9 || sheet.floor > MIRAGE_FLOOR + 0.002) {
+  problems.push(`floor ${sheet.floor.toFixed(4)} is not the declared ${MIRAGE_FLOOR}`)
+}
+if (sheet.peak < MIRAGE_PEAK - 0.002) problems.push(`peak ${sheet.peak.toFixed(4)} is too dim for the declared ${MIRAGE_PEAK}`)
+if (contrast < 1.5 || contrast > 2.2) problems.push(`contrast ${contrast.toFixed(2)}x is outside the sheen range`)
+if (sheet.coverage < 0.25 || sheet.coverage > 0.6) {
+  problems.push(`only ${(sheet.coverage * 100).toFixed(1)}% of the sheet sits above the mark line: the sweep is lopsided`)
+}
+if (seam > internal + 0.01) {
+  problems.push(`wrap step ${(seam * 100).toFixed(2)}% exceeds one pixel of the sweep's slope (${(internal * 100).toFixed(2)}%)`)
+}
+
+// Horizontal refraction: the field must be constant down a column and vary across a row.
+{
+  let columnVaries = false
+  for (let y = 0; y < 512; y++) if (mirageInkAt(37, y) !== mirageInkAt(37, 0)) columnVaries = true
+  if (columnVaries) problems.push('a column varies: the sheen is not horizontal')
+  const row = [0, 64, 128, 256, 384, 512, 768, 1023].map((x) => mirageInkAt(x, 11))
+  if (Math.max(...row) - Math.min(...row) < 0.15) problems.push('a row barely varies: the sweep is too flat')
+}
+
+fs.mkdirSync(OUT_DIR, { recursive: true })
+fs.writeFileSync(OUT_FILE, encodePng(sheet.size, sheet.size, sheet.rgba))
+
+const per = (v: number) => (v * 100).toFixed(2)
+
+const index = `// GENERATED by scripts/mirage-foil.ts — do not hand-edit.
+//
+// The Mirage sheet is NOT in this repository: no scan, no photograph, no asset pack.
+// Bulbapedia describes light rather than marks — "visually similar to the Sheen Holofoil
+// used during the XY Series, but refracts light horizontally rather than diagonally" — so
+// this texture is a PROCEDURAL RECONSTRUCTION: a uniform foil modulated along x at
+// ${MIRAGE_WAVES} broad bands, with a high floor so the sheen never stops reflecting.
+//
+// Measured from the shipped file:
+//   floor    ${sheet.floor.toFixed(3)} alpha at the dimmest point of the sweep.
+//   peak     ${sheet.peak.toFixed(3)} alpha at its brightest.
+//   contrast ${contrast.toFixed(2)}x, which is a sheen rather than printed banding.
+//   coverage ${per(sheet.coverage)}% of the sheet sits above the mark line; every pixel
+//            reflects, only its brightness varies.
+//   seam     ${per(seam)}% step across the edges that meet when the sheet wraps, no larger than
+//            one pixel of the sweep's own slope, so a card may sample any window.
+//
+// The band count is MEASURED, not chosen. Three tilt-run clips of the real Scarlet & Violet
+// promos put the band spacing at ${MIRAGE_MEASURED.period.toFixed(3)} card widths, with the estimator
+// validated on a synthetic tilt of this sheet first (tmp/measure-mirage-ratio.py); two waves
+// draw ${(1 / (MIRAGE_WAVES * (734 / 1024) * 1.015)).toFixed(3)}, where the first drawing's three waves sat 30% too
+// tight. The clips read ${MIRAGE_MEASURED.contrast.toFixed(2)}x contrast against this pipeline's own 7%
+// under-read, so the drawn ${contrast.toFixed(2)}x stands. What stays this build's is the reading that
+// "refracts light horizontally" means the field varies with x (bands vertical): Bulbapedia names
+// the direction, not the band orientation. Which way the band TRAVELS is NOT claimed — the clips
+// rock the card and disagree on a sign (MIRAGE_MEASURED.direction), so the index records that
+// rather than repeating the sentence as if it had been measured.
+//
+// One sourced fact is deliberately NOT modelled: "Standard Holo cards also have Holofoil
+// silver borders". The mask is the illustration window, so that border stays flat here,
+// and the report says so.
+//
+// The paper is identified at the SET level, not per printing: Bulbapedia says Mirage began
+// with the Scarlet & Violet Series, and no printing record in this build claims a Mirage
+// card.
+
+export const MIRAGE_SHEET = {
+  pattern: '/foil/mirage/sheet.png',
+  size: ${sheet.size},
+  waves: ${MIRAGE_WAVES},
+  measuredPeriod: ${MIRAGE_MEASURED.period},
+  measuredContrast: ${MIRAGE_MEASURED.contrast},
+  floor: ${sheet.floor.toFixed(5)},
+  peak: ${sheet.peak.toFixed(5)},
+  mean: ${sheet.mean.toFixed(5)},
+  coverage: ${sheet.coverage.toFixed(5)},
+  markLine: ${MIRAGE_MARK_LINE},
+  seamMismatch: ${seam.toFixed(5)},
+  direction: 'axis only: bands vertical (travel direction not claimed)',
+  directionClaim: '${MIRAGE_MEASURED.direction.claim}',
+  directionNote: '${MIRAGE_MEASURED.direction.note}',
+  tiling: 'disclosed choice: values depend on x mod size, seam measured',
+  concept: true,
+  textureVerified: false,
+  reproduction: 'procedural reconstruction',
+  borderModelled: false,
+  source: 'https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)',
+  description: 'a smooth horizontal sheen, no marks',
+} as const
+
+/** What the source says, quoted so the report cannot drift from it. */
+export const MIRAGE_CLAIM =
+  'Bulbapedia, Holofoil: "Mirage Holofoil was introduced with the Scarlet & Violet Series. It is visually similar to the Sheen Holofoil used during the XY Series, but refracts light horizontally rather than diagonally. Standard Holo cards also have Holofoil silver borders. The effect can be difficult to see clearly in photographs because its appearance depends on reflected light."'
+
+/** What this build does not claim. */
+export const MIRAGE_LIMITATION =
+  'The sources name an axis, not marks or geometry: the ${MIRAGE_WAVES} bands, the contrast, and the reading that the field varies with x (bands vertical) are this build’s drawing, and which way the band TRAVELS is not claimed at all — the reveal clips rock the card and disagree on a sign. The silver foil border Bulbapedia documents on standard holos is NOT modelled — the mask is the illustration window — and the paper is identified at the SET level, because no printing record claims a Mirage card.'
+`
+
+fs.writeFileSync(INDEX_FILE, index)
+
+console.log(`Mirage sheet: floor ${sheet.floor.toFixed(3)}, peak ${sheet.peak.toFixed(3)}, contrast ${contrast.toFixed(2)}x, coverage ${per(sheet.coverage)}%`)
+console.log(`  ${MIRAGE_WAVES} bands, horizontal (column constant), wrap step ${per(seam)}% vs internal ${per(internal)}%`)
+console.log(`  wrote ${OUT_FILE} (${(fs.statSync(OUT_FILE).size / 1024).toFixed(1)} KB) and ${INDEX_FILE}`)
+if (problems.length) {
+  console.log('\nPROBLEMS:')
+  for (const p of problems) console.log(`  - ${p}`)
+  process.exit(1)
+}
