@@ -1,0 +1,133 @@
+{
+  "generated": "scripts/surface-report.ts",
+  "phase": "Phase 11 — normal maps and textured printings",
+  "counts": {
+    "surfaces": 3,
+    "rarities": 14,
+    "cards": 3039,
+    "cardsBySurface": {
+      "etched": 2467,
+      "sparkle": 316,
+      "etched-deep": 256
+    },
+    "textureVerified": false
+  },
+  "eraRule": {
+    "etched-deep": "Black & White and XY full arts (set ids bw*, xy*, g1*, dc*)",
+    "etched": "Sun & Moon, Sword & Shield and Scarlet & Violet tiers, and any era not named",
+    "sparkle": "The four Shiny Vault rarities (Rare Shiny, Rare Shiny GX, Shiny Rare, Shiny Ultra Rare)"
+  },
+  "surfaces": [
+    {
+      "id": "etched",
+      "label": "Etched relief",
+      "texture": "/foil/surface/etched.png",
+      "strength": 0.45,
+      "verified": false,
+      "modelled": true,
+      "note": "A fine diagonal lattice of shallow grooves for the lighter modern papers. The depth, spacing and strength are modelled from the description of later full arts as finer and wavier, not measured from a card. The Shiny Vault finish moved off this lattice to its own granular `sparkle` surface after macro photographs showed no periodic repeat (`reports/shiny-etch-photos.md`).",
+      "source": "https://bleedingcool.com/games/a-holographic-history-of-the-pokemon-tcg-full-art-trainers"
+    },
+    {
+      "id": "sparkle",
+      "label": "Granular sparkle",
+      "texture": "/foil/surface/sparkle.png",
+      "strength": 0.34,
+      "verified": false,
+      "modelled": true,
+      "note": "A fine isotropic grain for the Shiny Vault finish. Photographs of the English SV107 and its Shiny Star V print show a dense granular shimmer, and the measurement finds no periodic repeat even at a 2700 px card width, so the surface is drawn as three octaves of grain rather than a lattice. The grain scale and depth are modelled: a correlation-length test against the same photographs (`reports/shiny-grain.md`) finds no attributable density — rendered down to the flat scan width, the same still climbs from 0.36% to 0.97% of card width, so the figure tracks pixel size rather than the paper. Extrapolating that ladder to zero pixel size is not stable across sources, under a linear fit (0.162%, 0.085%, -0.290%, 0.532%) or under a squared one that cannot go negative (0.365%, 0.284%, 0.000%, 0.709%), so no true length is recorded. Restricting the measurement to the flattest 16%-of-card patches narrows the spread but leaves two negative intercepts, so no length is attributable. The drawn density is accepted as final in that report, not pending: four tests, two models and two patch selections all fail to converge, so the 48/96/192 periods are this build's decision rather than a measurement. What the photographs settle is that the finish is granular.",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Hidden_Fates_(TCG)"
+    },
+    {
+      "id": "etched-deep",
+      "label": "Deep etched relief",
+      "texture": "/foil/surface/etched-deep.png",
+      "strength": 0.62,
+      "verified": false,
+      "modelled": true,
+      "note": "A coarser, deeper diagonal lattice for Black & White and XY full arts, described as heavy with deeply etched texture. Modelled from that description; no scan exists here to measure the real spacing.",
+      "source": "https://bleedingcool.com/games/a-holographic-history-of-the-pokemon-tcg-full-art-trainers"
+    }
+  ],
+  "rarities": [
+    {
+      "rarity": "Rare Ultra",
+      "cards": 799,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Illustration Rare",
+      "cards": 523,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Ultra Rare",
+      "cards": 363,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Rare Secret",
+      "cards": 327,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Rare Rainbow",
+      "cards": 324,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Special Illustration Rare",
+      "cards": 230,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Rare Shiny",
+      "cards": 149,
+      "surface": "sparkle"
+    },
+    {
+      "rarity": "Shiny Rare",
+      "cards": 120,
+      "surface": "sparkle"
+    },
+    {
+      "rarity": "Trainer Gallery Rare Holo",
+      "cards": 80,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Hyper Rare",
+      "cards": 65,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Rare Shiny GX",
+      "cards": 35,
+      "surface": "sparkle"
+    },
+    {
+      "rarity": "Shiny Ultra Rare",
+      "cards": 12,
+      "surface": "sparkle"
+    },
+    {
+      "rarity": "Mega Hyper Rare",
+      "cards": 9,
+      "surface": "etched"
+    },
+    {
+      "rarity": "Promo",
+      "cards": 3,
+      "surface": "etched-deep"
+    }
+  ],
+  "problems": [],
+  "honesty": [
+    "Both reliefs are procedural lattices, not scans of a textured card; every surface records verified: false and modelled: true.",
+    "What is sourced is the weight: Black & White and XY full arts are described as heavy with deeply etched texture, later full arts as lighter and finer. The exact spacing, depth and slope are this build's model.",
+    "Scarlet & Violet textures are in reality art-specific. Using one fine relief across that era is a disclosed simplification, not a claim about any individual card.",
+    "The rarity list is this build's model of which tiers are etched. A tier not listed renders smooth foil rather than borrowing a relief.",
+    "Shiny Vault tiers are routed to their own granular `sparkle` relief: the sources call that finish embossed, etched and textured, which is relief, and the macro photographs show a dense shimmer with no periodic repeat, so a grain is drawn rather than a lattice. The grain's scale and depth are modelled, and a correlation-length test against the same photographs (`reports/shiny-grain.md`) finds no attributable density; the density is accepted as final in that report (its Decision section), so the drawn periods are a decision rather than a pending measurement; the paper stays unnamed upstream and no sheet is borrowed. Paldean Fates also documents a silver border, which is not modelled.",
+    "The surface only shades pixels its own coverage mask allows; it never writes alpha and never changes where foil is. For a textured full art that mask is the foil mask. A modern ball reverse is the deliberate exception: its etch uses a full-card mask while the ball foil stays outside the art, so the etch can cross the picture without putting the stamp there."
+  ]
+}

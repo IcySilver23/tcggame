@@ -1,0 +1,5810 @@
+{
+  "patternDatabaseVersion": 1,
+  "catalog": "data/tcglife.db",
+  "era": {
+    "first": "base4",
+    "last": "col1",
+    "from": "2000-02-24",
+    "to": "2011-04-25"
+  },
+  "patterns": {
+    "registered": 41,
+    "implemented": [
+      "starlight",
+      "cosmos-retro",
+      "cosmos-hd",
+      "tinsel",
+      "waterweb",
+      "line",
+      "mirage",
+      "crackedice",
+      "crosshatch",
+      "plain-holo",
+      "mirror",
+      "sequin",
+      "confetti",
+      "radiant",
+      "radiant-etched",
+      "reverse-fireworks",
+      "reverse-flat",
+      "reverse-energy-symbol",
+      "reverse-pinwheel",
+      "reverse-pokeball",
+      "reverse-flat-background",
+      "reverse-type-symbol",
+      "reverse-type-symbol-large",
+      "reverse-energy-large",
+      "reverse-tile",
+      "reverse-tile-intricate",
+      "reverse-pokeball-large",
+      "reverse-pokeball-rows",
+      "reverse-masterball-large",
+      "reverse-masterball-rows",
+      "reverse-pokeball-assigned-large",
+      "reverse-loveball-large",
+      "reverse-friendball-large",
+      "reverse-quickball-large",
+      "reverse-duskball-large",
+      "reverse-teamrocket-large",
+      "textured-full-art"
+    ],
+    "cosmosTextures": [
+      "classic_dense",
+      "classic_sparse",
+      "modern_fine",
+      "swirl_example"
+    ]
+  },
+  "counts": {
+    "cardsScanned": 20782,
+    "cosmosPrintings": 1055,
+    "verified": 1020,
+    "inferred": 35,
+    "modelled": 0,
+    "reversePrintings": 13008,
+    "specialTreatments": 772,
+    "unresolvedCards": 1,
+    "promoCatalogue": 15,
+    "promoPrintingsResolved": 15,
+    "cardsWithTwoPapers": 3,
+    "cardsWithMultipleFoils": 493,
+    "verifiedNonHolo": 274,
+    "popHoloCatalogued": 38,
+    "popHoloResolved": 38,
+    "popHoloUndocumented": 3,
+    "dragonVaultPrintings": 21,
+    "dragonVaultTinsel": 21,
+    "promoCosmos": 101,
+    "promoNonHolo": 64,
+    "promoUnlisted": 0,
+    "promoCrackedIce": 4,
+    "promoReverse": 3,
+    "promoBucketClaims": 143,
+    "promoBucketUnlisted": 1
+  },
+  "bySet": {
+    "base4": {
+      "name": "Base Set 2",
+      "verified": 20,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "base5": {
+      "name": "Team Rocket",
+      "verified": 17,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "base6": {
+      "name": "Legendary Collection",
+      "verified": 19,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 110
+    },
+    "basep": {
+      "name": "Wizards Black Star Promos",
+      "verified": 8,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "bp": {
+      "name": "Best of Game",
+      "verified": 5,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 5
+    },
+    "bw1": {
+      "name": "Black & White",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 112
+    },
+    "bw10": {
+      "name": "Plasma Blast",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 89
+    },
+    "bw11": {
+      "name": "Legendary Treasures",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 121
+    },
+    "bw2": {
+      "name": "Emerging Powers",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 96
+    },
+    "bw3": {
+      "name": "Noble Victories",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 96
+    },
+    "bw4": {
+      "name": "Next Destinies",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 87
+    },
+    "bw5": {
+      "name": "Dark Explorers",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 96
+    },
+    "bw6": {
+      "name": "Dragons Exalted",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 112
+    },
+    "bw7": {
+      "name": "Boundaries Crossed",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 134
+    },
+    "bw8": {
+      "name": "Plasma Storm",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 122
+    },
+    "bw9": {
+      "name": "Plasma Freeze",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 102
+    },
+    "bwp": {
+      "name": "BW Black Star Promos",
+      "verified": 51,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 5
+    },
+    "col1": {
+      "name": "Call of Legends",
+      "verified": 33,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 106
+    },
+    "det1": {
+      "name": "Detective Pikachu",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 14
+    },
+    "dp1": {
+      "name": "Diamond & Pearl",
+      "verified": 17,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 127
+    },
+    "dp2": {
+      "name": "Mysterious Treasures",
+      "verified": 18,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 120
+    },
+    "dp3": {
+      "name": "Secret Wonders",
+      "verified": 20,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 130
+    },
+    "dp4": {
+      "name": "Great Encounters",
+      "verified": 11,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 102
+    },
+    "dp5": {
+      "name": "Majestic Dawn",
+      "verified": 14,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 96
+    },
+    "dp6": {
+      "name": "Legends Awakened",
+      "verified": 17,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 139
+    },
+    "dp7": {
+      "name": "Stormfront",
+      "verified": 11,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 98
+    },
+    "dpp": {
+      "name": "DP Black Star Promos",
+      "verified": 53,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "ecard1": {
+      "name": "Expedition Base Set",
+      "verified": 32,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 165
+    },
+    "ecard2": {
+      "name": "Aquapolis",
+      "verified": 32,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 147
+    },
+    "ecard3": {
+      "name": "Skyridge",
+      "verified": 32,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 144
+    },
+    "ex1": {
+      "name": "Ruby & Sapphire",
+      "verified": 22,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 101
+    },
+    "ex10": {
+      "name": "Unseen Forces",
+      "verified": 31,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 128
+    },
+    "ex11": {
+      "name": "Delta Species",
+      "verified": 3,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 107
+    },
+    "ex12": {
+      "name": "Legend Maker",
+      "verified": 21,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 82
+    },
+    "ex13": {
+      "name": "Holon Phantoms",
+      "verified": 9,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 104
+    },
+    "ex14": {
+      "name": "Crystal Guardians",
+      "verified": 20,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 88
+    },
+    "ex15": {
+      "name": "Dragon Frontiers",
+      "verified": 10,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 89
+    },
+    "ex16": {
+      "name": "Power Keepers",
+      "verified": 27,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 97
+    },
+    "ex2": {
+      "name": "Sandstorm",
+      "verified": 21,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 93
+    },
+    "ex3": {
+      "name": "Dragon",
+      "verified": 21,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 88
+    },
+    "ex4": {
+      "name": "Team Magma vs Team Aqua",
+      "verified": 19,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 88
+    },
+    "ex5": {
+      "name": "Hidden Legends",
+      "verified": 24,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 92
+    },
+    "ex6": {
+      "name": "FireRed & LeafGreen",
+      "verified": 26,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 103
+    },
+    "ex7": {
+      "name": "Team Rocket Returns",
+      "verified": 25,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 95
+    },
+    "ex8": {
+      "name": "Deoxys",
+      "verified": 24,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 95
+    },
+    "ex9": {
+      "name": "Emerald",
+      "verified": 28,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 95
+    },
+    "fut20": {
+      "name": "Pokémon Futsal Collection",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 5
+    },
+    "g1": {
+      "name": "Generations",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 96
+    },
+    "gym1": {
+      "name": "Gym Heroes",
+      "verified": 19,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "gym2": {
+      "name": "Gym Challenge",
+      "verified": 20,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "hgss1": {
+      "name": "HeartGold & SoulSilver",
+      "verified": 18,
+      "inferred": 6,
+      "modelled": 0,
+      "reverse": 113
+    },
+    "hgss2": {
+      "name": "HS—Unleashed",
+      "verified": 17,
+      "inferred": 6,
+      "modelled": 0,
+      "reverse": 83
+    },
+    "hgss3": {
+      "name": "HS—Undaunted",
+      "verified": 14,
+      "inferred": 6,
+      "modelled": 0,
+      "reverse": 80
+    },
+    "hgss4": {
+      "name": "HS—Triumphant",
+      "verified": 16,
+      "inferred": 8,
+      "modelled": 0,
+      "reverse": 90
+    },
+    "hsp": {
+      "name": "HGSS Black Star Promos",
+      "verified": 20,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "me1": {
+      "name": "Mega Evolution",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 122
+    },
+    "me2": {
+      "name": "Phantasmal Flames",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 84
+    },
+    "me2pt5": {
+      "name": "Ascended Heroes",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 185
+    },
+    "me3": {
+      "name": "Perfect Order",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 79
+    },
+    "me4": {
+      "name": "Chaos Rising",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 76
+    },
+    "me5": {
+      "name": "Pitch Black",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 74
+    },
+    "me55": {
+      "name": "30th Celebration",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 121
+    },
+    "neo1": {
+      "name": "Neo Genesis",
+      "verified": 19,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "neo2": {
+      "name": "Neo Discovery",
+      "verified": 17,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "neo3": {
+      "name": "Neo Revelation",
+      "verified": 16,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "neo4": {
+      "name": "Neo Destiny",
+      "verified": 16,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "np": {
+      "name": "Nintendo Black Star Promos",
+      "verified": 22,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 3
+    },
+    "pgo": {
+      "name": "Pokémon GO",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 58
+    },
+    "pl1": {
+      "name": "Platinum",
+      "verified": 17,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 124
+    },
+    "pl2": {
+      "name": "Rising Rivals",
+      "verified": 13,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 107
+    },
+    "pl3": {
+      "name": "Supreme Victors",
+      "verified": 14,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 143
+    },
+    "pl4": {
+      "name": "Arceus",
+      "verified": 12,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 105
+    },
+    "pop8": {
+      "name": "POP Series 8",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 3
+    },
+    "rsv10pt5": {
+      "name": "White Flare",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 83
+    },
+    "ru1": {
+      "name": "Pokémon Rumble",
+      "verified": 0,
+      "inferred": 3,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "si1": {
+      "name": "Southern Islands",
+      "verified": 0,
+      "inferred": 6,
+      "modelled": 0,
+      "reverse": 6
+    },
+    "sm1": {
+      "name": "Sun & Moon",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 136
+    },
+    "sm10": {
+      "name": "Unbroken Bonds",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 179
+    },
+    "sm11": {
+      "name": "Unified Minds",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 198
+    },
+    "sm12": {
+      "name": "Cosmic Eclipse",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 193
+    },
+    "sm2": {
+      "name": "Guardians Rising",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 126
+    },
+    "sm3": {
+      "name": "Burning Shadows",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 122
+    },
+    "sm4": {
+      "name": "Crimson Invasion",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 93
+    },
+    "sm5": {
+      "name": "Ultra Prism",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 129
+    },
+    "sm6": {
+      "name": "Forbidden Light",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 109
+    },
+    "sm7": {
+      "name": "Celestial Storm",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 140
+    },
+    "sm8": {
+      "name": "Lost Thunder",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 178
+    },
+    "sm9": {
+      "name": "Team Up",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 145
+    },
+    "smp": {
+      "name": "SM Black Star Promos",
+      "verified": 3,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "sv1": {
+      "name": "Scarlet & Violet",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 186
+    },
+    "sv10": {
+      "name": "Destined Rivals",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 165
+    },
+    "sv2": {
+      "name": "Paldea Evolved",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 176
+    },
+    "sv3": {
+      "name": "Obsidian Flames",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 176
+    },
+    "sv3pt5": {
+      "name": "151",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 153
+    },
+    "sv4": {
+      "name": "Paradox Rift",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 162
+    },
+    "sv4pt5": {
+      "name": "Paldean Fates",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 81
+    },
+    "sv5": {
+      "name": "Temporal Forces",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 140
+    },
+    "sv6": {
+      "name": "Twilight Masquerade",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 147
+    },
+    "sv6pt5": {
+      "name": "Shrouded Fable",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 55
+    },
+    "sv7": {
+      "name": "Stellar Crown",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 125
+    },
+    "sv8": {
+      "name": "Surging Sparks",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 165
+    },
+    "sv8pt5": {
+      "name": "Prismatic Evolutions",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 100
+    },
+    "sv9": {
+      "name": "Journey Together",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 143
+    },
+    "svp": {
+      "name": "Scarlet & Violet Black Star Promos",
+      "verified": 4,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "swsh1": {
+      "name": "Sword & Shield",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 165
+    },
+    "swsh10": {
+      "name": "Astral Radiance",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 128
+    },
+    "swsh11": {
+      "name": "Lost Origin",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 149
+    },
+    "swsh12": {
+      "name": "Silver Tempest",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 144
+    },
+    "swsh12pt5": {
+      "name": "Crown Zenith",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 113
+    },
+    "swsh2": {
+      "name": "Rebel Clash",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 151
+    },
+    "swsh3": {
+      "name": "Darkness Ablaze",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 155
+    },
+    "swsh4": {
+      "name": "Vivid Voltage",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 142
+    },
+    "swsh5": {
+      "name": "Battle Styles",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 123
+    },
+    "swsh6": {
+      "name": "Chilling Reign",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 136
+    },
+    "swsh7": {
+      "name": "Evolving Skies",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 132
+    },
+    "swsh8": {
+      "name": "Fusion Strike",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 217
+    },
+    "swsh9": {
+      "name": "Brilliant Stars",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 124
+    },
+    "swshp": {
+      "name": "SWSH Black Star Promos",
+      "verified": 1,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "xy0": {
+      "name": "Kalos Starter Set",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 39
+    },
+    "xy1": {
+      "name": "XY",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 132
+    },
+    "xy10": {
+      "name": "Fates Collide",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 97
+    },
+    "xy11": {
+      "name": "Steam Siege",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 93
+    },
+    "xy12": {
+      "name": "Evolutions",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 83
+    },
+    "xy2": {
+      "name": "Flashfire",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 91
+    },
+    "xy3": {
+      "name": "Furious Fists",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 97
+    },
+    "xy4": {
+      "name": "Phantom Forces",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 104
+    },
+    "xy5": {
+      "name": "Primal Clash",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 132
+    },
+    "xy6": {
+      "name": "Roaring Skies",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 87
+    },
+    "xy7": {
+      "name": "Ancient Origins",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 72
+    },
+    "xy8": {
+      "name": "BREAKthrough",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 139
+    },
+    "xy9": {
+      "name": "BREAKpoint",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 99
+    },
+    "xyp": {
+      "name": "XY Black Star Promos",
+      "verified": 1,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 0
+    },
+    "zsv10pt5": {
+      "name": "Black Bolt",
+      "verified": 0,
+      "inferred": 0,
+      "modelled": 0,
+      "reverse": 82
+    }
+  },
+  "unresolvedBySet": {
+    "bwp": 1
+  },
+  "promoPrintings": [
+    {
+      "cardId": "basep-24",
+      "product": "Wizards Black Star Promo 24",
+      "pattern": "cosmos-retro",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "dpp-DP50",
+      "product": "DP Black Star Promo DP50",
+      "pattern": "cosmos-retro",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "dpp-DP53",
+      "product": "DP Black Star Promo DP53",
+      "pattern": "cosmos-retro",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "dpp-DP54",
+      "product": "DP Black Star Promo DP54 (French blister promotion)",
+      "pattern": "cosmos-retro",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Beginning_Door_(DP_Promo_54)"
+    },
+    {
+      "cardId": "dpp-DP55",
+      "product": "DP Black Star Promo DP55 (French blister promotion)",
+      "pattern": "cosmos-retro",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Ultimate_Zone_(DP_Promo_55)"
+    },
+    {
+      "cardId": "bwp-BW67",
+      "product": "BW Black Star Promo BW67",
+      "pattern": "cosmos-retro",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "xyp-XY178",
+      "product": "XY Black Star Promo XY178",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "smp-SM43",
+      "product": "Sun & Moon Black Star Promo SM43",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "smp-SM51",
+      "product": "Sun & Moon Black Star Promo SM51",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "smp-SM65",
+      "product": "Sun & Moon Black Star Promo SM65",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "swshp-SWSH058",
+      "product": "Sword & Shield Black Star Promo SWSH058",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "svp-11",
+      "product": "Scarlet & Violet Black Star Promo SVP011",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://pokumon.com/holofoil/cosmos/"
+    },
+    {
+      "cardId": "svp-46",
+      "product": "151 Poster Collection",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://sleevenocardbehind.com/pokemon-151-secret-variants/"
+    },
+    {
+      "cardId": "svp-47",
+      "product": "151 Poster Collection",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://sleevenocardbehind.com/pokemon-151-secret-variants/"
+    },
+    {
+      "cardId": "svp-48",
+      "product": "151 Poster Collection",
+      "pattern": "cosmos-hd",
+      "status": "verified",
+      "maskVerified": false,
+      "source": "https://sleevenocardbehind.com/pokemon-151-secret-variants/"
+    }
+  ],
+  "cardsWithTwoPapers": [
+    {
+      "cardId": "svp-46",
+      "product": "151 Poster Collection",
+      "papers": [
+        "modern_fine",
+        "classic_dense"
+      ],
+      "defaultPattern": "cosmos-hd"
+    },
+    {
+      "cardId": "svp-47",
+      "product": "151 Poster Collection",
+      "papers": [
+        "modern_fine",
+        "classic_dense"
+      ],
+      "defaultPattern": "cosmos-hd"
+    },
+    {
+      "cardId": "svp-48",
+      "product": "151 Poster Collection",
+      "papers": [
+        "modern_fine",
+        "classic_dense"
+      ],
+      "defaultPattern": "cosmos-hd"
+    }
+  ],
+  "cardsWithMultipleFoils": [
+    {
+      "cardId": "col1-1",
+      "name": "Clefable",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-2",
+      "name": "Deoxys",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-3",
+      "name": "Dialga",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-4",
+      "name": "Espeon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-5",
+      "name": "Forretress",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-6",
+      "name": "Groudon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-7",
+      "name": "Gyarados",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-8",
+      "name": "Hitmontop",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-9",
+      "name": "Ho-Oh",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-10",
+      "name": "Houndoom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-11",
+      "name": "Jirachi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-12",
+      "name": "Kyogre",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-13",
+      "name": "Leafeon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-14",
+      "name": "Lucario",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-15",
+      "name": "Lugia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-16",
+      "name": "Magmortar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-17",
+      "name": "Ninetales",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-18",
+      "name": "Pachirisu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-19",
+      "name": "Palkia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-20",
+      "name": "Rayquaza",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-21",
+      "name": "Smeargle",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-22",
+      "name": "Umbreon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL1",
+      "name": "Deoxys",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL2",
+      "name": "Dialga",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL3",
+      "name": "Entei",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL4",
+      "name": "Groudon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL5",
+      "name": "Ho-Oh",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL6",
+      "name": "Kyogre",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL7",
+      "name": "Lugia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL8",
+      "name": "Palkia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL9",
+      "name": "Raikou",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL10",
+      "name": "Rayquaza",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "col1-SL11",
+      "name": "Suicune",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-1",
+      "name": "Aggron",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-2",
+      "name": "Altaria",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-3",
+      "name": "Celebi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-4",
+      "name": "Drapion",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-5",
+      "name": "Mamoswine",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-6",
+      "name": "Nidoking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-7",
+      "name": "Porygon-Z",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-8",
+      "name": "Rapidash",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-9",
+      "name": "Solrock",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-10",
+      "name": "Spiritomb",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-11",
+      "name": "Venomoth",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss4-12",
+      "name": "Victreebel",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-1",
+      "name": "Bellossom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-2",
+      "name": "Espeon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-3",
+      "name": "Forretress",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-4",
+      "name": "Gliscor",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-5",
+      "name": "Houndoom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-6",
+      "name": "Magcargo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-7",
+      "name": "Scizor",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-8",
+      "name": "Smeargle",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-9",
+      "name": "Togekiss",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss3-10",
+      "name": "Umbreon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-1",
+      "name": "Jirachi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-2",
+      "name": "Magmortar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-3",
+      "name": "Manaphy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-4",
+      "name": "Metagross",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-5",
+      "name": "Mismagius",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-6",
+      "name": "Octillery",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-7",
+      "name": "Politoed",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-8",
+      "name": "Shaymin",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-9",
+      "name": "Sudowoodo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-10",
+      "name": "Torterra",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss2-11",
+      "name": "Xatu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-1",
+      "name": "Arcanine",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-2",
+      "name": "Azumarill",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-3",
+      "name": "Clefable",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-4",
+      "name": "Gyarados",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-5",
+      "name": "Hitmontop",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-6",
+      "name": "Jumpluff",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-7",
+      "name": "Ninetales",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-8",
+      "name": "Noctowl",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-9",
+      "name": "Quagsire",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-10",
+      "name": "Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-11",
+      "name": "Shuckle",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-12",
+      "name": "Slowking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-13",
+      "name": "Wobbuffet",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "hgss1-123",
+      "name": "Gyarados",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-1",
+      "name": "Absol G",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-2",
+      "name": "Blaziken FB",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-3",
+      "name": "Drifblim FB",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-4",
+      "name": "Electivire FB",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-5",
+      "name": "Garchomp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-6",
+      "name": "Magmortar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-7",
+      "name": "Metagross",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-8",
+      "name": "Rayquaza C",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-9",
+      "name": "Regigigas FB",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-10",
+      "name": "Rhyperior",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-11",
+      "name": "Staraptor FB",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-12",
+      "name": "Swampert",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-13",
+      "name": "Venusaur",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl3-14",
+      "name": "Yanmega",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-1",
+      "name": "Arcanine",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-2",
+      "name": "Bastiodon GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-3",
+      "name": "Darkrai G",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-4",
+      "name": "Floatzel GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-5",
+      "name": "Flygon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-6",
+      "name": "Froslass GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-7",
+      "name": "Jirachi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-8",
+      "name": "Lucario GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-9",
+      "name": "Luxray GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-10",
+      "name": "Mismagius GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-11",
+      "name": "Rampardos GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-12",
+      "name": "Roserade GL",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl2-13",
+      "name": "Shiftry",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-1",
+      "name": "Ampharos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-2",
+      "name": "Blastoise",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-3",
+      "name": "Blaziken",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-4",
+      "name": "Delcatty",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-5",
+      "name": "Dialga",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-6",
+      "name": "Dialga",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-7",
+      "name": "Dialga G",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-8",
+      "name": "Gardevoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-9",
+      "name": "Giratina",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-10",
+      "name": "Giratina",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-11",
+      "name": "Manectric",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-12",
+      "name": "Palkia G",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-13",
+      "name": "Rampardos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-14",
+      "name": "Shaymin",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-15",
+      "name": "Shaymin",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-16",
+      "name": "Slaking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl1-17",
+      "name": "Weavile G",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-1",
+      "name": "Dusknoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-2",
+      "name": "Empoleon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-3",
+      "name": "Infernape",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-4",
+      "name": "Lumineon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-5",
+      "name": "Magnezone",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-6",
+      "name": "Magnezone",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-7",
+      "name": "Mismagius",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-8",
+      "name": "Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-9",
+      "name": "Regigigas",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-10",
+      "name": "Sceptile",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp7-11",
+      "name": "Torterra",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-1",
+      "name": "Charizard",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-2",
+      "name": "Froslass",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-3",
+      "name": "Heatran",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-4",
+      "name": "Kabutops",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-5",
+      "name": "Luxray",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-6",
+      "name": "Mothim",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-7",
+      "name": "Probopass",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-8",
+      "name": "Salamence",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-9",
+      "name": "Swalot",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-10",
+      "name": "Tangrowth",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-11",
+      "name": "Toxicroak",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "pl4-12",
+      "name": "Zapdos G",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-1",
+      "name": "Deoxys Normal Forme",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-2",
+      "name": "Dragonite",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-3",
+      "name": "Froslass",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-4",
+      "name": "Giratina",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-5",
+      "name": "Gliscor",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-6",
+      "name": "Heatran",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-7",
+      "name": "Kingdra",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-8",
+      "name": "Luxray",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-9",
+      "name": "Mamoswine",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-10",
+      "name": "Metagross",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-11",
+      "name": "Mewtwo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-12",
+      "name": "Politoed",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-13",
+      "name": "Probopass",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-14",
+      "name": "Rayquaza",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-15",
+      "name": "Regigigas",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-16",
+      "name": "Spiritomb",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp6-17",
+      "name": "Yanmega",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-1",
+      "name": "Articuno",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-2",
+      "name": "Cresselia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-3",
+      "name": "Darkrai",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-4",
+      "name": "Dialga",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-5",
+      "name": "Glaceon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-6",
+      "name": "Kabutops",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-7",
+      "name": "Leafeon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-8",
+      "name": "Manaphy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-9",
+      "name": "Mewtwo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-10",
+      "name": "Moltres",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-11",
+      "name": "Palkia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-12",
+      "name": "Phione",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-13",
+      "name": "Rotom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp5-14",
+      "name": "Zapdos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-1",
+      "name": "Blaziken",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-2",
+      "name": "Cresselia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-3",
+      "name": "Darkrai",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-4",
+      "name": "Darkrai",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-5",
+      "name": "Pachirisu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-6",
+      "name": "Porygon-Z",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-7",
+      "name": "Rotom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-8",
+      "name": "Sceptile",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-9",
+      "name": "Swampert",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-10",
+      "name": "Tangrowth",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp4-11",
+      "name": "Togekiss",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-1",
+      "name": "Ampharos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-2",
+      "name": "Blastoise",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-3",
+      "name": "Charizard",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-4",
+      "name": "Entei",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-5",
+      "name": "Flygon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-6",
+      "name": "Gallade",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-7",
+      "name": "Gardevoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-8",
+      "name": "Gastrodon East Sea",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-9",
+      "name": "Gastrodon West Sea",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-10",
+      "name": "Ho-Oh",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-11",
+      "name": "Jumpluff",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-12",
+      "name": "Lickilicky",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-13",
+      "name": "Ludicolo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-14",
+      "name": "Lugia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-15",
+      "name": "Mew",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-16",
+      "name": "Raikou",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-17",
+      "name": "Roserade",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-18",
+      "name": "Salamence",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-19",
+      "name": "Suicune",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp3-20",
+      "name": "Venusaur",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-1",
+      "name": "Aggron",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-2",
+      "name": "Alakazam",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-3",
+      "name": "Ambipom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-4",
+      "name": "Azelf",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-5",
+      "name": "Blissey",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-6",
+      "name": "Bronzong",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-7",
+      "name": "Celebi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-8",
+      "name": "Feraligatr",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-9",
+      "name": "Garchomp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-10",
+      "name": "Honchkrow",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-11",
+      "name": "Lumineon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-12",
+      "name": "Magmortar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-13",
+      "name": "Meganium",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-14",
+      "name": "Mesprit",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-15",
+      "name": "Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-16",
+      "name": "Typhlosion",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-17",
+      "name": "Tyranitar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp2-18",
+      "name": "Uxie",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-1",
+      "name": "Dialga",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-2",
+      "name": "Dusknoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-3",
+      "name": "Electivire",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-4",
+      "name": "Empoleon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-5",
+      "name": "Infernape",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-6",
+      "name": "Lucario",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-7",
+      "name": "Luxray",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-8",
+      "name": "Magnezone",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-9",
+      "name": "Manaphy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-10",
+      "name": "Mismagius",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-11",
+      "name": "Palkia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-12",
+      "name": "Rhyperior",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-13",
+      "name": "Roserade",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-14",
+      "name": "Shiftry",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-15",
+      "name": "Skuntank",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-16",
+      "name": "Staraptor",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "dp1-17",
+      "name": "Torterra",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex16-1",
+      "name": "Aggron",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-2",
+      "name": "Altaria",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-3",
+      "name": "Armaldo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-4",
+      "name": "Banette",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-5",
+      "name": "Blaziken",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-6",
+      "name": "Charizard",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-7",
+      "name": "Cradily",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-8",
+      "name": "Delcatty",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-9",
+      "name": "Gardevoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-10",
+      "name": "Kabutops",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-11",
+      "name": "Machamp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-12",
+      "name": "Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-13",
+      "name": "Slaking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-103",
+      "name": "Grass Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-104",
+      "name": "Fire Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-105",
+      "name": "Water Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-106",
+      "name": "Lightning Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-107",
+      "name": "Psychic Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex16-108",
+      "name": "Fighting Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-1",
+      "name": "Banette",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-3",
+      "name": "Camerupt",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-5",
+      "name": "Dugtrio",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-7",
+      "name": "Luvdisc",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-8",
+      "name": "Manectric",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-9",
+      "name": "Mawile",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-10",
+      "name": "Sableye",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-11",
+      "name": "Swalot",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-12",
+      "name": "Tauros",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex14-13",
+      "name": "Wigglytuff",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex13-105",
+      "name": "Grass Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex13-106",
+      "name": "Fire Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex13-107",
+      "name": "Water Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex13-108",
+      "name": "Lightning Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex13-109",
+      "name": "Psychic Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex13-110",
+      "name": "Fighting Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-1",
+      "name": "Aerodactyl",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-2",
+      "name": "Aggron",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-3",
+      "name": "Cradily",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-4",
+      "name": "Delcatty",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-5",
+      "name": "Gengar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-6",
+      "name": "Golem",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-7",
+      "name": "Kabutops",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-8",
+      "name": "Lapras",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-9",
+      "name": "Machamp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-10",
+      "name": "Mew",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-11",
+      "name": "Muk",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-12",
+      "name": "Shiftry",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-13",
+      "name": "Victreebel",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex12-14",
+      "name": "Wailord",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat-background"
+      ]
+    },
+    {
+      "cardId": "ex10-1",
+      "name": "Ampharos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-2",
+      "name": "Ariados",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-3",
+      "name": "Bellossom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-4",
+      "name": "Feraligatr",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-5",
+      "name": "Flareon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-6",
+      "name": "Forretress",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-7",
+      "name": "Houndoom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-8",
+      "name": "Jolteon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-9",
+      "name": "Meganium",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-10",
+      "name": "Octillery",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-11",
+      "name": "Poliwrath",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-12",
+      "name": "Porygon2",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-13",
+      "name": "Slowbro",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-14",
+      "name": "Slowking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-15",
+      "name": "Sudowoodo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-16",
+      "name": "Sunflora",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-17",
+      "name": "Typhlosion",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-18",
+      "name": "Ursaring",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex10-19",
+      "name": "Vaporeon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-1",
+      "name": "Blaziken",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-2",
+      "name": "Deoxys",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-3",
+      "name": "Exploud",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-4",
+      "name": "Gardevoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-5",
+      "name": "Groudon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-6",
+      "name": "Kyogre",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-7",
+      "name": "Manectric",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-8",
+      "name": "Milotic",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-9",
+      "name": "Rayquaza",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-10",
+      "name": "Sceptile",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-11",
+      "name": "Swampert",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-101",
+      "name": "Grass Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-102",
+      "name": "Fire Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-103",
+      "name": "Water Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-104",
+      "name": "Lightning Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-105",
+      "name": "Psychic Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex9-106",
+      "name": "Fighting Energy",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pokeball"
+      ]
+    },
+    {
+      "cardId": "ex8-1",
+      "name": "Altaria",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-2",
+      "name": "Beautifly",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-3",
+      "name": "Breloom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-4",
+      "name": "Camerupt",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-5",
+      "name": "Claydol",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-6",
+      "name": "Crawdaunt",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-7",
+      "name": "Dusclops",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-8",
+      "name": "Gyarados",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-9",
+      "name": "Jirachi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-10",
+      "name": "Ludicolo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-11",
+      "name": "Metagross",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-12",
+      "name": "Mightyena",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-13",
+      "name": "Ninjask",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-14",
+      "name": "Shedinja",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex8-15",
+      "name": "Slaking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-pinwheel"
+      ]
+    },
+    {
+      "cardId": "ex7-1",
+      "name": "Azumarill",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-2",
+      "name": "Dark Ampharos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-3",
+      "name": "Dark Crobat",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-4",
+      "name": "Dark Electrode",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-5",
+      "name": "Dark Houndoom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-6",
+      "name": "Dark Hypno",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-7",
+      "name": "Dark Marowak",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-8",
+      "name": "Dark Octillery",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-9",
+      "name": "Dark Slowking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-10",
+      "name": "Dark Steelix",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-11",
+      "name": "Jumpluff",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-12",
+      "name": "Kingdra",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-13",
+      "name": "Piloswine",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex7-14",
+      "name": "Togetic",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-1",
+      "name": "Beedrill",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-2",
+      "name": "Butterfree",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-3",
+      "name": "Dewgong",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-4",
+      "name": "Ditto",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-5",
+      "name": "Exeggutor",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-6",
+      "name": "Kangaskhan",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-7",
+      "name": "Marowak",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-8",
+      "name": "Nidoking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-9",
+      "name": "Nidoqueen",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-10",
+      "name": "Pidgeot",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-11",
+      "name": "Poliwrath",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-12",
+      "name": "Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-13",
+      "name": "Rapidash",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-14",
+      "name": "Slowbro",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-15",
+      "name": "Snorlax",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-16",
+      "name": "Tauros",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex6-17",
+      "name": "Victreebel",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-1",
+      "name": "Banette",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-2",
+      "name": "Claydol",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-3",
+      "name": "Crobat",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-4",
+      "name": "Dark Celebi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-5",
+      "name": "Electrode",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-6",
+      "name": "Exploud",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-7",
+      "name": "Heracross",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-8",
+      "name": "Jirachi",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-9",
+      "name": "Machamp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-10",
+      "name": "Medicham",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-11",
+      "name": "Metagross",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-12",
+      "name": "Milotic",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-13",
+      "name": "Pinsir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-14",
+      "name": "Shiftry",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex5-15",
+      "name": "Walrein",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-energy-symbol"
+      ]
+    },
+    {
+      "cardId": "ex4-1",
+      "name": "Team Aqua's Cacturne",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-2",
+      "name": "Team Aqua's Crawdaunt",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-3",
+      "name": "Team Aqua's Kyogre",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-4",
+      "name": "Team Aqua's Manectric",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-5",
+      "name": "Team Aqua's Sharpedo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-6",
+      "name": "Team Aqua's Walrein",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-7",
+      "name": "Team Magma's Aggron",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-8",
+      "name": "Team Magma's Claydol",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-9",
+      "name": "Team Magma's Groudon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-10",
+      "name": "Team Magma's Houndoom",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-11",
+      "name": "Team Magma's Rhydon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex4-12",
+      "name": "Team Magma's Torkoal",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-1",
+      "name": "Absol",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-2",
+      "name": "Altaria",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-3",
+      "name": "Crawdaunt",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-4",
+      "name": "Flygon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-5",
+      "name": "Golem",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-6",
+      "name": "Grumpig",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-7",
+      "name": "Minun",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-8",
+      "name": "Plusle",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-9",
+      "name": "Roselia",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-10",
+      "name": "Salamence",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-11",
+      "name": "Shedinja",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex3-12",
+      "name": "Torkoal",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-1",
+      "name": "Armaldo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-2",
+      "name": "Cacturne",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-3",
+      "name": "Cradily",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-4",
+      "name": "Dusclops",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-5",
+      "name": "Flareon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-6",
+      "name": "Jolteon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-7",
+      "name": "Ludicolo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-8",
+      "name": "Lunatone",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-9",
+      "name": "Mawile",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-10",
+      "name": "Sableye",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-11",
+      "name": "Seviper",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-12",
+      "name": "Shiftry",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-13",
+      "name": "Solrock",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex2-14",
+      "name": "Zangoose",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-1",
+      "name": "Aggron",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-2",
+      "name": "Beautifly",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-3",
+      "name": "Blaziken",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-4",
+      "name": "Camerupt",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-5",
+      "name": "Delcatty",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-6",
+      "name": "Dustox",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-7",
+      "name": "Gardevoir",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-8",
+      "name": "Hariyama",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-9",
+      "name": "Manectric",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-10",
+      "name": "Mightyena",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-11",
+      "name": "Sceptile",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-12",
+      "name": "Slaking",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-13",
+      "name": "Swampert",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ex1-14",
+      "name": "Wailord",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-1",
+      "name": "Alakazam",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-2",
+      "name": "Ampharos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-3",
+      "name": "Arbok",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-4",
+      "name": "Blastoise",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-5",
+      "name": "Butterfree",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-6",
+      "name": "Charizard",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-7",
+      "name": "Clefable",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-8",
+      "name": "Cloyster",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-9",
+      "name": "Dragonite",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-10",
+      "name": "Dugtrio",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-11",
+      "name": "Fearow",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-12",
+      "name": "Feraligatr",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-13",
+      "name": "Gengar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-14",
+      "name": "Golem",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-15",
+      "name": "Kingler",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-16",
+      "name": "Machamp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-17",
+      "name": "Magby",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-18",
+      "name": "Meganium",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-19",
+      "name": "Mew",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-20",
+      "name": "Mewtwo",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-21",
+      "name": "Ninetales",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-22",
+      "name": "Pichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-23",
+      "name": "Pidgeot",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-24",
+      "name": "Poliwrath",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-25",
+      "name": "Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-26",
+      "name": "Rapidash",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-27",
+      "name": "Skarmory",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-28",
+      "name": "Typhlosion",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-29",
+      "name": "Tyranitar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-30",
+      "name": "Venusaur",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-31",
+      "name": "Vileplume",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "ecard1-32",
+      "name": "Weezing",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-flat"
+      ]
+    },
+    {
+      "cardId": "base6-1",
+      "name": "Alakazam",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-2",
+      "name": "Articuno",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-3",
+      "name": "Charizard",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-4",
+      "name": "Dark Blastoise",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-5",
+      "name": "Dark Dragonite",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-6",
+      "name": "Dark Persian",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-7",
+      "name": "Dark Raichu",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-8",
+      "name": "Dark Slowbro",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-9",
+      "name": "Dark Vaporeon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-10",
+      "name": "Flareon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-11",
+      "name": "Gengar",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-12",
+      "name": "Gyarados",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-13",
+      "name": "Hitmonlee",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-14",
+      "name": "Jolteon",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-15",
+      "name": "Machamp",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-16",
+      "name": "Muk",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-17",
+      "name": "Ninetales",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-18",
+      "name": "Venusaur",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    },
+    {
+      "cardId": "base6-19",
+      "name": "Zapdos",
+      "patterns": [
+        "cosmos-retro",
+        "reverse-fireworks"
+      ]
+    }
+  ],
+  "popHolo": [
+    {
+      "cardId": "pop1-16",
+      "name": "Armaldo ex",
+      "catalogName": "Armaldo ex",
+      "product": "2007 Spring Collector’s Tins (international)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop1-17",
+      "name": "Tyranitar ex",
+      "catalogName": "Tyranitar ex",
+      "product": "Target exclusive Value Box (October 2006) / 2007 Spring Collector’s Tins",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop2-1",
+      "name": "Entei",
+      "catalogName": "Entei",
+      "product": "Legendary Beasts Blisters (October 2006)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop2-2",
+      "name": "Pidgeot",
+      "catalogName": "Pidgeot",
+      "product": "EX Crystal Guardians Blisters (2006)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop2-17",
+      "name": "Celebi ex",
+      "catalogName": "Celebi ex",
+      "product": "Bonus Box / Trainer’s Challenge Set / 2007 Spring Collector’s Tins",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop3-1",
+      "name": "Blastoise",
+      "catalogName": "Blastoise",
+      "product": "Crystal Trainer Set (September 2006, Toys “R” Us exclusive)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop3-2",
+      "name": "Flareon",
+      "catalogName": "Flareon",
+      "product": "Eeveelutions Blisters (November 2006) / Enhanced Value Pack (June 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop3-3",
+      "name": "Jolteon",
+      "catalogName": "Jolteon",
+      "product": "Eeveelutions Blisters (November 2006) / Enhanced Value Pack (June 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop3-4",
+      "name": "Minun",
+      "catalogName": "Minun",
+      "product": "EX Dragon Frontiers Blisters (November 2006)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop3-6",
+      "name": "Vaporeon",
+      "catalogName": "Vaporeon",
+      "product": "Eeveelutions Blisters (November 2006) / Enhanced Value Pack (June 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop3-17",
+      "name": "Ho-Oh ex",
+      "catalogName": "Ho-Oh ex",
+      "product": "2007 Spring Collector’s Tins (international)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop4-2",
+      "name": "Deoxys δ",
+      "catalogName": "Deoxys δ",
+      "product": "EX Power Keepers Blisters (March 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop4-3",
+      "name": "Flygon",
+      "catalogName": "Flygon",
+      "product": "Epic Collection Value Boxes (May 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop4-6",
+      "name": "Combusken",
+      "catalogName": "Combusken",
+      "product": "EX Value Set (March 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop4-11",
+      "name": "Mudkip",
+      "catalogName": "Mudkip",
+      "product": "EX Value Set (March 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop4-13",
+      "name": "Pikachu",
+      "catalogName": "Pikachu",
+      "product": "EX Dragon Frontiers Blisters (April 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop4-16",
+      "name": "Wobbuffet",
+      "catalogName": "Wobbuffet",
+      "product": "EX Power Keepers Blisters 2-pack (April 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop5-1",
+      "name": "Ho-Oh",
+      "catalogName": "Ho-Oh",
+      "product": "DP Gift Packs (Target & Toys R Us, October 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop5-2",
+      "name": "Lugia",
+      "catalogName": "Lugia",
+      "product": "DP Gift Packs (Target & Toys R Us, October 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop5-3",
+      "name": "Mew δ",
+      "catalogName": "Mew δ",
+      "product": "DP Value Pack 1 (Wal-Mart & Target, September 2007)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop6-3",
+      "name": "Manaphy",
+      "catalogName": "Manaphy",
+      "product": "Majestic Dawn Blisters (June 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop6-7",
+      "name": "Gible",
+      "catalogName": "Gible",
+      "product": "DP Value Pack 2 (November 2007) / Power Packs (July 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop6-8",
+      "name": "Riolu",
+      "catalogName": "Riolu",
+      "product": "Great Encounters Blisters (March 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop6-15",
+      "name": "Piplup",
+      "catalogName": "Piplup",
+      "product": "Starter Blisters (May 2008) / Diamond & Pearl Collection (August 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop7-1",
+      "name": "Ampharos",
+      "catalogName": "Ampharos",
+      "product": "Collector’s Box (December 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop7-2",
+      "name": "Gallade",
+      "catalogName": "Gallade",
+      "product": "Gallade Blister Pack (March 2009)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop7-3",
+      "name": "Latias",
+      "catalogName": "Latias",
+      "product": "Legends Awakened Blisters (August 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop7-4",
+      "name": "Latios",
+      "catalogName": "Latios",
+      "product": "Legends Awakened Blisters (August 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop7-5",
+      "name": "Mothim",
+      "catalogName": "Mothim",
+      "product": "Legends Awakened Blisters (August 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop7-8",
+      "name": "Kirlia",
+      "catalogName": "Kirlia",
+      "product": "Collector’s Box (December 2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop8-1",
+      "name": "Heatran",
+      "catalogName": "Heatran",
+      "product": "Platinum Blisters (February 2009)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop8-2",
+      "name": "Lucario",
+      "catalogName": "Lucario",
+      "product": "Lucario Collector’s Tin re-issue / Collector’s Poster Box (2008)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop8-5",
+      "name": "Yanmega",
+      "catalogName": "Yanmega",
+      "product": "Collector’s Poster Box 2 (March 2009)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop8-7",
+      "name": "Carnivine",
+      "catalogName": "Carnivine",
+      "product": "Showdown Collection box (KB Toys)",
+      "pattern": "crackedice",
+      "reverse": true,
+      "resolvedPattern": "crackedice",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop8-12",
+      "name": "Chimchar",
+      "catalogName": "Chimchar",
+      "product": "Trainer’s Challenge Box (October 2009)",
+      "pattern": "crackedice",
+      "reverse": true,
+      "resolvedPattern": "crackedice",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop8-16",
+      "name": "Riolu",
+      "catalogName": "Riolu",
+      "product": "Trainer’s Challenge Box (October 2009)",
+      "pattern": "crackedice",
+      "reverse": true,
+      "resolvedPattern": "crackedice",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop9-5",
+      "name": "Rotom",
+      "catalogName": "Rotom",
+      "product": "Rising Rivals Value Pack (May 2009)",
+      "pattern": "crackedice",
+      "reverse": false,
+      "resolvedPattern": "crackedice",
+      "masksVerified": false
+    },
+    {
+      "cardId": "pop9-9",
+      "name": "Lopunny",
+      "catalogName": "Lopunny",
+      "product": "Arceus Blisters (November 2009)",
+      "pattern": "cosmos-retro",
+      "reverse": false,
+      "resolvedPattern": "cosmos-retro",
+      "masksVerified": false
+    }
+  ],
+  "popHoloProblems": [],
+  "popHoloUndocumented": [
+    {
+      "setId": "pop9",
+      "number": "2",
+      "name": "Manaphy",
+      "product": "Supreme Victors blisters",
+      "why": "Bulbapedia records a holographic version but does not name its foil pattern."
+    },
+    {
+      "setId": "pop9",
+      "number": "4",
+      "name": "Regigigas",
+      "product": "Supreme Victors blisters",
+      "why": "Bulbapedia records a holographic version but does not name its foil pattern."
+    },
+    {
+      "setId": "pop9",
+      "number": "3",
+      "name": "Raichu",
+      "product": "Supreme Victors Value Pack (reverse holo)",
+      "why": "Named as a reverse holographic version; POP promos have no reverse paper documented here."
+    }
+  ],
+  "dragonVault": [
+    {
+      "cardId": "dv1-1",
+      "name": "Dratini",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-2",
+      "name": "Dratini",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-3",
+      "name": "Dragonair",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-4",
+      "name": "Dragonair",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-5",
+      "name": "Dragonite",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-6",
+      "name": "Bagon",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-7",
+      "name": "Shelgon",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-8",
+      "name": "Salamence",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-9",
+      "name": "Latias",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-10",
+      "name": "Latios",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-11",
+      "name": "Rayquaza",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-12",
+      "name": "Axew",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-13",
+      "name": "Axew",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-14",
+      "name": "Fraxure",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-15",
+      "name": "Fraxure",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-16",
+      "name": "Haxorus",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-17",
+      "name": "Druddigon",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-18",
+      "name": "Exp. Share",
+      "rarity": "",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-19",
+      "name": "First Ticket",
+      "rarity": "",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-20",
+      "name": "Super Rod",
+      "rarity": "Rare Holo",
+      "pattern": "tinsel"
+    },
+    {
+      "cardId": "dv1-21",
+      "name": "Kyurem",
+      "rarity": "",
+      "pattern": "tinsel"
+    }
+  ],
+  "promoBuckets": [
+    {
+      "setId": "basep",
+      "name": "Wizards Black Star Promos",
+      "cosmos": 8,
+      "nonHolo": 45,
+      "unlisted": 0
+    },
+    {
+      "setId": "np",
+      "name": "Nintendo Black Star Promos",
+      "cosmos": 22,
+      "nonHolo": 15,
+      "unlisted": 0
+    },
+    {
+      "setId": "dpp",
+      "name": "DP Black Star Promos",
+      "cosmos": 51,
+      "nonHolo": 3,
+      "unlisted": 0
+    },
+    {
+      "setId": "hsp",
+      "name": "HGSS Black Star Promos",
+      "cosmos": 20,
+      "nonHolo": 1,
+      "unlisted": 0
+    }
+  ],
+  "promoCrackedIce": [
+    {
+      "cardId": "hsp-HGSS16",
+      "name": "Plusle",
+      "pattern": "crackedice",
+      "maskVerified": false,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Plusle_(HGSS_Promo_16)"
+    },
+    {
+      "cardId": "hsp-HGSS17",
+      "name": "Minun",
+      "pattern": "crackedice",
+      "maskVerified": false,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Minun_(HGSS_Promo_17)"
+    },
+    {
+      "cardId": "hsp-HGSS24",
+      "name": "Hitmonchan",
+      "pattern": "crackedice",
+      "maskVerified": false,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Hitmonchan_(HGSS_Promo_24)"
+    },
+    {
+      "cardId": "hsp-HGSS25",
+      "name": "Hitmonlee",
+      "pattern": "crackedice",
+      "maskVerified": false,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Hitmonlee_(HGSS_Promo_25)"
+    }
+  ],
+  "promoReverse": [
+    {
+      "setId": "np",
+      "number": "3",
+      "name": "Treecko",
+      "product": "Nintendo Black Star Promo 003 (e-League, October 2003)",
+      "source": "https://www.tcgplayer.com/product/90031/pokemon-nintendo-promos-treecko-003-e-league"
+    },
+    {
+      "setId": "np",
+      "number": "8",
+      "name": "Torchic",
+      "product": "Nintendo Black Star Promo 008 (e-League, September 2003)",
+      "source": "https://pokemonprice.com/nintendo-black-star-promo/torchic-008-reverse-holo"
+    },
+    {
+      "setId": "np",
+      "number": "10",
+      "name": "Mudkip",
+      "product": "Nintendo Black Star Promo 010 (e-League, November 2003)",
+      "source": "https://tcgscreener.com/pokemon/nintendo-black-star-promos/mudkip-rev-holo-10"
+    }
+  ],
+  "promoProblems": [],
+  "promoBucketRows": [
+    {
+      "setId": "bwp",
+      "name": "BW Black Star Promos",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "claims": 100,
+      "unlisted": 1,
+      "reverse": 5,
+      "treatments": {
+        "tinsel": 15,
+        "cosmos": 51,
+        "non-holo": 15,
+        "crosshatch": 3,
+        "pokeball-reverse": 1,
+        "mirror": 9,
+        "textured": 3,
+        "cracked-ice": 3
+      }
+    },
+    {
+      "setId": "si1",
+      "name": "Southern Islands",
+      "source": "https://t206cards.com/checklists/southern-islands",
+      "claims": 18,
+      "unlisted": 0,
+      "reverse": 6,
+      "treatments": {
+        "cosmos": 6,
+        "non-holo": 12
+      }
+    },
+    {
+      "setId": "ru1",
+      "name": "Pokémon Rumble",
+      "source": "https://www.pocketmonsters.net/news/674",
+      "claims": 16,
+      "unlisted": 0,
+      "reverse": 0,
+      "treatments": {
+        "cosmos": 3,
+        "non-holo": 13
+      }
+    },
+    {
+      "setId": "bp",
+      "name": "Best of Game",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Best_of_Game_(TCG)",
+      "claims": 9,
+      "unlisted": 0,
+      "reverse": 5,
+      "treatments": {
+        "cosmos": 5,
+        "non-holo": 4
+      }
+    }
+  ],
+  "promoBucketUnlisted": [
+    {
+      "cardId": "bwp-BW32",
+      "setId": "bwp",
+      "number": "BW32",
+      "name": "Victini",
+      "treatment": "non-holo",
+      "why": "Pokumon does not list this promo, and Bulbapedia’s set page tags no variant for it, so there is no per-card evidence here."
+    }
+  ],
+  "promoBucketProblems": [],
+  "limitations": [
+    "English only: no Japanese, Korean or other-language printing is catalogued, so none of them is assigned a foil.",
+    "The four Cosmos textures are procedural concept art, not scans.",
+    "Promotional Cosmos is catalogued only where a source names the card. The four pre-2012 Black Star Promo programmes are classified card by card from Pokumon’s catalogues; a card listed in neither makes no claim.",
+    "The BW Black Star Promos, Southern Islands, Pokémon Rumble and Best of Game are classified card by card too. Their treatments name the foil; no source read here states these printings’ foil AREA, so the illustration window is the default and maskVerified stays false.",
+    "EX Delta Species: δ Delta Species holo rares were given a plain foil treatment rather than Cosmos (Bulbapedia). The marker is in the printed name, so src/foil/delta-species-index.ts lists the cards and they resolve to the plain-holo paper — with POP4’s Deoxys δ the one δ card given the cosmic design."
+  ]
+}

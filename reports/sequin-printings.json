@@ -1,0 +1,247 @@
+{
+  "generated": "scripts/sequin-report.ts",
+  "phase": "Sequin painted (19 General Mills printings)",
+  "claims": {
+    "identified": "Bulbapedia, Holofoil: \"The Sequin holofoil was first introduced in August, 2017, and is exclusively used for General Mills promotional cards, including the General Mills Sun & Moon Mini Packs, General Mills Let's Go, Kanto! Mini Packs and the latest General Mills 25th Anniversary Mini Packs. The pattern consists of many small reflective geometric shapes scattered across the image, giving it a sequined appearance.\"",
+    "painted": "procedural reconstruction; not a scan",
+    "relief": "not claimed: the source says reflective, not textured",
+    "cards": "The 19 cards in the generated list are the printings Bulbapedia’s Sequin tables name, and each resolves by card id in printing-db.ts only for the explicit sequinHolofoil variant. Every one of those numbers was also distributed another way — the same promo in a blister, the same set card in a booster — and that plain copy is a different physical printing: it makes no foil claim here, and a save can hold both copies as separate inventory rows. The three General Mills mini packs are sealed products of their own (server/catalog/general-mills.ts) and roll exactly these printings, so the variant is both the identity the paper renders on and the printing the pack hands out.",
+    "area": "modelled as the illustration window; no source states the foil area"
+  },
+  "sheet": {
+    "pattern": "/foil/sequin/sheet.png",
+    "size": 1024,
+    "cell": 32,
+    "sides": [
+      3,
+      6
+    ],
+    "radius": [
+      4.2,
+      9.6
+    ],
+    "marks": 2430,
+    "coverage": 0.20996,
+    "floor": 0.045,
+    "peak": 0.95966,
+    "mean": 0.19937,
+    "markLine": 0.5,
+    "seamMismatch": 0.03619,
+    "internalStep": 0.03298,
+    "tiling": "disclosed choice: marks wrap, seam measured",
+    "concept": true,
+    "textureVerified": false,
+    "reproduction": "procedural reconstruction",
+    "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)",
+    "description": "many small reflective polygons scattered over a dark field"
+  },
+  "counts": {
+    "catalogue": 20782,
+    "claimed": 19,
+    "indexCards": 19,
+    "printingClaims": 19,
+    "plainClaims": 0,
+    "textureVerified": false,
+    "marks": 2430,
+    "coverage": 0.20996,
+    "floor": 0.045,
+    "peak": 0.95966,
+    "contrast": 21.325777777777777,
+    "seamMismatch": 0.03619,
+    "internalStep": 0.03298,
+    "reliefClaimed": false
+  },
+  "cards": [
+    {
+      "cardId": "sm1-101",
+      "setId": "sm1",
+      "number": "101",
+      "name": "Eevee",
+      "rarity": "Common",
+      "product": "General Mills Let's Go, Kanto! Mini Packs",
+      "also": "the Sun & Moon expansion card",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "sm3-18a",
+      "setId": "sm3",
+      "number": "18a",
+      "name": "Charmander",
+      "rarity": "Common",
+      "product": "General Mills Let's Go, Kanto! Mini Packs",
+      "also": null,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "sm35-1",
+      "setId": "sm35",
+      "number": "1",
+      "name": "Bulbasaur",
+      "rarity": "Common",
+      "product": "General Mills Let's Go, Kanto! Mini Packs",
+      "also": "the Shining Legends expansion card",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "sm35-28",
+      "setId": "sm35",
+      "number": "28",
+      "name": "Pikachu",
+      "rarity": "Common",
+      "product": "General Mills Let's Go, Kanto! Mini Packs",
+      "also": "the Shining Legends expansion card",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "sm6-57",
+      "setId": "sm6",
+      "number": "57",
+      "name": "Cubone",
+      "rarity": "Common",
+      "product": "General Mills Let's Go, Kanto! Mini Packs",
+      "also": "the Forbidden Light expansion card",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM01",
+      "setId": "smp",
+      "number": "SM01",
+      "name": "Rowlet",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM02",
+      "setId": "smp",
+      "number": "SM02",
+      "name": "Litten",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM03",
+      "setId": "smp",
+      "number": "SM03",
+      "name": "Popplio",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM04",
+      "setId": "smp",
+      "number": "SM04",
+      "name": "Pikachu",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM06",
+      "setId": "smp",
+      "number": "SM06",
+      "name": "Rockruff",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM40",
+      "setId": "smp",
+      "number": "SM40",
+      "name": "Jangmo-o",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM42",
+      "setId": "smp",
+      "number": "SM42",
+      "name": "Cosmog",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "smp-SM86",
+      "setId": "smp",
+      "number": "SM86",
+      "name": "Pikachu",
+      "rarity": "Promo",
+      "product": "General Mills Sun & Moon Mini Packs",
+      "also": "the SM Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sun_%26_Moon_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "swshp-SWSH010",
+      "setId": "swshp",
+      "number": "SWSH010",
+      "name": "Gossifleur",
+      "rarity": "Promo",
+      "product": "General Mills 25th Anniversary Mini Packs",
+      "also": "the SWSH Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sword_%26_Shield_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "swshp-SWSH011",
+      "setId": "swshp",
+      "number": "SWSH011",
+      "name": "Wooloo",
+      "rarity": "Promo",
+      "product": "General Mills 25th Anniversary Mini Packs",
+      "also": "the SWSH Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sword_%26_Shield_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "swshp-SWSH012",
+      "setId": "swshp",
+      "number": "SWSH012",
+      "name": "Morpeko",
+      "rarity": "Promo",
+      "product": "General Mills 25th Anniversary Mini Packs",
+      "also": "the SWSH Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sword_%26_Shield_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "swshp-SWSH013",
+      "setId": "swshp",
+      "number": "SWSH013",
+      "name": "Galarian Ponyta",
+      "rarity": "Promo",
+      "product": "General Mills 25th Anniversary Mini Packs",
+      "also": "the SWSH Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sword_%26_Shield_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "swshp-SWSH039",
+      "setId": "swshp",
+      "number": "SWSH039",
+      "name": "Pikachu",
+      "rarity": "Promo",
+      "product": "General Mills 25th Anniversary Mini Packs",
+      "also": "the SWSH Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sword_%26_Shield_TCG_Series_merchandise"
+    },
+    {
+      "cardId": "swshp-SWSH040",
+      "setId": "swshp",
+      "number": "SWSH040",
+      "name": "Hatenna",
+      "rarity": "Promo",
+      "product": "General Mills 25th Anniversary Mini Packs",
+      "also": "the SWSH Black Star Promo printing",
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Sword_%26_Shield_TCG_Series_merchandise"
+    }
+  ],
+  "problems": []
+}

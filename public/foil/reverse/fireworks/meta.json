@@ -1,0 +1,22 @@
+{
+  "pattern": "reverse-fireworks",
+  "label": "Fireworks (Legendary Collection)",
+  "texture": "/foil/reverse/fireworks/pattern.png",
+  "alpha": "/foil/reverse/fireworks/alpha.png",
+  "size": "1024x1024",
+  "scale": 1.6,
+  "coverage": 0.1408,
+  "peak": 0.88,
+  "plain": false,
+  "mask": "outside-art",
+  "tileable": true,
+  "seam": {
+    "edge": 0.0207,
+    "interior": 0.0226
+  },
+  "approximation": true,
+  "reproduction": "procedural reconstruction",
+  "note": "Burst-shaped glints — a soft core with radiating rays and trailing embers — spread over the card body. Described by Bulbapedia as a \"fireworks\" design.",
+  "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)",
+  "generatedBy": "scripts/reverse-foil.ts"
+}

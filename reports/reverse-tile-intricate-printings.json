@@ -1,0 +1,233 @@
+{
+  "generated": "scripts/reverse-tile-intricate-report.ts",
+  "phase": "Phase 5J — Scarlet & Violet intricate tile paper",
+  "counts": {
+    "expansions": 16,
+    "validated": 16,
+    "glyphs": 12,
+    "reversePrintings": 2139,
+    "printingsWithKnownType": 2130,
+    "textureVerified": false,
+    "showcase": 2
+  },
+  "expansions": [
+    {
+      "setId": "sv1",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv2",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv3",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv3pt5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv4",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv4pt5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv6",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv6pt5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv7",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv8",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv8pt5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv9",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sv10",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "rsv10pt5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "zsv10pt5",
+      "name": "Scarlet & Violet expansion",
+      "year": 2024,
+      "mask": "outside-art",
+      "implemented": true
+    }
+  ],
+  "glyphs": [
+    {
+      "id": "grass",
+      "label": "Grass",
+      "texture": "/foil/reverse/tile-intricate/grass.png",
+      "coverage": 0.4737,
+      "peak": 0.95,
+      "seam": 0.01702
+    },
+    {
+      "id": "fire",
+      "label": "Fire",
+      "texture": "/foil/reverse/tile-intricate/fire.png",
+      "coverage": 0.4728,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "water",
+      "label": "Water",
+      "texture": "/foil/reverse/tile-intricate/water.png",
+      "coverage": 0.4728,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "lightning",
+      "label": "Lightning",
+      "texture": "/foil/reverse/tile-intricate/lightning.png",
+      "coverage": 0.4709,
+      "peak": 0.95,
+      "seam": 0.02553
+    },
+    {
+      "id": "psychic",
+      "label": "Psychic",
+      "texture": "/foil/reverse/tile-intricate/psychic.png",
+      "coverage": 0.4715,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "fighting",
+      "label": "Fighting",
+      "texture": "/foil/reverse/tile-intricate/fighting.png",
+      "coverage": 0.4733,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "darkness",
+      "label": "Darkness",
+      "texture": "/foil/reverse/tile-intricate/darkness.png",
+      "coverage": 0.4725,
+      "peak": 0.95,
+      "seam": 0.00851
+    },
+    {
+      "id": "metal",
+      "label": "Metal",
+      "texture": "/foil/reverse/tile-intricate/metal.png",
+      "coverage": 0.4734,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "dragon",
+      "label": "Dragon",
+      "texture": "/foil/reverse/tile-intricate/dragon.png",
+      "coverage": 0.4715,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "fairy",
+      "label": "Fairy",
+      "texture": "/foil/reverse/tile-intricate/fairy.png",
+      "coverage": 0.4709,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "colorless",
+      "label": "Colorless",
+      "texture": "/foil/reverse/tile-intricate/colorless.png",
+      "coverage": 0.4733,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "trainer",
+      "label": "Trainer (Poké Ball)",
+      "texture": "/foil/reverse/tile-intricate/trainer.png",
+      "coverage": 0.4735,
+      "peak": 0.95,
+      "seam": 0
+    }
+  ],
+  "problems": [],
+  "honesty": [
+    "Bulbapedia describes nested tiles with type symbols of different sizes. That identifies the paper, not its exact geometry or artwork.",
+    "The nested lattice and glyphs are procedural drawings made for this build, not official icons, and none is verified against a photograph.",
+    "The sheet tiles; whether the real print repeated exactly is undocumented, so tiling is this build's disclosed choice.",
+    "The type comes from the card; an unknown type renders plain foil rather than the wrong symbol.",
+    "Of 2139 reverse printings here, 2130 have a usable type; the rest show plain foil."
+  ]
+}

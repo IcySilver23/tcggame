@@ -1,0 +1,22 @@
+{
+  "pattern": "reverse-flat",
+  "label": "Plain foil (Expedition, Diamond & Pearl run)",
+  "texture": "/foil/reverse/flat/pattern.png",
+  "alpha": "/foil/reverse/flat/alpha.png",
+  "size": "32x32",
+  "scale": 1,
+  "coverage": 1,
+  "peak": 1,
+  "plain": true,
+  "mask": "outside-art",
+  "tileable": true,
+  "seam": {
+    "edge": 0,
+    "interior": 0
+  },
+  "approximation": true,
+  "reproduction": "procedural reconstruction",
+  "note": "A plain reflective finish with no printed pattern: the foil itself is the whole effect.",
+  "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)",
+  "generatedBy": "scripts/reverse-foil.ts"
+}

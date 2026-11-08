@@ -1,0 +1,221 @@
+{
+  "generated": "scripts/mirror-report.ts",
+  "phase": "Phase 22 — Mirror / Sheen",
+  "claims": {
+    "identified": "Bulbapedia Holofoil: \"Sheen Holofoil is used for all Holo cards from XY, and on various promotional cards… Japanese Holofoil cards refract light in a diagonal direction from bottom left to top right across the entire card… and international releases have the same effect as Japanese cards, but only cover the image, and the direction is from bottom right to top left.\"",
+    "painted": "procedural reconstruction; not a scan",
+    "name": {
+      "mirror": "Bulbapedia, Mega Evolution set page: the set \"reintroduces Mirror Holofoil variants of cards, last seen during the Black & White Series\".",
+      "sheen": "Bulbapedia, Holofoil page: the same finish is described as \"Sheen Holofoil … used for all Holo cards from XY, and on various promotional cards\".",
+      "decision": "This build treats Mirror and Sheen as one paper with one texture, named `mirror`. A printing that the sources call either resolves here; the side of the name a card carries is recorded in its own row, not in the renderer."
+    },
+    "language": "The direction is a language axis, not a per-card one: Japanese cards run bottom left to top right across the whole face, Korean the same over the image only, and international (English) cards bottom right to top left over the image. This catalogue holds English printings, so that is the direction modelled; a Japanese printing would need its own texture, and none is claimed here.",
+    "neighbours": {
+      "crosshatch": [
+        "bwp-BW29",
+        "bwp-BW30",
+        "bwp-BW31"
+      ],
+      "textured": [
+        "bwp-BW43",
+        "bwp-BW73",
+        "bwp-BW74"
+      ],
+      "unlisted": [
+        "bwp-BW32"
+      ],
+      "note": "The Crosshatch promos have their own lattice sheet (crosshatch-index.ts) and are not painted as Mirror. The textured BW promos wear an embossed paper with no marks at all, so they are painted as the BW relief (reports/textured-printings.md) rather than borrowing this one. The row no source lists makes no claim at all."
+    }
+  },
+  "sheet": {
+    "pattern": "/foil/mirror/sheet.png",
+    "size": 1024,
+    "coverage": 1,
+    "floor": 0.55093,
+    "peak": 0.94907,
+    "mean": 0.75,
+    "bands": 3,
+    "seamMismatch": 0.00193,
+    "direction": "bottom right → top left (international printings)",
+    "tiling": "disclosed choice",
+    "concept": true,
+    "textureVerified": false,
+    "reproduction": "procedural reconstruction",
+    "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)",
+    "description": "a uniform mirror that refracts light diagonally, printing no marks"
+  },
+  "counts": {
+    "claimed": 9,
+    "painted": 9,
+    "reverseOnly": 4,
+    "fullFace": 5,
+    "maskVerified": 0,
+    "validated": 9,
+    "textureVerified": false,
+    "neighboursTextured": 3,
+    "unlisted": 1
+  },
+  "cards": [
+    {
+      "cardId": "bwp-BW41",
+      "number": "BW41",
+      "name": "Thundurus",
+      "reverseOnly": true,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "outside-art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil, applied as a reverse finish over the body and text box. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW42",
+      "number": "BW42",
+      "name": "Tornadus",
+      "reverseOnly": true,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "outside-art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil, applied as a reverse finish over the body and text box. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW45",
+      "number": "BW45",
+      "name": "Mewtwo-EX",
+      "reverseOnly": false,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW46",
+      "number": "BW46",
+      "name": "Darkrai-EX",
+      "reverseOnly": false,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW47",
+      "number": "BW47",
+      "name": "Rayquaza-EX",
+      "reverseOnly": false,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW52",
+      "number": "BW52",
+      "name": "Lillipup",
+      "reverseOnly": true,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "outside-art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil, applied as a reverse finish over the body and text box. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW99",
+      "number": "BW99",
+      "name": "Genesect",
+      "reverseOnly": false,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW100",
+      "number": "BW100",
+      "name": "N",
+      "reverseOnly": true,
+      "alsoOn": [
+        "non-holo"
+      ],
+      "pattern": "mirror",
+      "mask": "outside-art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil, applied as a reverse finish over the body and text box. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on. The same card was also printed as a non-holo printing."
+    },
+    {
+      "cardId": "bwp-BW101",
+      "number": "BW101",
+      "name": "Genesect",
+      "reverseOnly": false,
+      "alsoOn": [],
+      "pattern": "mirror",
+      "mask": "art",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Mirror Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    }
+  ],
+  "neighbours": [
+    {
+      "cardId": "bwp-BW43",
+      "pattern": "textured-full-art",
+      "implemented": true
+    },
+    {
+      "cardId": "bwp-BW73",
+      "pattern": "textured-full-art",
+      "implemented": true
+    },
+    {
+      "cardId": "bwp-BW74",
+      "pattern": "textured-full-art",
+      "implemented": true
+    }
+  ],
+  "unlisted": [
+    {
+      "cardId": "bwp-BW32",
+      "pattern": null
+    }
+  ],
+  "problems": []
+}

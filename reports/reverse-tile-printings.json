@@ -1,0 +1,226 @@
+{
+  "generated": "scripts/reverse-tile-report.ts",
+  "phase": "Phase 5I — Sword & Shield tile paper",
+  "counts": {
+    "expansions": 15,
+    "validated": 15,
+    "glyphs": 12,
+    "reversePrintings": 1942,
+    "printingsWithKnownType": 1919,
+    "textureVerified": false,
+    "showcase": 2
+  },
+  "expansions": [
+    {
+      "setId": "swsh1",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh2",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh3",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh4",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh5",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh6",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh7",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh8",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh9",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh10",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh11",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh12",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "swsh12pt5",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "pgo",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "fut20",
+      "name": "Sword & Shield expansion",
+      "year": 2021,
+      "mask": "outside-art",
+      "implemented": true
+    }
+  ],
+  "glyphs": [
+    {
+      "id": "grass",
+      "label": "Grass",
+      "texture": "/foil/reverse/tile/grass.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0.01597
+    },
+    {
+      "id": "fire",
+      "label": "Fire",
+      "texture": "/foil/reverse/tile/fire.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "water",
+      "label": "Water",
+      "texture": "/foil/reverse/tile/water.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "lightning",
+      "label": "Lightning",
+      "texture": "/foil/reverse/tile/lightning.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0.04383
+    },
+    {
+      "id": "psychic",
+      "label": "Psychic",
+      "texture": "/foil/reverse/tile/psychic.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "fighting",
+      "label": "Fighting",
+      "texture": "/foil/reverse/tile/fighting.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "darkness",
+      "label": "Darkness",
+      "texture": "/foil/reverse/tile/darkness.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0.0183
+    },
+    {
+      "id": "metal",
+      "label": "Metal",
+      "texture": "/foil/reverse/tile/metal.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "dragon",
+      "label": "Dragon",
+      "texture": "/foil/reverse/tile/dragon.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "fairy",
+      "label": "Fairy",
+      "texture": "/foil/reverse/tile/fairy.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "colorless",
+      "label": "Colorless",
+      "texture": "/foil/reverse/tile/colorless.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    },
+    {
+      "id": "trainer",
+      "label": "Trainer (Poké Ball)",
+      "texture": "/foil/reverse/tile/trainer.png",
+      "coverage": 0.659,
+      "peak": 0.95,
+      "seam": 0
+    }
+  ],
+  "problems": [],
+  "honesty": [
+    "Bulbapedia describes tiles each containing the type symbol or a Poké Ball. That identifies the paper, not its exact geometry or artwork.",
+    "The lattice and glyphs are procedural drawings made for this build, not official icons, and none is verified against a photograph.",
+    "The sheet tiles with a staggered lattice; whether the real print repeated exactly is undocumented, so tiling is this build's disclosed choice.",
+    "The type comes from the card; an unknown type renders plain foil rather than the wrong symbol.",
+    "Of 1942 reverse printings here, 1919 have a usable type; the rest show plain foil."
+  ]
+}

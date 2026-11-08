@@ -1,0 +1,11 @@
+{
+  "kind": "art",
+  "artWindow": {
+    "x": 0.081,
+    "y": 0.116,
+    "w": 0.838,
+    "h": 0.448
+  },
+  "note": "Foil sits inside the picture window; the card body stays matte. Which expansion uses which template is decided in src/foil/reverse-db.ts.",
+  "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+}

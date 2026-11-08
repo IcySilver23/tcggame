@@ -1,0 +1,1033 @@
+{
+  "synthetic": [
+    {
+      "cellPx": 2,
+      "cellPct": 0.390625,
+      "l50": 2.02196366898846,
+      "energy": 0.11628682828967905
+    },
+    {
+      "cellPx": 3,
+      "cellPct": 0.5859375,
+      "l50": 2.417031494425948,
+      "energy": 0.14937673709274016
+    },
+    {
+      "cellPx": 4,
+      "cellPct": 0.78125,
+      "l50": 2.8516293868984883,
+      "energy": 0.16994487464328392
+    },
+    {
+      "cellPx": 6,
+      "cellPct": 1.171875,
+      "l50": 3.9449414485187972,
+      "energy": 0.18755249485251876
+    },
+    {
+      "cellPx": 8,
+      "cellPct": 1.5625,
+      "l50": 4.992344318356348,
+      "energy": 0.194466818623842
+    },
+    {
+      "cellPx": 12,
+      "cellPct": 2.34375,
+      "l50": 7.04405947257008,
+      "energy": 0.19517531640073224
+    },
+    {
+      "cellPx": 16,
+      "cellPct": 3.125,
+      "l50": 8.967391933429974,
+      "energy": 0.19249246541114753
+    },
+    {
+      "cellPx": 24,
+      "cellPct": 4.6875,
+      "l50": 12.910055055805413,
+      "energy": 0.18067726719813557
+    },
+    {
+      "cellPx": 32,
+      "cellPct": 6.25,
+      "l50": 15.602874367643789,
+      "energy": 0.15867095822629304
+    }
+  ],
+  "rows": [
+    {
+      "image": "auction-17.jpg",
+      "kind": "photo",
+      "patch": "upper-left art",
+      "l50_px": 6.462702099632602,
+      "l50_card_pct": 0.8211819694577639,
+      "energy": 0.1469839511004542,
+      "card_w": 787
+    },
+    {
+      "image": "auction-17.jpg",
+      "kind": "photo",
+      "patch": "upper-right art",
+      "l50_px": 5.099663526001926,
+      "l50_card_pct": 0.6479877415504354,
+      "energy": 0.1440496737969628,
+      "card_w": 787
+    },
+    {
+      "image": "auction-17.jpg",
+      "kind": "photo",
+      "patch": "right flank",
+      "l50_px": 5.305465152550941,
+      "l50_card_pct": 0.674137884695164,
+      "energy": 0.13303047851718616,
+      "card_w": 787
+    },
+    {
+      "image": "auction-17.jpg",
+      "kind": "photo",
+      "patch": "lower-left art",
+      "l50_px": 10.013795546480832,
+      "l50_card_pct": 1.2724009588921006,
+      "energy": 0.15308475638122127,
+      "card_w": 787
+    },
+    {
+      "image": "auction-17.jpg",
+      "kind": "photo",
+      "patch": "text box",
+      "l50_px": 7.386660022718533,
+      "l50_card_pct": 0.9385845009807539,
+      "energy": 0.17693522342352055,
+      "card_w": 787
+    },
+    {
+      "image": "auction-19.jpg",
+      "kind": "photo",
+      "patch": "upper-left art",
+      "l50_px": 6.233540999521391,
+      "l50_card_pct": 0.7940816559899861,
+      "energy": 0.1572576917946073,
+      "card_w": 785
+    },
+    {
+      "image": "auction-19.jpg",
+      "kind": "photo",
+      "patch": "upper-right art",
+      "l50_px": 6.40933066391126,
+      "l50_card_pct": 0.8164752438103515,
+      "energy": 0.11647462663901384,
+      "card_w": 785
+    },
+    {
+      "image": "auction-19.jpg",
+      "kind": "photo",
+      "patch": "right flank",
+      "l50_px": 9.930398445881663,
+      "l50_card_pct": 1.2650189103033964,
+      "energy": 0.0881433313398491,
+      "card_w": 785
+    },
+    {
+      "image": "auction-19.jpg",
+      "kind": "photo",
+      "patch": "lower-left art",
+      "l50_px": 8.691940759668208,
+      "l50_card_pct": 1.1072535999577335,
+      "energy": 0.1253514886533428,
+      "card_w": 785
+    },
+    {
+      "image": "auction-19.jpg",
+      "kind": "photo",
+      "patch": "text box",
+      "l50_px": 9.70663865540928,
+      "l50_card_pct": 1.2365144783960869,
+      "energy": 0.2062185610037838,
+      "card_w": 785
+    },
+    {
+      "image": "auction-15.jpg",
+      "kind": "photo",
+      "patch": "upper-left art",
+      "l50_px": 6.295674301607531,
+      "l50_card_pct": 0.7734243613768466,
+      "energy": 0.19490955020504597,
+      "card_w": 814
+    },
+    {
+      "image": "auction-15.jpg",
+      "kind": "photo",
+      "patch": "upper-right art",
+      "l50_px": 5.3632734919518334,
+      "l50_card_pct": 0.6588788073650902,
+      "energy": 0.14925785988532858,
+      "card_w": 814
+    },
+    {
+      "image": "auction-15.jpg",
+      "kind": "photo",
+      "patch": "right flank",
+      "l50_px": 5.491216244731352,
+      "l50_card_pct": 0.6745965902618368,
+      "energy": 0.12441339023060724,
+      "card_w": 814
+    },
+    {
+      "image": "swsh45sv-SV107_hires.png",
+      "kind": "scan",
+      "patch": "upper-left art",
+      "l50_px": 5.433465453607877,
+      "l50_card_pct": 0.7402541489928988,
+      "energy": 0.17412047512066478,
+      "card_w": 734
+    },
+    {
+      "image": "swsh45sv-SV107_hires.png",
+      "kind": "scan",
+      "patch": "upper-right art",
+      "l50_px": 4.955004912844771,
+      "l50_card_pct": 0.6750687892159088,
+      "energy": 0.1736228400821695,
+      "card_w": 734
+    },
+    {
+      "image": "swsh45sv-SV107_hires.png",
+      "kind": "scan",
+      "patch": "right flank",
+      "l50_px": 4.929562347313076,
+      "l50_card_pct": 0.671602499633934,
+      "energy": 0.1384036165848532,
+      "card_w": 734
+    },
+    {
+      "image": "swsh45sv-SV107_hires.png",
+      "kind": "scan",
+      "patch": "lower-left art",
+      "l50_px": 8.447789507082298,
+      "l50_card_pct": 1.1509250009648908,
+      "energy": 0.13307869522393895,
+      "card_w": 734
+    },
+    {
+      "image": "scan-33.png",
+      "kind": "scan",
+      "patch": "upper-left art",
+      "l50_px": 5.8308669877263615,
+      "l50_card_pct": 0.7943960473741637,
+      "energy": 0.1606823466921488,
+      "card_w": 734
+    },
+    {
+      "image": "scan-33.png",
+      "kind": "scan",
+      "patch": "upper-right art",
+      "l50_px": 5.691629336633458,
+      "l50_card_pct": 0.7754263401407981,
+      "energy": 0.14650211586491038,
+      "card_w": 734
+    },
+    {
+      "image": "scan-33.png",
+      "kind": "scan",
+      "patch": "right flank",
+      "l50_px": 10.424284245361605,
+      "l50_card_pct": 1.4202022132645238,
+      "energy": 0.06318685918154995,
+      "card_w": 734
+    },
+    {
+      "image": "h01.jpg",
+      "kind": "photo",
+      "patch": "upper-left art",
+      "l50_px": 11.302051593173532,
+      "l50_card_pct": 0.4312114304911687,
+      "energy": 0.10236047820055644,
+      "card_w": 2621
+    },
+    {
+      "image": "h01.jpg",
+      "kind": "photo",
+      "patch": "upper-right art",
+      "l50_px": 10.650809515491856,
+      "l50_card_pct": 0.40636434626065837,
+      "energy": 0.09094475185809363,
+      "card_w": 2621
+    },
+    {
+      "image": "h01.jpg",
+      "kind": "photo",
+      "patch": "right flank",
+      "l50_px": 8.327705595338463,
+      "l50_card_pct": 0.3177300875749127,
+      "energy": 0.10840695372387656,
+      "card_w": 2621
+    },
+    {
+      "image": "h01.jpg",
+      "kind": "photo",
+      "patch": "lower-left art",
+      "l50_px": 7.571552331657742,
+      "l50_card_pct": 0.28888028735817406,
+      "energy": 0.10124861585958801,
+      "card_w": 2621
+    },
+    {
+      "image": "h03.jpg",
+      "kind": "photo",
+      "patch": "upper-left art",
+      "l50_px": 3.99836183872961,
+      "l50_card_pct": 0.38856771999315937,
+      "energy": 0.14253827971481722,
+      "card_w": 1029
+    },
+    {
+      "image": "h03.jpg",
+      "kind": "photo",
+      "patch": "upper-right art",
+      "l50_px": 4.496412589182858,
+      "l50_card_pct": 0.43696915346772186,
+      "energy": 0.10574581957966854,
+      "card_w": 1029
+    },
+    {
+      "image": "h03.jpg",
+      "kind": "photo",
+      "patch": "right flank",
+      "l50_px": 5.6190503176042235,
+      "l50_card_pct": 0.5460690298935106,
+      "energy": 0.11598636224475962,
+      "card_w": 1029
+    },
+    {
+      "image": "h03.jpg",
+      "kind": "photo",
+      "patch": "lower-left art",
+      "l50_px": 4.1516256644391305,
+      "l50_card_pct": 0.4034621636967085,
+      "energy": 0.10292377521102238,
+      "card_w": 1029
+    },
+    {
+      "image": "h04.jpg",
+      "kind": "photo",
+      "patch": "upper-left art",
+      "l50_px": 8.219230222768305,
+      "l50_card_pct": 0.7820390316620651,
+      "energy": 0.10278361591977934,
+      "card_w": 1051
+    },
+    {
+      "image": "h04.jpg",
+      "kind": "photo",
+      "patch": "upper-right art",
+      "l50_px": 5.07869131137399,
+      "l50_card_pct": 0.4832246728234053,
+      "energy": 0.08655829603162,
+      "card_w": 1051
+    },
+    {
+      "image": "h04.jpg",
+      "kind": "photo",
+      "patch": "right flank",
+      "l50_px": 8.237659739790098,
+      "l50_card_pct": 0.7837925537383538,
+      "energy": 0.06304029215314534,
+      "card_w": 1051
+    },
+    {
+      "image": "h04.jpg",
+      "kind": "photo",
+      "patch": "lower-left art",
+      "l50_px": 9.33528388856077,
+      "l50_card_pct": 0.888228723935373,
+      "energy": 0.08982845658216704,
+      "card_w": 1051
+    }
+  ],
+  "photoMedianPct": 0.6745965902618368,
+  "scanMedianPct": 0.7754263401407981,
+  "scaleReferenceSearch": {
+    "question": "Is there a Shiny Vault macro photograph with a known scale reference?",
+    "found": false,
+    "tried": [
+      [
+        "Bing image search",
+        "11 queries for ruler / scale bar / microscope / 1200 dpi / texture-comparison frames; returns stock rulers, card-size guides, CT scans of a Base Set Charizard and flat listings, but no scaled macro of a Shiny Vault card"
+      ],
+      [
+        "Yahoo!\u30aa\u30fc\u30af\u30b7\u30e7\u30f3",
+        "listings are phone photographs with no scale bar and no smooth card at the same distance"
+      ],
+      [
+        "elitefourum / Pok\u00e9Beach site searches",
+        "no texture thread surfaced with a scaled macro; the images returned were unrelated textures"
+      ],
+      [
+        "YouTube (yt-dlp)",
+        "the nearest Shiny Vault showcase tops out at 720p; no 4K raking-light macro"
+      ]
+    ],
+    "alreadyHave": "the card itself is a scale: the 3024x4032 still measures 2621 px across a 63 mm card, 41.6 px/mm, which is how L50 is quoted in mm",
+    "missing": "a SMOOTH card photographed at the same magnification and resolution in the same frame (or the same focus stack); without it the control keeps reading at its own pixel scale, which is the confound",
+    "consequence": "the grain density stays modelled \u2014 accepted as final by the decision below \u2014 and `sparkleHeight` keeps its 48/96/192 periods"
+  },
+  "resolutionLadder": {
+    "still": [
+      {
+        "cardPx": 2621,
+        "l50_px": 9.487211456831282,
+        "l50_pct": 0.3619691513480078,
+        "n": 4
+      },
+      {
+        "cardPx": 1800,
+        "l50_px": 8.724113241158232,
+        "l50_pct": 0.48467295784212394,
+        "n": 4
+      },
+      {
+        "cardPx": 1200,
+        "l50_px": 7.685154457630123,
+        "l50_pct": 0.6404295381358436,
+        "n": 4
+      },
+      {
+        "cardPx": 900,
+        "l50_px": 7.401996494209065,
+        "l50_pct": 0.8224440549121184,
+        "n": 4
+      },
+      {
+        "cardPx": 734,
+        "l50_px": 7.137026974110668,
+        "l50_pct": 0.9723469991976388,
+        "n": 4
+      },
+      {
+        "cardPx": 500,
+        "l50_px": 6.4714089786655755,
+        "l50_pct": 1.2942817957331152,
+        "n": 4
+      }
+    ],
+    "scan": [
+      {
+        "cardPx": 734,
+        "l50_px": 5.1943043685186785,
+        "l50_pct": 0.7076708948935531,
+        "n": 4
+      },
+      {
+        "cardPx": 500,
+        "l50_px": 4.9542299508669725,
+        "l50_pct": 0.9908459901733946,
+        "n": 4
+      },
+      {
+        "cardPx": 350,
+        "l50_px": 4.854656340651207,
+        "l50_pct": 1.387044668757488,
+        "n": 4
+      }
+    ],
+    "matchedAt734": {
+      "photoPct": 0.9723469991976388,
+      "scanPct": 0.7076708948935531
+    },
+    "conclusion": "The still's grain length rises monotonically as the card is rendered smaller - 0.36% at 2621 px to 0.97% at 734 px to 1.29% at 500 px - and the flat scan reads the same order at the same widths (0.71% at 734, 0.99% at 500). Both figures grow as the pixels get bigger, so the length tracks pixel size rather than the paper: the proof the earlier report could only infer."
+  },
+  "extrapolation": {
+    "still": {
+      "interceptPct": 0.16157742607599487,
+      "slope": 5.7762963784812165,
+      "r2": 0.9968272625083435,
+      "n": 6
+    },
+    "scan": {
+      "interceptPct": 0.08535057668916783,
+      "slope": 4.549387118057052,
+      "r2": 0.9998754413528173,
+      "n": 3
+    },
+    "impliedCellPct": {
+      "still": null,
+      "scan": null
+    },
+    "drawnCellsPct": [
+      0.5208333333333334,
+      1.0416666666666667,
+      2.0833333333333335
+    ],
+    "nearestDrawn": 0.5208333333333334,
+    "nearDrawn": false,
+    "statement": "The still ladder extrapolates to 0.162% of card width and the scan to 0.085%, but the independent stills break the claim: their ladders intercept at -0.290%, 0.532%, a spread of 0.82 percentage points. An intercept that moves that far between photographs of the same card is not a property of the card, so no true grain length is recorded and the density stays modelled by decision (see \"Decision\" above)."
+  },
+  "independentStills": {
+    "stills": [
+      {
+        "image": "h03.jpg",
+        "nativePx": 1029,
+        "ladder": [
+          {
+            "cardPx": 1029,
+            "l50_px": 4.32372103368899,
+            "l50_pct": 0.420186689376967,
+            "n": 4
+          },
+          {
+            "cardPx": 1000,
+            "l50_px": 4.426164157619068,
+            "l50_pct": 0.4426164157619068,
+            "n": 4
+          },
+          {
+            "cardPx": 900,
+            "l50_px": 4.8284306884765,
+            "l50_pct": 0.5364922987196111,
+            "n": 4
+          },
+          {
+            "cardPx": 734,
+            "l50_px": 5.484866925749811,
+            "l50_pct": 0.7472570743528354,
+            "n": 4
+          },
+          {
+            "cardPx": 600,
+            "l50_px": 5.825475226503784,
+            "l50_pct": 0.9709125377506307,
+            "n": 4
+          },
+          {
+            "cardPx": 500,
+            "l50_px": 5.866086717728004,
+            "l50_pct": 1.173217343545601,
+            "n": 4
+          }
+        ],
+        "fit": {
+          "interceptPct": -0.29029313305745447,
+          "slope": 7.436447781668806,
+          "r2": 0.9959508119380621,
+          "n": 6
+        },
+        "impliedCell": null
+      },
+      {
+        "image": "h04.jpg",
+        "nativePx": 1051,
+        "ladder": [
+          {
+            "cardPx": 1051,
+            "l50_px": 8.22867862603621,
+            "l50_pct": 0.7829380234097251,
+            "n": 4
+          },
+          {
+            "cardPx": 1000,
+            "l50_px": 8.058103604770725,
+            "l50_pct": 0.8058103604770726,
+            "n": 4
+          },
+          {
+            "cardPx": 900,
+            "l50_px": 7.717793714924143,
+            "l50_pct": 0.8575326349915715,
+            "n": 4
+          },
+          {
+            "cardPx": 734,
+            "l50_px": 7.041742627506516,
+            "l50_pct": 0.9593654805867189,
+            "n": 4
+          },
+          {
+            "cardPx": 600,
+            "l50_px": 6.096629621992897,
+            "l50_pct": 1.0161049369988162,
+            "n": 4
+          },
+          {
+            "cardPx": 500,
+            "l50_px": 5.415585066093525,
+            "l50_pct": 1.0831170132187051,
+            "n": 4
+          }
+        ],
+        "fit": {
+          "interceptPct": 0.5316142163654145,
+          "slope": 2.8612001775413622,
+          "r2": 0.9648154300015229,
+          "n": 6
+        },
+        "impliedCell": 0.7229325329754726
+      }
+    ],
+    "intercepts": [
+      0.16157742607599487,
+      0.08535057668916783,
+      -0.29029313305745447,
+      0.5316142163654145
+    ],
+    "spreadPct": 0.821907349422869,
+    "statement": "4 independent ladders intercept at 0.162%, 0.085%, -0.290%, 0.532% (spread 0.822 percentage points). They scatter, so the intercept moves with the source and cannot be called a property of the card."
+  },
+  "squaredModel": {
+    "still": {
+      "lengthPct": 0.36506697883745215,
+      "k": 6.303155127967996,
+      "interceptSq": 0.13327389903750472,
+      "r2": 0.9910304308445842,
+      "n": 6
+    },
+    "scan": {
+      "lengthPct": 0.28400442282928867,
+      "k": 4.75102529158229,
+      "interceptSq": 0.08065851218659739,
+      "r2": 0.9999953503179007,
+      "n": 3
+    },
+    "stills": [
+      {
+        "image": "h03.jpg",
+        "fit": {
+          "lengthPct": 0.0,
+          "k": 6.3088677297016655,
+          "interceptSq": -0.19399263911297654,
+          "r2": 0.998446542909573,
+          "n": 6
+        }
+      },
+      {
+        "image": "h04.jpg",
+        "fit": {
+          "lengthPct": 0.7086363124781863,
+          "k": 4.234029473940863,
+          "interceptSq": 0.5021654233626817,
+          "r2": 0.9433041970544943,
+          "n": 6
+        }
+      }
+    ],
+    "lengths": [
+      0.36506697883745215,
+      0.28400442282928867,
+      0.0,
+      0.7086363124781863
+    ],
+    "spreadPct": 0.7086363124781863,
+    "converges": false,
+    "statement": "Under L50^2 = L^2 + (k x pixel)^2 the four ladders give lengths of 0.365%, 0.284%, 0.000%, 0.709% (spread 0.709 percentage points). They still scatter, so the linear fit was not the whole problem: these photographs do not agree about the grain."
+  },
+  "flatPatches": {
+    "sources": {
+      "h01.jpg": {
+        "patches": [
+          {
+            "label": "flat 1",
+            "fx": 0.4600000000000001,
+            "fy": 0.4600000000000001,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0006747210016816409
+          },
+          {
+            "label": "flat 2",
+            "fx": 0.14,
+            "fy": 0.54,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.00215823688075526
+          },
+          {
+            "label": "flat 3",
+            "fx": 0.62,
+            "fy": 0.54,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.002524000036411542
+          },
+          {
+            "label": "flat 4",
+            "fx": 0.30000000000000004,
+            "fy": 0.4600000000000001,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.003092344782815411
+          }
+        ],
+        "ladder": [
+          {
+            "cardPx": 2621,
+            "l50_px": 5.699574939384327,
+            "l50_pct": 0.2174580289730762,
+            "n": 4
+          },
+          {
+            "cardPx": 1800,
+            "l50_px": 5.359732432732624,
+            "l50_pct": 0.29776291292959023,
+            "n": 4
+          },
+          {
+            "cardPx": 1200,
+            "l50_px": 4.808015460072186,
+            "l50_pct": 0.4006679550060155,
+            "n": 4
+          },
+          {
+            "cardPx": 900,
+            "l50_px": 4.549975147102263,
+            "l50_pct": 0.5055527941224737,
+            "n": 4
+          },
+          {
+            "cardPx": 734,
+            "l50_px": 4.352501497048447,
+            "l50_pct": 0.5929838551837121,
+            "n": 4
+          },
+          {
+            "cardPx": 600,
+            "l50_px": 4.115038211431996,
+            "l50_pct": 0.6858397019053326,
+            "n": 4
+          },
+          {
+            "cardPx": 500,
+            "l50_px": 4.379371809729681,
+            "l50_pct": 0.8758743619459364,
+            "n": 4
+          }
+        ],
+        "linear": {
+          "interceptPct": 0.07278606590991482,
+          "slope": 3.876618494310533,
+          "r2": 0.9934557254331053,
+          "n": 7
+        },
+        "squared": {
+          "lengthPct": 0.1632861403385772,
+          "k": 4.212056017407253,
+          "interceptSq": 0.026662363626669523,
+          "r2": 0.9903275450619303,
+          "n": 7
+        }
+      },
+      "h03.jpg": {
+        "patches": [
+          {
+            "label": "flat 1",
+            "fx": 0.38000000000000006,
+            "fy": 0.4600000000000001,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0005856458113415067
+          },
+          {
+            "label": "flat 2",
+            "fx": 0.54,
+            "fy": 0.62,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0019438274103683868
+          },
+          {
+            "label": "flat 3",
+            "fx": 0.54,
+            "fy": 0.4600000000000001,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.003831267099112344
+          },
+          {
+            "label": "flat 4",
+            "fx": 0.14,
+            "fy": 0.54,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.003956198709417583
+          }
+        ],
+        "ladder": [
+          {
+            "cardPx": 1029,
+            "l50_px": 2.633540673014772,
+            "l50_pct": 0.25593203819385535,
+            "n": 4
+          },
+          {
+            "cardPx": 900,
+            "l50_px": 2.736876618107944,
+            "l50_pct": 0.30409740201199376,
+            "n": 4
+          },
+          {
+            "cardPx": 734,
+            "l50_px": 2.978088605509564,
+            "l50_pct": 0.4057341424399951,
+            "n": 4
+          },
+          {
+            "cardPx": 600,
+            "l50_px": 3.3992893505745805,
+            "l50_pct": 0.5665482250957634,
+            "n": 4
+          },
+          {
+            "cardPx": 500,
+            "l50_px": 3.8226105195465987,
+            "l50_pct": 0.7645221039093197,
+            "n": 4
+          }
+        ],
+        "linear": {
+          "interceptPct": -0.24621399615483155,
+          "slope": 4.960499741592599,
+          "r2": 0.991233091755799,
+          "n": 5
+        },
+        "squared": {
+          "lengthPct": 0.0,
+          "k": 4.127914216933146,
+          "interceptSq": -0.1228831867573132,
+          "r2": 0.9828385161059059,
+          "n": 5
+        }
+      },
+      "h04.jpg": {
+        "patches": [
+          {
+            "label": "flat 1",
+            "fx": 0.54,
+            "fy": 0.4600000000000001,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0005348408352831671
+          },
+          {
+            "label": "flat 2",
+            "fx": 0.62,
+            "fy": 0.62,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0014101894761092064
+          },
+          {
+            "label": "flat 3",
+            "fx": 0.22000000000000003,
+            "fy": 0.54,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.002276779770729339
+          },
+          {
+            "label": "flat 4",
+            "fx": 0.30000000000000004,
+            "fy": 0.14,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.002879665157611632
+          }
+        ],
+        "ladder": [
+          {
+            "cardPx": 1051,
+            "l50_px": 6.09652936512007,
+            "l50_pct": 0.5800693972521475,
+            "n": 4
+          },
+          {
+            "cardPx": 900,
+            "l50_px": 6.220142859804243,
+            "l50_pct": 0.6911269844226937,
+            "n": 4
+          },
+          {
+            "cardPx": 734,
+            "l50_px": 6.24650428349484,
+            "l50_pct": 0.8510223819475258,
+            "n": 4
+          },
+          {
+            "cardPx": 600,
+            "l50_px": 6.057462254273908,
+            "l50_pct": 1.0095770423789847,
+            "n": 4
+          },
+          {
+            "cardPx": 500,
+            "l50_px": 5.754704760865715,
+            "l50_pct": 1.1509409521731429,
+            "n": 4
+          }
+        ],
+        "linear": {
+          "interceptPct": 0.08452396106002642,
+          "slope": 5.443185639354091,
+          "r2": 0.9909462353185342,
+          "n": 5
+        },
+        "squared": {
+          "lengthPct": 0.3004460798886888,
+          "k": 5.643168860417512,
+          "interceptSq": 0.09026784692048039,
+          "r2": 0.9888898110199816,
+          "n": 5
+        }
+      },
+      "swsh45sv-SV107_hires.png": {
+        "patches": [
+          {
+            "label": "flat 1",
+            "fx": 0.62,
+            "fy": 0.54,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0007472710541712366
+          },
+          {
+            "label": "flat 2",
+            "fx": 0.4600000000000001,
+            "fy": 0.4600000000000001,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.0009557899288585468
+          },
+          {
+            "label": "flat 3",
+            "fx": 0.22000000000000003,
+            "fy": 0.54,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.004010524229123017
+          },
+          {
+            "label": "flat 4",
+            "fx": 0.7,
+            "fy": 0.7,
+            "fw": 0.16,
+            "fh": 0.16,
+            "score": 0.004953941934678425
+          }
+        ],
+        "ladder": [
+          {
+            "cardPx": 734,
+            "l50_px": 4.965172440643727,
+            "l50_pct": 0.6764540109868837,
+            "n": 4
+          },
+          {
+            "cardPx": 734,
+            "l50_px": 4.965172440643727,
+            "l50_pct": 0.6764540109868837,
+            "n": 4
+          },
+          {
+            "cardPx": 600,
+            "l50_px": 5.025853655947396,
+            "l50_pct": 0.8376422759912325,
+            "n": 4
+          },
+          {
+            "cardPx": 500,
+            "l50_px": 4.994796737155568,
+            "l50_pct": 0.9989593474311134,
+            "n": 4
+          }
+        ],
+        "linear": {
+          "interceptPct": -0.013726620634958761,
+          "slope": 5.076171886965296,
+          "r2": 0.9994558177743085,
+          "n": 4
+        },
+        "squared": {
+          "lengthPct": 0.0,
+          "k": 5.026177267513525,
+          "interceptSq": -0.008823965078952114,
+          "r2": 0.9994801927629217,
+          "n": 4
+        }
+      }
+    },
+    "linear": [
+      0.07278606590991482,
+      -0.24621399615483155,
+      0.08452396106002642,
+      -0.013726620634958761
+    ],
+    "squared": [
+      0.1632861403385772,
+      0.0,
+      0.3004460798886888,
+      0.0
+    ],
+    "spreadLinear": 0.330737957214858,
+    "spreadSquared": 0.3004460798886888,
+    "statement": "On flat patches the linear intercepts are 0.073%, -0.246%, 0.085%, -0.014% (spread 0.331 pp); the quadrature lengths are 0.163%, 0.000%, 0.300%, 0.000% (spread 0.300 pp). They still disagree, so artwork structure was not the whole story and the grain length stays open."
+  },
+  "decision": {
+    "status": "accepted",
+    "decided": "2026-11-07",
+    "question": "How coarse is the Shiny Vault grain?",
+    "answer": "It cannot be measured from the evidence available here, so the drawn density is final for this build.",
+    "density": {
+      "sheet": 512,
+      "periods": [
+        48,
+        96,
+        192
+      ],
+      "cellsPct": [
+        2.0833333333333335,
+        1.0416666666666667,
+        0.5208333333333334
+      ],
+      "strength": 0.34
+    },
+    "tests": [
+      {
+        "name": "resolution ladder",
+        "what": "the same 3024px still rendered down to 500px and measured at each width",
+        "result": "L50 climbs 0.36% at 2621px to 0.97% at 734px to 1.29% at 500px, and the 734px flat scan reads 0.71% at the same width: the length tracks pixel size, not the card"
+      },
+      {
+        "name": "independent stills, linear intercept",
+        "what": "four ladders extrapolated to zero pixel size",
+        "result": "0.162%, 0.085%, -0.290%, 0.532% \u2014 spread 0.82 percentage points"
+      },
+      {
+        "name": "quadrature model",
+        "what": "L50^2 = L^2 + (k x pixel)^2, which cannot return a negative length",
+        "result": "0.365%, 0.284%, 0.000%, 0.709% \u2014 spread 0.71 percentage points"
+      },
+      {
+        "name": "flat patches only",
+        "what": "each source re-measured on its four least detailed 16%-of-card regions",
+        "result": "linear 0.073%, -0.246%, 0.085%, -0.014% (spread 0.33 pp); quadrature 0.163%, 0.000%, 0.300%, 0.000% (spread 0.30 pp)"
+      }
+    ],
+    "why": "Four tests, two extrapolation models and two patch selections all fail to converge, and two still return a negative length. A number that moves that far between photographs of the same card is a property of the camera and the JPEG, not of the paper, so no measurement can be preferred to the drawing.",
+    "consequences": [
+      "`sparkleHeight` keeps those periods and that strength; the decision changes no code, only what the build says about them.",
+      "The `sparkle` surface note and AGENTS.md call the density accepted, not pending, so a later reader does not reopen the measurement without new evidence.",
+      "The finish stays relief, not a paper: `shiny-db.ts` keeps the pattern `special-treatment` and no sheet is borrowed.",
+      "No player-visible change follows: 0.58.0 already shipped this surface."
+    ],
+    "reopens": "A focused stack, or a macro with a known scale reference plus a SMOOTH card captured at the same magnification and resolution. Only then can a ladder converge on a length that belongs to the card; the existing photographs cannot, however they are fitted."
+  },
+  "verdict": {
+    "settled": false,
+    "statement": "The grain scale is NOT attributable: the stills and the flat scan read the same correlation length, and the number moves with the camera resolution rather than with the card, so the relief keeps its modelled density \u2014 accepted as final in the Decision section below, not left open.",
+    "photoMedianPct": 0.6745965902618368,
+    "scanMedianPct": 0.7754263401407981,
+    "resolutionConfound": "the flat scan is 734 px wide, so its ~0.7% reading is about 5 px - near the pixel scale - while the 3024 px still reads 0.29-0.43% (8-11 px). A length that changes with the camera is not a property of the card.",
+    "stillRangePct": [
+      0.28888028735817406,
+      0.4312114304911687
+    ]
+  }
+}

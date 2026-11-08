@@ -1,0 +1,22 @@
+{
+  "pattern": "reverse-pinwheel",
+  "label": "Pinwheel (EX Deoxys)",
+  "texture": "/foil/reverse/pinwheel/pattern.png",
+  "alpha": "/foil/reverse/pinwheel/alpha.png",
+  "size": "1024x1024",
+  "scale": 1.8,
+  "coverage": 0.0186,
+  "peak": 0.88,
+  "plain": false,
+  "mask": "art",
+  "tileable": true,
+  "seam": {
+    "edge": 0.008,
+    "interior": 0.0074
+  },
+  "approximation": true,
+  "reproduction": "procedural reconstruction",
+  "note": "Spiral-bladed pinwheels with a faint rim, inside the artwork. Bulbapedia describes a \"pinwheel\" holo pattern with the set logo bottom-right, which is printed and not duplicated here.",
+  "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)",
+  "generatedBy": "scripts/reverse-foil.ts"
+}

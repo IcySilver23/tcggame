@@ -1,0 +1,224 @@
+{
+  "generated": "scripts/type-symbol-large-report.ts",
+  "phase": "Phase 5H — Sun & Moon large type-symbol paper",
+  "counts": {
+    "expansions": 13,
+    "validated": 13,
+    "glyphs": 12,
+    "reversePrintings": 1762,
+    "printingsWithKnownType": 1741,
+    "textureVerified": false,
+    "showcase": 2
+  },
+  "expansions": [
+    {
+      "setId": "sm1",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm2",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm3",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm4",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm5",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm6",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm7",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm8",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm9",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm10",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm11",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "sm12",
+      "name": "Sun & Moon expansion",
+      "year": 2017,
+      "mask": "outside-art",
+      "implemented": true
+    },
+    {
+      "setId": "det1",
+      "name": "Detective Pikachu",
+      "year": 2019,
+      "mask": "outside-art",
+      "implemented": true
+    }
+  ],
+  "glyphs": [
+    {
+      "id": "grass",
+      "label": "Grass",
+      "texture": "/foil/type-symbol/large-grass.png",
+      "coverage": 0.02756,
+      "peak": 0.95,
+      "centerU": 0.3136,
+      "centerV": 0.5244
+    },
+    {
+      "id": "fire",
+      "label": "Fire",
+      "texture": "/foil/type-symbol/large-fire.png",
+      "coverage": 0.03836,
+      "peak": 0.95,
+      "centerU": 0.3262,
+      "centerV": 0.5176
+    },
+    {
+      "id": "water",
+      "label": "Water",
+      "texture": "/foil/type-symbol/large-water.png",
+      "coverage": 0.04193,
+      "peak": 0.95,
+      "centerU": 0.3367,
+      "centerV": 0.4785
+    },
+    {
+      "id": "lightning",
+      "label": "Lightning",
+      "texture": "/foil/type-symbol/large-lightning.png",
+      "coverage": 0.01404,
+      "peak": 0.95,
+      "centerU": 0.2865,
+      "centerV": 0.49
+    },
+    {
+      "id": "psychic",
+      "label": "Psychic",
+      "texture": "/foil/type-symbol/large-psychic.png",
+      "coverage": 0.02279,
+      "peak": 0.95,
+      "centerU": 0.2801,
+      "centerV": 0.5187
+    },
+    {
+      "id": "fighting",
+      "label": "Fighting",
+      "texture": "/foil/type-symbol/large-fighting.png",
+      "coverage": 0.03694,
+      "peak": 0.95,
+      "centerU": 0.3119,
+      "centerV": 0.4674
+    },
+    {
+      "id": "darkness",
+      "label": "Darkness",
+      "texture": "/foil/type-symbol/large-darkness.png",
+      "coverage": 0.0166,
+      "peak": 0.95,
+      "centerU": 0.3186,
+      "centerV": 0.5276
+    },
+    {
+      "id": "metal",
+      "label": "Metal",
+      "texture": "/foil/type-symbol/large-metal.png",
+      "coverage": 0.03921,
+      "peak": 0.95,
+      "centerU": 0.3163,
+      "centerV": 0.5152
+    },
+    {
+      "id": "dragon",
+      "label": "Dragon",
+      "texture": "/foil/type-symbol/large-dragon.png",
+      "coverage": 0.02871,
+      "peak": 0.95,
+      "centerU": 0.3091,
+      "centerV": 0.5088
+    },
+    {
+      "id": "fairy",
+      "label": "Fairy",
+      "texture": "/foil/type-symbol/large-fairy.png",
+      "coverage": 0.0254,
+      "peak": 0.95,
+      "centerU": 0.3049,
+      "centerV": 0.4978
+    },
+    {
+      "id": "colorless",
+      "label": "Colorless",
+      "texture": "/foil/type-symbol/large-colorless.png",
+      "coverage": 0.04192,
+      "peak": 0.95,
+      "centerU": 0.2883,
+      "centerV": 0.4811
+    },
+    {
+      "id": "trainer",
+      "label": "Trainer (Poké Ball)",
+      "texture": "/foil/type-symbol/large-trainer.png",
+      "coverage": 0.04124,
+      "peak": 0.95,
+      "centerU": 0.3099,
+      "centerV": 0.5192
+    }
+  ],
+  "problems": [],
+  "honesty": [
+    "Bulbapedia describes a large type symbol (Poké Ball for Trainers) on the left of the card body for this run. That identifies the paper, not its artwork.",
+    "The glyphs are the same stylised geometric drawings used for the BW/XY paper, not official icons, and none is verified against a photograph.",
+    "The symbol is one large mark at the left, not a repeating field; the sampler anchors an aspect-correct window around it and leaves the rest of the body unmarked plain foil.",
+    "The type comes from the card; an unknown type renders plain foil rather than the wrong symbol.",
+    "Of 1762 reverse printings here, 1741 have a usable type; the rest show plain foil."
+  ]
+}

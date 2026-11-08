@@ -1,0 +1,118 @@
+{
+  "generated": "scripts/crosshatch-report.ts",
+  "phase": "Phase 23 — Crosshatch",
+  "claims": {
+    "identified": "Bulbapedia Holofoil: \"Crosshatch Holofoil is generally used only for cards awarded at Play! Pokémon events. The pattern consists of intersecting diagonal lines that form a reflective grid across the card. The crosshatch effect is often applied to the background of the card, as in a Reverse Holo card.\"",
+    "area": "The source says the crosshatch effect is \"often applied to the background of the card, as in a Reverse Holo card\", so these rows foil the body and text box with the illustration window left matte. \"Often\" is not \"always\" and no photograph is in this repo, so maskVerified stays false.",
+    "painted": "procedural reconstruction; not a scan",
+    "scope": {
+      "used": "Bulbapedia Holofoil: the pattern is \"generally used only for cards awarded at Play! Pokémon events\" — which is what the three BW Victory Cup promos are.",
+      "ended": "Bulbapedia, Miscellaneous Promotional cards: \"The Crosshatch Holofoil treatment was no longer used on cards starting with the 2015-2016 season and was replaced by the Mirror Holofoil treatment (on cards from BREAKthrough only) followed by the standard Parallel Holofoil treatment.\"",
+      "decision": "No later Play! Pokémon award is painted by habit: this build paints the three cards its printing table names Crosshatch and nothing else, because \"an award card\" is not evidence of a paper."
+    },
+    "neighbours": {
+      "textured": [
+        "bwp-BW43",
+        "bwp-BW73",
+        "bwp-BW74"
+      ],
+      "unlisted": [
+        "bwp-BW32"
+      ],
+      "note": "The textured BW promos wear no mark sheet at all: their paper is embossed, so they are painted as the BW relief (reports/textured-printings.md) and this lattice is never lent to them. The row no source lists makes no claim at all."
+    }
+  },
+  "sheet": {
+    "pattern": "/foil/crosshatch/sheet.png",
+    "size": 1024,
+    "pitch": 64,
+    "perFamily": 16,
+    "coverage": 0.45891,
+    "peak": 1,
+    "fieldBetween": 0.02514,
+    "wrapMismatch": 0.02516,
+    "tiles": true,
+    "sampling": "wrapped",
+    "concept": true,
+    "textureVerified": false,
+    "reproduction": "procedural reconstruction",
+    "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)",
+    "description": "intersecting diagonal lines forming a reflective grid"
+  },
+  "counts": {
+    "claimed": 3,
+    "painted": 3,
+    "maskOutsideArt": 3,
+    "maskVerified": 0,
+    "validated": 3,
+    "textureVerified": false,
+    "tiles": true,
+    "neighboursTextured": 3,
+    "unlisted": 1
+  },
+  "cards": [
+    {
+      "cardId": "bwp-BW29",
+      "number": "BW29",
+      "name": "Victory Cup",
+      "pattern": "crosshatch",
+      "mask": "outside-art",
+      "maskKind": "outsideArt",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Crosshatch Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW30",
+      "number": "BW30",
+      "name": "Victory Cup",
+      "pattern": "crosshatch",
+      "mask": "outside-art",
+      "maskKind": "outsideArt",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Crosshatch Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    },
+    {
+      "cardId": "bwp-BW31",
+      "number": "BW31",
+      "name": "Victory Cup",
+      "pattern": "crosshatch",
+      "mask": "outside-art",
+      "maskKind": "outsideArt",
+      "maskVerified": false,
+      "status": "verified",
+      "matchedRule": "explicit",
+      "source": "https://pokumon.com/promo_set/bw/",
+      "validated": true,
+      "evidence": "BW Black Star Promos: Crosshatch Holofoil. One treatment per card from Pokumon’s holofoil taxonomy, corroborated where Bulbapedia tags the same variant printing. Pokumon does not date the retro-to-HD Cosmos switch per card, so every Cosmos claim here uses the retro sheet the programme opened on."
+    }
+  ],
+  "neighbours": [
+    {
+      "cardId": "bwp-BW43",
+      "pattern": "textured-full-art"
+    },
+    {
+      "cardId": "bwp-BW73",
+      "pattern": "textured-full-art"
+    },
+    {
+      "cardId": "bwp-BW74",
+      "pattern": "textured-full-art"
+    }
+  ],
+  "unlisted": [
+    {
+      "cardId": "bwp-BW32",
+      "pattern": null
+    }
+  ],
+  "problems": []
+}

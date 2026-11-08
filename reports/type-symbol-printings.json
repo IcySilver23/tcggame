@@ -1,0 +1,339 @@
+{
+  "generated": "scripts/type-symbol-report.ts",
+  "phase": "Phase 5F — BW/XY type-symbol reverse paper",
+  "counts": {
+    "expansions": 24,
+    "validated": 24,
+    "glyphs": 12,
+    "reversePrintings": 2416,
+    "printingsWithKnownType": 2363,
+    "printingsWithoutType": 53,
+    "textureVerified": false,
+    "showcase": 3
+  },
+  "expansions": [
+    {
+      "setId": "bw2",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw3",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw4",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw5",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw6",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw7",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw8",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw9",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw10",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "bw11",
+      "name": "Black & White expansion",
+      "year": 2012,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy0",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy1",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy2",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy3",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy4",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy5",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy6",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy7",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy8",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy9",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy10",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy11",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "xy12",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    },
+    {
+      "setId": "g1",
+      "name": "XY Series",
+      "year": 2014,
+      "mask": "outside-art",
+      "status": "verified",
+      "implemented": true,
+      "source": "https://bulbapedia.bulbagarden.net/wiki/Holofoil_(TCG)"
+    }
+  ],
+  "glyphs": [
+    {
+      "id": "grass",
+      "label": "Grass",
+      "texture": "/foil/type-symbol/grass.png",
+      "coverage": 0.09745,
+      "peak": 0.998,
+      "seamRatio": 1
+    },
+    {
+      "id": "fire",
+      "label": "Fire",
+      "texture": "/foil/type-symbol/fire.png",
+      "coverage": 0.1357,
+      "peak": 0.9908,
+      "seamRatio": 1
+    },
+    {
+      "id": "water",
+      "label": "Water",
+      "texture": "/foil/type-symbol/water.png",
+      "coverage": 0.14808,
+      "peak": 0.9974,
+      "seamRatio": 1
+    },
+    {
+      "id": "lightning",
+      "label": "Lightning",
+      "texture": "/foil/type-symbol/lightning.png",
+      "coverage": 0.04948,
+      "peak": 0.99706,
+      "seamRatio": 1
+    },
+    {
+      "id": "psychic",
+      "label": "Psychic",
+      "texture": "/foil/type-symbol/psychic.png",
+      "coverage": 0.08078,
+      "peak": 0.99795,
+      "seamRatio": 2
+    },
+    {
+      "id": "fighting",
+      "label": "Fighting",
+      "texture": "/foil/type-symbol/fighting.png",
+      "coverage": 0.13121,
+      "peak": 0.99149,
+      "seamRatio": 1
+    },
+    {
+      "id": "darkness",
+      "label": "Darkness",
+      "texture": "/foil/type-symbol/darkness.png",
+      "coverage": 0.05875,
+      "peak": 0.99789,
+      "seamRatio": 1
+    },
+    {
+      "id": "metal",
+      "label": "Metal",
+      "texture": "/foil/type-symbol/metal.png",
+      "coverage": 0.13868,
+      "peak": 0.99064,
+      "seamRatio": 0.6914
+    },
+    {
+      "id": "dragon",
+      "label": "Dragon",
+      "texture": "/foil/type-symbol/dragon.png",
+      "coverage": 0.1014,
+      "peak": 0.9982,
+      "seamRatio": 1
+    },
+    {
+      "id": "fairy",
+      "label": "Fairy",
+      "texture": "/foil/type-symbol/fairy.png",
+      "coverage": 0.08812,
+      "peak": 0.99796,
+      "seamRatio": 0
+    },
+    {
+      "id": "colorless",
+      "label": "Colorless",
+      "texture": "/foil/type-symbol/colorless.png",
+      "coverage": 0.1479,
+      "peak": 0.99499,
+      "seamRatio": 1
+    },
+    {
+      "id": "trainer",
+      "label": "Trainer (Poké Ball)",
+      "texture": "/foil/type-symbol/trainer.png",
+      "coverage": 0.14571,
+      "peak": 0.99702,
+      "seamRatio": 1
+    }
+  ],
+  "problems": [],
+  "honesty": [
+    "The pattern is identified, not the artwork: Bulbapedia describes the card’s type symbol in the card body for this run, and a Poké Ball for Trainers.",
+    "The twelve glyphs are STYLISED GEOMETRIC DRAWINGS made for this build. They are not the official icons, and no sheet is verified against a photograph.",
+    "The symbol is chosen from the card row, never guessed: a Trainer gets the Poké Ball, a Pokémon gets its first recognised type, and an unknown type renders plain foil rather than the wrong symbol.",
+    "Of 2416 reverse printings in this catalogue, 2363 carry a type (or Trainer supertype) the loader can act on and 53 do not, so those cards show plain foil.",
+    "The sheets tile: glyphs are stamped with wrap-around, so the paper repeats across a card. Whether the real print repeated is not documented here; tiling is this build’s disclosed choice.",
+    "Coverage is the card body, apart from the illustration window, which is the mask the reverse table records for this run."
+  ]
+}

@@ -1,0 +1,598 @@
+{
+  "generated": "scripts/unpainted-report.ts",
+  "catalogue": {
+    "cards": 20782,
+    "foilCards": 7008,
+    "noFoil": 13774
+  },
+  "roadmapLine": {
+    "text": "none",
+    "named": []
+  },
+  "gaps": [],
+  "gapCards": 0,
+  "unnamedFinish": {
+    "cards": 416,
+    "rows": [
+      {
+        "id": "special-treatment",
+        "cards": 416
+      }
+    ]
+  },
+  "unresolvedCards": 0,
+  "papers": [
+    {
+      "id": "starlight",
+      "label": "Starlight",
+      "family": "era",
+      "years": "Base – Fossil (1999)",
+      "status": "painted",
+      "sheet": "/foil/starlight/sheet.png",
+      "cards": 47,
+      "sets": 3,
+      "statuses": {
+        "verified": 47
+      },
+      "databaseRows": 47,
+      "eraRows": 0
+    },
+    {
+      "id": "cosmos-retro",
+      "label": "Cosmos · retro (pixel)",
+      "family": "era",
+      "years": "Base Set 2 – Call of Legends (2000–2011)",
+      "status": "painted",
+      "sheet": "/foil/cosmos/classic_dense.png",
+      "cards": 1046,
+      "sets": 52,
+      "statuses": {
+        "verified": 1011,
+        "inferred": 35
+      },
+      "databaseRows": 1046,
+      "eraRows": 0
+    },
+    {
+      "id": "cosmos-hd",
+      "label": "Cosmos · HD",
+      "family": "promo",
+      "years": "post-2013 promo printings",
+      "status": "painted",
+      "sheet": "/foil/cosmos/modern_fine.png",
+      "cards": 9,
+      "sets": 4,
+      "statuses": {
+        "verified": 9
+      },
+      "databaseRows": 9,
+      "eraRows": 0
+    },
+    {
+      "id": "tinsel",
+      "label": "Tinsel",
+      "family": "era",
+      "years": "Black & White – Legendary Treasures (2011–2013)",
+      "status": "painted",
+      "sheet": "/foil/tinsel/sheet.png",
+      "cards": 188,
+      "sets": 13,
+      "statuses": {
+        "verified": 167,
+        "inferred": 21
+      },
+      "databaseRows": 188,
+      "eraRows": 0
+    },
+    {
+      "id": "sheen",
+      "label": "Sheen",
+      "family": "era",
+      "years": "XY – (2014–)",
+      "status": "alias",
+      "sheet": null,
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "waterweb",
+      "label": "Water Web",
+      "family": "era",
+      "years": "Sun & Moon – Cosmic Eclipse (2017–2019)",
+      "status": "painted",
+      "sheet": "/foil/waterweb/sheet.png",
+      "cards": 400,
+      "sets": 15,
+      "statuses": {
+        "era": 400
+      },
+      "databaseRows": 0,
+      "eraRows": 400
+    },
+    {
+      "id": "line",
+      "label": "Line",
+      "family": "era",
+      "years": "Sword & Shield – Crown Zenith (2020–2023)",
+      "status": "painted",
+      "sheet": "/foil/line/sheet.png",
+      "cards": 541,
+      "sets": 22,
+      "statuses": {
+        "era": 541
+      },
+      "databaseRows": 0,
+      "eraRows": 541
+    },
+    {
+      "id": "mirage",
+      "label": "Mirage",
+      "family": "era",
+      "years": "Scarlet & Violet onward (2023–)",
+      "status": "painted",
+      "sheet": "/foil/mirage/sheet.png",
+      "cards": 338,
+      "sets": 21,
+      "statuses": {
+        "era": 338
+      },
+      "databaseRows": 0,
+      "eraRows": 338
+    },
+    {
+      "id": "crackedice",
+      "label": "Cracked Ice",
+      "family": "promo",
+      "years": "Platinum theme decks and blisters (2009–)",
+      "status": "painted",
+      "sheet": "/foil/crackedice/sheet.png",
+      "cards": 8,
+      "sets": 3,
+      "statuses": {
+        "verified": 8
+      },
+      "databaseRows": 8,
+      "eraRows": 0
+    },
+    {
+      "id": "crosshatch",
+      "label": "Crosshatch",
+      "family": "promo",
+      "years": "Play! Pokémon event awards (BW era to the 2015-16 season)",
+      "status": "painted",
+      "sheet": "/foil/crosshatch/sheet.png",
+      "cards": 3,
+      "sets": 1,
+      "statuses": {
+        "verified": 3
+      },
+      "databaseRows": 3,
+      "eraRows": 0
+    },
+    {
+      "id": "plain-holo",
+      "label": "Plain holo",
+      "family": "era",
+      "years": "EX Delta Species – EX Dragon Frontiers δ holo rares (2005–2006)",
+      "status": "plain-by-design",
+      "sheet": null,
+      "cards": 50,
+      "sets": 4,
+      "statuses": {
+        "verified": 50
+      },
+      "databaseRows": 50,
+      "eraRows": 0
+    },
+    {
+      "id": "mirror",
+      "label": "Mirror / Sheen",
+      "family": "promo",
+      "years": "BW-era promo variants (2011–2013); the XY-onward holo paper by its other name",
+      "status": "painted",
+      "sheet": "/foil/mirror/sheet.png",
+      "cards": 282,
+      "sets": 15,
+      "statuses": {
+        "verified": 9,
+        "era": 273
+      },
+      "databaseRows": 9,
+      "eraRows": 273
+    },
+    {
+      "id": "sequin",
+      "label": "Sequin",
+      "family": "promo",
+      "years": "General Mills mini packs (2017–)",
+      "status": "painted",
+      "sheet": "/foil/sequin/sheet.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "confetti",
+      "label": "Pixel / Confetti",
+      "family": "special",
+      "years": "McDonald's Collections, Celebrations and 30th Celebration Classic Collections",
+      "status": "painted",
+      "sheet": "/foil/confetti/sheet.png",
+      "cards": 30,
+      "sets": 1,
+      "statuses": {
+        "verified": 30
+      },
+      "databaseRows": 30,
+      "eraRows": 0
+    },
+    {
+      "id": "radiant",
+      "label": "Radiant Collection",
+      "family": "special",
+      "years": "Legendary Treasures RC, Generations RC",
+      "status": "plain-by-design",
+      "sheet": null,
+      "cards": 44,
+      "sets": 2,
+      "statuses": {
+        "era": 44
+      },
+      "databaseRows": 0,
+      "eraRows": 44
+    },
+    {
+      "id": "radiant-etched",
+      "label": "Radiant Pokémon (etched silver)",
+      "family": "chase",
+      "years": "Astral Radiance – Crown Zenith (2022)",
+      "status": "painted",
+      "sheet": "/foil/radiant-etched/sheet.png",
+      "cards": 15,
+      "sets": 5,
+      "statuses": {
+        "verified": 15
+      },
+      "databaseRows": 15,
+      "eraRows": 0
+    },
+    {
+      "id": "fireworks",
+      "label": "Fireworks",
+      "family": "reverse",
+      "years": "Legendary Collection (2002)",
+      "status": "alias",
+      "sheet": null,
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-fireworks",
+      "label": "Reverse · Fireworks",
+      "family": "reverse",
+      "years": "Legendary Collection (2002)",
+      "status": "painted",
+      "sheet": "/foil/reverse/fireworks/pattern.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-flat",
+      "label": "Reverse · Flat",
+      "family": "reverse",
+      "years": "Expedition – EX Team Magma vs Team Aqua; Diamond & Pearl – Black & White",
+      "status": "plain-by-design",
+      "sheet": null,
+      "cards": 3,
+      "sets": 1,
+      "statuses": {
+        "inferred": 3
+      },
+      "databaseRows": 3,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-energy-symbol",
+      "label": "Reverse · Energy symbols",
+      "family": "reverse",
+      "years": "EX Hidden Legends – EX Team Rocket Returns",
+      "status": "painted",
+      "sheet": "/foil/type-symbol/grass.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-pinwheel",
+      "label": "Reverse · Pinwheel",
+      "family": "reverse",
+      "years": "EX Deoxys",
+      "status": "painted",
+      "sheet": "/foil/reverse/pinwheel/pattern.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-pokeball",
+      "label": "Reverse · Poké Ball",
+      "family": "reverse",
+      "years": "EX Emerald – EX Unseen Forces",
+      "status": "painted",
+      "sheet": "/foil/reverse/pokeball/pattern.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-flat-background",
+      "label": "Reverse · Flat background",
+      "family": "reverse",
+      "years": "EX Delta Species – EX Power Keepers; Dragon Frontiers on the Pokémon",
+      "status": "plain-by-design",
+      "sheet": null,
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-type-symbol",
+      "label": "Reverse · Type symbol",
+      "family": "reverse",
+      "years": "Emerging Powers – Steam Siege",
+      "status": "painted",
+      "sheet": "/foil/type-symbol/grass.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-type-symbol-large",
+      "label": "Reverse · Large type symbol",
+      "family": "reverse",
+      "years": "Sun & Moon – Cosmic Eclipse",
+      "status": "painted",
+      "sheet": "/foil/type-symbol/large-grass.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-energy-large",
+      "label": "Reverse · Energy symbol (one large)",
+      "family": "reverse",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/energy/water.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-tile",
+      "label": "Reverse · Tile",
+      "family": "reverse",
+      "years": "Sword & Shield – Crown Zenith",
+      "status": "painted",
+      "sheet": "/foil/reverse/tile/grass.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-tile-intricate",
+      "label": "Reverse · Intricate tile",
+      "family": "reverse",
+      "years": "Scarlet & Violet onward",
+      "status": "painted",
+      "sheet": "/foil/reverse/tile-intricate/grass.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-pokeball-large",
+      "label": "Reverse · Poké Ball (one large)",
+      "family": "reverse",
+      "years": "Prismatic Evolutions, Ascended Heroes (2025–2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-pokeball-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-pokeball-rows",
+      "label": "Reverse · Poké Ball (rows)",
+      "family": "reverse",
+      "years": "Black Bolt, White Flare (2025)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-pokeball-rows.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-masterball-large",
+      "label": "Reverse · Master Ball (one large)",
+      "family": "reverse",
+      "years": "Prismatic Evolutions (2025)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-masterball-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-masterball-rows",
+      "label": "Reverse · Master Ball (rows)",
+      "family": "reverse",
+      "years": "Black Bolt, White Flare (2025)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-masterball-rows.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-pokeball-assigned-large",
+      "label": "Poké Ball · Ascended Heroes",
+      "family": "special",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-pokeball-assigned-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-loveball-large",
+      "label": "Reverse · Love Ball (one large)",
+      "family": "reverse",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-loveball-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-friendball-large",
+      "label": "Reverse · Friend Ball (one large)",
+      "family": "reverse",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-friendball-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-quickball-large",
+      "label": "Reverse · Quick Ball (one large)",
+      "family": "reverse",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-quickball-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-duskball-large",
+      "label": "Reverse · Dusk Ball (one large)",
+      "family": "reverse",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-duskball-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "reverse-teamrocket-large",
+      "label": "Reverse · Team Rocket (one large)",
+      "family": "reverse",
+      "years": "Ascended Heroes (2026)",
+      "status": "painted",
+      "sheet": "/foil/reverse/special/reverse-teamrocket-large.png",
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    },
+    {
+      "id": "textured-full-art",
+      "label": "Textured full art",
+      "family": "chase",
+      "years": "BW textured promos, modern chase tiers",
+      "status": "painted",
+      "sheet": "/foil/surface/etched-deep.png",
+      "cards": 3,
+      "sets": 1,
+      "statuses": {
+        "verified": 3
+      },
+      "databaseRows": 3,
+      "eraRows": 0
+    },
+    {
+      "id": "special-treatment",
+      "label": "Special treatment",
+      "family": "special",
+      "years": "LV.X, Gold Star and similar",
+      "status": "unnamed-finish",
+      "sheet": null,
+      "cards": 416,
+      "sets": 28,
+      "statuses": {
+        "verified": 360,
+        "unresolved": 56
+      },
+      "databaseRows": 416,
+      "eraRows": 0
+    },
+    {
+      "id": "unresolved",
+      "label": "Unresolved",
+      "family": "special",
+      "years": "—",
+      "status": "unknown",
+      "sheet": null,
+      "cards": 0,
+      "sets": 0,
+      "statuses": {},
+      "databaseRows": 0,
+      "eraRows": 0
+    }
+  ],
+  "problems": []
+}

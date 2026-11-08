@@ -1,0 +1,160 @@
+{
+  "generated": "scripts/reverse-energy-large-report.ts",
+  "phase": "Phase 10 — Ascended Heroes Energy-pattern reverse",
+  "counts": {
+    "printings": 1,
+    "sets": 1,
+    "glyphs": 11,
+    "textureVerified": false,
+    "geometry": {
+      "sheet": 512,
+      "stampWidth": 0.45,
+      "stampHeight": 0.43,
+      "window": 0.95,
+      "targetU": 0.5,
+      "targetV": 0.675
+    }
+  },
+  "rows": [
+    {
+      "setId": "me2pt5",
+      "setName": "Ascended Heroes",
+      "releaseDate": "2026/01/30",
+      "year": 2026,
+      "variant": "reverseHolofoilEnergy",
+      "pattern": "reverse-energy-large",
+      "mask": "outside-art",
+      "artRect": {
+        "x": 0.083,
+        "y": 0.094,
+        "w": 0.838,
+        "h": 0.375
+      },
+      "status": "verified",
+      "source": "https://www.pokebeach.com/2026/01/ascended-heroes-set-guide-full-set-list-god-packs-reverse-holos-product-lineup-and-more",
+      "mainSetCards": 217,
+      "regularPokemon": 140,
+      "stamped": 140,
+      "missingTypes": 0,
+      "trainers": 36,
+      "energies": 2,
+      "note": "A large Energy symbol for the card’s own type behind the attack text, with foil on the card body and the illustration window matte."
+    }
+  ],
+  "glyphs": [
+    {
+      "glyph": "grass",
+      "label": "Grass",
+      "texture": "/foil/reverse/energy/grass.png",
+      "coverage": 0.10412,
+      "peak": 0.95,
+      "centerU": 0.5007,
+      "centerV": 0.5037
+    },
+    {
+      "glyph": "fire",
+      "label": "Fire",
+      "texture": "/foil/reverse/energy/fire.png",
+      "coverage": 0.15728,
+      "peak": 0.95,
+      "centerU": 0.5059,
+      "centerV": 0.505
+    },
+    {
+      "glyph": "water",
+      "label": "Water",
+      "texture": "/foil/reverse/energy/water.png",
+      "coverage": 0.16841,
+      "peak": 0.95,
+      "centerU": 0.4975,
+      "centerV": 0.5038
+    },
+    {
+      "glyph": "lightning",
+      "label": "Lightning",
+      "texture": "/foil/reverse/energy/lightning.png",
+      "coverage": 0.06395,
+      "peak": 0.95,
+      "centerU": 0.4948,
+      "centerV": 0.5059
+    },
+    {
+      "glyph": "psychic",
+      "label": "Psychic",
+      "texture": "/foil/reverse/energy/psychic.png",
+      "coverage": 0.10119,
+      "peak": 0.95,
+      "centerU": 0.5042,
+      "centerV": 0.4952
+    },
+    {
+      "glyph": "fighting",
+      "label": "Fighting",
+      "texture": "/foil/reverse/energy/fighting.png",
+      "coverage": 0.18053,
+      "peak": 0.95,
+      "centerU": 0.4964,
+      "centerV": 0.5048
+    },
+    {
+      "glyph": "darkness",
+      "label": "Darkness",
+      "texture": "/foil/reverse/energy/darkness.png",
+      "coverage": 0.09255,
+      "peak": 0.95,
+      "centerU": 0.4976,
+      "centerV": 0.4978
+    },
+    {
+      "glyph": "metal",
+      "label": "Metal",
+      "texture": "/foil/reverse/energy/metal.png",
+      "coverage": 0.10995,
+      "peak": 0.95,
+      "centerU": 0.5027,
+      "centerV": 0.4978
+    },
+    {
+      "glyph": "dragon",
+      "label": "Dragon",
+      "texture": "/foil/reverse/energy/dragon.png",
+      "coverage": 0.09805,
+      "peak": 0.95,
+      "centerU": 0.5033,
+      "centerV": 0.506
+    },
+    {
+      "glyph": "fairy",
+      "label": "Fairy",
+      "texture": "/foil/reverse/energy/fairy.png",
+      "coverage": 0.06387,
+      "peak": 0.95,
+      "centerU": 0.4964,
+      "centerV": 0.503
+    },
+    {
+      "glyph": "colorless",
+      "label": "Colorless",
+      "texture": "/foil/reverse/energy/colorless.png",
+      "coverage": 0.14977,
+      "peak": 0.95,
+      "centerU": 0.5043,
+      "centerV": 0.5049
+    }
+  ],
+  "problems": [],
+  "honesty": [
+    "PokeBeach’s Ascended Heroes set guide identifies the paper: every regular non-ex Pokémon has an Energy-pattern reverse and an assigned Poké Ball reverse, while Trainers and Energy cards received only plain reverses. The first reverse slot is therefore restricted to regular Pokémon in the game roller.",
+    "A real Snorunt Energy reverse shows one large Water Energy symbol behind the attack text, with the illustration window matte. That establishes the single-stamp layout, the card-body area and an approximate width of 0.45 card widths; the sampler records the measured 0.5/0.675 placement. The Ascended Heroes scan measures the modern art window at x 0.083, y 0.094, w 0.838, h 0.375, so this printing uses that rectangle instead of the shared base-set window and does not cut the top of the stamp.",
+    "The glyphs are the same stylised type drawings used by the BW/XY and Sun & Moon papers: geometric approximations, not official Energy icons. No scan or clean photograph of the sheet is available, so ENERGY_REVERSE_TEXTURE_VERIFIED is false and every field says verified: false.",
+    "Every type is normalised into the same 0.45 x 0.43 card stamp box measured from the reference, so a diagonal leaf cannot become wider than Water’s droplet. The normalisation is this build’s disclosed choice, not a measured property of the print.",
+    "The symbol comes from the card’s own type. Trainers, Energy cards, Pokémon ex, ACE SPEC cards and cards whose type cannot be resolved render plain foil; a wrong symbol is never substituted.",
+    "The game rolls the explicit reverseHolofoilEnergy token in Ascended Heroes’ first reverse slot. Its price is anchored to the same card’s ordinary reverse and carries no researched premium, because no ball-style market multiplier was measured for this paper."
+  ],
+  "sources": [
+    {
+      "label": "PokeBeach Ascended Heroes set guide",
+      "url": "https://www.pokebeach.com/2026/01/ascended-heroes-set-guide-full-set-list-god-packs-reverse-holos-product-lineup-and-more"
+    }
+  ]
+}

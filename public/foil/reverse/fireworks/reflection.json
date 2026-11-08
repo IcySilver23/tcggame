@@ -1,0 +1,6 @@
+{
+  "intensity": 0.95,
+  "iridescence": 0.85,
+  "patternOpacity": 1,
+  "note": "Marks modulate the reflection; the hue still comes from the iridescence layer."
+}
