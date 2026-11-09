@@ -143,6 +143,10 @@ export type ProductRow = {
   set_symbol: string | null
   /** Real wrapper art for this sealed product (TCGplayer CDN), when matched. */
   image_url: string | null
+  /** Named promo cards sealed in this product, for the shelf badge. */
+  promos?: string[]
+  /** Whether the box held one of the named promos or all of them. */
+  promoPolicy?: 'one-of' | 'all'
   est: {
     avg: number
     p50: number

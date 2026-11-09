@@ -11,6 +11,7 @@ import * as deliveries from './services/deliveries'
 import { portfolio } from './services/portfolio'
 import { refreshBenchmarkCache, benchmarkStatus } from './services/benchmark'
 import * as packs from './services/packs'
+import { SEALED_EVIDENCE } from './catalog/sealed-evidence'
 import * as gmpacks from './services/gmpacks'
 import * as binders from './services/binders'
 import * as pricesources from './services/pricesources'
@@ -1043,6 +1044,7 @@ app.get('/api/shop/products', (c) => {
   // stock already in a save still resolves).
   const out = rows.filter((r) => sealed.sellsOwnPacks(String(r.set_id))).map((r) => {
     const detail = sealed.priceDetail(r.id as string)
+    const evidence = SEALED_EVIDENCE[String(r.id)]
     const mini = gmpacks.miniPackFor(r.id as string)
     const est = mini
       ? gmpacks.estimateMiniPack(r.id as string)
@@ -1057,6 +1059,11 @@ app.get('/api/shop/products', (c) => {
       oop_months: detail.oopMonths,
       oop_status: detail.status,
       est,
+      // The shelf names the promo a box pins, so the card is visible before
+      // purchase instead of only in the opening ceremony. A two-name row is a
+      // one-of draw unless the evidence explicitly says both are inside.
+      promos: evidence?.promos.length ? evidence.promos : undefined,
+      promoPolicy: evidence?.promos.length ? (evidence.promoPolicy ?? 'one-of') : undefined,
       mini: mini ? gmpacks.miniSequinOdds(r.id as string) : undefined,
       // The era's own slot breakdown, so the shelf can show which card in a
       // pack comes from which slot. A mini pack prints its Sequin odds instead.

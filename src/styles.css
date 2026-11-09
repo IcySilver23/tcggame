@@ -2518,6 +2518,9 @@ to{opacity:1;transform:none}
 .bay-art-ph img{width:52px;height:52px;object-fit:contain}
 .bay-name{font-size:10.5px;line-height:1.25;text-align:center;color:var(--text-dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:26px}
 .bay-item.sel .bay-name{color:var(--text)}
+/* The promo included in a sealed product, named before it is bought. Three
+   names must fit on the shelf, so the tag wraps instead of clipping. */
+.bay-promo{display:block;width:max-content;max-width:100%;font-size:8px;font-weight:900;letter-spacing:.35px;line-height:1.3;text-align:center;padding:2px 6px;border-radius:7px;color:#ffe9b8;background:rgba(255,214,140,.12);border:1px solid rgba(255,214,140,.38);white-space:normal;overflow-wrap:break-word;cursor:help}
 .bay-flag{position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;letter-spacing:.6px;padding:1px 4px;border-radius:4px;z-index:2}
 .bay-flag.new{background:#2ee6a8;color:#04231a}
 .bay-flag.oop{background:#8a5cff;color:#fff}
@@ -2529,7 +2532,7 @@ to{opacity:1;transform:none}
 .bay-label i.good{color:#0b6b45}.bay-label i.mid{color:#8a5a00}.bay-label i.low{color:#a11c1c}
 /* Sequin shelf tag: what the foil slot of a cereal mini pack actually holds. */
 .bay-sequin{font-size:8px;font-weight:900;letter-spacing:.5px;padding:1px 6px;border-radius:999px;color:#bff5e2;background:rgba(46,230,168,.14);border:1px solid rgba(46,230,168,.42);cursor:help;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.bay-rip{position:absolute;bottom:34px;right:5px;font:inherit;font-size:9.5px;font-weight:900;letter-spacing:.4px;padding:2px 6px;border-radius:5px;border:1px solid #f2c400;background:var(--yellow);color:#20180a;cursor:pointer;z-index:3}
+.bay-rip{position:absolute;top:5px;left:5px;font:inherit;font-size:9.5px;font-weight:900;letter-spacing:.4px;padding:2px 6px;border-radius:5px;border:1px solid #f2c400;background:var(--yellow);color:#20180a;cursor:pointer;z-index:3}
 .bay-rip:disabled{opacity:.5;cursor:not-allowed}
 /* The till — fixed furniture beside the floor. */
 .till{position:sticky;top:10px;display:flex;flex-direction:column;gap:7px;padding:14px;border-radius:16px;border:2px solid var(--border);background:

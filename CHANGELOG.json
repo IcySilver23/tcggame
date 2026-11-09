@@ -1,6 +1,137 @@
 {
   "entries": [
     {
+      "version": "0.77.0",
+      "date": "2026-11-08",
+      "title": "The box hands you the promo",
+      "features": [
+        "Sealed shelf cards now name the promo included before you buy. Elite Trainer Boxes, blisters and collections show the card beside their art and price — the four split boxes read PROMO · Koraidon, PROMO · Miraidon, PROMO · Riolu and PROMO · Alakazam, while a poster collection or Ultra-Premium Collection prints its full promo list on the shelf tag, with the longest three-name list wrapping onto a second line. A product whose copy names one of two still says “or” rather than implying both are inside, and a product with no documented promo shows no badge."
+      ]
+    },
+    {
+      "version": "0.76.0",
+      "date": "2026-11-08",
+      "title": "Every box says what is inside",
+      "features": [
+        "The rest of 30th Celebration's line is on the shelves: Poster Collection (3 packs, plus the Articuno, Zapdos and Moltres promos), Tech Sticker Collection (3 packs, an Alolan Exeggutor or Lucario promo), Binder Collection (5 packs), Mini Tin (2 packs), Knock Out Collection (2 packs and an Eevee promo), and the Sylveon ex and Greninja ex boxes (4 packs each with their foil promo).",
+        "Ascended Heroes fills out as well: Tech Sticker Collection (3 packs, a Charmander or Gastly promo), Mini Tin (2 packs), Premium Poster Collection (10 packs, Mega Lucario ex or Mega Gardevoir ex), First Partners Deluxe Pin Collection (5 packs and the Chikorita, Tepig and Totodile promos) and the three Mega ex boxes (4 packs each, with Mega Meganium ex, Mega Emboar ex or Mega Feraligatr ex).",
+        "Each of those pack counts and promo lists is taken from the published product copy and marked verified on the product, instead of inheriting the era's bundle/ETB shape. Where a box held one of two promos, neither is listed as guaranteed.",
+        "The catalogue is now 542 products, 448 offered and 94 hidden. The only additions are these 14 rows; no existing product's pack count or price changed.",
+        "The honest part: the binder and the two mini tins name no promo because a binder, a sticker sheet and an art card are not cards. The promo names are not mapped to catalogue cards, since those promo printings are not in the catalogue, so opening one of these boxes grants no substitute card. The 30th Celebration wrapper is physically six cards while the game deals ten, and the new prices are retail references rather than an official price line."
+      ]
+    },
+    {
+      "version": "0.75.0",
+      "date": "2026-11-08",
+      "title": "Every modern shelf is sourced",
+      "features": [
+        "The per-product sealed evidence now covers all 95 sold modern rows, not 43. That includes every Mega Evolution set, Ascended Heroes, 30th Celebration and its collections, the modern boosters, and the remaining special sets. Standard products keep their 9/6/36 formats; 30th Celebration's six-card wrappers and 29-pack Ultra-Premium Collections are recorded as physical products.",
+        "Each modern Elite Trainer Box now names its real promo: Riolu or Alakazam, Charcadet, Tyrunt, Fennekin, Zarude, N's Zekrom, Kyogre and Nidorina. The 30th Celebration collections name Pikachu ex with Espeon ex or Umbreon ex, plus Ditto, Mew and Mewtwo. Where a promo is named but not catalogued, the box grants no substitute card rather than inventing one.",
+        "Two phantom displays are refused now: 151 never had a 36-pack display, and neither did 30th Celebration. Both rows are hidden from the shop, buying, battles, live shows and tournaments while owned stock still resolves; new saves do not seed them. Ascended Heroes' missing six-pack Booster Bundle is now on the shelf.",
+        "The catalogue is 528 products, 434 offered and 94 hidden. The 14 hidden modern rows are no-wrapper or phantom rows and are listed separately; there are no sold modern rows left on the generated format.",
+        "The honest part: this is a product audit, not a pull-rate audit. 30th Celebration's physical wrapper is six cards while the game deals ten, the UPC's three-card Classic Collection pack is still omitted, and the Mega Evolution promo names do not have mapped catalogue ids. Those are recorded rather than hidden."
+      ]
+    },
+    {
+      "version": "0.74.0",
+      "date": "2026-11-08",
+      "title": "The shelf says what actually shipped",
+      "features": [
+        "Modern ETBs, bundles and displays now read from a per-product evidence table instead of one era default. The standard Scarlet & Violet line is 9 packs per ETB, 6 per bundle and 36 per display; Crown Zenith's ETB is 10. That covers 43 products across the 2023–2025 sets, with the named ETB promo for each set.",
+        "The shop no longer sells a 36-pack Scarlet & Violet—151 display. 151 shipped packs, six-pack bundles, ETBs and collection products, never a standard display; the existing row is hidden for owned stock but cannot be bought or opened from the shop.",
+        "Five missing special-set bundles are now on the shelf: Paldean Fates, Shrouded Fable, Prismatic Evolutions, Black Bolt and White Flare each get their six-pack Booster Bundle. 151's bundle was already there.",
+        "ETB promos are real where the catalogue holds them. The opener resolves the named card from the promo set — Koraidon or Miraidon for sv1, Snorlax for 151, Lucario VSTAR for Crown Zenith — instead of synthesising an unrelated promo. Where a named promo is not catalogued (Black Bolt and White Flare), the box grants no promo rather than a wrong one.",
+        "The honest part: 65 modern rows still use the generated era format because no per-product source was added for them — mostly boosters, the me* releases, and special collections. Their pack counts remain modelled, not verified; reports/sealed-evidence.{json,md} lists every one, and tmp/check-sealed-evidence.ts fails on a count or promo mismatch."
+      ]
+    },
+    {
+      "version": "0.73.0",
+      "date": "2026-11-08",
+      "title": "Every pack says what is sourced",
+      "features": [
+        "All 522 catalogued product rows — 430 sold and 92 hidden no-wrapper rows — now have a manifest covering pack count, per-pack layout, promos, hit tiers and foil guarantees. Each field carries a source, an inference, a model disclosure or an explicit unverified mark instead of presenting every number as equally certain.",
+        "The three General Mills cereal packs and the five 30th Celebration collections have product-level entries. The 30C manifests name the packs, the named promos and the physical six-card wrapper, and the UPC records the three-card Classic Collection pack that this build does not open.",
+        "Generic Elite Trainer Boxes no longer imply a real promo. The opener still synthesises one so the box has its beat, but the manifest leaves the promo unverified with no card name; only me6’s published Kyogre promo is named. Bundle, ETB and display pack counts are marked modelled because the catalogue applies one format to a whole product kind.",
+        "The manifest is available at /api/shop/products/:productId/manifest and as reports/product-manifests.{json,md}. The report lists every product, every unverified field and the source URLs; tmp/check-product-manifests.ts fails if a product is missing, a field has no status, or an unverified field quietly gains a value.",
+        "The honest part: a generic product is still not 1:1. No wrapper photo, box checklist or per-product pull-rate sample was added, so its pack counts and hit tiers remain modelled or inferred; a per-product source is what would promote them to verified."
+      ]
+    },
+    {
+      "version": "0.72.1",
+      "date": "2026-11-08",
+      "title": "The reverse slot starts in 2002",
+      "features": [
+        "Legendary Collection and Expedition packs now carry their reverse-holo slot. Both sets were being dealt without one because the Wizards branch dropped every reverse slot, even though Legendary Collection is the set that introduced the printing.",
+        "Neo Destiny no longer gets a reverse it never had: the rule is now dated to Legendary Collection’s 24 May 2002 release instead of treating every 2002 set as reverse-era.",
+        "The 2002 e-Card/EX shape no longer invents a Basic Energy slot in the ten game cards. The game still deals ten where the physical e-Card/EX wrapper held nine; that ten-card abstraction is unchanged, which is why this is a layout correction rather than a claim that every product is now 1:1.",
+        "Dragon Vault’s five-card packs now price every card as Holofoil everywhere, not just in the pack estimate. The set is all-foil, but the rare-variant key was reading its plain “Rare” label and valuing the pulls as non-foil.",
+        "The honest part: this fixes two reverse-holo sets, not the whole product catalog. The 71 EX/DP/BW sets still use era-typical rates, and bundle, ETB and display products still share the set’s booster table; those need per-product sources before they can be called exact."
+      ]
+    },
+    {
+      "version": "0.72.0",
+      "date": "2026-11-08",
+      "title": "The paper stays on the card",
+      "features": [
+        "Every identified foil now renders at rest, whether or not Settings → Appearance has advanced foil on. Cosmos, reverse, Cracked Ice, Tinsel, Sheen/Mirror, Water Web, Line, Mirage, Sequin, Confetti and the rest settle at a fixed neutral tilt on the card instead of waiting for the pointer. Named papers used as reverse finishes — POP8 Cracked Ice, the BW Mirror promos, Southern Islands and Best of Game Cosmos — use their own field instead of an empty set reverse.",
+        "The switch is advanced foil only. Off keeps the paper and a quiet neutral highlight; on adds the pointer-driven sweep, iridescent colour and embossed relief. Reduced-motion users keep the paper without the movement, and thumbnails below 96 px stay flat so a grid does not pay for invisible canvas work.",
+        "The honest part: this is a display change, not new identification. Papers with no researched sheet still render plain foil, unresolved printings still make no claim, and the advanced treatment is still the modelled layer the roadmap describes."
+      ]
+    },
+    {
+      "version": "0.71.0",
+      "date": "2026-11-08",
+      "title": "Every counter says when it is closed",
+      "features": [
+        "BidBay, Local Deals, Buylist and the Sets gallery now use Pack Shop’s loading, failure and retry pattern. A fetch in flight says what is being loaded; a failed first fetch names what could not load and offers Try again; a failed background refresh leaves the last good screen in place instead of blanking it.",
+        "BidBay no longer paints an empty marketplace while its first feed is still arriving. Local Deals waits for both the public board and your own posts before it calls itself loaded. Buylist separates a failed counter from a shop with nothing to buy, and the Sets gallery separates “no sets on file” from “no sets match these filters”.",
+        "The honest part: this is the second 13.0 batch, not the whole audit. Forum, Home widgets, Inventory tabs, Market, Notifications, Pack Battles, Settings, Shop subpanels, Storage, Stream, Trade, Wishlist, and the nested Card Shows booth and convention floor still carry the old silent catches or permanent spinners."
+      ]
+    },
+    {
+      "version": "0.70.0",
+      "date": "2026-11-08",
+      "title": "No more silent screens",
+      "features": [
+        "Achievements, Portfolio, Calendar, Set Detail, Auction House, Card Shows, the convention floor and the Pawn Shop now have Pack Shop's three states. A fetch in flight says what is loading; a failed first fetch says what could not load and offers Try again; a failed background poll leaves the last good screen alone instead of blanking it or spinning forever.",
+        "Empty screens now name the next action. A calendar with nothing published points at the convention floor, a set with no cards offers a reload, and the Pawn Shop already separates an empty collection from a search that matched nothing.",
+        "The honest part: this is the first batch of 13.0, not the whole audit. BidBay, Local Deals, Buylist, Forum, Home widgets, Inventory tabs, Market, Notifications, Pack Battles, Settings, Shop subpanels, Storage, Stream, Trade, Wishlist, the Sets gallery and the nested booth and floor panels still carry silent catches or permanent spinners and stay on the roadmap."
+      ]
+    },
+    {
+      "version": "0.69.0",
+      "date": "2026-11-08",
+      "title": "The walls come down",
+      "features": [
+        "The dense screens now speak in labelled lines instead of paragraphs. Storage explains the locker gamble in four rows, Live Shopping names all six room formats, Stream lays out the case-break maths, Pack Shop explains the median sticker, Market labels the per-condition radar, Auction House leads with the room rules, Resale gives ROI its own three lines, Shop breaks rent/mortgage/accounting into rows, and Inventory separates selling, dumping and holding sealed stock.",
+        "Nothing about the numbers moved. The pack shelf still uses the median, not the mean; Market still compares each ask with that card’s own condition anchor; dealer sales still pay 70–92% with no fee; the damage dock still pays worn price with no fee; lockers still scrap at about 8¢ on the dollar; and every case-break split is unchanged.",
+        "The pass also removed repetition from the Card Shop. Rent, mortgage and the tax treatment of each are three labelled facts instead of one paragraph; walk-ins, ask-versus-market and cross-store moves are three lines under the speed table; and the accountant’s estimates, books and Monday report are separated.",
+        "The honest part: this is a copy and layout pass, not a mechanics pass. Every screen still calls the same endpoints and shows the same calculations — only the shape of the explanation changed. Screens that already used one short subtitle were left alone rather than being given a tip list for its own sake."
+      ]
+    },
+    {
+      "version": "0.68.0",
+      "date": "2026-11-08",
+      "title": "Local Deals stops being a catalogue",
+      "features": [
+        "Local Deals is a seller-thread inbox now, not a Marketplace tile grid. Each row is a person, their listing and the one line that matters — the ask, the risk, or the counter-offer — so the first thing you read is who you would be meeting.",
+        "Opening a conversation shows the seller, the listing as an attachment, the cash-only/public-lot rules and one next step: Arrange the meetup or Send an offer. The existing parking-lot meetup, ghosting, counterfeit check, mystery reveals and no-fee cash economy are unchanged.",
+        "The seven-venue Deals exit review is complete. Pawn is still the ticket clock, Yard Sales the haggle table, Flea Markets the bins, BidBay the online marketplace, Estate Buyouts the ledger and reveal, and Live Shopping the video room. Local Deals was the one screen still reading like a second BidBay, and it is the one that changed.",
+        "The honest part: the conversation list is presentation, not a new messaging system. The seller line is derived from the listing’s existing ask, risk and counter state, and every meetup still runs through the same server calls and outcomes as before."
+      ]
+    },
+    {
+      "version": "0.67.0",
+      "date": "2026-11-08",
+      "title": "The cards and the roof share a door",
+      "features": [
+        "Storage & Auctions is a mode of Inventory now instead of a second sidebar door. The BUSINESS section is three rows — Inventory, Card Shop and Resale Desk — completing the 32-screen → 17-door consolidation.",
+        "Open Inventory and the Inventory / Storage & Auctions tabs sit above the page. Cards keeps every existing view (Raw, Listed, Grading, In Transit, Supplies, Authentication, Sealed); Storage keeps the capacity meters, locker desk, overflow policy, vault rider and delinquent-locker auctions.",
+        "Old links keep working: a saved #/storage bookmark, the capacity strip’s “Rent a locker” shortcut and any old feed link open Inventory on the Storage & Auctions tab. The direct route is #/inventory/storage.",
+        "The honest part: this is a navigation change, not an economy change. Storage rent, capacity, overflow, scrap floors, vault coverage and locker auctions behave exactly as they did; only the door moved."
+      ]
+    },
+    {
       "version": "0.66.0",
       "date": "2026-11-08",
       "title": "A box cannot cost less than its packs",

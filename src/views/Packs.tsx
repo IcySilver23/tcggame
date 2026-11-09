@@ -353,6 +353,22 @@ export function PacksView() {
                           )}
                           <span className="bay-art"><ProductArt p={p} /></span>
                           <span className="bay-name">{p.name.replace(/Scarlet & Violet—|Sword & Shield—/, '')}</span>
+                          {(p.kind === 'etb' || p.kind === 'special') && p.promos && p.promos.length > 0 && (
+                            <span
+                              className="bay-promo"
+                              title={p.promos.length === 1
+                                ? `Promo included: ${p.promos[0]}`
+                                : p.promoPolicy === 'all'
+                                  ? `Promos included: ${p.promos.join(', ')}`
+                                  : `One of these promos is included: ${p.promos.join(' or ')}`}
+                            >
+                              PROMO · {p.promos.length === 1
+                                ? p.promos[0]
+                                : p.promoPolicy === 'all'
+                                  ? p.promos.join(' + ')
+                                  : p.promos.join(' or ')}
+                            </span>
+                          )}
                           {/* Shelf-edge label: price big, unit price small, and the
                               typical return as the shop's own honesty sticker. */}
                           <span className="bay-label">
