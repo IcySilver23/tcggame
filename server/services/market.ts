@@ -76,6 +76,75 @@ export type ResolvedPrice = {
  * An Energy-pattern reverse has no researched premium here, so it prices at the
  * same card's ordinary reverse anchor and keeps its own variant token.
  */
+type TcgPriceRecord = {
+  card_id: string
+  variant: string
+  low: number | null
+  high: number | null
+  market: number | null
+  retrieved_at: string
+}
+
+// The light inventory route asks for every collection row at once. Without
+// this, resolveBasePrice runs one price_records query per row; with it, one
+// query loads the whole batch and each row resolves against the in-memory rows.
+// Only the TCGplayer tier is batched — a row that falls through to the other
+// sources keeps the existing per-card fallback path below.
+let tcgPriceCache: Map<string, TcgPriceRecord[]> | null = null
+
+function pickTcgPrice(rows: TcgPriceRecord[], variant: string): TcgPriceRecord | undefined {
+  return (
+    rows.find((r) => r.variant === variant && r.market != null) ??
+    rows.find((r) => r.variant === 'holofoil' && r.market != null) ??
+    rows.find((r) => r.variant === 'normal' && r.market != null) ??
+    rows.find((r) => r.market != null)
+  )
+}
+
+function tcgBasePrice(
+  cardId: string,
+  pick: TcgPriceRecord & { market: number },
+  condition: Condition,
+  variant: string,
+): ResolvedPrice {
+  const mult = CONDITION_MULT[condition] ?? 1
+  const isAnchor = condition === 'NM'
+  const regime = regimeFactor(cardId)
+  return {
+    usd: round2(pick.market * mult * regime),
+    source: isAnchor ? 'live' : 'estimated',
+    retrievedAt: pick.retrieved_at,
+    kind: 'tcgplayer',
+    variant: pick.variant,
+    low: pick.low != null ? round2(pick.low * mult * regime) : null,
+    high: pick.high != null ? round2(pick.high * mult * regime) : null,
+  }
+}
+
+function loadTcgPriceRecords(cardIds: string[]): Map<string, TcgPriceRecord[]> {
+  const out = new Map<string, TcgPriceRecord[]>()
+  const ids = [...new Set(cardIds)]
+  // Stay below SQLite's default variable limit while keeping one query per
+  // up-to-800 cards rather than one per card.
+  for (let i = 0; i < ids.length; i += 800) {
+    const chunk = ids.slice(i, i + 800)
+    const rows = db
+      .prepare(
+        `SELECT card_id, variant, low, high, market, retrieved_at
+         FROM price_records
+         WHERE kind = 'tcgplayer' AND card_id IN (${chunk.map(() => '?').join(',')})
+         ORDER BY card_id, retrieved_at DESC`,
+      )
+      .all(...chunk) as TcgPriceRecord[]
+    for (const row of rows) {
+      const list = out.get(row.card_id)
+      if (list) list.push(row)
+      else out.set(row.card_id, [row])
+    }
+  }
+  return out
+}
+
 export function resolvePrice(cardId: string, variant = 'normal', condition: Condition = 'NM'): ResolvedPrice {
   const ball = specialBallFor(variant)
   const energy = isEnergyReverseVariant(variant)
@@ -100,18 +169,20 @@ export function resolvePrice(cardId: string, variant = 'normal', condition: Cond
 }
 
 function resolveBasePrice(cardId: string, variant: string, condition: Condition): ResolvedPrice {
+  const cached = tcgPriceCache?.get(cardId)
+  const cachedPick = cached ? pickTcgPrice(cached, variant) : undefined
+  if (cachedPick && cachedPick.market != null) {
+    return tcgBasePrice(cardId, cachedPick as TcgPriceRecord & { market: number }, condition, variant)
+  }
+
   const rows = db
     .prepare(
-      `SELECT kind, variant, low, mid, high, market, retrieved_at
+      `SELECT card_id, kind, variant, low, mid, high, market, retrieved_at
        FROM price_records WHERE card_id = ? AND kind = 'tcgplayer' ORDER BY retrieved_at DESC`,
     )
-    .all(cardId) as { kind: string; variant: string; low: number | null; mid: number | null; high: number | null; market: number | null; retrieved_at: string }[]
+    .all(cardId) as { card_id: string; kind: string; variant: string; low: number | null; mid: number | null; high: number | null; market: number | null; retrieved_at: string }[]
 
-  const pick =
-    rows.find((r) => r.variant === variant && r.market != null) ??
-    rows.find((r) => r.variant === 'holofoil' && r.market != null) ??
-    rows.find((r) => r.variant === 'normal' && r.market != null) ??
-    rows.find((r) => r.market != null)
+  const pick = pickTcgPrice(rows, variant)
 
   if (!pick || pick.market == null) {
     // No TCGplayer data: try REAL prices we synced from other marketplaces
@@ -192,20 +263,10 @@ function resolveBasePrice(cardId: string, variant: string, condition: Condition)
     return { usd: null, source: 'estimated', retrievedAt: null, kind: 'estimated', variant, low: null, high: null }
   }
 
-  const mult = CONDITION_MULT[condition] ?? 1
-  const isAnchor = condition === 'NM'
   // Market regimes: real data stays real underneath — the economy breathes
   // around it via the bull/bear drift, the card's stable wobble, and any
   // live reprint shock (see regimes.ts).
-  return {
-    usd: round2(pick.market * mult * regimeFactor(cardId)),
-    source: isAnchor ? 'live' : 'estimated',
-    retrievedAt: pick.retrieved_at,
-    kind: 'tcgplayer',
-    variant: pick.variant,
-    low: pick.low != null ? round2(pick.low * mult * regimeFactor(cardId)) : null,
-    high: pick.high != null ? round2(pick.high * mult * regimeFactor(cardId)) : null,
-  }
+  return tcgBasePrice(cardId, pick as TcgPriceRecord & { market: number }, condition, variant)
 }
 
 export function round2(n: number): number {
@@ -226,31 +287,66 @@ export function resolvePriceCopy(
   condition: Condition = 'NM',
   inventoryId: number,
   known: boolean,
+  /** An already-resolved band for this card, so a caller that has one does not
+   *  look the same price up twice. */
+  base?: ResolvedPrice,
 ): ResolvedPrice & { copyKnown: boolean; copyFactor: number } {
-  const base = resolvePrice(cardId, variant, condition)
+  const resolved = base ?? resolvePrice(cardId, variant, condition)
   const f = known ? copyMultiplier(inventoryId) : 1
   return {
-    ...base,
-    usd: base.usd != null ? round2(base.usd * f) : null,
-    low: base.low != null ? round2(base.low * f) : null,
-    high: base.high != null ? round2(base.high * f) : null,
+    ...resolved,
+    usd: resolved.usd != null ? round2(resolved.usd * f) : null,
+    low: resolved.low != null ? round2(resolved.low * f) : null,
+    high: resolved.high != null ? round2(resolved.high * f) : null,
     copyKnown: known,
     copyFactor: f,
   }
 }
 
 /** Best-effort USD value used for inventory math. 0 when no data exists yet. */
+// A shop request asks for the same card+variant from the pack EV model, the
+// sealed EV model and the shelf price. Memoizing valueOf for the duration of
+// one request removes those duplicate lookups without freezing prices across
+// requests or market ticks.
+let priceMemo: Map<string, number> | null = null
+
+export function withPriceMemo<T>(fn: () => T): T {
+  const previous = priceMemo
+  priceMemo = new Map()
+  try {
+    return fn()
+  } finally {
+    priceMemo = previous
+  }
+}
+
 export function valueOf(cardId: string, variant = 'normal', condition: Condition = 'NM'): number {
-  return resolvePrice(cardId, variant, condition).usd ?? 0
+  const key = `${cardId}|${variant}|${condition}`
+  const hit = priceMemo?.get(key)
+  if (hit !== undefined) return hit
+  const value = resolvePrice(cardId, variant, condition).usd ?? 0
+  priceMemo?.set(key, value)
+  return value
 }
 
 // ---------------------------------------------------------------------------
 // Graded prices (real PriceCharting PSA/BGS/CGC/SGC data)
 // ---------------------------------------------------------------------------
 
-export type GradedQuote = { grade: string; usd: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded' }
+export type ValueBasis = 'sold' | 'asking' | 'estimated'
 
-const GRADE_ORDER = ['PSA10', 'BGS10', 'CGC10', 'SGC10', 'PSA9', 'PSA8', 'PSA7']
+export type GradedQuote = { grade: string; usd: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded'; basis: ValueBasis }
+
+/** How a quote was established. PriceCharting's BGS 10 Black column can be an
+ * estimate even without a Black Label sale, and eBay Browse returns active
+ * listings rather than completed sales. */
+function basisFor(kind: string, grade: string): ValueBasis {
+  if (kind === 'ebay-graded') return 'asking'
+  if (grade === 'BGS10BL') return 'estimated'
+  return 'sold'
+}
+
+const GRADE_ORDER = ['PSA10', 'BGS10BL', 'BGS10', 'CGC10P', 'CGC10', 'SGC10', 'PSA9', 'BGS9', 'CGC9', 'SGC9', 'PSA8', 'BGS8', 'PSA7']
 
 /** Latest real graded prices for a card (PriceCharting + eBay comps), best grade first. */
 export function gradedPrices(cardId: string): GradedQuote[] {
@@ -263,9 +359,15 @@ export function gradedPrices(cardId: string): GradedQuote[] {
     )
     .all(cardId) as { kind: string; variant: string; market: number; retrieved_at: string }[]
   // One row per grade: PriceCharting wins when both sources have the same grade.
-  const best = new Map<string, { grade: string; usd: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded' }>()
+  const best = new Map<string, GradedQuote>()
   for (const r of rows) {
-    const q = { grade: r.variant, usd: r.market, retrievedAt: r.retrieved_at, source: r.kind as 'pc-graded' | 'ebay-graded' }
+    const q = {
+      grade: r.variant,
+      usd: r.market,
+      retrievedAt: r.retrieved_at,
+      source: r.kind as 'pc-graded' | 'ebay-graded',
+      basis: basisFor(r.kind, r.variant),
+    }
     const existing = best.get(r.variant)
     if (!existing || (existing.source === 'ebay-graded' && q.source === 'pc-graded')) best.set(r.variant, q)
   }
@@ -278,12 +380,76 @@ export function gradedPrices(cardId: string): GradedQuote[] {
 }
 
 /** Value of a graded card: real PriceCharting grade price, then real eBay graded comp, else a raw-value multiplier (labeled estimated). Slabs ride the same regime weather. */
-export function gradedPriceOf(cardId: string, grade: string | null): { usd: number; source: 'live' | 'estimated'; kind: 'pc-graded' | 'ebay-graded' | null } {
-  // PSA rush: fresh slabs command a premium while the scene competes for
-  // grades (full premium during the rush, a fading one through the backlog
-  // hangover). A static import is safe here: psarush only calls back into
-  // market inside its own functions, never at module load.
+// Grading advice asks for the same card+grade several times per row (each
+// service prices the same grade ladder). A short cache collapses that burst
+// without freezing prices for long; regime and rush premiums still apply when
+// the entry is rebuilt.
+const GRADED_CACHE_MS = 10_000
+const gradedCache = new Map<string, { at: number; value: { usd: number; source: 'live' | 'estimated'; kind: 'pc-graded' | 'ebay-graded' | null; basis: ValueBasis } }>()
+
+export function gradedPriceOf(cardId: string, grade: string | null): { usd: number; source: 'live' | 'estimated'; kind: 'pc-graded' | 'ebay-graded' | null; basis: ValueBasis } {
+  const key = `${cardId}|${grade ?? ''}`
+  const hit = gradedCache.get(key)
+  if (hit && Date.now() - hit.at < GRADED_CACHE_MS) return hit.value
+  const value = computeGradedPriceOf(cardId, grade)
+  if (gradedCache.size > 4000) gradedCache.clear()
+  gradedCache.set(key, { at: Date.now(), value })
+  return value
+}
+
+function computeGradedPriceOf(cardId: string, grade: string | null): { usd: number; source: 'live' | 'estimated'; kind: 'pc-graded' | 'ebay-graded' | null; basis: ValueBasis } {
+  // Slabs ride the PSA rush: fresh slabs command a premium while the scene
+  // competes for grades (full premium during the rush, a fading one through
+  // the backlog hangover). A static import is safe here: psarush only calls
+  // back into market inside its own functions, never at module load.
   const rushMult = slabPremium()
+  // Black Label is a BGS 10 with four perfect subgrades. PriceCharting carries
+  // a BGS 10 Black column, but it can be an estimate with no Black Label sale,
+  // so that row is never labelled sold. An exact-title eBay comp is an asking
+  // price. Only when neither exists do we fall back to the BGS 10 quote × 1.6.
+  if (grade === 'BGS10BL') {
+    const live = db
+      .prepare(
+        `SELECT kind, market FROM price_records
+         WHERE card_id = ? AND kind IN ('pc-graded', 'ebay-graded') AND variant = 'BGS10BL' AND market IS NOT NULL
+         ORDER BY CASE kind WHEN 'pc-graded' THEN 0 ELSE 1 END, retrieved_at DESC
+         LIMIT 1`,
+      )
+      .get(cardId) as { kind: 'pc-graded' | 'ebay-graded'; market: number } | undefined
+    if (live) {
+      return {
+        usd: round2(live.market * regimeFactor(cardId) * rushMult),
+        source: 'live',
+        kind: live.kind,
+        basis: basisFor(live.kind, 'BGS10BL'),
+      }
+    }
+    const base = computeGradedPriceOf(cardId, 'BGS10')
+    return { usd: round2(base.usd * 1.6), source: 'estimated', kind: null, basis: 'estimated' }
+  }
+  // CGC Pristine 10 is a separate label and market from an ordinary CGC 10.
+  // PriceCharting has no Pristine column, so an exact eBay comp wins when one
+  // exists; otherwise model it as a disclosed premium over the CGC 10 quote.
+  if (grade === 'CGC10P') {
+    const live = db
+      .prepare(
+        `SELECT kind, market FROM price_records
+         WHERE card_id = ? AND kind IN ('pc-graded', 'ebay-graded') AND variant = 'CGC10P' AND market IS NOT NULL
+         ORDER BY CASE kind WHEN 'pc-graded' THEN 0 ELSE 1 END, retrieved_at DESC
+         LIMIT 1`,
+      )
+      .get(cardId) as { kind: 'pc-graded' | 'ebay-graded'; market: number } | undefined
+    if (live) {
+      return {
+        usd: round2(live.market * regimeFactor(cardId) * rushMult),
+        source: 'live',
+        kind: live.kind,
+        basis: basisFor(live.kind, 'CGC10P'),
+      }
+    }
+    const base = computeGradedPriceOf(cardId, 'CGC10')
+    return { usd: round2(base.usd * 1.45), source: 'estimated', kind: null, basis: 'estimated' }
+  }
   const row = db
     .prepare(
       `SELECT kind, market, retrieved_at FROM price_records
@@ -292,10 +458,17 @@ export function gradedPriceOf(cardId: string, grade: string | null): { usd: numb
        LIMIT 1`,
     )
     .get(cardId, grade ?? '') as { kind: 'pc-graded' | 'ebay-graded'; market: number; retrieved_at: string } | undefined
-  if (row) return { usd: round2(row.market * regimeFactor(cardId) * rushMult), source: 'live', kind: row.kind }
+  if (row) {
+    return {
+      usd: round2(row.market * regimeFactor(cardId) * rushMult),
+      source: 'live',
+      kind: row.kind,
+      basis: basisFor(row.kind, grade ?? ''),
+    }
+  }
   // No real grade data anywhere: transparent multiplier of the raw value (PSA10 3.5×, PSA9 1.6×, PSA8 1.15×, PSA7 0.8×)
-  const mult: Record<string, number> = { PSA10: 3.5, BGS10: 4, CGC10: 3, SGC10: 2.5, PSA9: 1.6, PSA8: 1.15, PSA7: 0.8 }
-  return { usd: round2(valueOf(cardId) * (mult[grade ?? ''] ?? 1) * rushMult), source: 'estimated', kind: null }
+  const mult: Record<string, number> = { PSA10: 3.5, BGS10BL: 6.4, BGS10: 4, CGC10P: 4.35, CGC10: 3, SGC10: 2.5, PSA9: 1.6, BGS9: 1.45, CGC9: 1.4, SGC9: 1.35, PSA8: 1.15, BGS8: 1.05, PSA7: 0.8 }
+  return { usd: round2(valueOf(cardId) * (mult[grade ?? ''] ?? 1) * rushMult), source: 'estimated', kind: null, basis: 'estimated' }
 }
 
 /** The counterfeit risk band: fakes only target cardboard worth faking, so the
@@ -312,10 +485,10 @@ export const SUSPICION_PCT = 10
  * being priced (nobody counterfeits a $2 card, so nothing below the band is
  * discounted). Rows that don't select the columns price clean, so read-model
  * queries never leak (or trip) hidden state. */
-export function valueOfRow(r: { card_id: string; variant: string; condition: string; graded_grade: string | null; fake_revealed?: number; is_fake?: number; auth_status?: string | null }): number {
+export function valueOfRow(r: { card_id: string; variant: string; condition: string; graded_grade: string | null; fake_revealed?: number; is_fake?: number; auth_status?: string | null }, /** already-resolved raw band, when the caller has one */ rawValue?: number): number {
   if (r.fake_revealed || r.is_fake) return 1 // detected counterfeit (either flag: local corner-test or USPA verdict): the training wall pays a flat dollar
   if (r.graded_grade) return gradedPriceOf(r.card_id, r.graded_grade).usd
-  const raw = valueOf(r.card_id, r.variant || 'normal', (r.condition as Condition) || 'NM')
+  const raw = rawValue ?? valueOf(r.card_id, r.variant || 'normal', (r.condition as Condition) || 'NM')
   if (r.auth_status === undefined || r.auth_status === 'authenticated') return raw
   if (raw < AUTH_THRESHOLD) return raw
   // The street's suspicion after a scam-accusation conviction (auth.ts owns the
@@ -323,6 +496,35 @@ export function valueOfRow(r: { card_id: string; variant: string; condition: str
   const until = getMeta('auth:suspicionUntil')
   const suspicion = until && new Date(until).getTime() > Date.now() ? SUSPICION_PCT / 100 : 0
   return round2(raw * (1 - Number(getMeta('authDiscountPct') ?? 5) / 100 - suspicion))
+}
+
+export type InventoryValueRow = {
+  card_id: string
+  variant: string
+  condition: string
+  graded_grade: string | null
+  fake_revealed?: number
+  is_fake?: number
+  auth_status?: string | null
+}
+
+/**
+ * Value a whole picker batch with one price_records query. The per-row rules
+ * stay in valueOfRow; the batch only primes the TCGplayer rows that
+ * resolveBasePrice would otherwise fetch one card at a time.
+ */
+export function withTcgPriceCache<T>(cardIds: string[], fn: () => T): T {
+  const previous = tcgPriceCache
+  tcgPriceCache = loadTcgPriceRecords(cardIds)
+  try {
+    return fn()
+  } finally {
+    tcgPriceCache = previous
+  }
+}
+
+export function valuesOfRows(rows: InventoryValueRow[]): number[] {
+  return withTcgPriceCache(rows.map((r) => r.card_id), () => rows.map((r) => valueOfRow(r)))
 }
 
 // ---------------------------------------------------------------------------
@@ -697,6 +899,9 @@ export function tick() {
   import('./psarush').then((p) => p.psaRushTick()).catch(() => {})
   // Day recap — the morning-after feed line once the UTC day has turned
   import('./dayrecap').then((d) => d.dayRecapTick()).catch(() => {})
+  // Daily deals — snapshot the board so a day is not missing from the record
+  // just because the player never opened the Pack Shop.
+  import('./dailydeals').then((d) => d.ensureTodayRecorded()).catch(() => {})
   // Tax season — files last month's return on the first tick of a new month
   import('./tax').then((t) => t.taxTick()).catch(() => {})
   // The accountant — Monday report, retainer, auto-estimated taxes

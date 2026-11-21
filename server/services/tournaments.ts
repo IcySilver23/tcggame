@@ -1,7 +1,7 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { valueOf, round2 } from './market'
-import { rollPack } from './packs'
-import { priceOf as sealedPriceOf } from './sealed'
+import { rollProductPack } from './packs'
+import { priceOf as sealedPriceOf, sellsProduct } from './sealed'
 import { RIVALS, packsInBox, buildSpectatorChat, type RivalDef, type ChatLine } from './packbattles'
 import * as schedule from './schedule'
 
@@ -47,7 +47,7 @@ function pickRoundProduct(kind: string, seed: string): { id: string; set_id: str
        FROM pack_products p WHERE p.kind = ?`,
     )
     .all(kind) as { id: string; set_id: string; name: string; kind: string; packs: number | null; msrp: number; market_price: number | null; pool: number }[]
-  const battlable = rows.filter((r) => r.pool > 0)
+  const battlable = rows.filter((r) => r.pool > 0 && sellsProduct(r.id, r.set_id))
   if (battlable.length > 0) {
     const pick = battlable[fnv1a(seed) % battlable.length]
     return { id: pick.id, set_id: pick.set_id, name: pick.name, kind: pick.kind, packs: pick.packs, msrp: pick.msrp, market_price: sealedPriceOf(pick.id).market || pick.msrp }
@@ -192,11 +192,11 @@ function nextPlayerMatch(bracket: Bracket, round: number): { opponentId: string;
 }
 
 /** Rip N packs of ONE fixed product for a side; returns cards + total. */
-function rip(product: { set_id: string }, count: number, owner: 'player' | 'other' = 'player'): { cards: { cardId: string; value: number; isHit: boolean }[]; total: number; bestPack: number } {
+function rip(product: { id: string; set_id: string }, count: number, owner: 'player' | 'other' = 'player'): { cards: { cardId: string; value: number; isHit: boolean }[]; total: number; bestPack: number } {
   const cards: { cardId: string; value: number; isHit: boolean }[] = []
   const packTotals: number[] = []
   for (let i = 0; i < count; i++) {
-    const res = rollPack(product.set_id, `tourney_${owner}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, 'booster', 10, owner)
+    const res = rollProductPack(product, i, `tourney_${owner}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, 10, owner)
     if (res) {
       cards.push(...res.map((c) => ({ cardId: c.cardId, value: c.value, isHit: c.isHit })))
       packTotals.push(round2(res.reduce((a, c) => a + c.value, 0)))
@@ -206,7 +206,7 @@ function rip(product: { set_id: string }, count: number, owner: 'player' | 'othe
 }
 
 /** NPC vs NPC: both sides simulated from the SAME product's pull tables. */
-function simulateNpcMatch(product: { set_id: string }, packs: number): { aTotal: number; bTotal: number } {
+function simulateNpcMatch(product: { id: string; set_id: string }, packs: number): { aTotal: number; bTotal: number } {
   const a = rip(product, packs, 'other')
   const b = rip(product, packs, 'other')
   return { aTotal: a.total, bTotal: b.total }

@@ -6,7 +6,7 @@
 //
 //   • single instance per machine (named mutex — second launch just pings)
 //   • spawns release/TCG-Life-Server.exe (the SEA) as its child, headless
-//   • waits for the game port, then hosts http://localhost:8787 in WebView2
+//   • waits for the port the server announces, then hosts it in WebView2
 //   • system tray icon (Open / Quit) as a convenience: the window itself is
 //     a normal taskbar citizen — minimize minimizes, X quits (stopping the
 //     server) — but if you Quit a second launch of the exe pings a restore
@@ -48,6 +48,8 @@ namespace TcgLifeHost
         private static bool s_splashClosed;
         private static volatile bool s_bootingPort; // true only while we wait for the server's port:
                                                     // boot lines stream onto the splash stage then
+        private static readonly ManualResetEventSlim s_portReady = new ManualResetEventSlim(false);
+        private static int s_port;                   // port the server announces (it binds port 0)
 
         // --- Startup budget ---------------------------------------------------
         // How long the port may stay silent before the splash complains.
@@ -126,6 +128,15 @@ namespace TcgLifeHost
                 return;
             }
 
+            // The server binds port 0: the OS picks a port that is free at the
+            // moment of the bind and announces it on stdout. We do not probe
+            // 8787 ourselves any more — a probe can pass just before a dev
+            // server takes the port, and Windows can even report a bound
+            // wildcard port as available. There is no chosen port to collide
+            // with, and the window only loads the port the server announces.
+            s_port = 0;
+            s_portReady.Reset();
+
             var server = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -138,7 +149,7 @@ namespace TcgLifeHost
                     RedirectStandardError = true,
                 }
             };
-            server.StartInfo.EnvironmentVariables["TCGLIFE_PORT"] = "8787";
+            server.StartInfo.EnvironmentVariables["TCGLIFE_PORT"] = "0";
             server.StartInfo.EnvironmentVariables["TCGLIFE_NO_OPEN"] = "1"; // the window IS the UI
             server.StartInfo.EnvironmentVariables["TCGLIFE_PARENT_PID"] = Process.GetCurrentProcess().Id.ToString();
             try { server.Start(); } catch (Exception ex)
@@ -151,14 +162,24 @@ namespace TcgLifeHost
                 return;
             }
             SetStage("Starting game server…");
-            server.OutputDataReceived += (_, e) => { LogLine("[server] " + e.Data); ReportBoot(e.Data); };
+            server.OutputDataReceived += (_, e) =>
+            {
+                LogLine("[server] " + e.Data);
+                ReportBoot(e.Data);
+                int announced = ParseGamePort(e.Data);
+                if (announced > 0)
+                {
+                    s_port = announced;
+                    s_portReady.Set();
+                }
+            };
             server.ErrorDataReceived += (_, e) => { LogLine("[server] " + e.Data); ReportBoot(e.Data); };
             server.BeginOutputReadLine();
             server.BeginErrorReadLine();
 
             // --- 2. Wait for the game to answer before showing the window.
             s_bootingPort = true;
-            if (!WaitPort("127.0.0.1", 8787, STARTUP_BUDGET_MS, server))
+            if (!WaitGame(STARTUP_BUDGET_MS, server))
             {
                 if (server.HasExited)
                     LogLine("[host] server exited during startup (code " + server.ExitCode + ")");
@@ -173,7 +194,7 @@ namespace TcgLifeHost
                 // Grace window: the server may just be slow, not broken. If it
                 // answers while the panel is up, take the panel down and carry
                 // on — a slow boot must never look like a dead game.
-                if (!server.HasExited && WaitPort("127.0.0.1", 8787, STARTUP_GRACE_MS, server))
+                if (!server.HasExited && WaitGame(STARTUP_GRACE_MS, server))
                 {
                     LogLine("[host] server answered during the grace window — recovering the splash");
                     RecoverSplash();
@@ -289,7 +310,7 @@ namespace TcgLifeHost
             SetStage("Opening the shop…");
 
             form.Controls.Add(web);
-            web.Source = new Uri("http://127.0.0.1:8787/"); // triggers async creation
+            web.Source = new Uri("http://127.0.0.1:" + s_port + "/"); // triggers async creation
 
             // Small conveniences: F5 reload, F11 fullscreen.
             form.KeyPreview = true;
@@ -996,6 +1017,41 @@ namespace TcgLifeHost
         private static void TryKill(Process p)
         {
             try { if (p != null && !p.HasExited) p.Kill(); } catch { }
+        }
+
+        // The server prints its actual URL once it is listening. This is the
+        // only port the window will ever load, so a dev server on 8787 (or any
+        // other listener) cannot be mistaken for the game.
+        private static int ParseGamePort(string line)
+        {
+            const string marker = "Game UI: http://localhost:";
+            if (string.IsNullOrEmpty(line)) return 0;
+            int at = line.IndexOf(marker, StringComparison.Ordinal);
+            if (at < 0) return 0;
+            int start = at + marker.Length;
+            int end = line.IndexOf('/', start);
+            if (end < 0) return 0;
+            int port;
+            return int.TryParse(line.Substring(start, end - start), out port) && port > 0 ? port : 0;
+        }
+
+        private static bool WaitPortAnnouncement(int timeoutMs, Process watch)
+        {
+            var deadline = Environment.TickCount + timeoutMs;
+            while (Environment.TickCount < deadline)
+            {
+                if (s_splashClosed) return false;
+                if (watch != null && watch.HasExited) return false;
+                if (s_portReady.Wait(200)) return true;
+                Application.DoEvents();
+            }
+            return false;
+        }
+
+        private static bool WaitGame(int timeoutMs, Process watch)
+        {
+            if (!WaitPortAnnouncement(timeoutMs, watch)) return false;
+            return WaitPort("127.0.0.1", s_port, Math.Min(timeoutMs, 15000), watch);
         }
 
         // Wait for a port to answer. `watch` (the server process) makes a

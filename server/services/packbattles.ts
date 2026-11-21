@@ -1,7 +1,7 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { valueOf, round2 } from './market'
-import { rollPack } from './packs'
-import { priceOf as sealedPriceOf, sellsOwnPacks } from './sealed'
+import { rollProductPack } from './packs'
+import { priceOf as sealedPriceOf, sellsProduct } from './sealed'
 
 // ---------------------------------------------------------------------------
 // Pack Battles — head-to-head pack openings against NPC rivals.
@@ -174,7 +174,7 @@ export function listBattlableProducts() {
   // within every price tier, and any consumer rendering this list raw (the
   // stream/break product selects) inherited that order.
   return rows
-    .filter((r) => r.pool > 0 && sellsOwnPacks(r.set_id))
+    .filter((r) => r.pool > 0 && sellsProduct(r.id, r.set_id))
     .map((r) => ({ ...r, packs: packsInBox(r.kind, r.packs), stake: round2(r.market_price ?? r.msrp) }))
     .sort(
       (a, b) =>
@@ -253,7 +253,7 @@ export function startBattle(productId: string, opponentId: string) {
     .get(productId) as { id: string; set_id: string; name: string; kind: string; packs: number | null; msrp: number; market_price: number | null; set_name: string } | undefined
   if (product) product.market_price = sealedPriceOf(productId).market || product.msrp
   if (!product) return { ok: false as const, error: 'Unknown product' }
-  if (!sellsOwnPacks(product.set_id)) return { ok: false as const, error: 'That product is not sold' }
+  if (!sellsProduct(product.id, product.set_id)) return { ok: false as const, error: 'That product is not sold' }
 
   const pool = (db.prepare(`SELECT COUNT(*) AS n FROM pack_product_cards WHERE pack_product_id = ?`).get(`${product.set_id}-booster`) as { n: number }).n
   if (pool === 0) return { ok: false as const, error: 'Pull table missing for this set — sync it first' }
@@ -290,10 +290,10 @@ export function startBattle(productId: string, opponentId: string) {
     for (let i = 0; i < packsPerSide; i++) {
       // Session id per side so pull_history stays attributable; the opponent
       // side is an NPC rip and must never surface in the player's records.
-      const res = rollPack(
-        product.set_id,
+      const res = rollProductPack(
+        product,
+        i,
         `battle_${who}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        'booster',
         10,
         who === 'player' ? 'player' : 'other',
       )

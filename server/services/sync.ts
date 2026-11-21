@@ -1,4 +1,5 @@
 import { db, getMeta, setMeta, getSetting, logActivity, nowIso } from '../lib/db'
+import { markCatalogChanged, markPricesChanged } from '../lib/derived-cache'
 import { fetchJson } from '../lib/http'
 import * as sealed from './sealed'
 import * as packs from './packs'
@@ -110,8 +111,11 @@ export function applyCatalogSeed(): SeedResult {
     const pricesAdded = (db.prepare(`SELECT COUNT(*) AS n FROM price_records`).get() as { n: number }).n -
       Math.max(0, 0)
     fresh = newlyDone > 0
+    const result = { applied: true, sets: afterSets - beforeSets, cards: afterCards - beforeCards, prices: Math.max(0, pricesAdded), fresh }
+    if (result.cards > 0 || result.sets > 0) markCatalogChanged()
+    if (result.prices > 0) markPricesChanged()
     console.log(`[sync] catalog seed applied — sets ${beforeSets}→${afterSets}, cards ${beforeCards}→${afterCards}, ${newlyDone} set(s) checkpointed${fresh ? '' : ' (catalog already current)'}`)
-    return { applied: true, sets: afterSets - beforeSets, cards: afterCards - beforeCards, prices: Math.max(0, pricesAdded), fresh }
+    return result
   } finally {
     try { db.exec('DETACH DATABASE seed') } catch { /* already detached */ }
   }
@@ -348,6 +352,7 @@ export async function syncCardsForSet(setId: string): Promise<number> {
     if (data.data.length < PAGE_SIZE || page * PAGE_SIZE >= data.totalCount) break
     page++
   }
+  if (total > 0) markCatalogChanged()
   return total
 }
 
@@ -437,6 +442,7 @@ async function repriceIds(ids: string[], label: string): Promise<{ cards: number
   }
   if (fetched > 0) console.log(`[sync] ${label} refresh: ${fetched} card(s) re-priced, ${changed} cardmarket trend(s) moved`)
   if (failed > 0) console.warn(`[sync] ${label} refresh: ${failed} chunk(s) unreachable — re-run to cover them`)
+  if (fetched > 0) markPricesChanged()
   return { cards: fetched, updated: changed }
 }
 
@@ -465,6 +471,11 @@ async function runLoop() {
       console.warn('[sync] catalog seed failed (continuing with API sync):', err instanceof Error ? err.message : err)
     }
 
+    // The dashboard and the sync bar read this counter, and a resumed run that
+    // finds every set already in `doneIds` never enters the loop below — so it
+    // reported 0 cards for a catalogue that was already full. Seed it from the
+    // rows that are actually there; the loop refreshes it per set.
+    progress.cardsSyncedTotal = (db.prepare('SELECT COUNT(*) AS n FROM cards').get() as { n: number }).n
     // Phase 1: sets (if never synced)
     if (!getMeta('setsLastSyncedAt')) {
       progress.running = true
@@ -511,6 +522,7 @@ async function runLoop() {
       setMeta('cardsLastSyncedAt', nowIso())
     }
 
+    progress.cardsSyncedTotal = (db.prepare('SELECT COUNT(*) AS n FROM cards').get() as { n: number }).n
     progress.running = false
     progress.phase = 'done'
     progress.finishedAt = nowIso()

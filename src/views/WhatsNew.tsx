@@ -1,45 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, type ChangelogEntry } from '../api'
+import { verNewer } from '../changelog-badge'
 
-/** Semver-ish compare: is version a strictly newer than b? */
-function verNewer(a: string, b: string): boolean {
-  const pa = a.split('.').map(Number)
-  const pb = b.split('.').map(Number)
-  for (let i = 0; i < 3; i++) {
-    const d = (pa[i] || 0) - (pb[i] || 0)
-    if (d) return d > 0
-  }
-  return false
-}
-
-/**
- * Sidebar badge: how many changelog entries landed since this save last
- * caught up. 0 for brand-new saves (no baseline yet) and caught-up saves.
- * Returns [count, refresh] so the app can re-check after the modal closes.
- */
-export function useWhatsNewBadge(): [number, () => void] {
-  const [count, setCount] = useState(0)
-  const [tick, setTick] = useState(0)
-  useEffect(() => {
-    let alive = true
-    Promise.all([api.changelog(), api.changelogSeen()])
-      .then(([log, seen]) => {
-        if (!alive) return
-        if (!seen.seen) {
-          // Never opened the changelog: a fresh save stays quiet, but a save
-          // with play history is a RETURNING player — badge the whole list.
-          setCount(seen.veteran ? log.entries.length : 0)
-          return
-        }
-        const unseen = log.entries.filter((e) => verNewer(e.version, seen.seen!)).length
-        setCount(unseen)
-      })
-      .catch(() => {})
-    return () => { alive = false }
-  }, [tick])
-  return [count, () => setTick((t) => t + 1)]
-}
-
+export { useWhatsNewBadge } from '../changelog-badge'
 export function ChangelogModal({ onClose }: { onClose: () => void }) {
   const [log, setLog] = useState<{ current: string; entries: ChangelogEntry[] } | null>(null)
   const [unseenCount, setUnseenCount] = useState<number | null>(null)

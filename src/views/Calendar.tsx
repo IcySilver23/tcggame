@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { api, type CalendarEvent, type CalendarResponse } from '../api'
-import { EmptyState } from '../components'
+import { EmptyState, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
 // 📅 Calendar — a real month grid, because "what's on" is a question about days.
@@ -112,10 +112,16 @@ export function CalendarView() {
   // dev-shifted scene lands on the right month instead of the machine's date.
   const [viewMonth, setViewMonth] = useState<Date | null>(null)
   const [selectedKey, setSelectedKey] = useState<number | null>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
+  const load = (initial = false) => {
+    if (initial) setStatus('loading')
+    api.calendar(PUBLISHED_WEEKS)
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => { if (initial) setStatus('error') })
+  }
   useEffect(() => {
-    const load = () => api.calendar(PUBLISHED_WEEKS).then(setData).catch(() => {})
-    load()
+    load(true)
     const fetchT = setInterval(load, 30_000)
     const tickT = setInterval(() => setTick((t) => t + 1), 1000) // countdowns tick every second
     return () => { clearInterval(fetchT); clearInterval(tickT) }
@@ -146,8 +152,19 @@ export function CalendarView() {
     return { min: Math.min(...idx), max: Math.max(...idx) }
   }, [events])
 
-  if (!data) return <EmptyState icon="📅" text="Loading the scene calendar…" />
+  if (status === 'error') return <LoadFailure what="the scene calendar" onRetry={() => load(true)} />
+  if (!data) return <EmptyState icon="📅" text="Loading the scene calendar…" sub="Pulling the next few weeks of shows, tournaments and drops." />
 
+  if (events.length === 0) {
+    return (
+      <EmptyState
+        icon="📅"
+        text="Nothing on the calendar yet"
+        sub="The scene publishes shows and streams on a weekly rhythm. The convention floor has what is coming next."
+        action={{ label: 'Open the convention floor', onClick: () => { window.location.hash = '#/events/conventions' } }}
+      />
+    )
+  }
   const month = firstOfMonth(viewMonth ?? today)
   const selected = midnight(new Date(selectedKey ?? today.getTime()))
   const cells = monthCells(month)

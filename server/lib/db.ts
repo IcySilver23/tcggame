@@ -36,6 +36,24 @@ function resolveAppRoot(): string {
   }
   return __dirname
 }
+function schemaUnder(dir: string): string | null {
+  const repo = path.join(dir, 'server', 'schema.sql')
+  if (fs.existsSync(repo)) return repo
+  const flat = path.join(dir, 'schema.sql')
+  if (fs.existsSync(flat)) return flat
+  return null
+}
+function walkForSchema(dir: string): string | null {
+  for (let i = 0; i < 6; i++) {
+    const found = schemaUnder(dir)
+    if (found) return found
+    const up = path.dirname(dir)
+    if (up === dir) break
+    dir = up
+  }
+  return null
+}
+
 const APP_ROOT = resolveAppRoot()
 const DATA_DIR = path.join(APP_ROOT, 'data')
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true })
@@ -44,9 +62,11 @@ export const db = new Sqlite(path.join(DATA_DIR, 'tcglife.db')) as unknown as Re
 db.pragma('journal_mode = WAL')
 db.pragma('foreign_keys = ON')
 
-const schemaPath = fs.existsSync(path.join(APP_ROOT, 'server', 'schema.sql'))
-  ? path.join(APP_ROOT, 'server', 'schema.sql')
-  : path.join(APP_ROOT, 'schema.sql')
+// TCGLIFE_HOME normally holds both the save and the schema (packaged layouts).
+// A bare data folder — a fresh TCGLIFE_HOME, or a save copied somewhere without
+// schema.sql — has no schema of its own, so fall back to the copy beside the
+// running code instead of failing on a missing file before the game can boot.
+const schemaPath = schemaUnder(APP_ROOT) ?? walkForSchema(__dirname) ?? path.join(APP_ROOT, 'schema.sql')
 const schema = fs.readFileSync(schemaPath, 'utf-8')
 db.exec(schema)
 

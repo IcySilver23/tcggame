@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import type { MarketRegimes, MarketScene, MarketSeasonal } from '../api'
 import { useStore } from '../store'
-import { CardImg, ConditionBadge, DensityToggle, EmptyState, fmtUsd, OverflowHint, SortSelect } from '../components'
+import { CardImg, ConditionBadge, DensityToggle, EmptyState, fmtUsd, LoadFailure, OverflowHint, SortSelect } from '../components'
 import type { ListingRow } from '../types'
 import { variantTag } from '../variant-label'
 
@@ -44,7 +44,7 @@ function TrustLine({ cond, anchorKind }: { cond?: string; anchorKind?: string | 
     simulated: 'the simulated market',
     model: 'a comparable-based estimate',
     estimated: 'an estimate',
-    'pc-graded': 'real PSA comps',
+    'pc-graded': 'real graded comps',
   }
   const src = anchorKind ? kindLabel[anchorKind] ?? anchorKind : null
   return (
@@ -111,6 +111,9 @@ export function MarketView() {
   const [scene, setScene] = useState<MarketScene | null>(null)
   const [sweptAt, setSweptAt] = useState<number>(() => Date.now())
   const timer = useRef<number | null>(null)
+  // An empty desk and a desk that never got an answer used to look identical:
+  // both showed six zeroes and "no quotes". They are now different sentences.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
     api.marketRegimes().then(setRegime).catch(() => {})
@@ -122,7 +125,12 @@ export function MarketView() {
     try {
       setListings(await api.marketListings({ q: query }))
       setSweptAt(Date.now())
-    } catch { /* keep the last sweep on screen rather than blanking it */ }
+      setStatus('ready')
+    } catch {
+      // Keep the last sweep on screen rather than blanking it; only a failure
+      // with nothing to show is the error state.
+      setStatus((s) => (s === 'ready' ? s : 'error'))
+    }
   }, [])
 
   useEffect(() => {
@@ -212,14 +220,20 @@ export function MarketView() {
     }
   }
 
+  if (status === 'error') {
+    return <LoadFailure what="the market board" sub="The local server did not answer. No listing was bought or changed." onRetry={() => { setStatus('loading'); load(q) }} />
+  }
+  if (status === 'loading') {
+    return <EmptyState icon="📋" text="Pricing the board…" sub="Scanning every live ask and matching it to its condition's anchor." />
+  }
+
   return (
     <div>
       <div className="page-head">
         <div>
           <h1>Marketplace</h1>
           <div className="sub">
-            The reference desk: what a card is <b>actually worth</b>, and who is selling under it. One line per card and
-            condition — the anchor, the cheapest ask, the spread. No haggling, no clock: you pay the ask and it ships.
+            The reference desk: the real anchor, the cheapest ask, the spread. No haggling, no clock — pay the ask and it ships.
           </div>
         </div>
         <div className="chip-row">
@@ -328,8 +342,8 @@ export function MarketView() {
           <div><div className="faint small">MEDIAN SPREAD</div><div className="radar-num">{radar.median > 0 ? '+' : ''}{Math.round(radar.median * 100)}%</div></div>
         </div>
         <div className="radar-copy small">
-          Each quote compares the cheapest ask against that card's <b>own condition</b> anchor, never NM — an LP at −12%
-          is a real discount. BidBay is where sellers undercut each other; this is where you learn the number first.
+          <div><b>Per condition</b> — an LP at −12% is a real discount; the ask is measured against its own anchor, never NM.</div>
+          <div><b>Why here</b> — BidBay is where sellers undercut; this is where you learn the number first.</div>
           <div className="faint" style={{ marginTop: 3 }}>last sweep {new Date(sweptAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · re-prices every 25s</div>
           {/* An empty scan is a finding, not a failure: say the board is priced
               high instead of leaving six zeroes to be interpreted. */}

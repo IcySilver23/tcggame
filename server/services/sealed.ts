@@ -1,9 +1,11 @@
 import { db, nowIso, getMeta, setMeta, logActivity } from '../lib/db'
-import { round2 } from './market'
+import { markCatalogChanged, markPricesChanged, onDerivedDataChanged } from '../lib/derived-cache'
+import { round2, valueOf } from './market'
 import { fetchPriceCharting, pcAuthFailed, markPcAuthFailure } from './pricesources'
 import { sealedFactor } from './demographics'
 import { expectedPackValue, planFor } from './packodds'
 import { miniPackFor } from '../catalog/general-mills'
+import { ART_EXACT, ART_LESS_PRODUCTS, ETB_SHELF, LOCAL_PRODUCT_IMAGES, PC_ETB_SHELF, PRODUCT_IMAGE_PRODUCT_IDS, productImageFor, sealedEvidenceFor, shelfPriceFor, NO_DISPLAY_SETS, PC_ETB_SETS, SPECIAL_BUNDLE_SETS, SPECIAL_PRODUCTS, unsellableReason } from '../catalog/sealed-evidence'
 
 // ---------------------------------------------------------------------------
 // Sealed catalog for EVERY set. WotC sets get boosters + 36-pack displays;
@@ -96,6 +98,58 @@ export function sellsOwnPacks(setId: string): boolean {
   return !SUBSET_ONLY_SETS.has(setId) && !NO_BOOSTER_SETS.has(setId)
 }
 
+/** True when this exact product is offered, not merely a product in a sellable set. */
+export function sellsProduct(productId: string, setId: string): boolean {
+  return sellsOwnPacks(setId) && unsellableReason(productId) === null
+}
+
+/**
+ * Delete rows for wrappers no shelf ever carried: pre-Lost Origin bundles,
+ * ETBs before the line began, displays and bundles on special sets that never
+ * shipped one, and every product of a set whose cards only came inside another
+ * product. Keeping them as hidden rows still told the catalogue a product
+ * existed; the only honest row count is the one a shop could stock.
+ *
+ * A box the save already owns is the exception: removing its row would strand
+ * that stock, so it stays hidden until the player sells it. Nothing is granted
+ * or refunded here, and the prune is idempotent.
+ */
+/**
+ * The three phantom booster rows that cannot go yet. A set's pull table is
+ * keyed `${setId}-booster`, and the real Double Crisis and Dragon Vault
+ * blisters and the Generations ETB roll that table. Deleting the parent would
+ * either cascade the table away or strand it behind a foreign key, so these
+ * rows stay as unsold table hosts. They are the only unsellable rows the prune
+ * leaves behind; every other phantom product is deleted.
+ */
+export const PULL_TABLE_HOSTS: ReadonlySet<string> = new Set(['dc1-booster', 'dv1-booster', 'g1-booster'])
+
+export function pruneNeverShippedProducts(): number {
+  const rows = db.prepare('SELECT id, set_id FROM pack_products').all() as { id: string; set_id: string }[]
+  const held = db.prepare('SELECT 1 FROM sealed_inventory WHERE product_id = ? AND quantity > 0 LIMIT 1')
+  const doomed = rows
+    .filter((r) => !sellsProduct(r.id, r.set_id) && !held.get(r.id) && !PULL_TABLE_HOSTS.has(r.id))
+    .map((r) => r.id)
+  if (doomed.length === 0) return 0
+  const marks = doomed.map(() => '?').join(',')
+  const tx = db.transaction(() => {
+    // A marketplace listing for a wrapper that never existed is the same lie in
+    // another table; it goes with the row rather than dangling as an item that
+    // cannot resolve. Pull and battle rows are records of opening one of these
+    // wrappers, so they go too. Breaks and shows keep their history: those
+    // tables are journals, and their product id is only a label.
+    db.prepare(`DELETE FROM local_listings WHERE item_ref IN (${marks})`).run(...doomed)
+    db.prepare(`DELETE FROM pack_product_cards WHERE pack_product_id IN (${marks})`).run(...doomed)
+    db.prepare(`DELETE FROM sealed_prices WHERE product_id IN (${marks})`).run(...doomed)
+    db.prepare(`DELETE FROM sealed_box_open WHERE product_id IN (${marks})`).run(...doomed)
+    db.prepare(`DELETE FROM pull_history WHERE pack_product_id IN (${marks})`).run(...doomed)
+    db.prepare(`DELETE FROM pack_battles WHERE product_id IN (${marks})`).run(...doomed)
+    db.prepare(`DELETE FROM pack_products WHERE id IN (${marks})`).run(...doomed)
+  })
+  tx()
+  return doomed.length
+}
+
 export function productsForSet(setId: string, setName: string, series: string, releaseDate: string): EraProducts['kinds'] {
   if (!sellsOwnPacks(setId)) return []
   if (promoLike(setId)) return []
@@ -111,15 +165,107 @@ export function productsForSet(setId: string, setName: string, series: string, r
     kinds.push({ kind: 'display', name: `${setName} Booster Display (36 packs)`, msrp: round2(boosterMsrp * DISPLAY_PACKS), packs: DISPLAY_PACKS })
   } else {
     const special = setId.includes('.5') || setId.endsWith('pt5')
-    if (!special) kinds.push({ kind: 'bundle', name: `${setName} Booster Bundle`, msrp: 26.99, packs: BUNDLE_PACKS })
+    // Most half sets skipped the bundle, but 151, Paldean Fates, Shrouded
+    // Fable, Prismatic Evolutions, Black Bolt and White Flare all shipped one.
+    if (!special || SPECIAL_BUNDLE_SETS.has(setId)) kinds.push({ kind: 'bundle', name: `${setName} Booster Bundle`, msrp: 26.99, packs: BUNDLE_PACKS })
     kinds.push({ kind: 'etb', name: `${setName} Elite Trainer Box`, msrp: etbMsrp, packs: ETB_PACKS })
-    if (!special) kinds.push({ kind: 'display', name: `${setName} Booster Display (36 packs)`, msrp: round2(boosterMsrp * DISPLAY_PACKS), packs: DISPLAY_PACKS })
+    if (!special && !NO_DISPLAY_SETS.has(setId)) kinds.push({ kind: 'display', name: `${setName} Booster Display (36 packs)`, msrp: round2(boosterMsrp * DISPLAY_PACKS), packs: DISPLAY_PACKS })
   }
-  return kinds
+  // The era shape says a bundle or an ETB is possible; the product registry
+  // says whether this set actually shipped one. A wrapper the registry refuses
+  // is not generated at all, so a fresh save never grows the row back.
+  return kinds.filter((k) => unsellableReason(`${setId}-${k.kind}`) === null)
+}
+
+/**
+ * Products that are not the set's ordinary booster, bundle, ETB or display:
+ * poster and binder collections, tech sticker collections, mini tins and the
+ * premium boxes. They are ordinary `pack_products` rows so the shop, opener and
+ * manifest read one table, and their pack count and promo list come from the
+ * per-product evidence row rather than from an era default.
+ */
+function seedSpecialProducts(): number {
+  const upsert = db.prepare(
+    `INSERT INTO pack_products (id, set_id, name, kind, msrp, market_price, packs, cards_per_pack, release_date, description)
+     VALUES (@id, @set_id, @name, @kind, @msrp, NULL, @packs, @cards_per_pack, @release_date, @description)
+     ON CONFLICT(id) DO UPDATE SET
+       name = excluded.name, kind = excluded.kind, msrp = excluded.msrp, packs = excluded.packs,
+       cards_per_pack = excluded.cards_per_pack, release_date = excluded.release_date,
+       description = excluded.description`,
+  )
+  const exists = db.prepare('SELECT 1 FROM pack_products WHERE id = ?')
+  // Box art a row carries as evidence wins over the set symbol, but never over
+  // artwork the set's own matcher already found: the evidence claims are for
+  // SKUs the matcher does not know (the Enhanced and half displays).
+  const setArt = db.prepare("UPDATE pack_products SET image_url = ? WHERE id = ? AND (image_url IS NULL OR image_url = '')")
+  // A row whose art does not exist must not keep a stale URL from an earlier
+  // pass: a 403 image renders worse than the set symbol.
+  const clearArt = db.prepare('UPDATE pack_products SET image_url = NULL WHERE id = ? AND image_url IS NOT NULL')
+  // A split variant's photo is part of the claim, not a fallback.
+  const exactArt = db.prepare('UPDATE pack_products SET image_url = ? WHERE id = ?')
+  const hasCards = db.prepare('SELECT 1 FROM cards WHERE set_id = ? LIMIT 1')
+  let added = 0
+  const tx = db.transaction(() => {
+    for (const p of SPECIAL_PRODUCTS) {
+      // A set with no synced cards has no wrapper to open; the row would be a
+      // phantom on the shelf.
+      if (!hasCards.get(p.setId)) continue
+      // `p.cardsPerPack` is the physical wrapper. `cards_per_pack` on this row
+      // is what the opener deals, and the two are not always the same: the
+      // 30th Celebration wrapper holds six cards and the game's ten-card
+      // abstraction deals ten of them. Resolve the game count through the same
+      // blueprint `rollPack` reads, so the shelf, slot list and opener agree.
+      const cardsPerPack = Math.max(
+        1,
+        planFor(p.setId, p.cardsPerPack).reduce((a, slot) => a + slot.count, 0),
+      )
+      const before = exists.get(p.id)
+      upsert.run({
+        id: p.id,
+        set_id: p.setId,
+        name: p.name,
+        kind: p.kind ?? 'special',
+        msrp: p.msrp,
+        packs: p.packs,
+        cards_per_pack: cardsPerPack,
+        release_date: p.releaseDate,
+        description: p.description,
+      })
+      if (p.image) {
+        if (ART_EXACT.has(p.id)) exactArt.run(p.image, p.id)
+        else setArt.run(p.image, p.id)
+      }
+      if (ART_LESS_PRODUCTS[p.id]) clearArt.run(p.id)
+      if (!before) added++
+    }
+    // An era ETB's quote comes from a TCGplayer listing, and that listing's
+    // photo is the box. Art already found by the set matcher is kept.
+    for (const [id, quote] of Object.entries(ETB_SHELF)) {
+      setArt.run(`https://tcgplayer-cdn.tcgplayer.com/product/${quote.productId}_in_400x400.jpg`, id)
+    }
+    // The per-set Pokémon Center boxes carry a TCGplayer quote too; its listing
+    // photo is the box, so fill art from it where the set matcher left none.
+    for (const [id, quote] of Object.entries(PC_ETB_SHELF)) {
+      setArt.run(`https://tcgplayer-cdn.tcgplayer.com/product/${quote.productId}_in_400x400.jpg`, id)
+    }
+    // Special collections, tins and blisters are not one of the four kinds the
+    // tcgcsv matcher knows, so their exact listings are named here. This also
+    // covers the 30th Celebration local-release rows, which are inserted after
+    // the generic catalogue has already been seeded.
+    for (const id of new Set([...Object.keys(PRODUCT_IMAGE_PRODUCT_IDS), ...Object.keys(LOCAL_PRODUCT_IMAGES)])) {
+      const image = productImageFor(id)
+      if (image) setArt.run(image, id)
+    }
+  })
+  tx()
+  return added
 }
 
 /** Seed pack_products for every synced set that lacks products (INSERT OR IGNORE keeps existing rows). */
 export function ensureFullCatalog(): number {
+  // Old saves still carry rows for wrappers no shop ever stocked. Clear them
+  // before seeding, so the products this pass reports adding are all real.
+  const pruned = pruneNeverShippedProducts()
   const sets = db
     .prepare(
       `SELECT s.id, s.name, s.series, s.release_date,
@@ -135,6 +281,9 @@ export function ensureFullCatalog(): number {
   // Celebrations' real pack is four. Existing rows are corrected too, so a
   // save that seeded them as ten stops advertising a pack it never deals.
   const updatePerPack = db.prepare('UPDATE pack_products SET cards_per_pack = ? WHERE id = ? AND cards_per_pack <> ?')
+  // Product evidence can correct an era default: Crown Zenith's ETB holds ten
+  // packs, not the nine the modern line otherwise uses.
+  const updatePacks = db.prepare('UPDATE pack_products SET packs = ? WHERE id = ? AND packs <> ?')
   let added = 0
   const tx = db.transaction(() => {
     for (const s of sets) {
@@ -142,13 +291,41 @@ export function ensureFullCatalog(): number {
       const perPack = planFor(s.id, 10).reduce((a, slot) => a + slot.count, 0)
       for (const k of productsForSet(s.id, s.name, s.series, s.release_date)) {
         const id = `${s.id}-${k.kind}`
-        const r = insert.run(id, s.id, k.name, k.kind, k.msrp, k.packs, perPack, s.release_date)
+        const evidence = sealedEvidenceFor(id)
+        const packs = evidence?.packs ?? k.packs
+        const r = insert.run(id, s.id, k.name, k.kind, k.msrp, packs, perPack, s.release_date)
         added += r.changes
-        if (r.changes === 0) updatePerPack.run(perPack, id, perPack)
+        if (r.changes === 0) {
+          updatePerPack.run(perPack, id, perPack)
+          updatePacks.run(packs, id, packs)
+        }
+      }
+      // The Pokémon Center ETB is the same set's premium box: eleven packs and
+      // the promo twice, at the $59.99 Pokémon Center charged. It is not an
+      // era-format product, so its name and date come from the set row.
+      if (PC_ETB_SETS.has(s.id)) {
+        const id = `${s.id}-etb-pc`
+        const r = insert.run(
+          id,
+          s.id,
+          `${s.name} Pokémon Center Elite Trainer Box`,
+          'etb',
+          59.99,
+          11,
+          perPack,
+          s.release_date,
+        )
+        added += r.changes
+        if (r.changes === 0) {
+          updatePerPack.run(perPack, id, perPack)
+          updatePacks.run(11, id, 11)
+        }
       }
     }
   })
   tx()
+  added += seedSpecialProducts()
+  if (added > 0 || pruned > 0) markCatalogChanged()
   return added
 }
 
@@ -224,14 +401,27 @@ export function oopMultiplier(m: number, kind = 'booster'): number {
 }
 
 /**
+ * The share of a card's listed market value a player can actually collect.
+ *
+ * Market value is a sticker, not money: every route out of the binder pays
+ * less. The instant dealer pays 70–92% (up to 0.92), a market listing is
+ * market minus the 10% commission (sellroutes.ts MARKET_FEE), the best buylist
+ * is 75% and the pawn shop 40%. The floor uses the best of them, so pricing at
+ * it cannot be turned into a profit by any route even in the ideal case, while
+ * a box may still sit below its contents' sticker price the way real boxes do.
+ */
+export const SEALED_REALIZATION = 0.92
+
+/**
  * A sold sealed product may not cost less than the packs it contains are
- * expected to deal.
+ * expected to *realize*.
  *
  * In-print shelves used to sit at MSRP even when the chase EV was several
  * times higher, so a $4.49 booster could be a guaranteed money printer and a
  * six-pack bundle inherited the same gap. The floor is per-pack EV × the
- * product's real pack count, applied to stored real quotes too. It skips
- * hidden products: their rows are kept for owned stock, not sold, so
+ * product's real pack count × SEALED_REALIZATION, applied to stored real
+ * quotes too: a pull is worth what selling it pays, not what the listing says.
+ * It skips hidden products: their rows are kept for owned stock, not sold, so
  * repricing a fabricated wrapper at its pull EV would only inflate inventory.
  * Mini packs price from their own three-card composition and return before
  * this floor is reached.
@@ -239,13 +429,13 @@ export function oopMultiplier(m: number, kind = 'booster'): number {
 function atLeastPackEv(setId: string, packs: number | null, market: number): number {
   if (!sellsOwnPacks(setId)) return market
   const n = Math.max(1, Math.floor(packs ?? 1))
-  const ev = expectedPackValue(setId) * n
+  const ev = expectedPackValue(setId) * n * SEALED_REALIZATION
   return ev > market ? round2(ev) : market
 }
 
 export function priceDetail(productId: string): {
   market: number
-  source: 'pricecharting' | 'estimated'
+  source: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
   oopMonths: number
   oop: boolean
   multiplier: number
@@ -265,6 +455,45 @@ export function priceDetail(productId: string): {
     const m = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
     return { market: round2(mini.msrp), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: 1, status: m > 0 ? 'out of print' : 'in print' }
   }
+  // A published quote for the exact product outranks any model of it, whatever
+  // its kind: the Enhanced display and the half displays are real marketplace
+  // SKUs whose quotes differ from a format-derived estimate. The pull-EV floor
+  // is deliberately not applied on top — it exists to stop a MODELLED shelf
+  // price from being a money printer, while a real quote is what buyers pay.
+  // Floors on real quotes would not be harmless here: Delta Reign's modelled
+  // pack EV is $15.80 against the $7.57 its packs trade at on the same
+  // marketplace, so flooring the real $19.05 three-pack would replace the truth
+  // with the model.
+  const shelf = shelfPriceFor(productId)
+  if (shelf) {
+    const rel = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(row.set_id) as { release_date: string } | undefined
+    const s = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
+    return {
+      market: round2(shelf.market),
+      source: shelf.kind ?? 'tcgplayer',
+      oopMonths: Math.round(s),
+      oop: s > 0,
+      multiplier: 1,
+      status: s > 0 ? 'out of print' : 'in print',
+    }
+  }
+  // A special collection shares the kind 'special' with a mini tin, a poster
+  // collection and a premium box, so a kind-derived price would charge all of
+  // them the same. They sell at their published shelf price, floored by what the
+  // packs inside are worth and including the promo the box guarantees.
+  if (row.kind === 'special') {
+    const rel = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(row.set_id) as { release_date: string } | undefined
+    const s = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
+    const base = row.msrp > 0 ? row.msrp : derivedPrice(row.set_id, row.kind, productId)
+    return {
+      market: atLeastPackEv(row.set_id, row.packs, round2(base + promoValueOf(productId))),
+      source: 'estimated',
+      oopMonths: Math.round(s),
+      oop: s > 0,
+      multiplier: 1,
+      status: s > 0 ? 'out of print' : 'in print',
+    }
+  }
   const release = db
     .prepare(`SELECT release_date FROM sets WHERE id = ?`)
     .get(row.set_id) as { release_date: string } | undefined
@@ -275,12 +504,16 @@ export function priceDetail(productId: string): {
   // cohort heat, its era's taste, and any live boom scale the whole curve
   // (demographics.ts). In-print product stays at retail: the presses are
   // running, so the scene's weather can't move a shelf price.
-  const scene = m > 0 ? sealedFactor(row.set_id) : 1
+  // Demand heat moves collector-era boxes only: modern sealed is priced at its
+  // contents, so the scene would be one more factor with nothing to stack on.
+  const year = release ? Number(release.release_date.slice(0, 4)) : 0
+  const scene = m > 0 && year > 0 && year < 2011 ? sealedFactor(row.set_id) : 1
+  const promo = promoValueOf(productId)
   const stored = storedPrice(productId)
   if (stored && stored.source === 'pricecharting' && stored.market > 0) {
-    return { market: atLeastPackEv(row.set_id, row.packs, round2(stored.market * scene)), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+    return { market: atLeastPackEv(row.set_id, row.packs, round2(round2(stored.market * scene) + promo)), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
   }
-  return { market: atLeastPackEv(row.set_id, row.packs, round2(derivedPrice(row.set_id, row.kind) * scene)), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+  return { market: atLeastPackEv(row.set_id, row.packs, round2(round2(derivedPrice(row.set_id, row.kind, productId) * scene) + promo)), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
 }
 
 function storedPrice(productId: string): SealedPriceRow | null {
@@ -289,22 +522,25 @@ function storedPrice(productId: string): SealedPriceRow | null {
     .get(productId) as SealedPriceRow | null
 }
 
-export function derivedPrice(setId: string, kind: string): number {
+export function derivedPrice(setId: string, kind: string, productId?: string): number {
   // Realistic per-pack value from the set's actual pull table: weighted average
   // of a pack (5 commons + 3 uncommons + 1 holo + 1 hit), hits weighted heavy —
   // sealed boxes trade on their chase cards.
-  const cacheKey = setId + '|' + kind
+  const cacheKey = setId + '|' + kind + (productId ? '|' + productId : '')
   const cached = derivedCache.get(cacheKey)
   if (cached !== undefined) return cached
+  // The row's own pack count and MSRP, not a kind guess: a special collection
+  // can hold five, eight or twenty-nine packs instead of a display's
+  // thirty-six, and a half display holds eighteen. The MSRP fallback follows
+  // the same row, so half a box is never priced at the full box's sticker.
+  const productRow = db.prepare(`SELECT packs, msrp FROM pack_products WHERE id = ?`).get(productId ?? `${setId}-${kind}`) as { packs: number | null; msrp: number | null } | undefined
+  const packs = Math.max(1, Math.floor(productRow?.packs ?? 1))
+  const ownMsrp = productRow?.msrp && productRow.msrp > 0 ? productRow.msrp : msrpFallback(setId, kind, productId)
   // Same structure and odds the roller uses: 4 commons, 3 uncommons, a rare,
   // a reverse holo, and the final card at the era's real hit odds. Sealed boxes
   // trade on the chase cards, and that is now measured rather than fudged.
   const perPack = expectedPackValue(setId)
-  if (perPack <= 0) return msrpFallback(setId, kind)
-  // The row's own pack count, not a kind guess: a special collection can hold
-  // five, eight or twenty-nine packs instead of a display's thirty-six.
-  const productRow = db.prepare(`SELECT packs FROM pack_products WHERE id = ?`).get(`${setId}-${kind}`) as { packs: number | null } | undefined
-  const packs = Math.max(1, Math.floor(productRow?.packs ?? 1))
+  if (perPack <= 0) return ownMsrp
   // IN-PRINT sets sell at retail, not at chase-card EV: store shelves price a
   // pack at MSRP no matter what the hit slot comps at — the rip-risk (and the
   // rare double-hit) is the buyer's gamble, and supply is unlimited while the
@@ -313,7 +549,7 @@ export function derivedPrice(setId: string, kind: string): number {
   const rel = db.prepare(`SELECT release_date FROM sets WHERE id = ?`).get(setId) as { release_date: string } | undefined
   if (rel) {
     const oopNow = monthsOutOfPrint(rel.release_date, kind, setId)
-    if (oopNow <= 0) return atLeastPackEv(setId, packs, msrpFallback(setId, kind))
+    if (oopNow <= 0) return atLeastPackEv(setId, packs, ownMsrp)
   }
   // Anchor every kind to the booster EV, then scale with pack count. Real sealed
   // boxes trade BELOW per-pack × count (dealers discount the rip-risk), with ETBs
@@ -327,8 +563,18 @@ export function derivedPrice(setId: string, kind: string): number {
   const oop = release
     ? launchAdjustedMultiplier(oopMultiplier(monthsOutOfPrint(release.release_date, kind, setId), kind), monthsSinceRelease(release.release_date))
     : 1
-  const est = Math.min(perPack * packs * boxFactor, cap * oop) * oop
-  const floor = kind === 'booster' ? 2.5 : kind === 'bundle' ? 18 : kind === 'etb' ? 32 : 90
+  // Modern sealed trades at its contents, not at contents × scarcity. The
+  // out-of-print curve is a collector-appreciation model, and applying it to a
+  // content EV that is already a today's market figure charges scarcity twice:
+  // a $55 Crown Zenith ETB holding $180 of packs priced at $790. Boxes from the
+  // collector era (pre-2011) keep the curve — there the sealed box is itself the
+  // asset, and the contents alone cannot reach its market.
+  const year = release ? Number(release.release_date.slice(0, 4)) : 0
+  const modernSealed = year >= 2011
+  const est = modernSealed
+    ? perPack * packs * boxFactor * SEALED_REALIZATION
+    : Math.min(perPack * packs * boxFactor, cap * oop) * oop
+  const floor = SEALED_FLOOR[kind] ?? SEALED_FLOOR.display
   const result = atLeastPackEv(setId, packs, round2(Math.max(floor, est)))
   derivedCache.set(cacheKey, result)
   return result
@@ -339,19 +585,79 @@ export function derivedPrice(setId: string, kind: string): number {
 // is rebuilt (values change).
 const derivedCache = new Map<string, number>()
 
+// Derived sealed prices are built from the set's pack EV, so any price or
+// catalogue move must drop the whole set+kind map.
+onDerivedDataChanged(() => derivedCache.clear())
+
 export function invalidateDerivedPrices(setId: string) {
   for (const k of derivedCache.keys()) if (k.startsWith(setId + '|')) derivedCache.delete(k)
 }
 
-function msrpFallback(setId: string, kind: string): number {
-  const row = db.prepare(`SELECT msrp FROM pack_products WHERE id = ?`).get(`${setId}-${kind}`) as { msrp: number } | undefined
+/** The least a kind of sealed product can be worth, whatever its contents say. */
+export const SEALED_FLOOR: Record<string, number> = { booster: 2.5, bundle: 18, etb: 32, display: 90 }
+
+/**
+ * The promo sealed in a product, weighted by the chance it is the one in the
+ * box: evidence names the card(s), and a one-of-two box carries half of each.
+ * Without this the shop would sell a box below the guaranteed card inside it.
+ */
+export function promoValueOf(productId: string): number {
+  const e = sealedEvidenceFor(productId)
+  if (!e?.promoIds?.length) return 0
+  const sum = e.promoIds.reduce((a, id) => a + Math.max(0, Number(valueOf(id) || 0)), 0)
+  // A one-of box carries half of each on average. A box documented to hold
+  // EVERY named promo is worth all of them, so dividing always underprices the
+  // UPC and summing always overprices a blister. The evidence says which it is.
+  return e.promoPolicy === 'all' ? round2(sum) : round2(sum / e.promoIds.length)
+}
+
+function msrpFallback(setId: string, kind: string, productId?: string): number {
+  const row = db.prepare(`SELECT msrp FROM pack_products WHERE id = ?`).get(productId ?? `${setId}-${kind}`) as { msrp: number } | undefined
   return round2(row?.msrp ?? 4.49)
 }
 
 /** The live price of a product: stored real lookup → derived estimate. */
-export function priceOf(productId: string): { market: number; source: 'pricecharting' | 'estimated' } {
+export function priceOf(productId: string): { market: number; source: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated' } {
   const d = priceDetail(productId)
   return { market: d.market, source: d.source }
+}
+
+/**
+ * The cheap half of priceDetail: which source would price this row, and its
+ * print status. It deliberately never calls the EV model, so the product list
+ * can paint its QUOTE/MODEL and OOP badges before any pack is weighed.
+ */
+export function shelfFacts(productId: string): {
+  source: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
+  oopMonths: number
+  oop: boolean
+  status: 'in print' | 'out of print'
+} {
+  const row = db
+    .prepare('SELECT set_id, kind FROM pack_products WHERE id = ?')
+    .get(productId) as { set_id: string; kind: string } | undefined
+  if (!row) return { source: 'estimated', oopMonths: 0, oop: false, status: 'in print' }
+  const release = db
+    .prepare('SELECT release_date FROM sets WHERE id = ?')
+    .get(row.set_id) as { release_date: string } | undefined
+  const months = release ? monthsOutOfPrint(release.release_date, row.kind, row.set_id) : 0
+  const shelf = shelfPriceFor(productId)
+  const stored = storedPrice(productId)
+  const source = miniPackFor(productId)
+    ? 'estimated'
+    : shelf
+      ? (shelf.kind ?? 'tcgplayer')
+      : row.kind === 'special'
+        ? 'estimated'
+        : stored && stored.source === 'pricecharting' && stored.market > 0
+          ? 'pricecharting'
+          : 'estimated'
+  return {
+    source,
+    oopMonths: Math.round(months),
+    oop: months > 0,
+    status: months > 0 ? 'out of print' : 'in print',
+  }
 }
 
 // PC sealed queries: their catalog titles use human set names.
@@ -424,6 +730,7 @@ export async function refreshSealedPrice(productId: string): Promise<'pricechart
     const quoted = atLeastPackEv(p.set_id, p.packs, round2(price))
     insertSealed.run(productId, quoted, nowIso())
     db.prepare(`UPDATE pack_products SET market_price = ? WHERE id = ?`).run(quoted, productId)
+    markPricesChanged()
     return 'pricecharting'
   } catch {
     return 'unchanged'

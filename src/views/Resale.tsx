@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, type FlipStock, type ResaleDeal, type ResaleLedger } from '../api'
 import { useStore } from '../store'
-import { byNum, CardImg, EmptyState, FirstUseTip, fmtUsd, SortSelect } from '../components'
+import { byNum, CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, SortSelect, TipList } from '../components'
 import { variantTag } from '../variant-label'
 
 // ---------------------------------------------------------------------------
@@ -48,6 +48,7 @@ export function ResaleView() {
   const [busy, setBusy] = useState(false)
   const [stockSort, setStockSort] = useState('edge_desc')
   const [now, setNow] = useState(() => Date.now())
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   // Countdowns want to move; 30s is enough for a two-hour window.
   useEffect(() => {
@@ -72,10 +73,15 @@ export function ResaleView() {
     [shownLots],
   )
 
+  // Each lane answers on its own. A failed read stays null so the lane reports
+  // the failure instead of claiming the desk is empty, and the last good data
+  // survives a failed refresh.
   const load = () => {
-    api.resaleInbox().then(setInbox).catch(() => setInbox([]))
-    api.resaleStock().then(setStock).catch(() => setStock(null))
-    api.resaleLedger().then(setLedger).catch(() => setLedger(null))
+    Promise.allSettled([
+      api.resaleInbox().then(setInbox),
+      api.resaleStock().then(setStock),
+      api.resaleLedger().then(setLedger),
+    ]).then((rs) => setStatus(rs.some((r) => r.status === 'fulfilled') ? 'ready' : 'error'))
   }
   useEffect(() => { load() }, [])
 
@@ -189,7 +195,9 @@ export function ResaleView() {
             Notes expire; the clock is on each one.
           </FirstUseTip>
 
-          {!inbox ? (
+          {status === 'error' && !inbox ? (
+            <LoadFailure what="the resale desk" sub="The notes, shelf and ledger did not load. Nothing was changed." onRetry={load} />
+          ) : !inbox ? (
             <div className="empty"><span className="spinner" /> Loading the inbox…</div>
           ) : inbox.length === 0 ? (
             <EmptyState icon="📬" text="No notes on the desk" sub="Sellers drift in while you play — check back or keep grinding." />
@@ -361,8 +369,13 @@ export function ResaleView() {
             <b className={pnl(ledger.roiPct)}>{sign(ledger.roiPct)}{ledger.roiPct}%</b>
           </div>
           <div className="rd-note">
-            ROI counts realized profit plus what the shelf would fetch at today's market, over every dollar you put into lots.
-            Dealer sales pay 70–92% of market immediately with no fee; market listings pay full price when a buyer bites, minus the usual 10%.
+            <TipList
+              items={[
+                { icon: '📈', label: 'ROI', text: <>realized profit plus the shelf at today's market, over every dollar you put into lots</> },
+                { icon: '💵', label: 'Dealer', text: <>70–92% of market immediately, no fee</> },
+                { icon: '🏷️', label: 'Market', text: <>full price when a buyer bites, minus the usual 10%</> },
+              ]}
+            />
           </div>
         </div>
       )}

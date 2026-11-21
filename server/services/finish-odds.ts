@@ -69,6 +69,9 @@ export function holoFinishFor(setId: string): FinishId {
  */
 export function isFoilRare(setId: string, rarity: string | null | undefined): boolean {
   if (!rarity) return false
+  // Dragon Vault is the all-Holofoil set: every card is foil even when its
+  // rarity label is only "Rare".
+  if (setId === 'dv1') return true
   if (finishDateFor(setId) >= '2023/01/01') return true
   return /holo|ultra|secret|rainbow|prime|legend|shiny|illustration|double rare|hyper|ace spec|gold|promo/i.test(rarity)
 }
@@ -80,5 +83,8 @@ export function rareFinishFor(setId: string, rarity: string | null | undefined):
 
 /** The price key a rare-slot pull stores: foil cards are 'holofoil'. */
 export function rareVariantFor(setId: string, rarity: string | null | undefined): 'holofoil' | 'normal' {
+  // Dragon Vault's shelf is five Holofoil cards, so the price key is foil even
+  // for a row whose rarity string says "Rare".
+  if (setId === 'dv1') return 'holofoil'
   return isFoilRare(setId, rarity) ? 'holofoil' : 'normal'
 }

@@ -1,7 +1,6 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import localReleases from '../catalog/local-releases.json'
 import { db, getMeta, setMeta, nowIso, logActivity } from '../lib/db'
+import { markCatalogChanged } from '../lib/derived-cache'
 import * as packs from './packs'
 import * as sealed from './sealed'
 
@@ -22,7 +21,9 @@ import * as sealed from './sealed'
 // sync's retrieved_at is later and its card fields overwrite these.
 // ---------------------------------------------------------------------------
 
-const CATALOG_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'catalog', 'local-releases.json')
+// Bundled into the server on purpose: the packaged build is CJS inside a Node
+// single executable, where import.meta.url does not exist. A runtime path here
+// crashed the exe before the API could boot.
 const APPLIED_META = 'catalog:localReleases'
 
 type LocalSet = {
@@ -125,13 +126,7 @@ const productUpsert = db.prepare(`
 `)
 
 function load(): LocalReleases | null {
-  if (!fs.existsSync(CATALOG_FILE)) return null
-  try {
-    return JSON.parse(fs.readFileSync(CATALOG_FILE, 'utf8')) as LocalReleases
-  } catch (err) {
-    console.error('[catalog] local-releases.json is unreadable:', err instanceof Error ? err.message : err)
-    return null
-  }
+  return localReleases as LocalReleases
 }
 
 /**
@@ -153,6 +148,13 @@ export function applyLocalReleases(): LocalReleaseResult {
   const pricesBefore = priceCount()
   const productsBefore = productCount()
 
+  // Products can belong to a set this save does not have yet (the 30th
+  // Celebration wave rides on me55, which arrives from the seed or the API).
+  // Inserting it anyway violates pack_products.set_id's foreign key, so leave
+  // it out until its set exists; the next boot picks it up.
+  const setExists = db.prepare('SELECT 1 FROM sets WHERE id = ?')
+  let skippedProducts = 0
+
   const tx = db.transaction(() => {
     for (const s of data.sets) setUpsert.run(s)
     for (const c of data.cards) {
@@ -168,7 +170,10 @@ export function applyLocalReleases(): LocalReleaseResult {
     // Products are rebuilt on top of whatever the generic catalog seeded, so a
     // published MSRP replaces the era default (Delta Reign's ETB is $49.99, not
     // the $54.99 the generic 2020s line would charge).
-    for (const p of data.products) productUpsert.run(p)
+    for (const p of data.products) {
+      if (!setExists.get(p.set_id)) { skippedProducts++; continue }
+      productUpsert.run(p)
+    }
   })
   tx()
 
@@ -180,8 +185,22 @@ export function applyLocalReleases(): LocalReleaseResult {
   // same seeder the sync does, then ensure this set has a pull table.
   sealed.ensureFullCatalog()
 
+  // These sets exist here because the catalogue API has no rows for them, and
+  // the full sync walks every set in the database. Marking them done stops it
+  // retrying an upstream that cannot answer on every launch; the weekly delta
+  // still refreshes them if the API publishes the same set later.
+  try {
+    const done = new Set<string>(JSON.parse(getMeta('sync:doneIds') || '[]') as string[])
+    const before = done.size
+    for (const s of data.sets) done.add(s.id)
+    if (done.size !== before) setMeta('sync:doneIds', JSON.stringify([...done]))
+  } catch {
+    /* a corrupt checkpoint is repaired by the sync itself */
+  }
+
   const previously = getMeta(APPLIED_META)
   const firstTime = previously !== data.release
+  if (prices > 0 || products > 0 || firstTime) markCatalogChanged()
   const rebuilt: string[] = []
   if (firstTime) {
     for (const s of data.sets) {
@@ -196,7 +215,7 @@ export function applyLocalReleases(): LocalReleaseResult {
     if (wave.length > 0) {
       logActivity('release', `New on the shelves: ${wave.map((p) => p.name).join(', ')}`)
     }
-    console.log(`[catalog] local release applied — ${data.sets.length} set(s), ${data.cards.length} card(s), ${prices} price(s), ${products} product(s), rebuilt ${rebuilt.join(', ') || 'nothing'}`)
+    console.log(`[catalog] local release applied — ${data.sets.length} set(s), ${data.cards.length} card(s), ${prices} price(s), ${products} product(s), rebuilt ${rebuilt.join(', ') || 'nothing'}${skippedProducts > 0 ? ` (${skippedProducts} product(s) waiting on a set the save does not have yet)` : ''}`)
   }
 
   return { applied: true, release: data.release, sets: data.sets.length, cards: data.cards.length, prices, products, rebuilt }

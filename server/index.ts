@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
+import { markCatalogChanged } from './lib/derived-cache'
 import fs from 'node:fs'
 import path from 'node:path'
 import { variantTag } from '../src/variant-label'
@@ -11,7 +12,7 @@ import * as deliveries from './services/deliveries'
 import { portfolio } from './services/portfolio'
 import { refreshBenchmarkCache, benchmarkStatus } from './services/benchmark'
 import * as packs from './services/packs'
-import { SEALED_EVIDENCE } from './catalog/sealed-evidence'
+import * as productManifest from './services/product-manifest'
 import * as gmpacks from './services/gmpacks'
 import * as binders from './services/binders'
 import * as pricesources from './services/pricesources'
@@ -65,6 +66,9 @@ import * as ebay from './services/ebay'
 import * as shipping from './services/shipping'
 import * as schedule from './services/schedule'
 import * as sealed from './services/sealed'
+import * as dailydeals from './services/dailydeals'
+import * as shopCatalog from './services/shop-catalog'
+import * as shopShelf from './services/shop-shelf-cache'
 import * as sealedfutures from './services/sealedfutures'
 import * as supplies from './services/supplies'
 import * as insurance from './services/insurance'
@@ -76,6 +80,7 @@ import * as demographics from './services/demographics'
 import * as breaks from './services/breaks'
 import * as savebackup from './services/savebackup'
 import * as savereset from './services/savereset'
+import * as updater from './services/updater'
 import * as fleamarket from './services/fleamarket'
 import * as today from './services/today'
 import { resolvePrice, gradedPrices, round2, CONDITION_MULT } from './services/market'
@@ -146,6 +151,7 @@ function ensurePackCatalog() {
     `INSERT OR IGNORE INTO pack_products (id, set_id, name, kind, msrp, market_price, packs, cards_per_pack, release_date, description)
      SELECT @id, @setId, @name, @kind, @msrp, @market, @packs, @cpp, s.release_date, NULL FROM sets s WHERE s.id = @setId`,
   )
+  const before = (db.prepare('SELECT COUNT(*) AS n FROM pack_products').get() as { n: number }).n
   const tx = db.transaction(() => {
     for (const p of packs.PRODUCTS) {
       insert.run({
@@ -162,6 +168,8 @@ function ensurePackCatalog() {
   })
   tx()
   const minis = gmpacks.ensureMiniPacks()
+  const after = (db.prepare('SELECT COUNT(*) AS n FROM pack_products').get() as { n: number }).n
+  if (after > before) markCatalogChanged()
   console.log('[server] pack catalog seeded:', packs.PRODUCTS.length, 'products +', minis, 'General Mills mini packs')
 }
 
@@ -199,8 +207,10 @@ function repairPhantomRarities() {
 //    reverse slot the era never dealt; McDonald's 2021/22, Detective Pikachu
 //    and Dragon Vault got their real four/five-card shapes, and Dragon Vault's
 //    whole set is filed as foil.
+// 10: Prismatic Evolutions, Black Bolt and White Flare moved onto their own
+//    measured tier ladders, so tables built by 9 still deal the era's rates.
 function migratePullTableRarities() {
-  const VERSION = '9'
+  const VERSION = '10'
   if (getMeta('packs:tableVersion') === VERSION) return
   sealed.ensureFullCatalog()
   const ids = db
@@ -277,15 +287,64 @@ app.get('/api/art/:setId/:file', async (c) => {
   if (!/^[a-z0-9]+$/i.test(setId) || !/^[a-z0-9_]+(\.png)?$/i.test(file)) return c.text('bad request', 400)
   const name = file.endsWith('.png') ? file : `${file}.png`
   const upstream = await fetch(`https://images.pokemontcg.io/${setId}/${name}`).catch(() => null)
-  if (!upstream || !upstream.ok) return c.text('not found', 404)
-  const bytes = new Uint8Array(await upstream.arrayBuffer())
+  if (upstream && upstream.ok) {
+    const bytes = new Uint8Array(await upstream.arrayBuffer())
+    return c.body(bytes, 200, {
+      'content-type': upstream.headers.get('content-type') ?? 'image/png',
+      'cache-control': 'public, max-age=86400',
+    })
+  }
+  // Not every card is hosted there. The locally-seeded releases (Delta Reign, the
+  // 30th Celebration products) and anything else synced from another source keep
+  // their artwork on a different CDN, and a 404 here is not a cosmetic miss: the
+  // overlay cannot read a cross-origin image, so it draws nothing and that card
+  // loses its foil. Serve whatever image the card row actually points at.
+  const cardId = `${setId}-${file.replace(/\.png$/i, '')}`
+  const row = db
+    .prepare('SELECT image_large, image_small FROM cards WHERE id = ?')
+    .get(cardId) as { image_large: string | null; image_small: string | null } | undefined
+  const source = row?.image_large ?? row?.image_small ?? null
+  if (!source) return c.text('not found', 404)
+  const image = await fetch(source).catch(() => null)
+  if (!image || !image.ok) return c.text('not found', 404)
+  const bytes = new Uint8Array(await image.arrayBuffer())
   return c.body(bytes, 200, {
-    'content-type': upstream.headers.get('content-type') ?? 'image/png',
+    'content-type': image.headers.get('content-type') ?? 'image/png',
     'cache-control': 'public, max-age=86400',
   })
 })
 
 app.get('/api/changelog', (c) => c.json({ current: APP_VERSION, entries: CHANGELOG }))
+
+// In-place updates from a newer setup downloaded to Downloads/Desktop. The
+// check is read-only; apply launches a detached helper and then exits so the
+// installer can replace this exe. The next launch reads the marker in
+// %LOCALAPPDATA%\TCGLife and opens What's New by itself.
+app.get('/api/update', (c) => c.json(updater.checkForUpdate(APP_VERSION)))
+
+app.post('/api/update/apply', async (c) => {
+  const body = await c.req.json<{ version?: string }>().catch(() => ({}) as { version?: string })
+  try {
+    const result = updater.beginUpdate(APP_VERSION, String(body?.version ?? ''))
+    // Answer first, then let go of the exe. The host watchdog closes the window
+    // and the updater helper waits for that before running Inno Setup.
+    setTimeout(() => process.exit(0), 1200)
+    return c.json({ ok: true, ...result })
+  } catch (err) {
+    return c.json({ ok: false, error: err instanceof Error ? err.message : 'Update failed' }, 400)
+  }
+})
+
+app.post('/api/update/seen', (c) => {
+  updater.clearAppliedUpdate()
+  return c.json({ ok: true })
+})
+
+// The sidebar badge only compares versions — it does not need every feature
+// paragraph. The full log stays for the What's New panel.
+app.get('/api/changelog/summary', (c) =>
+  c.json({ current: APP_VERSION, versions: CHANGELOG.map((e) => e.version) }),
+)
 
 // Notifications — the header bell. A short list, newest first, with read state.
 app.get('/api/notifications', (c) => {
@@ -629,12 +688,19 @@ app.get('/api/cards/:id', (c) => {
   const bestRoi = rawRef ? grading.bestRoiRung(id, rawRef.condition, rawRef.id) : null
 
   // CONDITION WARS: decorate each owned raw single with its copy-grade comps
-  // (band vs this-copy value + the published read) for the detail panel.
+  // (band vs this-copy value + the published read) for the detail panel. Slabs
+  // also carry the exact value the rest of the game uses (including regime and
+  // rush premiums), so CardDetail never has to reconstruct it from a fallback
+  // comp — a CGC Pristine with no exact quote is worth its honest estimate, not
+  // the CGC 10 rung.
   const ownedDecorated = owned.map((o) => {
-    if (o.graded_grade || (o.quantity ?? 1) !== 1) return { ...o, copy: null, seen: null }
+    const slabValue = o.graded_grade ? market.gradedPriceOf(id, o.graded_grade) : null
+    if (o.graded_grade) return { ...o, copy: null, seen: null, slabValue }
+    if ((o.quantity ?? 1) !== 1) return { ...o, copy: null, seen: null, slabValue }
     const known = substats.readFor(o.id) != null
     return {
       ...o,
+      slabValue,
       copy: market.resolvePriceCopy(id, o.variant || 'normal', (o.condition as market.Condition) || 'NM', o.id, known),
       seen: substats.readFor(o.id),
     }
@@ -644,7 +710,10 @@ app.get('/api/cards/:id', (c) => {
     card: { ...card, price: primary },
     priceRows: latest,
     history: history.map((h) => ({ value: h.market, at: h.retrieved_at })),
-    gradedPrices: graded,
+    // The ladder's anchor can be a raw comp, but the value a sale actually pays
+    // is gradedPriceOf (regime + rush included). Carry both so CardDetail's
+    // rungs line up with the certifier and inventory.
+    gradedPrices: graded.map((g) => ({ ...g, value: market.gradedPriceOf(id, g.grade).usd })),
     bestRoi,
     owned: ownedDecorated,
     wishlisted,
@@ -771,21 +840,25 @@ app.get('/api/inventory', (c) => {
     // CONDITION WARS: every raw single shows its copy-grade comps — the band
     // value, the copy's drift once its read is public, and what the market
     // pays for this exact card. The read itself only appears after a look.
+    // Resolve the band once and hand it to the copy and value calculations.
+    // Before this each row looked the same price up three times (source, copy,
+    // value) plus a fourth time just to decide the auth badge.
+    const source = market.resolvePrice(inv.card_id, inv.variant || 'normal', (inv.condition as market.Condition) || 'NM')
     const copy = rawSingle
-      ? market.resolvePriceCopy(inv.card_id, inv.variant || 'normal', (inv.condition as market.Condition) || 'NM', inv.id, substats.readFor(inv.id) != null)
+      ? market.resolvePriceCopy(inv.card_id, inv.variant || 'normal', (inv.condition as market.Condition) || 'NM', inv.id, substats.readFor(inv.id) != null, source)
       : null
     const seen = rawSingle ? substats.readFor(inv.id) : null
     // AUTH META: the sellable value carries the fake/uncertainty treatment;
     // read-only fields tell the client what to show without leaking state.
-    const value = market.valueOfRow({ ...inv, fake_revealed: (inv as any).fake_revealed, auth_status: (inv as any).auth_status })
+    const value = market.valueOfRow({ ...inv, fake_revealed: (inv as any).fake_revealed, auth_status: (inv as any).auth_status }, source.usd ?? 0)
     const authBadge = (((inv as any).fake_revealed || (inv as any).is_fake)
       ? 'fake'
       : (inv as any).auth_status === 'authenticated'
         ? 'authenticated'
-        : market.valueOf(inv.card_id, inv.variant || 'normal', (inv.condition as market.Condition) || 'NM') >= auth.AUTH_THRESHOLD
+        : (source.usd ?? 0) >= auth.AUTH_THRESHOLD
           ? 'unvetted'
           : null) as 'fake' | 'authenticated' | 'unvetted' | null
-    const outRow: Record<string, unknown> = { ...r, value, gradingHint, substatNote, authBadge, deskReading: auth.deskReadingFor(inv.id), source: resolvePrice(inv.card_id, inv.variant || 'normal', (inv.condition as market.Condition) || 'NM'), copy, seen }
+    const outRow: Record<string, unknown> = { ...r, value, gradingHint, substatNote, authBadge, deskReading: auth.deskReadingFor(inv.id), source, copy, seen }
     // The hidden die never ships: fake_flag is the pre-reveal counterfeit
     // roll, and fake_revealed is server-side bookkeeping — the client gets
     // the public face (authBadge / is_fake / auth_status) and nothing else.
@@ -794,6 +867,31 @@ app.get('/api/inventory', (c) => {
     return outRow
   })
   return c.json(out)
+})
+
+// Pickers (auction consignment, BidBay lots, forum trades, local listings) only
+// need to choose a card. The full endpoint computes grading advice, copy drift,
+// sub-stats and desk reads for every row — 562KB on a 484-card save. This is the
+// same collection with just the picker fields; the Inventory screen keeps full.
+app.get('/api/inventory/light', (c) => {
+  const rows = db.prepare(`
+    SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, i.status,
+           i.favorite, i.cost_basis, i.is_fake, i.fake_revealed, i.auth_status,
+           c.name, c.image_small, s.name AS set_name
+    FROM inventory i JOIN cards c ON c.id = i.card_id JOIN sets s ON s.id = c.set_id
+    WHERE i.status = 'collection'
+    ORDER BY i.acquired_at DESC
+  `).all() as Record<string, unknown>[]
+  // One TCGplayer price query for the whole batch; valuesOfRows keeps the
+  // per-row auth/graded rules and falls back per card only when needed.
+  const values = market.valuesOfRows(rows as market.InventoryValueRow[])
+  return c.json(rows.map((r, i) => {
+    const out = { ...r }
+    // Same hidden state the full endpoint strips; the picker gets the public row.
+    delete out.fake_revealed
+    delete out.auth_status
+    return { ...out, value: values[i] }
+  }))
 })
 
 // ---------------------------------------------------------------------------
@@ -1030,71 +1128,70 @@ app.get('/api/sales', (c) => {
 // Pack shop
 // ---------------------------------------------------------------------------
 
+// Shelf rows are catalogue-wide and only change when prices, catalogue rows,
+// the daily-deal board or a save-level event move. Reusing the last built
+// payload avoids re-querying 532 catalogue rows and their deal terms every time
+// the player tabs back to the Shop; keying it on those inputs means no TTL
+// window can serve a stale row after a sync, claim, restore or reset. The
+// expensive price/EV/slot half lives in the detail endpoint.
 app.get('/api/shop/products', (c) => {
+  const cached = shopShelf.cachedShopRows()
+  if (cached) return c.json(cached)
   ensurePackCatalog() // sets may have finished syncing after boot
   sealed.ensureFullCatalog() // every set gets era-appropriate products
-  const rows = db.prepare(`
-    SELECT p.*, s.name AS set_name, s.symbol_url AS set_symbol
-    FROM pack_products p JOIN sets s ON s.id = p.set_id
-    ORDER BY s.release_date DESC,
-      CASE p.kind WHEN 'booster' THEN 1 WHEN 'bundle' THEN 2 WHEN 'etb' THEN 3 WHEN 'display' THEN 4 ELSE 5 END
-  `).all() as Record<string, unknown>[]
-  // Subset-only sets have no wrapper of their own on a real shelf and their
-  // pool cannot fill a pack, so they are not offered (their rows are kept so
-  // stock already in a save still resolves).
-  const out = rows.filter((r) => sealed.sellsOwnPacks(String(r.set_id))).map((r) => {
-    const detail = sealed.priceDetail(r.id as string)
-    const evidence = SEALED_EVIDENCE[String(r.id)]
-    const mini = gmpacks.miniPackFor(r.id as string)
-    const est = mini
-      ? gmpacks.estimateMiniPack(r.id as string)
-      : packs.estimatePackValue(r.set_id as string)
-    // A mini pack's Sequin slot rides along with the shelf row, so the shop can
-    // print its odds rather than leaving a player to guess what three cards hold.
-    return {
-      ...r,
-      market_price: detail.market,
-      price_source: detail.source,
-      oop: detail.oop,
-      oop_months: detail.oopMonths,
-      oop_status: detail.status,
-      est,
-      // The shelf names the promo a box pins, so the card is visible before
-      // purchase instead of only in the opening ceremony. A two-name row is a
-      // one-of draw unless the evidence explicitly says both are inside.
-      promos: evidence?.promos.length ? evidence.promos : undefined,
-      promoPolicy: evidence?.promos.length ? (evidence.promoPolicy ?? 'one-of') : undefined,
-      mini: mini ? gmpacks.miniSequinOdds(r.id as string) : undefined,
-      // The era's own slot breakdown, so the shelf can show which card in a
-      // pack comes from which slot. A mini pack prints its Sequin odds instead.
-      slots: mini ? undefined : packs.packSlots(r.set_id as string, r.cards_per_pack as number),
-    }
-  })
+  const out = shopCatalog.listProducts()
+  shopShelf.cacheShopRows(out)
   return c.json(out)
 })
 
+// The expensive half of a shelf row: price, EV, Sequin odds and slot plan for
+// one product. The Shop asks for the selected product and for bays as they
+// scroll into view, so the first paint never waits for 500 pack models.
+app.get('/api/shop/products/:productId/detail', (c) => {
+  const detail = shopCatalog.productDetail(c.req.param('productId'))
+  if (!detail) return c.json({ error: 'Unknown product' }, 404)
+  return c.json(detail)
+})
+
+// Batch detail for an explicit price/EV sort. The ordinary shelf never calls
+// this; it exists so choosing "Best typical rip" can weigh the visible set.
+app.post('/api/shop/products/details', async (c) => {
+  const body = await c.req.json<{ ids?: unknown }>().catch(() => ({}) as { ids?: unknown })
+  const ids = Array.isArray(body.ids)
+    ? [...new Set(body.ids.filter((id): id is string => typeof id === 'string' && id.length <= 120))].slice(0, 600)
+    : []
+  return c.json(shopCatalog.productDetails(ids))
+})
+
+// A short, read-only record of the boards that have already rolled over.
+// The current board is not in here; it is the live daily-deals payload.
+app.get('/api/shop/daily-deals/history', (c) => c.json(dailydeals.historyForPlayer()))
+
+// The sourced manifest behind one product. It is read-only and deliberately
+// separate from the shop row: a generic ETB can be purchased while its promo
+// remains explicitly unverified.
+app.get('/api/shop/products/:productId/manifest', (c) => {
+  ensurePackCatalog()
+  sealed.ensureFullCatalog()
+  const manifest = productManifest.productManifest(c.req.param('productId'))
+  if (!manifest) return c.json({ error: 'Unknown product' }, 404)
+  return c.json(manifest)
+})
+
 app.post('/api/shop/buy/:productId', async (c) => {
-  const body = await c.req.json<{ qty?: number; openNow?: boolean }>()
+  const body = await c.req.json<{ qty?: number }>()
   const qty = Math.max(1, Math.min(body.qty ?? 1, 36))
   try {
+    // A purchase is always a sealed purchase. Opening is a separate action in
+    // Inventory, so no request can buy a product and rip it in one step.
     const result = packs.buySealed(c.req.param('productId'), qty)
-    if (body.openNow) {
-      const opened = openAll(c.req.param('productId'), qty)
-      return c.json({ ok: true, ...result, opened })
-    }
+    // A daily-deal claim changes the next shelf key through today's claims;
+    // ordinary purchases do not change a shelf row.
     return c.json({ ok: true, ...result })
   } catch (e) {
     return c.json({ error: e instanceof Error ? e.message : 'Purchase failed' }, 400)
   }
 })
-
-function openAll(productId: string, qty: number) {
-  const sessions: { sessionId: string; cards: { cardId: string; isHit: boolean; value: number }[]; totalValue: number; spent: number }[] = []
-  for (let i = 0; i < qty; i++) {
-    try { sessions.push(packs.openSealed(productId)) } catch { break }
-  }
-  return sessions
-}
 
 app.post('/api/packs/open', async (c) => {
   const body = await c.req.json<{ productId: string }>()
@@ -1128,12 +1225,22 @@ app.post('/api/packs/box/next', async (c) => {
   }
 })
 
+// The summary's skip button: open every wrapper left in one request.
+app.post('/api/packs/box/rest', async (c) => {
+  const body = await c.req.json<{ boxId: number }>()
+  try {
+    return c.json(packs.openBoxRest(Number(body.boxId)))
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : 'Open failed' }, 400)
+  }
+})
+
 app.get('/api/pulls', (c) => {
   // Player-attributed rips only: the live wing's host rips, battle opponents,
   // and tournament NPC matches share this table as a world log (owner='other')
   // and must never appear in the player's history.
   return c.json(db.prepare(`
-    SELECT ph.*, c.name, c.image_small, c.rarity, s.name AS set_name
+    SELECT ph.id, ph.value, ph.rarity, ph.is_hit, ph.opened_at, c.name, s.name AS set_name
     FROM pull_history ph JOIN cards c ON c.id = ph.card_id JOIN sets s ON s.id = c.set_id
     WHERE ph.owner = 'player'
     ORDER BY ph.id DESC LIMIT 400
@@ -1537,7 +1644,15 @@ app.post('/api/shop/buy', (c) => {
   return c.json(r, r.ok ? 200 : 400)
 })
 
-app.get('/api/shop/stockable', (c) => c.json(shop.stockableInventory()))
+app.get('/api/shop/stockable', (c) => {
+  const r = shop.stockableInventory()
+  // The stock picker shows a name, set, condition, count and two prices — it
+  // never renders card art or uses the card/variant ids. Keep those server-side.
+  return c.json({
+    ...r,
+    rows: r.rows.map((x) => ({ id: x.id, name: x.name, set_name: x.set_name, condition: x.condition, rarity: x.rarity, quantity: x.quantity, anchor: x.anchor, suggestedAsk: x.suggestedAsk })),
+  })
+})
 
 // Consignment counter
 app.post('/api/shop/consignment/accept', async (c) => {
@@ -1633,7 +1748,12 @@ app.post('/api/shop/staff/huff', async (c) => {
 app.get('/api/shop/bulk/stockable', (c) => {
   const price = Number(c.req.query('price') ?? '1')
   c.header('X-Box-Price', String(price))
-  return c.json(bulk.boxStockable(price))
+  const r = bulk.boxStockable(price)
+  // The dollar-bin fill list only prints name, set, condition, market and cost.
+  return c.json({
+    ...r,
+    rows: r.rows.map((x) => ({ id: x.id, name: x.name, set_name: x.set_name, condition: x.condition, rarity: x.rarity, anchor: x.anchor, cost_basis: x.cost_basis })),
+  })
 })
 
 app.post('/api/shop/bulk/buy', async (c) => {
@@ -1674,7 +1794,12 @@ app.get('/api/shop/bags', (c) => c.json(grabbags.status()))
 
 app.get('/api/shop/bags/stockable', (c) => {
   const price = Number(c.req.query('price') ?? '5')
-  return c.json(grabbags.stockable(price))
+  const r = grabbags.stockable(price)
+  // The bag assembler only needs the label, market value and its two tiers.
+  return c.json({
+    ...r,
+    rows: r.rows.map((x) => ({ id: x.id, name: x.name, set_name: x.set_name, condition: x.condition, rarity: x.rarity, anchor: x.anchor, isHitTier: x.isHitTier, isJunkTier: x.isJunkTier })),
+  })
 })
 
 app.post('/api/shop/bags/assemble', async (c) => {
@@ -2102,7 +2227,11 @@ app.post('/api/tournaments/abandon', (c) => c.json(tournaments.abandonTournament
 // ------------------------- Streaming room -------------------------
 
 app.get('/api/stream/channel', (c) => c.json(streaming.channel()))
-app.get('/api/stream/products', (c) => c.json(streaming.listStreamProducts()))
+app.get('/api/stream/products', (c) =>
+  // The stream setup only picks a product and shows its price. Sending the
+  // battle product's art, set, pool and release date doubles this payload.
+  c.json(streaming.listStreamProducts().map((p) => ({ id: p.id, name: p.name, market_price: p.market_price, msrp: p.msrp }))),
+)
 
 app.post('/api/stream/live', async (c) => {
   const body = await c.req.json<{ productId: string; packs: number }>()
@@ -2252,6 +2381,67 @@ app.get('/api/resale/ledger', (c) => c.json(resale.ledger()))
 // services that pay them.
 app.get('/api/sell-routes/:inventoryId', (c) => {
   return c.json(sellroutes.forCard(Number(c.req.param('inventoryId'))))
+})
+
+// Every door in that comparison is a real action. The row sends its route id
+// and the server re-checks the gate before it pays, so a locked counter cannot
+// be reached with a hand-rolled request and a moved quote is refused instead of
+// quietly paying something else.
+app.post('/api/sell-routes/:inventoryId/:routeId', (c) => {
+  const id = Number(c.req.param('inventoryId'))
+  const routeId = c.req.param('routeId')
+  const row = db
+    .prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade FROM inventory WHERE id = ? AND status = 'collection'`)
+    .get(id) as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null } | undefined
+  if (!row) return c.json({ ok: false, error: 'That card is no longer in your collection.' })
+  const name = (db.prepare('SELECT name FROM cards WHERE id = ?').get(row.card_id) as { name: string } | undefined)?.name ?? row.card_id
+  const cash = market.getGameState().cash
+  const sales = (db.prepare('SELECT COUNT(*) AS n FROM sale_history').get() as { n: number }).n
+
+  if (routeId === 'dealer' && cash < 400) {
+    return c.json({ ok: false, error: 'Resale Desk opens at $400 cash — the Instant dealer is not taking walk-ins yet.' })
+  }
+  if (routeId === 'pawn' && sales < 3) {
+    return c.json({ ok: false, error: 'Pawn Shop opens after 3 sales — the gold exchange is not buying from a brand-new binder.' })
+  }
+
+  if (routeId === 'market') {
+    const onBlock = db.prepare(`SELECT COUNT(*) AS n FROM ebay_auctions WHERE inventory_id = ? AND status = 'live'`).get(id) as { n: number }
+    if (onBlock.n > 0) return c.json({ ok: false, error: 'That card is on the BidBay auction block — pull the lot or wait for the hammer.' })
+    const price = round2(market.valueOfRow(row))
+    if (!price || price <= 0) return c.json({ ok: false, error: 'No price data to list against yet.' })
+    if ((row.quantity ?? 1) === 1) substats.revealWithRead(id)
+    db.prepare(`UPDATE inventory SET status = 'listed', listing_price = ?, listed_at = ? WHERE id = ?`).run(price, nowIso(), id)
+    binders.cleanupSlotsForInventory([id])
+    logActivity('listing', `Listed ${name} for $${price.toFixed(2)}`)
+    return c.json({ ok: true, paid: 0, listed: price, message: `Listed ${name} at $${price.toFixed(2)} — it sells when a buyer bites.` })
+  }
+
+  if (routeId === 'buylist') {
+    let best: { shopId: number; shopName: string; cash: number } | null = null
+    for (const s of buylist.SHOPS) {
+      const offer = buylist.collectionOffer(s.id).offers.find((o) => o.inventoryId === id)
+      if (offer && offer.payoutCash > (best?.cash ?? 0)) best = { shopId: s.id, shopName: s.name, cash: offer.payoutCash }
+    }
+    if (!best) return c.json({ ok: false, error: 'No buylist counter wants that card right now.' })
+    const r = buylist.sell(best.shopId, [id], 0, { expectedCash: best.cash })
+    if (!r.ok) return c.json(r)
+    return c.json({ ok: true, paid: r.cash, message: `${best.shopName} paid $${r.cash.toFixed(2)} cash for ${name}.` })
+  }
+
+  if (routeId === 'dealer') {
+    const r = resale.instantSell(id)
+    if (!r.ok) return c.json(r)
+    return c.json({ ok: true, paid: r.proceeds, message: `Instant dealer paid $${r.proceeds.toFixed(2)} for ${name}.` })
+  }
+
+  if (routeId === 'pawn') {
+    const r = pawn.sellOutright(id)
+    if (!r.ok) return c.json(r)
+    return c.json({ ok: true, paid: r.paid, message: `Gold exchange paid $${r.paid.toFixed(2)} for ${name} — no questions asked.` })
+  }
+
+  return c.json({ ok: false, error: 'Unknown sell route.' })
 })
 
 app.post('/api/battles/start', async (c) => {
@@ -2506,6 +2696,7 @@ app.post('/api/debug/reset-save', (c) => {
     console.error(`[reset-save] ${msg}`)
     return c.json({ error: `${msg} — nothing was changed` }, 500)
   }
+  shopShelf.invalidateAfterSaveChange()
   logActivity('system', 'Save reset. Fresh start with $1,000.')
   return c.json({ ok: true })
 })
@@ -2535,6 +2726,7 @@ app.post('/api/saves/restore', async (c) => {
   if (!body?.file) return c.json({ error: 'No snapshot named' }, 400)
   const r = await savebackup.restoreBackup(String(body.file))
   if (!r.ok) return c.json({ error: r.error || 'Restore failed' }, 400)
+  shopShelf.invalidateAfterSaveChange()
   return c.json({ ok: true, safety: r.safety })
 })
 
@@ -2568,9 +2760,24 @@ if (process.env.TCGLIFE_PARENT_PID) {
 ensureGameState()
 migratePerDayCostsTo12hClock()
 ensureDefaultBinder()
-repairPhantomRarities()
+// Products must exist before any boot repair rebuilds a pull table. A seed
+// catalogue can hold a set's cards without its pack_products rows, and the
+// repair's inserts would fail the foreign key on `<set>-booster`. The full
+// catalogue builder is the one that creates a product for every set with
+// cards, so it runs before the repairs rather than only later in the boot.
+sealed.ensureFullCatalog()
 ensurePackCatalog()
+repairPhantomRarities()
+// Black Bolt 171 and White Flare 172 arrived labelled plain "Rare", which filed
+// two ~$700 Black White Rares into the 1-in-18 rare pool and priced each pack at
+// roughly $105. Relabel them and rebuild those two tables before the catalog loads.
+import { repairBlackWhiteRarities } from './catalog/rarity-repairs'
+repairBlackWhiteRarities()
+import { applyPromoCards } from './catalog/promo-cards'
 applyLocalReleases()
+// Two SVP promos the upstream catalogue has not published yet: without rows the
+// Black Bolt and White Flare ETB rows cannot resolve the card that was inside.
+applyPromoCards()
 migratePullTableRarities()
 backfillAcquiredRefs()
 backfillNetWorthHistory()

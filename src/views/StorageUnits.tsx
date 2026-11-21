@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { StorageUnitsSection, StorageOpenResult, StorageCapacity } from '../api'
 import { useStore } from '../store'
-import { CardImg, EmptyState, FirstUseTip, fmtUsd } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, TipList } from '../components'
 
 // ---------------------------------------------------------------------------
 // Storage & the vault — capacity meter, locker rental, and the graded-slab
@@ -35,10 +35,18 @@ export function StoragePanel() {
   const [cap, setCap] = useState<StorageCapacity | null>(null)
   const [busy, setBusy] = useState(false)
   const [floorDraft, setFloorDraft] = useState('')
+  // It used to return null while loading — and forever after a failed fetch —
+  // so storage simply vanished with no explanation.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const load = () => api.storageCapacity().then(setCap).catch(() => {})
+  const load = () =>
+    api.storageCapacity()
+      .then((c) => { setCap(c); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
-  if (!cap) return null
+
+  if (status === 'error') return <div className="panel mt14"><LoadFailure what="your storage" onRetry={load} /></div>
+  if (!cap) return <div className="panel mt14"><EmptyState icon="📦" text="Reading your storage…" sub="Shelf and vault capacity, your lockers and the overflow policy." /></div>
 
   const act = async (fn: () => Promise<{ ok: boolean; error?: string }>, good: string) => {
     setBusy(true)
@@ -184,9 +192,12 @@ export function StorageUnitsView() {
   const [openHaul, setOpenHaul] = useState<StorageOpenResult | null>(null)
   const [keep, setKeep] = useState<Set<string>>(new Set())
   const [racksFree, setRacksFree] = useState<number | null>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const load = () => {
-    api.storageUnits().then(setData).catch(() => {})
+    api.storageUnits()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
     api.storageCapacity().then((c) => setRacksFree(c.rawFree)).catch(() => {})
   }
   useEffect(() => { load() }, [])
@@ -231,6 +242,9 @@ export function StorageUnitsView() {
       setBusy(false)
     }
   }
+
+  if (status === 'error') return <LoadFailure what="the locker block" sub="The local server did not answer. Nothing was bid on." onRetry={load} />
+  if (!data) return <EmptyState icon="🗝️" text="Walking the lockers…" sub="Reading today's delinquent units, their door-gap peek and your history." />
 
   if (openHaul?.ok && openHaul.unit) {
     const cards = openHaul.cards ?? []
@@ -298,15 +312,21 @@ export function StorageUnitsView() {
           <span className="ph-mark" aria-hidden>🗝️</span>
           <div>
             <h1>Storage & Auctions</h1>
-            <div className="sub">Your shelf holds 100 cards free — rent extra storage in the panel below when it fills. The auctions? Delinquent lockers sold sight-unseen to the highest bidder: bid, win, sort the haul — keep the good stuff, scrap the rest for fast cash.</div>
+            <div className="sub">Your shelf holds 100 cards free. Below, delinquent lockers sell sight-unseen — bid, win, and sort the haul: keep what is good, scrap the rest for fast cash.</div>
           </div>
         </div>
       </div>
 
       <FirstUseTip surface="storage">
-        The locker gamble: you get one look through the door gap and a starting bid — everything else is a read. Pickers
-        with better info than you will run bids up, so the discipline is knowing when the locker is worth more to you than
-        to them. Win one and the haul sorts card by card: keep, or scrap for ~8¢ on the dollar, cash on the spot.
+        <TipList
+          title="🗝️ The locker gamble"
+          items={[
+            { icon: '👀', label: 'One look', text: <>a door-gap peek and an opening bid — everything else is a read</> },
+            { icon: '⚔️', label: 'Better info', text: <>other pickers will run the bid up; know when it is worth more to you than to them</> },
+            { icon: '🧺', label: 'Keep or scrap', text: <>sort the haul card by card — scrap pays ~8¢ on the dollar, cash on the spot</> },
+            { icon: '📦', label: 'Rack space', text: <>keep only what fits; the rest goes to scrap before it can overflow</> },
+          ]}
+        />
       </FirstUseTip>
 
       <StoragePanel />

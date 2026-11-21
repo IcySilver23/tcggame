@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
-import { CardImg, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, fmtUsd, PriceTag, RarityBadge, SetSection, VirtualGrid } from '../components'
+import { CardImg, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, fmtUsd, LoadFailure, PriceTag, RarityBadge, SetSection, VirtualGrid } from '../components'
 import type { CardRow, SetRow } from '../types'
 
 // The server caps /api/cards/search at 250 rows per request; that's also the
@@ -22,6 +22,10 @@ export function CollectionView() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [facets, setFacets] = useState<{ rarities: { rarity: string; n: number }[]; types: string[] }>({ rarities: [], types: [] })
   const [loading, setLoading] = useState(false)
+  // A failed page read used to fall through to "No cards here yet", which reads
+  // as an empty collection rather than a failed request.
+  const [failed, setFailed] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     api.sets().then(setSets).catch(() => {})
@@ -33,16 +37,17 @@ export function CollectionView() {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
+    setFailed(false)
     // 'owned' is filtered server-side so owned cards surface regardless of price rank
     const t = setTimeout(() => {
       api
         .cardsSearch({ q, setId, rarity, type, sort, limit: PAGE, offset: 0, owned: ownedOnly ? 1 : undefined })
         .then((r) => { if (!cancelled) { setCards(r.cards); setTotal(r.total) } })
-        .catch(() => {})
+        .catch(() => { if (!cancelled) setFailed(true) })
         .finally(() => { if (!cancelled) setLoading(false) })
     }, 220)
     return () => { cancelled = true; clearTimeout(t) }
-  }, [q, setId, rarity, type, sort, ownedOnly])
+  }, [q, setId, rarity, type, sort, ownedOnly, reloadKey])
 
   // Next page — requested by the sentinel at the bottom of the grid, so the
   // collection fills itself the way Inventory does instead of making the
@@ -137,7 +142,9 @@ export function CollectionView() {
         </div>
       </div>
 
-      {loading && cards.length === 0 ? (
+      {failed && cards.length === 0 ? (
+        <LoadFailure what="your cards" sub="The catalogue did not answer. Nothing was changed." onRetry={() => setReloadKey((k) => k + 1)} />
+      ) : loading && cards.length === 0 ? (
         <EmptyState icon="⏳" text="Loading cards…" />
       ) : shown.length === 0 ? (
         <EmptyState icon="🃏" text="No cards here yet" sub="Rip some packs or buy singles on the Market." />

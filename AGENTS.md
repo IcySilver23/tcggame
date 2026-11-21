@@ -219,12 +219,13 @@ light: the pattern layer writes no colour and no shape of its own.
 
 ### The dev holofoil inspector
 
-**Card foil is parked behind a player switch.** `useStore().foil` (persisted as
-`tcglife.foil`, OFF unless the player turns it on in Settings → Appearance)
-gates `FoilOverlay`, which returns before computing a mask, so an off card
-fetches no sheet and shows its scan. This is a display gate, not a deletion: the
-renderer, the printing database, every paper and every report stay. Do not wire
-new foil work around it — read the flag.
+**Card foil is always on; the player switch controls the advanced treatment.**
+`useStore().foil` (persisted as `tcglife.foil`, OFF unless the player turns it on
+in Settings → Appearance) no longer gates `FoilOverlay`. Every resolved paper
+computes its mask and renders at a fixed neutral tilt at rest. The flag adds the
+advanced layer — pointer tilt, iridescence and relief — and reduced-motion users
+get the paper without the movement. Do not treat the flag as “is this card foil?”;
+ask `holoFor` / `printingFor`.
 
 Dev builds mount `src/foil/HoloDebug.tsx`; **Shift+H** opens it. It draws the same
 `src/foil/stages.ts` composite one stage at a time — base, pattern, pattern alpha,

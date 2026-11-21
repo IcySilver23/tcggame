@@ -1,4 +1,5 @@
 import { db, getMeta, setMeta, nowIso, logActivity } from '../lib/db'
+import { markPricesChanged } from '../lib/derived-cache'
 import { estimatePrice, researchedAnchor } from './estimates'
 
 // ---------------------------------------------------------------------------
@@ -291,6 +292,9 @@ export function generateSimPrices(): number {
     }
   })
   tx()
-  if (n > 0) console.log(`[simmarket] simulated prices written for ${n} card(s) while real sources are unavailable`)
+  if (n > 0) {
+    markPricesChanged()
+    console.log(`[simmarket] simulated prices written for ${n} card(s) while real sources are unavailable`)
+  }
   return n
 }

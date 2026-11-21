@@ -18,6 +18,9 @@
 // six of them shipped a 6-pack bundle. Crown Zenith is the exception at 10
 // packs per ETB. The per-set promo names below are the published ETB promos.
 
+import { BUILD_BATTLE_BOXES } from './build-battle'
+import { COLLECTIONS } from './collections'
+
 export type EvidenceSource = {
   label: string
   url: string | null
@@ -319,11 +322,46 @@ export const XY_ETB_SHELF: Readonly<Record<string, { market: number; productId: 
   'xy11-etb': { market: 1800, productId: 120697 },
 }
 
-// Every XY booster pack and every display whose TCGplayer listing publishes a
-// market price, read through tcgcsv on 8 November 2026. Five displays return a
-// null market and deliberately stay on the model rather than borrowing a price:
-// XY base, Flashfire, Phantom Forces, Primal Clash and BREAKpoint. A pack's
-// quote is the collector market for one wrapper, not a retail sticker.
+// Six early Elite Trainer Boxes never received a TCGplayer market at all.
+// PriceCharting prices each exact box from sold listings, so these are
+// sold-based values rather than a model of the packs inside. They were read on
+// 13 November 2026. The XY base set split its box across two arts, so those two
+// quotes carry their own price fields in DUAL_ART_ETBS rather than sitting here.
+const SECONDARY_ETB_AS_OF = '2026-11-13'
+const SECONDARY_ETB_SHELF: Readonly<Record<string, { market: number; label: string; page: string }>> = {
+  'bw8-etb': {
+    market: 16225.09, label: 'Plasma Storm Elite Trainer Box',
+    page: 'https://www.pricecharting.com/game/pokemon-plasma-storm/elite-trainer-box',
+  },
+  'bw10-etb': {
+    market: 7193.29, label: 'Plasma Blast Elite Trainer Box',
+    page: 'https://www.pricecharting.com/game/pokemon-plasma-blast/elite-trainer-box',
+  },
+  'xy3-etb': {
+    market: 4750, label: 'Furious Fists Elite Trainer Box',
+    page: 'https://www.pricecharting.com/game/pokemon-furious-fists/elite-trainer-box',
+  },
+  'xy4-etb': {
+    market: 5873.07, label: 'Phantom Forces Elite Trainer Box',
+    page: 'https://www.pricecharting.com/game/pokemon-phantom-forces/elite-trainer-box',
+  },
+  'xy7-etb': {
+    market: 3751.45, label: 'Ancient Origins Elite Trainer Box',
+    page: 'https://www.pricecharting.com/game/pokemon-ancient-origins/elite-trainer-box',
+  },
+  'xy10-etb': {
+    market: 1149.24, label: 'Fates Collide Elite Trainer Box',
+    page: 'https://www.pricecharting.com/game/pokemon-fates-collide/elite-trainer-box',
+  },
+}
+
+// Every XY booster pack and the displays whose TCGplayer listing publishes a
+// market price. The pack quotes were read through tcgcsv on 8 November 2026;
+// the displays are listed again in BUNDLE_DISPLAY_SHELF with the 13 November
+// reading. Displays that return a null market deliberately stay on the model
+// rather than borrowing a price: XY base, Flashfire, Phantom Forces and
+// BREAKpoint. A pack's quote is the collector market for one wrapper, not a
+// retail sticker.
 // Black & White booster packs with a published TCGplayer market, read through
 // tcgcsv on 8 November 2026. Their displays all return a null market, so the
 // 36-pack boxes stay modelled rather than borrowing a pack-derived price.
@@ -363,15 +401,106 @@ export const XY_BOOSTER_SHELF: Readonly<Record<string, { market: number; product
   'xy12-display': { market: 2707.61, productId: 123446, product: 'XY Evolutions Booster Box' },
 }
 
-const XY_ETB_SETS = ['xy1', 'xy2', 'xy3', 'xy4', 'xy5', 'xy6', 'xy7', 'xy8', 'xy9', 'xy10', 'xy11', 'xy12']
+// Booster bundles and 36-pack displays whose TCGplayer listing publishes a
+// market price. The sealed catalogue had been modelling every one of these from
+// the packs inside, so an in-print bundle and an out-of-print display could be
+// priced off the same curve. Each quote below is the exact listing's market,
+// read through the tcgcsv mirror on 13 November 2026. The older displays whose
+// listings publish no market are deliberately absent and stay on the model.
+export const BUNDLE_DISPLAY_SHELF: Readonly<Record<string, { market: number; productId: number; product: string }>> = {
+  'me1-bundle': { market: 66.55, productId: 644362, product: 'Mega Evolution Booster Bundle' },
+  'me1-display': { market: 300.72, productId: 644298, product: 'Mega Evolution Booster Box' },
+  'me2-bundle': { market: 73.03, productId: 654160, product: 'Phantasmal Flames Booster Bundle' },
+  'me2-display': { market: 382.39, productId: 654137, product: 'Phantasmal Flames Booster Box' },
+  'me2pt5-bundle': { market: 77.91, productId: 668541, product: 'Ascended Heroes Booster Bundle' },
+  'me3-bundle': { market: 37.93, productId: 672396, product: 'Perfect Order Booster Bundle' },
+  'me3-display': { market: 171.85, productId: 672394, product: 'Perfect Order Booster Box' },
+  'me4-bundle': { market: 37.09, productId: 684456, product: 'Chaos Rising Booster Bundle' },
+  'me4-display': { market: 183.96, productId: 684444, product: 'Chaos Rising Booster Box' },
+  'me5-bundle': { market: 37.78, productId: 692942, product: 'Pitch Black Booster Bundle' },
+  'me5-display': { market: 173.83, productId: 692939, product: 'Pitch Black Booster Box' },
+  'me55-bundle': { market: 59.67, productId: 704171, product: '30th Celebration Booster Bundle' },
+  'me6-bundle': { market: 38.1, productId: 712097, product: 'Delta Reign Booster Bundle' },
+  'me6-display': { market: 187.23, productId: 712094, product: 'Delta Reign Booster Box' },
+  'rsv10pt5-bundle': { market: 92.15, productId: 630696, product: 'White Flare Booster Bundle' },
+  'sm10-display': { market: 2724.4, productId: 185717, product: 'Unbroken Bonds Booster Box' },
+  'sm11-display': { market: 3376.76, productId: 191882, product: 'Unified Minds Booster Box' },
+  'sm12-display': { market: 4216.67, productId: 199261, product: 'Cosmic Eclipse Booster Box' },
+  'sm2-display': { market: 1881.33, productId: 129888, product: 'Guardians Rising Booster Box' },
+  'sm3-display': { market: 1297.1, productId: 133773, product: 'Burning Shadows Booster Box' },
+  'sm4-display': { market: 671.59, productId: 146995, product: 'Crimson Invasion Booster Box' },
+  'sm5-display': { market: 1612.68, productId: 155661, product: 'Ultra Prism Booster Box' },
+  'sm6-display': { market: 1649.98, productId: 164296, product: 'Forbidden Light Booster Box' },
+  'sm7-display': { market: 2676.74, productId: 170273, product: 'Celestial Storm Booster Box' },
+  'sm8-display': { market: 1629.37, productId: 175509, product: 'Lost Thunder Booster Box' },
+  'sm9-display': { market: 12389.94, productId: 181698, product: 'Team Up Booster Box' },
+  'sv1-bundle': { market: 102.96, productId: 478258, product: 'Scarlet & Violet Booster Bundle' },
+  'sv1-display': { market: 298.51, productId: 476452, product: 'Scarlet & Violet Booster Box' },
+  'sv10-bundle': { market: 64.57, productId: 625670, product: 'Destined Rivals Booster Bundle' },
+  'sv10-display': { market: 380.24, productId: 624679, product: 'Destined Rivals Booster Box' },
+  'sv2-bundle': { market: 123.74, productId: 496914, product: 'Paldea Evolved Booster Bundle' },
+  'sv2-display': { market: 464.86, productId: 493975, product: 'Paldea Evolved Booster Box' },
+  'sv3-bundle': { market: 122.47, productId: 501263, product: 'Obsidian Flames Booster Bundle' },
+  'sv3-display': { market: 382.41, productId: 501257, product: 'Obsidian Flames Booster Box' },
+  'sv3pt5-bundle': { market: 165.76, productId: 502000, product: '151 Booster Bundle' },
+  'sv4-bundle': { market: 95.06, productId: 512820, product: 'Paradox Rift Booster Bundle' },
+  'sv4-display': { market: 281.61, productId: 512821, product: 'Paradox Rift Booster Box' },
+  'sv4pt5-bundle': { market: 167.68, productId: 528771, product: 'Paldean Fates Booster Bundle' },
+  'sv5-bundle': { market: 87.38, productId: 541017, product: 'Temporal Forces Booster Bundle' },
+  'sv5-display': { market: 323.98, productId: 536225, product: 'Temporal Forces Booster Box' },
+  'sv6-bundle': { market: 77.14, productId: 543852, product: 'Twilight Masquerade Booster Bundle' },
+  'sv6-display': { market: 334.53, productId: 543846, product: 'Twilight Masquerade Booster Box' },
+  'sv6pt5-bundle': { market: 56.49, productId: 553031, product: 'Shrouded Fable Booster Bundle' },
+  'sv7-bundle': { market: 68.3, productId: 557345, product: 'Stellar Crown Booster Bundle' },
+  'sv7-display': { market: 310.99, productId: 557354, product: 'Stellar Crown Booster Box' },
+  'sv8-bundle': { market: 69.48, productId: 565629, product: 'Surging Sparks Booster Bundle (LGS)' },
+  'sv8-display': { market: 302.72, productId: 565606, product: 'Surging Sparks Booster Box' },
+  'sv8pt5-bundle': { market: 73.87, productId: 600518, product: 'Prismatic Evolutions Booster Bundle' },
+  'sv9-bundle': { market: 39.13, productId: 610953, product: 'Journey Together Booster Bundle' },
+  'sv9-display': { market: 203.3, productId: 610931, product: 'Journey Together Booster Box' },
+  'swsh1-display': { market: 692.76, productId: 206027, product: 'Sword & Shield Booster Box' },
+  'swsh10-display': { market: 411.39, productId: 265519, product: 'Astral Radiance Booster Box' },
+  'swsh11-bundle': { market: 199.06, productId: 278819, product: 'Lost Origin Booster Bundle' },
+  'swsh11-display': { market: 732.8, productId: 277324, product: 'Lost Origin Booster Box' },
+  'swsh12-bundle': { market: 113.2, productId: 283396, product: 'Silver Tempest Booster Bundle' },
+  'swsh12-display': { market: 496.01, productId: 283389, product: 'Silver Tempest Booster Box' },
+  'swsh12pt5-bundle': { market: 217.25, productId: 527562, product: 'Crown Zenith Booster Bundle' },
+  'swsh2-display': { market: 483.32, productId: 210561, product: 'Rebel Clash Booster Box' },
+  'swsh3-display': { market: 344.08, productId: 216853, product: 'Darkness Ablaze Booster Box' },
+  'swsh4-display': { market: 320.23, productId: 221313, product: 'Vivid Voltage Booster Box' },
+  'swsh5-display': { market: 290.84, productId: 229277, product: 'Battle Styles Booster Box' },
+  'swsh6-display': { market: 463.77, productId: 236258, product: 'Chilling Reign Booster Box' },
+  'swsh7-display': { market: 2190.2, productId: 242436, product: 'Evolving Skies Booster Box' },
+  'swsh8-display': { market: 1007.74, productId: 247654, product: 'Fusion Strike Booster Box' },
+  'swsh9-display': { market: 560.76, productId: 256141, product: 'Brilliant Stars Booster Box' },
+  'xy10-display': { market: 2754.99, productId: 117478, product: 'XY Fates Collide Booster Box' },
+  'xy11-display': { market: 1436.99, productId: 120076, product: 'Steam Siege Booster Box' },
+  'xy12-display': { market: 2747.49, productId: 123446, product: 'XY Evolutions Booster Box' },
+  'xy3-display': { market: 4717.5, productId: 92168, product: 'Furious Fists Booster Box' },
+  'xy5-display': { market: 4066.66, productId: 97750, product: 'XY Primal Clash Booster Box' },
+  'xy6-display': { market: 4768.42, productId: 98026, product: 'XY Roaring Skies Booster Box' },
+  'xy7-display': { market: 9807.99, productId: 100489, product: 'XY Ancient Origins Booster Box' },
+  'xy8-display': { market: 3265.81, productId: 107101, product: 'XY BREAKthrough Booster Box' },
+  'zsv10pt5-bundle': { market: 96.71, productId: 630431, product: 'Black Bolt Booster Bundle' },
+}
+
+// Flashfire is deliberately absent: the early ETB line shipped one box every
+// other expansion, and Bulbapedia names Flashfire (with Plasma Freeze and
+// Legendary Treasures) as the sets it skipped. The catalogue still holds a
+// hidden `xy2-etb` row so stock from an older save resolves, but no evidence
+// row may claim that box existed.
+const XY_ETB_SETS = ['xy1', 'xy3', 'xy4', 'xy5', 'xy6', 'xy7', 'xy8', 'xy9', 'xy10', 'xy11', 'xy12']
 for (const setId of XY_ETB_SETS) {
   const quote = XY_ETB_SHELF[`${setId}-etb`]
+  const secondary = SECONDARY_ETB_SHELF[`${setId}-etb`]
   evidence[`${setId}-etb`] = {
     packs: 8,
     cardsPerPack: 10,
     promos: [],
     source: XY_ETB_SOURCE,
-    note: `Eight-pack Elite Trainer Box${quote ? `, $${quote.market.toFixed(2)} on TCGplayer on 8 November 2026` : ''}. No promo is documented for this box.`,
+    note: secondary
+      ? `Eight-pack Elite Trainer Box. $${secondary.market.toFixed(2)} is PriceCharting's sold-based value for this box, read 13 November 2026. No promo is documented for this box.`
+      : `Eight-pack Elite Trainer Box${quote ? `, $${quote.market.toFixed(2)} on TCGplayer on 8 November 2026` : ''}. No promo is documented for this box.`,
   }
 }
 
@@ -731,6 +860,8 @@ export type DualArtEtbBox = {
   priceKind?: ShelfPriceSource
   /** How the quote is described in the product note. */
   priceLabel?: string
+  /** The day the secondary quote was read; defaults to the TCGplayer reading. */
+  priceAsOf?: string
 }
 
 export const DUAL_ART_ETBS: Readonly<Record<string, {
@@ -813,8 +944,20 @@ export const DUAL_ART_ETBS: Readonly<Record<string, {
   xy1: {
     name: 'XY', packs: 8, msrp: 39.99, releaseDate: '2014/02/05',
     boxes: [
-      { id: 'xy1-etb', art: 'Xerneas', market: null, productId: 97747 },
-      { id: 'xy1-etb-yveltal', art: 'Yveltal', market: null, productId: 97748 },
+      {
+        id: 'xy1-etb', art: 'Xerneas', market: 4320.61, productId: 97747,
+        priceSource: PRICECHARTING_SHELF('XY Elite Trainer Box: Xerneas', 'https://www.pricecharting.com/game/pokemon-xy/elite-trainer-box-xerneas'),
+        priceKind: 'pricecharting',
+        priceLabel: "PriceCharting's sold-based value for this exact art, read 13 November 2026",
+        priceAsOf: '2026-11-13',
+      },
+      {
+        id: 'xy1-etb-yveltal', art: 'Yveltal', market: 4558.22, productId: 97748,
+        priceSource: PRICECHARTING_SHELF('XY Elite Trainer Box: Yveltal', 'https://www.pricecharting.com/game/pokemon-xy/elite-trainer-box-yveltal'),
+        priceKind: 'pricecharting',
+        priceLabel: "PriceCharting's sold-based value for this exact art, read 13 November 2026",
+        priceAsOf: '2026-11-13',
+      },
     ],
   },
   xy5: {
@@ -888,7 +1031,7 @@ export const DUAL_ART_ETB_ROWS: SpecialProductRow[] = Object.entries(DUAL_ART_ET
       promoIds: box.promoId ? [box.promoId] : undefined,
       promoSet: box.promoSet ?? (box.promoId ? 'svp' : undefined),
       source,
-      shelf: box.market === null ? undefined : { market: box.market, source: priceSource, asOf: '2026-11-08', kind: box.priceKind ?? 'tcgplayer' },
+      shelf: box.market === null ? undefined : { market: box.market, source: priceSource, asOf: box.priceAsOf ?? '2026-11-08', kind: box.priceKind ?? 'tcgplayer' },
       image: `https://tcgplayer-cdn.tcgplayer.com/product/${box.productId}_in_400x400.jpg`,
       note: box.contents
         ? `${box.contents} ${priceNote}`
@@ -897,8 +1040,107 @@ export const DUAL_ART_ETB_ROWS: SpecialProductRow[] = Object.entries(DUAL_ART_ET
   }),
 )
 
+const BUILD_BATTLE_SOURCE: EvidenceSource = {
+  label: 'Bulbapedia — Build & Battle Box (list of boxes)',
+  url: 'https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)',
+}
+
+/**
+ * Build & Battle Boxes: a product line, not a set rule. It began with Fates
+ * Collide in 2016 and shipped with every main expansion after it, so the rows
+ * come from the published list rather than from an era template. Each box is
+ * four packs and one of four prerelease promos; the 40-card evolution deck is
+ * printed matter the pack opener has no equivalent for and is not modelled.
+ */
+export const BUILD_BATTLE_PRODUCTS: SpecialProductRow[] = BUILD_BATTLE_BOXES.map((box) => {
+  const name = `${box.expansion} Build & Battle Box`
+  const listing = box.productId === null ? null : TCGPLAYER_SHELF(name, box.productId)
+  const priceNote = box.market === null || !listing
+    ? 'TCGplayer does not list this box, so the shelf price is modelled from the four packs and the promo.'
+    : `$${box.market.toFixed(2)} is the TCGplayer market for this box on 9 November 2026.`
+  return {
+    id: `${box.setId}-build-battle`,
+    setId: box.setId,
+    name,
+    msrp: 19.99,
+    packs: 4,
+    cardsPerPack: 10,
+    releaseDate: box.releaseDate,
+    description: 'Four booster packs, a 40-card evolution deck and one of four prerelease promos.',
+    promos: box.promos,
+    promoIds: box.promoIds,
+    promoSet: box.promoSet,
+    source: BUILD_BATTLE_SOURCE,
+    shelf: box.market === null || !listing
+      ? undefined
+      : { market: box.market, source: listing, asOf: '2026-11-09', kind: 'tcgplayer' },
+    image: box.image ?? undefined,
+    note: `Four packs and one of four prerelease promos (${box.promos.join(', ')}); the box's 40-card evolution deck is not modelled, so the opener deals the four packs. ${priceNote}`,
+  }
+})
+
+for (const row of BUILD_BATTLE_PRODUCTS) {
+  evidence[row.id] = {
+    packs: row.packs,
+    cardsPerPack: 10,
+    promos: row.promos,
+    promoIds: row.promoIds,
+    promoSet: row.promoSet,
+    source: BUILD_BATTLE_SOURCE,
+    note: `Build & Battle Box: four packs and one of four prerelease promos (${row.promos.join(', ')}). The 40-card evolution deck is not modelled.`,
+  }
+}
+
+const COLLECTIONS_SOURCE: EvidenceSource = {
+  label: 'Pokémon product galleries and press releases — collection contents',
+  url: 'https://www.pokemon.com/us/pokemon-tcg/product-gallery',
+}
+
+/**
+ * Collection products for the special sets whose lineups the era template
+ * cannot describe: a poster, binder, tech sticker, premium, illustration,
+ * ultra-premium or figure collection is a named product with its own pack
+ * count and promos, so every row carries its researched contents instead of a
+ * set-level guess. Where the catalogue does not hold one of a product's promos,
+ * the row names it but does not claim it, so the opener never substitutes an
+ * unrelated printing.
+ */
+export const COLLECTION_PRODUCTS: SpecialProductRow[] = COLLECTIONS.map((c) => ({
+  id: c.id,
+  setId: c.setId,
+  name: c.name,
+  msrp: c.msrp,
+  packs: c.packs,
+  cardsPerPack: 10,
+  releaseDate: c.releaseDate,
+  description: c.description,
+  promos: c.promos,
+  promoIds: c.promoIds.length ? c.promoIds : undefined,
+  promoSet: c.promoIds.length ? c.promoIds[0].split('-')[0] : undefined,
+  promoPolicy: c.promoPolicy,
+  source: COLLECTIONS_SOURCE,
+  shelf: { market: c.market, source: TCGPLAYER_SHELF(c.name, c.productId), asOf: '2026-11-09', kind: 'tcgplayer' },
+  image: `https://tcgplayer-cdn.tcgplayer.com/product/${c.productId}_in_400x400.jpg`,
+  note: c.note ?? '',
+}))
+
+for (const row of COLLECTION_PRODUCTS) {
+  evidence[row.id] = {
+    packs: row.packs,
+    cardsPerPack: 10,
+    promos: row.promos,
+    promoIds: row.promoIds,
+    promoSet: row.promoSet,
+    promoPolicy: row.promoPolicy,
+    source: COLLECTIONS_SOURCE,
+    note: row.note,
+  }
+}
+
 /** Products that are not the set's ordinary booster, bundle, ETB or display. */
 export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
+  ...BUILD_BATTLE_PRODUCTS,
+  ...COLLECTION_PRODUCTS,
   // Single and Three Pack Blisters. The promo in each is the one Bulbapedia's
   // promo table files with that product; a set whose promo numbers the sources
   // do not state gets no row rather than a guessed one. A single blister has no
@@ -1305,7 +1547,6 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     kind: 'display', packs: 18, cardsPerPack: 10, releaseDate: '2022/05/27',
     description: 'Eighteen Astral Radiance packs in the half-size display.',
     promos: [], source: SWSH_ETB_SOURCE,
-    image: 'https://tcgplayer-cdn.tcgplayer.com/product/704916_in_400x400.jpg',
     note: 'Half display: eighteen packs, no promo. TCGplayer lists the Astral Radiance Half Booster Box but publishes no market price here, so the $80.82 shelf price is half a display\'s MSRP and the pack-EV floor applies.',
   },
 
@@ -1566,10 +1807,10 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
 ]
 
 /**
- * Boxes whose wrappers do not all come from one expansion. The Sword & Shield
- * Elite Trainer Box Plus is the only one: twelve packs split three each across
- * the first four sets of the era. The opener walks the list in order, so a box
- * deals the mix it really held instead of twelve packs of its host set.
+ * Boxes whose wrappers do not all come from one expansion. The opener walks the
+ * list in order, so a box deals the mix it really held instead of filling every
+ * wrapper from the product's anchor set. Segment counts always sum to the
+ * product's `packs` count.
  */
 export type PackMix = ReadonlyArray<{ setId: string; packs: number }>
 
@@ -1585,6 +1826,58 @@ export const PACK_MIX: Readonly<Record<string, PackMix>> = {
     { setId: 'swsh2', packs: 3 },
     { setId: 'swsh3', packs: 3 },
     { setId: 'swsh4', packs: 3 },
+  ],
+  // Owner's opening of the box: four each of the first four Sword & Shield
+  // sets. https://www.reddit.com/r/PokemonTCG/comments/ju5w1c/
+  'swsh1-upc-zacian-zamazenta': [
+    { setId: 'swsh1', packs: 4 },
+    { setId: 'swsh2', packs: 4 },
+    { setId: 'swsh3', packs: 4 },
+    { setId: 'swsh4', packs: 4 },
+  ],
+  // The Hobby Bin's review lists the sixteen wrappers segment by segment.
+  // https://thehobbybin.com/blogs/product-reviews/charizard-ultra-premium-collection-review
+  'swsh11-upc-charizard': [
+    { setId: 'swsh7', packs: 3 },
+    { setId: 'swsh8', packs: 3 },
+    { setId: 'swsh10', packs: 3 },
+    { setId: 'swsh9', packs: 3 },
+    { setId: 'swsh11', packs: 2 },
+    { setId: 'swsh4', packs: 1 },
+    { setId: 'swsh3', packs: 1 },
+  ],
+  // An opening of the box deals four Paldea Evolved, two Paradox Rift, two
+  // Temporal Forces, four Twilight Masquerade and four Stellar Crown.
+  // https://www.youtube.com/watch?v=y-lbrQ3MeHI
+  'sv6-upc-greninja': [
+    { setId: 'sv2', packs: 4 },
+    { setId: 'sv4', packs: 2 },
+    { setId: 'sv5', packs: 2 },
+    { setId: 'sv6', packs: 4 },
+    { setId: 'sv7', packs: 4 },
+  ],
+  // TCG Protectors' observed opening. TPCi publishes the eighteen-pack total,
+  // not this split, so the note calls it an observed composition.
+  // https://tcgprotectors.com/blogs/pokemon-blog/guide-mega-charizard-x-ex-ultra-premium-collection
+  'me2-upc-mega-charizard-x': [
+    { setId: 'me2', packs: 4 },
+    { setId: 'me1', packs: 4 },
+    { setId: 'sv10', packs: 4 },
+    { setId: 'sv9', packs: 4 },
+    { setId: 'sv8', packs: 2 },
+  ],
+  // The box-back pack list. Some write-ups print 3/3/3 for the last three
+  // Scarlet & Violet groups, which only totals seventeen; the box back's
+  // 2/2/2/2/4/4/2 is the eighteen-pack list used here.
+  // https://thehobbybin.com/blogs/pokemon-tcg-guides/moltres-upc-revealed
+  'sv10-upc-moltres': [
+    { setId: 'sv10', packs: 2 },
+    { setId: 'sv9', packs: 2 },
+    { setId: 'sv5', packs: 2 },
+    { setId: 'sv4', packs: 2 },
+    { setId: 'sv3', packs: 4 },
+    { setId: 'sv2', packs: 4 },
+    { setId: 'sv1', packs: 2 },
   ],
 }
 
@@ -1659,14 +1952,14 @@ evidence['bw8-etb'] = {
   cardsPerPack: 10,
   promos: [],
   source: BW_ETB_SOURCE,
-  note: 'Plasma Storm Elite Trainer Box: seven packs, the first ETB ever released. It carried no promo card.',
+  note: `Plasma Storm Elite Trainer Box: seven packs, the first ETB ever released. It carried no promo card. $${SECONDARY_ETB_SHELF['bw8-etb'].market.toFixed(2)} is PriceCharting's sold-based value for this box, read 13 November 2026.`,
 }
 evidence['bw10-etb'] = {
   packs: 8,
   cardsPerPack: 10,
   promos: [],
   source: BW_ETB_SOURCE,
-  note: 'Plasma Blast Elite Trainer Box: eight packs, one more than Plasma Storm and the format every later ETB followed. It carried no promo card.',
+  note: `Plasma Blast Elite Trainer Box: eight packs, one more than Plasma Storm and the format every later ETB followed. It carried no promo card. $${SECONDARY_ETB_SHELF['bw10-etb'].market.toFixed(2)} is PriceCharting's sold-based value for this box, read 13 November 2026.`,
 }
 
 for (const p of SPECIAL_PRODUCTS) {
@@ -1715,6 +2008,52 @@ export const PC_ETB_SHELF: Readonly<Record<string, { market: number; productId: 
   'me6-etb-pc': { market: 198.2, productId: 712104 },
 }
 
+// Regular Elite Trainer Boxes whose real TCGplayer market was never entered.
+// They had all fallen through to the model's $32 ETB floor, which made an
+// out-of-print Silver Tempest box and an in-print Paldea Evolved box look
+// identical. These are exact plain-ETB listing quotes from the TCGcsv mirror's
+// 12 November 2026 update; the productId is the same listing the box photo uses.
+const REGULAR_ETB_SHELF_SOURCE: EvidenceSource = {
+  label: 'TCGplayer — Elite Trainer Box listings (market, via the tcgcsv mirror)',
+  url: 'https://www.tcgplayer.com/search/pokemon/product?q=elite%20trainer%20box',
+}
+
+export const REGULAR_ETB_SHELF: Readonly<Record<string, { market: number; productId: number }>> = {
+  'cel25-etb': { market: 308.25, productId: 242811 },
+  'me2-etb': { market: 134.73, productId: 654136 },
+  'me2pt5-etb': { market: 124.79, productId: 668496 },
+  'me3-etb': { market: 72.16, productId: 672401 },
+  'me4-etb': { market: 67.8, productId: 684450 },
+  'me5-etb': { market: 71.39, productId: 692947 },
+  'me55-etb': { market: 109.26, productId: 704143 },
+  'me6-etb': { market: 81.96, productId: 712102 },
+  'pgo-etb': { market: 166.24, productId: 270708 },
+  'rsv10pt5-etb': { market: 143.26, productId: 630689 },
+  'sv2-etb': { market: 202.05, productId: 493974 },
+  'sv3-etb': { market: 267.7, productId: 501264 },
+  'sv3pt5-etb': { market: 492.26, productId: 503313 },
+  'sv4pt5-etb': { market: 431.92, productId: 528040 },
+  'sv6-etb': { market: 104.17, productId: 543845 },
+  'sv6pt5-etb': { market: 112.71, productId: 552999 },
+  'sv7-etb': { market: 160.97, productId: 557350 },
+  'sv8-etb': { market: 115.75, productId: 565630 },
+  'sv8pt5-etb': { market: 114.61, productId: 593355 },
+  'sv9-etb': { market: 132.93, productId: 610930 },
+  'sv10-etb': { market: 107.02, productId: 624676 },
+  'swsh2-etb': { market: 321.17, productId: 210572 },
+  'swsh3-etb': { market: 128.43, productId: 216856 },
+  'swsh4-etb': { market: 141.64, productId: 221752 },
+  'swsh8-etb': { market: 332.39, productId: 247671 },
+  'swsh9-etb': { market: 169.64, productId: 256138 },
+  'swsh10-etb': { market: 124.29, productId: 265527 },
+  'swsh11-etb': { market: 193.31, productId: 277335 },
+  'swsh12-etb': { market: 155.92, productId: 283401 },
+  'swsh12pt5-etb': { market: 314.66, productId: 453470 },
+  'swsh35-etb': { market: 208.75, productId: 218791 },
+  'swsh45-etb': { market: 142.89, productId: 228821 },
+  'zsv10pt5-etb': { market: 152.85, productId: 630686 },
+}
+
 /** Shelf quotes are keyed by product id; most special products have none. */
 const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; asOf: string; kind?: ShelfPriceSource }>([
   ...SPECIAL_PRODUCTS.filter((p) => p.shelf).map((p) => [p.id, p.shelf!] as const),
@@ -1724,8 +2063,20 @@ const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; a
   ...Object.entries(PC_ETB_SHELF).map(
     ([id, q]) => [id, { market: q.market, source: PC_SHELF_SOURCE, asOf: '2026-11-08' }] as const,
   ),
+  ...Object.entries(REGULAR_ETB_SHELF).map(
+    ([id, q]) => [id, { market: q.market, source: REGULAR_ETB_SHELF_SOURCE, asOf: '2026-11-12' }] as const,
+  ),
   ...Object.entries(XY_ETB_SHELF).map(
     ([id, q]) => [id, { market: q.market, source: XY_ETB_SOURCE, asOf: '2026-11-08' }] as const,
+  ),
+  ...Object.entries(SECONDARY_ETB_SHELF).map(
+    ([id, q]) =>
+      [id, {
+        market: q.market,
+        source: { label: `PriceCharting — ${q.label} (sold-price value)`, url: q.page },
+        asOf: SECONDARY_ETB_AS_OF,
+        kind: 'pricecharting' as const,
+      }] as const,
   ),
   ...Object.entries(XY_BOOSTER_SHELF).map(
     ([id, q]) =>
@@ -1735,10 +2086,29 @@ const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; a
     ([id, q]) =>
       [id, { market: q.market, source: TCGPLAYER_SHELF(q.product, q.productId), asOf: '2026-11-08' }] as const,
   ),
+  ...Object.entries(BUNDLE_DISPLAY_SHELF).map(
+    ([id, q]) =>
+      [id, {
+        market: q.market,
+        source: TCGPLAYER_SHELF(q.product, q.productId),
+        asOf: '2026-11-13',
+        kind: 'tcgplayer' as const,
+      }] as const,
+  ),
 ])
 
 export function shelfPriceFor(productId: string): { market: number; source: EvidenceSource; asOf: string; kind?: ShelfPriceSource } | null {
   return SHELF_PRICES.get(productId) ?? null
+}
+
+// Give the evidence note the same provenance the shelf carries. Some older
+// displays have no evidence row at all; they keep their generated note and
+// still show the source through the shelf price.
+for (const [id, quote] of Object.entries(BUNDLE_DISPLAY_SHELF)) {
+  const row = evidence[id]
+  if (!row) continue
+  const kind = id.endsWith('-bundle') ? 'bundle' : 'display'
+  row.note += ` $${quote.market.toFixed(2)} is the TCGplayer market for the exact ${kind} listing on 13 November 2026.`
 }
 
 export const SEALED_EVIDENCE: Readonly<Record<string, SealedEvidence>> = evidence
@@ -1760,6 +2130,104 @@ export function sealedEvidenceFor(productId: string): SealedEvidence | null {
  */
 export const ART_LESS_PRODUCTS: Readonly<Record<string, string>> = {
   'sv8-half-display': 'TCGplayer publishes no photo for the Surging Sparks Half Booster Box; its CDN 403s at every size.',
+  'swsh10-half-display': 'TCGplayer lists the Astral Radiance Half Booster Box but serves no photo; every CDN size answers 403. The shop draws the set symbol rather than borrowing the full display picture.',
+}
+
+/**
+ * Sealed rows whose photo is an exact TCGplayer listing the generic pack-art
+ * matcher cannot reach. The matcher only knows the four ordinary product kinds;
+ * these are collections, tins, blisters and one local-release wave. The value is
+ * the TCGplayer product id, not a URL, so the CDN address stays in one place.
+ *
+ * Where a product shipped in several arts or promos, the catalogue row is one
+ * product with a one-of promo list; the photo below is one of those real
+ * listings, never a different product with the same set name.
+ */
+export const PRODUCT_IMAGE_PRODUCT_IDS: Readonly<Record<string, number>> = {
+  // 30th Celebration (local release), including both UPCs.
+  'me55-upc-day': 704190,
+  'me55-upc-night': 704191,
+  'me55-ditto-premium': 704189,
+  'me55-figure-mew': 704193,
+  'me55-figure-mewtwo': 704194,
+  'me55-poster': 704153,
+  'me55-tech-sticker': 704145,
+  'me55-binder': 704169,
+  'me55-mini-tin': 704176,
+  'me55-knockout': 704152,
+  'me55-sylveon-ex-box': 704155,
+  'me55-greninja-ex-box': 704168,
+  'me55-2pack-blister': 704148,
+
+  // Blisters for Mega Evolution, Chaos Rising and Delta Reign.
+  'me1-single-blister': 644358,
+  'me1-triple-blister': 644356,
+  'me2-single-blister': 654150,
+  'me2-triple-blister': 654154,
+  'me4-single-blister': 684457,
+  'me4-triple-blister': 684458,
+  'me6-single-blister': 712108,
+  'me6-triple-blister': 712093,
+
+  // Ascended Heroes collections and boxes.
+  'me2pt5-tech-sticker': 666908,
+  'me2pt5-mini-tin': 668531,
+  'me2pt5-premium-poster': 668536,
+  'me2pt5-first-partners-pin': 672391,
+  'me2pt5-mega-meganium-box': 672733,
+  'me2pt5-mega-emboar-box': 672734,
+  'me2pt5-mega-feraligatr-box': 672735,
+  'me2pt5-2pack-blister': 666906,
+
+  // Scarlet & Violet blister rows, one photo per product family.
+  'sv1-single-blister': 478765,
+  'sv1-triple-blister': 478761,
+  'sv2-single-blister': 493999,
+  'sv2-triple-blister': 493997,
+  'sv3-single-blister': 501262,
+  'sv3-triple-blister': 501260,
+  'sv4-single-blister': 514224,
+  'sv4-triple-blister': 513434,
+  'sv5-single-blister': 536284,
+  'sv5-triple-blister': 536227,
+  'sv6-single-blister': 544179,
+  'sv6-triple-blister': 544171,
+  'sv7-single-blister': 557338,
+  'sv7-triple-blister': 557334,
+  'sv8-single-blister': 565636,
+  'sv8-triple-blister': 565634,
+  'sv8pt5-2pack-blister': 609716,
+  'sv10-single-blister': 633105,
+  'sv10-triple-blister': 625683,
+
+  // Older special products whose exact listing exists on TCGplayer.
+  'dc1-blister': 97764,
+  'dv1-blister': 98947,
+  // The 2022 McDonald's pack is listed as the "Match & Battle Pack"; its CDN
+  // photo is the sealed wrapper, not a card.
+  'mcd22-booster': 282530,
+}
+
+/**
+ * Product photos that are stable local assets rather than a marketplace CDN.
+ * The five products below are real sealed products whose TCGplayer listings
+ * carry no image; PriceCharting's product photos are copied into `public/` so
+ * the shelf keeps the same picture when the marketplace URL changes.
+ */
+export const LOCAL_PRODUCT_IMAGES: Readonly<Record<string, string>> = {
+  'bw8-etb': '/product-art/bw8-etb.jpg',
+  'bw10-etb': '/product-art/bw10-etb.jpg',
+  'ecard3-display': '/product-art/ecard3-display.jpg',
+  'ecard2-display': '/product-art/ecard2-display.jpg',
+  'neo2-display': '/product-art/neo2-display.jpg',
+}
+
+/** Product-image URL for a catalogue row, when one is known. */
+export function productImageFor(productId: string): string | null {
+  const local = LOCAL_PRODUCT_IMAGES[productId]
+  if (local) return local
+  const imageId = PRODUCT_IMAGE_PRODUCT_IDS[productId]
+  return imageId ? `https://tcgplayer-cdn.tcgplayer.com/product/${imageId}_in_400x400.jpg` : null
 }
 
 /**
@@ -1793,6 +2261,12 @@ const BW_NO_ETB = 'The Elite Trainer Box line began with Plasma Storm; this Blac
 const SM_SPECIAL_NO_DISPLAY = (name: string, detail: string) =>
   `${name} never shipped a 36-pack Booster Display; it was sold in its ten-pack Elite Trainer Box and ${detail}.`
 
+/**
+ * Products no shelf ever carried. The catalogue no longer generates these
+ * rows, and `ensureFullCatalog()` deletes any a legacy save still holds: a
+ * product that was never printed does not belong in a product table, even
+ * hidden. The reasons stay here because they are what blocks regeneration.
+ */
 export const UNSELLABLE_PRODUCTS: Readonly<Record<string, string>> = {
   'sv3pt5-display': 'Scarlet & Violet—151 never shipped a 36-pack Booster Display; the set was sold in packs, bundles, ETBs and collection products.',
   'me55-display': '30th Celebration never shipped a 36-pack Booster Display; the official product showcase lists packs, bundles, ETBs, collections and mini tins instead.',
@@ -1857,6 +2331,39 @@ export const UNSELLABLE_PRODUCTS: Readonly<Record<string, string>> = {
   'sma-bundle': 'Hidden Fates Shiny Vault never shipped a Booster Bundle; its cards only came inside Hidden Fates packs.',
   'sma-display': 'Hidden Fates Shiny Vault never shipped a Booster Display; its cards only came inside Hidden Fates packs.',
   'sma-etb': 'Hidden Fates Shiny Vault never shipped an Elite Trainer Box; its cards only came inside Hidden Fates packs.',
+
+  // Products the era template generated that no source can back. Three line
+  // facts decide them: the Elite Trainer Box line began with Plasma Storm in
+  // 2013 and shipped one box every other expansion at first; a six-pack
+  // Booster Bundle first appeared with Lost Origin in 2022; and a special set
+  // was sold through ETBs, tins and collections, never a 36-pack display.
+  // Call of Legends is the oldest set the modern era rule touches, so it
+  // inherited all three shapes it predates.
+  'col1-etb': 'Call of Legends shipped in 2011, before the Elite Trainer Box line began with Plasma Storm; no box was printed.',
+  'col1-bundle': 'Call of Legends predates the Booster Bundle, which first shipped with Lost Origin in 2022.',
+  'xy2-etb': 'Flashfire did not receive an Elite Trainer Box; the early line shipped one box every other expansion and skipped it, as it had Plasma Freeze and Legendary Treasures.',
+
+  // Detective Pikachu was a movie mini-set sold only inside Case Files and a
+  // Collector Chest, each holding four-card packs. Its ETB and display rows are
+  // already refused above; the bundle is the remaining generated shape.
+  'det1-bundle': 'Detective Pikachu was sold as Case Files and a Collector Chest, never a Booster Bundle.',
+
+  // Celebrations and Pokémon GO are special sets: their official product lists
+  // name collections, tins, an ETB and a UPC, or packs, an ETB, tins and
+  // collections. Neither ever shipped a booster box, and neither had a bundle.
+  'cel25-bundle': "Celebrations' product line was collections, mini tins, an Elite Trainer Box and the Ultra-Premium Collection; no Booster Bundle was made.",
+  'cel25-display': 'Celebrations packs were only sold inside collections, so the set never had a 36-pack Booster Display.',
+  'pgo-bundle': 'Pokémon GO never shipped a Booster Bundle; that product first appeared with Lost Origin.',
+  'pgo-display': 'Pokémon GO was a special set sold in packs, an Elite Trainer Box, tins and collections; it never had a 36-pack Booster Display.',
+
+  // The McDonald's promotions were four-card Happy Meal packs. No year shipped
+  // a bundle, display or Elite Trainer Box around them.
+  'mcd21-bundle': 'McDonald’s Collection 2021 was four-card Happy Meal packs; the promotion never shipped a Booster Bundle.',
+  'mcd21-display': 'McDonald’s Collection 2021 was four-card Happy Meal packs; the promotion never shipped a 36-pack display.',
+  'mcd21-etb': 'McDonald’s Collection 2021 was four-card Happy Meal packs; the promotion never shipped an Elite Trainer Box.',
+  'mcd22-bundle': 'McDonald’s Collection 2022 was four-card Happy Meal packs; the promotion never shipped a Booster Bundle.',
+  'mcd22-display': 'McDonald’s Collection 2022 was four-card Happy Meal packs; the promotion never shipped a 36-pack display.',
+  'mcd22-etb': 'McDonald’s Collection 2022 was four-card Happy Meal packs; the promotion never shipped an Elite Trainer Box.',
 }
 
 export function unsellableReason(productId: string): string | null {

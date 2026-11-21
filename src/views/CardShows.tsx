@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, type GuestOption, type ShowDealer, type ShowsStatus, type ShowResultRow, type StockableRow } from '../api'
 import { useStore } from '../store'
-import { FirstUseTip, fmtUsd } from '../components'
+import { EmptyState, FirstUseTip, fmtUsd, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
 // 🏟 Card Shows — you're the organizer now. Book a hall, price the gate, sell
@@ -96,13 +96,17 @@ function HostBoothPanel({ opensInMin, closesInMin, hostBooth, venueName, tablePr
   const [table, setTable] = useState<VendorStatusTable | null>(null)
   const [ask, setAsk] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState(false)
+  // The booth's own two calls failed invisibly: the table vanished and the
+  // stock list read "nothing stockable" even when the fetch never answered.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const load = () => {
-    api.vendorTable().then((s) => {
-      if (s.active) setTable(s)
-      else setTable(null)
-    }).catch(() => {})
-    api.vendorStockable().then((r) => { if (r.ok) setStockable(r.rows) }).catch(() => {})
+    Promise.allSettled([
+      api.vendorTable().then((s) => { if (s.active) setTable(s); else setTable(null) }),
+      api.vendorStockable().then((r) => { if (r.ok) setStockable(r.rows) }),
+    ]).then((settled) =>
+      setStatus(settled.some((r) => r.status === 'fulfilled') ? 'ready' : 'error'),
+    )
   }
   useEffect(() => { load() }, [hostBooth])
 
@@ -175,6 +179,14 @@ function HostBoothPanel({ opensInMin, closesInMin, hostBooth, venueName, tablePr
       )}
       <div className="faint small mt8">Stock from your collection — the show's walk-ins pay the same premium convention buyers do.</div>
       <div style={{ marginTop: 6 }}>
+        {status === 'error' ? (
+          <div className="faint small">
+            Couldn't load your table and binder — the local server did not answer. Nothing was stocked or sold.{' '}
+            <button className="small ghost" onClick={() => { setStatus('loading'); load() }}>Try again</button>
+          </div>
+        ) : status === 'loading' ? (
+          <div className="faint small">Reading your booth's table and binder…</div>
+        ) : null}
         {(stockable ?? []).slice(0, 12).map((r) => (
           <div key={r.id} className="row" style={{ justifyContent: 'space-between', padding: '3px 8px', borderBottom: '1px solid var(--border-soft)' }}>
             <span className="small">{r.name}{r.quantity > 1 ? ` ×${r.quantity}` : ''} <span className="faint small">mkt {fmtUsd(r.anchor)}</span></span>
@@ -321,9 +333,15 @@ export function CardShowsView() {
   const [pickedGuests, setPickedGuests] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [section, setSection] = useState<ShowSection>('deal')
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const load = () => api.shows().then(setStatus).catch(() => {})
-  useEffect(() => { load() }, [])
+  const load = (initial = false) => {
+    if (initial) setLoadState('loading')
+    api.shows()
+      .then((d) => { setStatus(d); setLoadState('ready') })
+      .catch(() => { if (initial) setLoadState('error') })
+  }
+  useEffect(() => { load(true) }, [])
   useEffect(() => {
     const t = setInterval(load, 15000)
     return () => clearInterval(t)
@@ -387,7 +405,8 @@ export function CardShowsView() {
     } finally { setBusy(false) }
   }
 
-  if (!status) return <div className="empty"><span className="spinner" /> Checking the halls…</div>
+  if (loadState === 'error') return <LoadFailure what="the show calendar" onRetry={() => load(true)} />
+  if (!status) return <EmptyState icon="🏟" text="Checking the halls…" sub="Reading your booking, the dealer roster and the scene's calendar." />
 
   const gateNum = Math.max(0, Math.min(40, Number(gate) || 0))
   const tableNum = Math.max(0, Math.min(500, Number(tablePrice) || 0))

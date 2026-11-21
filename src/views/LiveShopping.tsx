@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
-import { TearPack, RecordMoment, glowClass, CardImg, EmptyState, FirstUseTip, fmtUsd } from '../components'
+import { TearPack, RecordMoment, glowClass, CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, TipList } from '../components'
 import type { LiveItem, LiveSection, LiveChannel, LiveBreakBoard } from '../api'
 import { useStore } from '../store'
 
@@ -107,10 +107,14 @@ export function LiveShoppingView() {
   const [myChat, setMyChat] = useState<{ at: number; who: string; avatar: string; text: string }[]>([])
   const [draft, setDraft] = useState('')
 
-  const load = () => api.live(watched ?? undefined).then((d) => {
-    setData(d)
-    if (d.currentShow) setClockSkew(Date.now() - new Date(d.currentShow.serverNow).getTime())
-  }).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () => api.live(watched ?? undefined)
+    .then((d) => {
+      setData(d)
+      setStatus('ready')
+      if (d.currentShow) setClockSkew(Date.now() - new Date(d.currentShow.serverNow).getTime())
+    })
+    .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [watched])
   // Live room polls like a stream; a 1s ticker keeps countdowns honest.
   useEffect(() => {
@@ -230,7 +234,16 @@ export function LiveShoppingView() {
           </header>
 
           <FirstUseTip surface="live">
-            Tap a show to enter. 🔨 <b>Auctions</b> anti-snipe · 💀 <b>Sudden Death</b> never extends · 🧩 <b>Breaks</b> claim a species · 🚚 <b>Rip it or ship it</b> · 🎁 <b>Mystery boxes</b> hide a hit
+            <TipList
+              title="📺 Pick a room"
+              items={[
+                { icon: '🔨', label: 'Auctions', text: <>anti-snipe — every late bid extends the clock</> },
+                { icon: '💀', label: 'Sudden death', text: <>no extensions; the last bid wins</> },
+                { icon: '🧩', label: 'Team breaks', text: <>claim a species — every pull of it is yours</> },
+                { icon: '🚚', label: 'Rip or ship', text: <>keep the card or send it home</> },
+                { icon: '🎁', label: 'Mystery boxes', text: <>a sealed unknown with a hit already inside</> },
+              ]}
+            />
           </FirstUseTip>
 
           <div className="wn-tabs" role="tablist" aria-label="Feed">
@@ -249,7 +262,9 @@ export function LiveShoppingView() {
             ))}
           </div>
 
-          {channels.length === 0 ? (
+          {status === 'error' && channels.length === 0 ? (
+            <LoadFailure what="the shopping channels" sub="The room list did not load. Nothing was bought." onRetry={load} />
+          ) : channels.length === 0 ? (
             <EmptyState icon="📺" text="Channels warming up" sub="The pack catalog is still seeding — rooms open the moment there are products to rip. Three rooms are always live once it lands." />
           ) : gridChannels.length === 0 ? (
             <EmptyState

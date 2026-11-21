@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { COLLECTION_MODES_META, collectionModeLabel, isCollectionMode, type CollectionModeId } from '../route-meta'
 import { CollectionView } from './Collection'
 import { BindersView } from './Binders'
 import { SetsGalleryView } from './SetDetail'
@@ -17,7 +18,8 @@ import { WishlistView } from './Wishlist'
  * in this hub is available from the first card you own — so the bar carries
  * nothing but the modes themselves.
  */
-export type CollectionModeId = 'cards' | 'binders' | 'sets' | 'wishlist'
+export type { CollectionModeId }
+export { collectionModeLabel, isCollectionMode }
 
 export type CollectionMode = {
   id: CollectionModeId
@@ -28,20 +30,14 @@ export type CollectionMode = {
   Component: ComponentType
 }
 
-export const COLLECTION_MODES: CollectionMode[] = [
-  { id: 'cards', label: 'Cards', icon: '▤', verb: 'Everything you own in one grid — filter by set, rarity, type, price or condition', Component: CollectionView },
-  { id: 'binders', label: 'Binders', icon: '📔', verb: 'Group cards onto pages and flip through them like a real binder', Component: BindersView },
-  { id: 'sets', label: 'Sets', icon: '🏸', verb: 'Completion set by set — what you have, what is missing, what it costs to finish', Component: SetsGalleryView },
-  { id: 'wishlist', label: 'Wishlist', icon: '★', verb: 'Cards you want with targets set, and agents watching the market for them', Component: WishlistView },
-]
-
-export function collectionModeLabel(id?: string): string | undefined {
-  return COLLECTION_MODES.find((m) => m.id === id)?.label
+const COLLECTION_COMPONENTS: Record<CollectionModeId, ComponentType> = {
+  cards: CollectionView,
+  binders: BindersView,
+  sets: SetsGalleryView,
+  wishlist: WishlistView,
 }
 
-export function isCollectionMode(id?: string): id is CollectionModeId {
-  return !!id && COLLECTION_MODES.some((m) => m.id === id)
-}
+export const COLLECTION_MODES: CollectionMode[] = COLLECTION_MODES_META.map((m) => ({ ...m, Component: COLLECTION_COMPONENTS[m.id] }))
 
 const go = (id: CollectionModeId) => {
   window.location.hash = `#/collection/${id}`

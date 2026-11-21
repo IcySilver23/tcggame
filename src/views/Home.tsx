@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { api, type AchievementsStatus, type CalendarResponse, type CatalogDeltaSummary, type CollectorStats, type ConventionSummary, type MarketDigest, type NetWorthHistory, type PsaRushSection, type ShopStatsResponse } from '../api'
 import { useStore } from '../store'
-import { CardImg, Delta, EmptyState, fmtDate, fmtUsd, fmtWhen, fmtWait, PriceChart, timeAgo, BestPullCard } from '../components'
+import { DEALS_GATE } from '../route-meta'
+import { CardImg, Delta, EmptyState, fmtDate, fmtUsd, fmtWhen, fmtWait, LoadFailure, PriceChart, timeAgo, BestPullCard } from '../components'
 import type { ActivityRow, CardRow, SetRow } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -79,27 +80,38 @@ export function HomePage() {
   const [rush, setRush] = useState<PsaRushSection | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [bestPull, setBestPull] = useState<Awaited<ReturnType<typeof api.pullsBest>> | null>(null)
+  // The dashboard talks to eleven endpoints. Each used to fail silently, so a
+  // dead server looked like a save with no record, no digest and no activity.
+  // The page now says which of the two it is; a widget that answers still shows.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  useEffect(() => {
-    api.activity().then(setActivity).catch(() => {})
-    api.sets().then((rows) => setSetsById(Object.fromEntries(rows.map((s) => [s.id, s])))).catch(() => {})
-    api.conventionSummary().then(setConv).catch(() => {})
-    api.calendar().then(setCal).catch(() => {})
-    api.netWorthHistory().then(setNw).catch(() => {})
-    api.collectorStats().then(setRec).catch(() => {})
-    api.shopStats().then(setShopPerf).catch(() => {})
-    api.marketDigest().then(setDigest).catch(() => {})
-    api.achievements().then(setAch).catch(() => {})
-    api.pullsBest().then(setBestPull).catch(() => {})
-    api.psaRush().then(setRush).catch(() => {})
-    api
-      .cardsSearch({ sort: 'price_desc', limit: 10, q: '' })
-      .then((r) => {
-        setWatch(r.cards)
-        setPrev(Object.fromEntries(r.cards.map((c) => [c.id, c.market_price])))
-      })
-      .catch(() => {})
+  const loadDashboard = useCallback(() => {
+    setStatus('loading')
+    const reqs = [
+      api.activity().then(setActivity),
+      api.sets().then((rows) => setSetsById(Object.fromEntries(rows.map((s) => [s.id, s])))),
+      api.conventionSummary().then(setConv),
+      api.calendar().then(setCal),
+      api.netWorthHistory().then(setNw),
+      api.collectorStats().then(setRec),
+      api.shopStats().then(setShopPerf),
+      api.marketDigest().then(setDigest),
+      api.achievements().then(setAch),
+      api.pullsBest().then(setBestPull),
+      api.psaRush().then(setRush),
+      api
+        .cardsSearch({ sort: 'price_desc', limit: 10, q: '' })
+        .then((r) => {
+          setWatch(r.cards)
+          setPrev(Object.fromEntries(r.cards.map((c) => [c.id, c.market_price])))
+        }),
+    ]
+    Promise.allSettled(reqs).then((settled) =>
+      setStatus(settled.some((r) => r.status === 'fulfilled') ? 'ready' : 'error'),
+    )
   }, [])
+
+  useEffect(() => { loadDashboard() }, [loadDashboard])
 
   // Track % moves between polls so the watchlist feels alive
   useEffect(() => {
@@ -139,6 +151,9 @@ export function HomePage() {
   }
 
   const syncDone = state?.sync.phase === 'done' || (state?.sync.cardCount ?? 0) > 1000
+  // Until the first state arrives there is no count to quote, so the dashboard
+  // stays quiet instead of printing "0 real cards priced" over a full catalogue.
+  const catalogCount = state ? (state.sync.cardCount ?? 0) : null
 
   // Weekly catalog delta — surface what it pulled on the dashboard.
   // "This week" = sets that actually RELEASED within the last 7 days (so a
@@ -249,6 +264,48 @@ export function HomePage() {
     })
   }
 
+  // A brand-new save gets the one thing the dashboard never gave it: a route.
+  // The Deals district is gated behind three sales, but the old Home only
+  // showed a locked row reading "Make 3 sales" and never named the counter
+  // where a sale happens — the Buylist. These steps stay until the gate opens,
+  // tick as they are done, and each one lands on the screen that finishes it.
+  const sold = state?.progress.salesCount ?? 0
+  const firstMoves = state && sold < DEALS_GATE
+    ? [
+        {
+          id: 'rip',
+          icon: '📦',
+          title: 'Rip your first pack',
+          done: state.progress.cardsOwned > 0,
+          meta: 'Any set on the shelf, $2.50 and up. The cards land in your Main Collection binder.',
+          action: { label: 'Pack Shop', hash: '#/packs' },
+        },
+        {
+          id: 'sell',
+          icon: '🧾',
+          title: "Sell what you don't keep at the Buylist",
+          done: sold > 0,
+          meta: 'Six shops buy outright at 55–75% of market — instant cash, no listing wait.',
+          action: { label: 'Open the Buylist', hash: '#/market/buylist' },
+        },
+        {
+          id: 'deals',
+          icon: '🏷',
+          title: `Make ${DEALS_GATE} sales to open the Deals district`,
+          done: sold >= DEALS_GATE,
+          meta: `${Math.max(0, DEALS_GATE - sold)} to go (${sold}/${DEALS_GATE}) — then the Pawn Shop, Yard Sales and the rest are on the map.`,
+          action: { label: 'Keep selling', hash: '#/market/buylist' },
+        },
+      ]
+    : []
+
+  if (status === 'error') {
+    return <LoadFailure what="your dashboard" sub="None of the widgets answered the local server. Your save was not touched." onRetry={loadDashboard} />
+  }
+  if (status === 'loading') {
+    return <EmptyState icon="🏠" text="Reading your dashboard…" sub="Net worth, the clock, your record, the market digest and the activity feed." />
+  }
+
   return (
     <div>
       <div className="page-head">
@@ -258,7 +315,7 @@ export function HomePage() {
         </div>
       </div>
 
-      {!syncDone && (
+      {state && !syncDone && (
         <div className="panel" style={{ borderColor: 'rgba(59,130,246,0.4)', marginBottom: 14 }}>
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
             <span className="spinner" />
@@ -308,9 +365,35 @@ export function HomePage() {
           </div>
         )}
         <div className="home-mini" style={{ marginTop: 8 }}>
-          {(state?.sync.cardCount ?? 0).toLocaleString()} real cards priced · cash is the only slice you can spend today
+          {catalogCount == null ? 'Reading the card catalogue…' : `${catalogCount.toLocaleString()} real cards priced`} · cash is the only slice you can spend today
         </div>
       </div>
+
+      {firstMoves.length > 0 && (
+        <div className="panel mt14">
+          <div className="home-sec-head">
+            <b className="small">🧭 Your first moves</b>
+            <span className="faint small">the shortest route to the rest of the game</span>
+          </div>
+          <div className="home-now">
+            {firstMoves.map((m) => (
+              <div key={m.id} className="home-now-row">
+                <span className="home-now-ico" aria-hidden>{m.done ? '✅' : m.icon}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div className="home-now-title">
+                    {m.title}
+                    {m.done && <span className="badge">DONE</span>}
+                  </div>
+                  <div className="home-now-meta">{m.meta}</div>
+                </div>
+                <button className="small go" onClick={() => (window.location.hash = m.action.hash)}>
+                  {m.action.label}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="panel mt14">
         <div className="home-sec-head">
@@ -666,7 +749,9 @@ export function HomePage() {
       <div className="panel mt14">
         <div className="home-sec-head">
           <b className="small">🕰 Recent activity</b>
-          <span className="faint small">{activity.length > 0 ? 'everything you did, newest first' : ''}</span>
+          <span className="faint small">
+            {activity.length > 0 ? "what's happening in the hobby — your moves and the town's" : ''}
+          </span>
         </div>
         {activity.length === 0 && <EmptyState icon="🕰" text="No activity yet" sub="Buy a pack, hunt the market, list a card." />}
         <div className="stack">

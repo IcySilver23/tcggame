@@ -145,6 +145,14 @@ input::placeholder{color:var(--text-faint)}
 .syncbar{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-dim);padding:6px 22px;background:var(--blue-soft);border-bottom:1px solid var(--border-soft)}
 .syncbar .bar{flex:1;height:5px;background:var(--track);border-radius:3px;overflow:hidden}
 .syncbar .fill{height:100%;background:var(--blue);transition:width .4s}
+/* Settings sync progress — a real percentage while a full sync walks its sets,
+   a sweep while a delta check runs because that job reports no divisible count. */
+.sync-run{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.sync-run-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:11px;color:var(--text-dim)}
+.sync-run .bar{height:8px;border-radius:999px}
+.sync-run .fill{background:linear-gradient(90deg,var(--blue),var(--blue-text))}
+.sync-run.indeterminate .fill{width:38%!important;animation:sync-sweep 1.2s ease-in-out infinite}
+@keyframes sync-sweep{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
 /* Generic progress track + fill — grading distribution, shop bin stock, and the
    PSA quota bar set their own height inline; without these the track was
    transparent and the fill collapsed to zero. */
@@ -243,12 +251,51 @@ input::placeholder{color:var(--text-faint)}
 .card-cell.silhouette{opacity:.45;filter:grayscale(.6)}
 .card-img-wrap{position:relative;border-radius:8px;overflow:hidden;background:var(--img-bg);aspect-ratio:245 / 342}
 .card-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-/* Foil overlay. Above the untouched scan, never hit-testable (the wrapper keeps
-   its own hover/zoom/click handlers), and transparent until the card is hovered. */
-.card-img-wrap .foil-canvas{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;object-fit:none;pointer-events:none;opacity:0;transition:opacity .18s ease-out;border-radius:inherit}
+/* Foil overlay. Above the untouched scan and never hit-testable (the wrapper keeps
+   its own hover/zoom/click handlers). The paper fades in at rest; the advanced
+   treatment responds to the pointer when the player turns it on. */
+/* No `object-fit` here. The canvas is a replaced element, and `object-fit: none`
+   is honoured by current Chromium: it drew the 200x279 foil bitmap at its
+   INTRINSIC size, centred inside the card's box, on top of the full-size scan —
+   which is a second, smaller copy of the card sitting on the card. The buffer is
+   deliberately small and is meant to be stretched across the whole box. */
+.card-img-wrap .foil-canvas{position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .18s ease-out;border-radius:inherit}
 .card-img-wrap .img-loading{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:11px}
 .card-img-wrap .img-error{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;color:var(--text-faint);font-size:11px;text-align:center;padding:8px;background:repeating-linear-gradient(45deg,var(--img-bg),var(--img-bg) 8px,var(--img-stripe) 8px,var(--img-stripe) 16px)}
 .card-img-wrap .qty-badge{position:absolute;top:6px;right:6px;background:var(--navy);border:1px solid var(--navy);color:var(--yellow);font-weight:700;font-size:11px;border-radius:7px;padding:1px 7px}
+/* The holo shine: a slow diagonal sweep across a card whose printing has foil.
+   FoilOverlay marks the wrapper with data-foil (only once the paper is drawn, so
+   a plain card and a 40px row thumb never sparkle), and the delay comes from the
+   card id — a shelf of holos must not sweep in lockstep.
+
+   Two layers, because a real foil does two different things and my first pass
+   did neither: it was one broad 0.40-alpha white wash, which is a light glare.
+   The colour layer carries the HUE and no brightness; the glint carries the
+   brightness and no hue. `isolation` keeps both blending against the card
+   (scan + foil canvas), never against the page behind it. */
+.card-img-wrap[data-foil]{isolation:isolate}
+.card-img-wrap[data-foil]::before,
+.card-img-wrap[data-foil]::after{content:"";position:absolute;inset:-40% -20%;z-index:2;pointer-events:none;transform:translateX(-115%) rotate(6deg);animation:card-shine 6.4s cubic-bezier(.4,0,.6,1) infinite;animation-delay:var(--shine-delay,0ms);will-change:transform}
+/* The colour, in the iridescence layer's own hue run. At the resting 22° tilt a
+   sweep spans 200+380·s+210·t degrees, i.e. violet → magenta → gold → cyan →
+   violet across the band; those five stops are that run, at full saturation.
+   `soft-light` is the blend, measured against the alternatives: with these
+   mid-luminance stops it moves +31/+38/+18 chroma on dark/mid/light artwork for
+   +4/−2/−3 luminance, while the white wash it replaced moved −5 chroma for +49
+   luminance. Bright `overlay` stops were tried and rejected — +20 luminance on
+   mid-tone art is the pale haze, not a holo — and plain `color` was worse still:
+   it takes its saturation from the BACKDROP, so over neutral art it measured
+   chroma 10 → 4. Stops stay deep enough that soft-light cannot lift the art.
+   The hue run is squeezed into ~24% of the element (a third of the card): spread
+   wider, one hue fills the card at a time and reads as a colour cast; this close
+   together, all five cross the face at once and read as the rainbow it is. */
+.card-img-wrap[data-foil]::before{mix-blend-mode:soft-light;opacity:.8;background:linear-gradient(100deg,transparent 36%,rgba(130,85,210,.9) 40%,rgba(200,45,130,.9) 44%,rgba(205,150,40,.9) 48%,rgba(45,185,170,.9) 52%,rgba(135,95,215,.9) 56%,transparent 60%)}
+/* The specular: one narrow, weak white core inside that band, where the foil is
+   tilted square to the light. Narrow and dim on purpose — the wide 0.40-alpha
+   white core was the glare, and this one is ~0.12 over a quarter of the width. */
+.card-img-wrap[data-foil]::after{mix-blend-mode:screen;background:linear-gradient(100deg,transparent 46%,rgba(255,255,255,.05) 49%,rgba(255,255,255,.09) 51%,transparent 54%)}
+@keyframes card-shine{0%{transform:translateX(-115%) rotate(6deg)}45%,100%{transform:translateX(115%) rotate(6deg)}}
+@media (prefers-reduced-motion: reduce){.card-img-wrap[data-foil]::before,.card-img-wrap[data-foil]::after{animation:none;opacity:0}}
 /* Live-shopping room thumbnails (auction/drop/sudden/RIOS rails) */
 .card-img-wrap.live-thumb{flex:0 0 72px;width:72px;align-self:flex-start}
 .card-img-wrap.live-thumb-sm{flex:0 0 52px;width:52px;align-self:flex-start}
@@ -258,9 +305,8 @@ input::placeholder{color:var(--text-faint)}
 .card-img-wrap.row-thumb{flex:0 0 44px;width:44px;border-radius:6px}
 /* Live-room hover-to-zoom thumbnails + the floating preview */
 .card-img-wrap.zoomable{cursor:zoom-in}
-.zoom-preview{position:fixed;z-index:60;width:200px;pointer-events:none;background:var(--panel,#141826);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.55);overflow:hidden}
-.zoom-preview-art{position:relative;width:100%;aspect-ratio:245/342;background:var(--img-bg)}
-.zoom-preview-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.zoom-preview{position:fixed;z-index:60;width:300px;pointer-events:none;background:var(--panel,#141826);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,0.55);overflow:hidden}
+.zoom-preview .card-img-wrap{border-radius:0}
 
 /* HIT-CAM — full-screen pull-art moment */
 .hitcam{position:fixed;inset:0;z-index:80;background:radial-gradient(ellipse at center, rgba(30,16,2,0.94) 0%, rgba(8,6,3,0.985) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;animation:hitcam-in 0.35s ease-out}
@@ -299,10 +345,24 @@ input::placeholder{color:var(--text-faint)}
 .psa-well{flex:1;min-height:0;margin:2.5% 3% 3%;background:radial-gradient(120% 90% at 50% 30%,#23262c,#101216 70%);border-radius:3px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 16px rgba(0,0,0,.7)}
 .psa-well .card-img-wrap{height:96%;aspect-ratio:245/342;max-width:96%;border-radius:2px;box-shadow:0 2px 8px rgba(0,0,0,.6)}
 .psa-glare{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.05) 24%,rgba(255,255,255,0) 46%);mix-blend-mode:screen}
+/* BGS 10 Black Label: the black label stock with gold foil, not PSA's white. */
+.psa-slab.black-label .psa-label{background:linear-gradient(155deg,#242424,#090909 55%,#171717);box-shadow:0 1px 3px rgba(0,0,0,.65),inset 0 0 0 1px rgba(201,162,39,.22)}
+.psa-slab.black-label .psa-set,.psa-slab.black-label .psa-cardno,.psa-slab.black-label .psa-word,.psa-slab.black-label .psa-num{color:#f4e6b8}
+.psa-slab.black-label .psa-barcode{fill:#f4e6b8}
+.psa-slab.black-label .psa-cert{color:#f4e6b8}
+/* CGC Pristine 10: the gold label stock, reserved for flawless-under-10x cards. */
+.psa-slab.pristine-label .psa-label{background:linear-gradient(155deg,#f8e9ac,#d9b84b 55%,#b58c25);box-shadow:0 1px 3px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,247,205,.55)}
+.psa-slab.pristine-label .psa-set,.psa-slab.pristine-label .psa-cardno,.psa-slab.pristine-label .psa-word,.psa-slab.pristine-label .psa-num{color:#241b06}
+.psa-slab.pristine-label .psa-barcode{fill:#241b06}
+.psa-slab.pristine-label .psa-cert{color:#241b06}
 @container (max-width:86px){.psa-set:not(:first-child),.psa-word,.psa-cert,.psa-cardno{display:none}.psa-num{font-size:11cqw}} /* thumbs: one set line + grade only */
 
 /* --- Slab certifier panel (CardDetail): a mini reproduction of the label --- */
 .cert-mini{flex:0 0 108px;min-width:0;background:#fff;border:2px solid #d1292f;border-radius:3px;padding:6px 7px 5px;display:flex;flex-direction:column;gap:2px;box-shadow:0 1px 3px rgba(0,0,0,.35);overflow:hidden}
+.cert-mini.black-label{background:linear-gradient(155deg,#242424,#090909 55%,#171717);border-color:#c9a227}
+.cert-mini.black-label .cert-mini-lines span,.cert-mini.black-label .cert-mini-rank span,.cert-mini.black-label .cert-mini-rank b,.cert-mini.black-label .cert-mini-cert{color:#f4e6b8}
+.cert-mini.pristine-label{background:linear-gradient(155deg,#f8e9ac,#d9b84b 55%,#b58c25);border-color:#8a6a10}
+.cert-mini.pristine-label .cert-mini-lines span,.cert-mini.pristine-label .cert-mini-rank span,.cert-mini.pristine-label .cert-mini-rank b,.cert-mini.pristine-label .cert-mini-cert{color:#241b06}
 .cert-mini-lines{display:flex;flex-direction:column;min-width:0}
 .cert-mini-lines span{font-size:8px;font-weight:750;color:#0b0b0b;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .cert-mini-rank{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
@@ -396,11 +456,16 @@ input::placeholder{color:var(--text-faint)}
 .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)}
 /* The rip ceremony keeps a night stage — a Pokémon-blue spotlight the pack
    sits in. Scoped tokens keep every label, button and stat on it legible. */
-.po-stage{position:relative;border-radius:16px;border:1.5px solid #1f3a7a;background:radial-gradient(ellipse at 50% 34%,#1a3168 0%,#0c1a41 50%,#060d24 100%);min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;overflow:hidden;-webkit-user-select:none;user-select:none;color:#fff;--text:#ffffff;--text-dim:#aebbe4;--text-faint:#8090c2;--panel:#12234f;--panel2:#1a3068;--panel3:#152a5c;--border:#22407e;--border-soft:#1b3464;--yellow-dim:#ffcb05;--gold:#ffcb05}
+/* The floor is a viewport fraction, not a fixed 560px: on a short window a
+   fixed floor is what pushed the reveal past the page and made you scroll. */
+.po-stage{position:relative;border-radius:16px;border:1.5px solid #1f3a7a;background:radial-gradient(ellipse at 50% 34%,#1a3168 0%,#0c1a41 50%,#060d24 100%);min-height:min(560px,calc(100vh - 210px));min-height:min(560px,calc(100dvh - 210px));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;overflow:hidden;-webkit-user-select:none;user-select:none;color:#fff;--text:#ffffff;--text-dim:#aebbe4;--text-faint:#8090c2;--panel:#12234f;--panel2:#1a3068;--panel3:#152a5c;--border:#22407e;--border-soft:#1b3464;--yellow-dim:#ffcb05;--gold:#ffcb05}
 .po-pack-shell{position:relative;display:flex;justify-content:center;animation:packFloat 5.2s ease-in-out infinite}
 .po-pack-shell.held{animation-play-state:paused}
 @keyframes packFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-.po-pack{width:240px;aspect-ratio:66/100;border-radius:12px;cursor:pointer;position:relative;background:linear-gradient(160deg,#1d3a86,#0d1c42);border:1.5px solid #2f57a8;box-shadow:0 18px 50px #04091c80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .25s ease-out,box-shadow .3s}
+/* A wrapper is 240px wide on a tall screen and shrinks on a short one, so the
+   tear screen (pill, wrapper, hint, button) fits the window like the reveal
+   does. */
+.po-pack{width:min(240px,calc((100vh - 415px) * 66 / 100));width:min(240px,calc((100dvh - 415px) * 66 / 100));aspect-ratio:66/100;border-radius:12px;cursor:pointer;position:relative;background:linear-gradient(160deg,#1d3a86,#0d1c42);border:1.5px solid #2f57a8;box-shadow:0 18px 50px #04091c80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .25s ease-out,box-shadow .3s}
 .po-pack:hover{--sc:1.04}
 .po-pack .pack-foil{position:absolute;inset:0;border-radius:11px;overflow:hidden;pointer-events:none;background:linear-gradient(115deg,transparent 30%,hsl(var(--bh,45) 92% 72% / .16) 44%,hsl(calc(var(--bh,45) + 65) 92% 76% / .2) 52%,transparent 66%);background-size:300% 100%;mix-blend-mode:screen;animation:foilDrift 5.5s ease-in-out infinite}
 @keyframes foilDrift{0%,100%{background-position:10% 50%}50%{background-position:90% 50%}}
@@ -411,20 +476,28 @@ input::placeholder{color:var(--text-faint)}
 /* TCG Pocket–style pack stage: the wrapper floats on a lit plinth tinted by
    the pack's own hue, wears a sealed pill above and the rip hint below, and
    casts a floor reflection so it reads as an object being held, not a button. */
-.po-pack-stage{min-height:600px;background:
+.po-pack-stage{min-height:min(600px,calc(100vh - 210px));min-height:min(600px,calc(100dvh - 210px));background:
   radial-gradient(ellipse at 50% 22%,hsl(var(--bh,215) 70% 34% / .5),transparent 62%),
   radial-gradient(ellipse at 50% 34%,#1a3168 0%,#0c1a41 50%,#060d24 100%)}
 .po-pack-hero{position:relative;display:flex;justify-content:center;padding-bottom:40px}
-.po-pack-reflect{position:absolute;left:50%;bottom:8px;width:232px;height:46px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(150,205,255,.28),transparent 70%);filter:blur(2px)}
+.po-pack-reflect{position:absolute;left:50%;bottom:8px;width:min(232px,calc((100vh - 415px) * 66 / 100));width:min(232px,calc((100dvh - 415px) * 66 / 100));height:46px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(150,205,255,.28),transparent 70%);filter:blur(2px)}
 .po-pack-pill{position:absolute;top:16px;left:50%;transform:translateX(-50%);max-width:82%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#cfe0ff;background:rgba(10,22,48,.72);border:1px solid #2b4f92;border-radius:999px;padding:4px 14px}
 .po-pack-hint{margin-top:10px;font-size:11.5px;color:#aebbe4;background:rgba(16,32,66,.65);border:1px solid #2b4f92;border-radius:999px;padding:4px 14px}
 /* The face lands with a wipe of shine across it — the TCG Pocket tell that the
    card you are looking at is the good one. */
 .po-sheen{position:absolute;inset:0;border-radius:10px;pointer-events:none;z-index:3;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.5) 48%,transparent 62%);background-size:260% 100%;mix-blend-mode:screen;animation:sheenSweep .9s ease-out}
 @keyframes sheenSweep{0%{background-position:120% 0}100%{background-position:-40% 0}}
-.po-reveal{position:relative;perspective:1200px;display:flex;flex-direction:column;align-items:center;gap:14px}
+/* One card width for the whole reveal, so the fan behind the card can never be
+   wider than the card it is fanning. 470px is what the nav bar, page head,
+   stage padding and the value/progress/button rows take out of the window;
+   what is left is split by the card's own 245:342 ratio. A width-only size
+   drew an 816px card in a 650px-tall window — taller than the page, so its
+   bottom was always cut off. */
+.po-reveal{position:relative;perspective:1200px;display:flex;flex-direction:column;align-items:center;gap:14px;--po-card-w:min(400px,60vw,calc((100vh - 470px) * 245 / 342));--po-card-w:min(400px,60vw,calc((100dvh - 470px) * 245 / 342))}
 /* --- Reveal ceremony: the back swings in, holds its breath, flips --- */
-.po-flip-wrap{position:relative;width:min(400px,60vw);aspect-ratio:245/342;perspective:1300px;animation:backIn .36s cubic-bezier(.2,.9,.25,1.08) both}
+/* 400px wide on a tall screen; on a short window it shrinks so the whole
+   reveal fits without scrolling (see --po-card-w above). */
+.po-flip-wrap{position:relative;width:var(--po-card-w);aspect-ratio:245/342;perspective:1300px;animation:backIn .36s cubic-bezier(.2,.9,.25,1.08) both}
 .po-flip-wrap.snap{animation-duration:.1s}
 @keyframes backIn{0%{opacity:0;transform:translateY(48px) rotateX(-26deg) scale(.92)}to{opacity:1;transform:none}}
 .po-flipper{position:absolute;inset:0;transform-style:preserve-3d;transition:transform var(--flipdur,.55s) cubic-bezier(.25,.8,.25,1)}
@@ -469,6 +542,10 @@ input::placeholder{color:var(--text-faint)}
 .po-progress .dot.hit-shown{background:#f0abfc;border-color:#f0abfc}
 .po-value{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
 .po-reveal .po-value{animation:popIn .32s ease-out both}
+/* Reserve the value + hit-banner row for the whole reveal. The price and
+   banner fade in after the flip; without a fixed slot their height pushed
+   Skip animation and Reveal all out from under the pointer. */
+.po-result{height:64px;flex:0 0 64px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px}
 .po-banner{font-size:15px;font-weight:800;letter-spacing:2px;color:var(--yellow);animation:riseIn .5s ease-out both;text-align:center}
 .po-banner.massive{color:#f0abfc;font-size:18px;text-shadow:0 0 24px rgba(240,171,252,.5)}
 .po-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
@@ -1304,7 +1381,7 @@ to{opacity:1;transform:none}
 .tut-dots .dot{width:9px;height:9px;border-radius:50%;border:1px solid var(--border);background:transparent;padding:0;cursor:pointer}
 .tut-dots .dot.on{background:var(--yellow);border-color:var(--yellow)}
 .tut-actions{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.nav-item.locked{opacity:.45}
+.nav-item.locked{opacity:.58}
 .nav-item.locked:hover{background:transparent;color:var(--text-dim)}
 .nav-item.locked .ico{font-size:11px;opacity:.8}
 .nav-item.locked{font-size:12px;font-style:italic;letter-spacing:.2px}
@@ -1312,6 +1389,7 @@ to{opacity:1;transform:none}
 .lock-progress{margin-left:auto;font-style:normal;font-variant-numeric:tabular-nums;font-size:10.5px;font-weight:700;letter-spacing:.4px;opacity:.95;color:var(--yellow)}
 .lock-label{display:flex;flex-direction:column;min-width:0;flex:1;line-height:1.25}
 .nav-req{font-size:10px;font-weight:450;color:var(--text-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-note{font-size:9.5px;font-weight:450;color:var(--text-faint);white-space:normal;line-height:1.3;margin-top:1px;opacity:.9}
 
 /* --- Interactive tear-open pack -------------------------------------- */
 .po-pack{touch-action:none}
@@ -1571,9 +1649,10 @@ to{opacity:1;transform:none}
   .bb-detail-grid{grid-template-columns:1fr}
 }
 /* ===========================================================================
-   Local Deals — Facebook Marketplace 1:1 (roadmap 3.0)
-   Chrome + search → left filter rail → the signature square-tile grid →
-   listing detail with photo left and an info column right.
+   Local Deals — a seller-thread inbox (roadmap 3.0, exit review 0.68.0)
+   Chrome + search → filter rail → conversations, not a product grid. Each
+   row is a seller and their listing; opening one is the thread, and the only
+   terminal action is agreeing a public lot and meeting.
    =========================================================================== */
 .ld{margin:-22px -22px 0}
 .ld-chrome{background:var(--panel2);border-bottom:2px solid var(--border);padding:12px 22px 0;position:sticky;top:-22px;z-index:7}
@@ -1648,7 +1727,57 @@ to{opacity:1;transform:none}
 .ld-market{font-size:11px;color:var(--text-faint);margin-top:3px}
 .ld-tile-actions{display:flex;gap:6px;margin-top:8px}
 
-/* --- listing detail --- */
+/* --- the seller inbox: a conversation list, not a product grid ---------- */
+.ld-thread-list{display:flex;flex-direction:column;gap:8px}
+.ld-thread-row{display:grid;grid-template-columns:38px minmax(0,1fr) 58px 22px;gap:12px;align-items:center;background:var(--panel);border:2px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;transition:border-color .12s,background .12s,transform .12s}
+.ld-thread-row:hover{border-color:var(--green);background:var(--panel2);transform:translateX(2px)}
+.ld-thread-row.ghosted{opacity:.78;border-style:dashed}
+.ld-thread-ava{width:38px;height:38px;border-radius:999px;background:var(--panel3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:850;color:var(--text);flex:none}
+.ld-thread-main{min-width:0}
+.ld-thread-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:10.5px;color:var(--text-faint)}
+.ld-thread-top b{font-size:13.5px;color:var(--text);font-weight:850}
+.ld-thread-item{display:flex;align-items:baseline;gap:8px;margin-top:2px;min-width:0}
+.ld-thread-item span{font-size:13.5px;font-weight:750;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-thread-item b{font-size:14px;font-weight:850;color:var(--text);font-variant-numeric:tabular-nums;flex:none}
+.ld-thread-line{margin:3px 0 5px;font-size:12px;line-height:1.35;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-thread-tags{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.ld-thread-art{display:flex;align-items:center;justify-content:center}
+.ld-thread-img{width:58px;height:80px;border-radius:6px;flex:none}
+.ld-thread-open{font-size:18px;line-height:1;color:var(--text-faint);text-align:right}
+.ld-thread-row:hover .ld-thread-open{color:var(--green)}
+
+/* --- the open conversation ------------------------------------------------ */
+.ld-chat-sheet{width:min(720px,100%)}
+.ld-chat-head{display:flex;align-items:center;gap:11px;padding:15px 18px;border-bottom:1px solid var(--border-soft);background:var(--panel2);border-radius:18px 18px 0 0}
+.ld-avatar.lg{width:46px;height:46px;font-size:18px}
+.ld-chat-who{min-width:0;display:flex;flex-direction:column;gap:2px}
+.ld-chat-who b{font-size:15px;font-weight:850;line-height:1.2}
+.ld-chat-who span{font-size:11.5px;color:var(--text-faint)}
+.ld-chat-status{margin-left:auto;font-size:10px;font-weight:850;letter-spacing:.5px;text-transform:uppercase;color:var(--green);white-space:nowrap}
+.ld-chat-status.bad{color:var(--amber)}
+.ld-chat-head .ld-chat-close{position:static;flex:none;margin-left:4px}
+.ld-chat-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:11px}
+.ld-chat-listing{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:11px;align-items:center;background:var(--panel2);border:1px solid var(--border-soft);border-radius:12px;padding:10px 12px}
+.ld-chat-art{display:flex;align-items:center;justify-content:center}
+.ld-chat-img{width:58px;height:80px;border-radius:6px;flex:none}
+.ld-chat-listing-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.ld-chat-listing-main .ld-title{font-size:16px;margin:0}
+.ld-chat-listing-sub{font-size:11.5px;color:var(--text-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-chat-ask{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right}
+.ld-chat-ask span{font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--text-faint)}
+.ld-chat-ask b{font-size:20px;font-weight:900;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.ld-chat-log{display:flex;flex-direction:column;gap:7px;padding:2px 0}
+.ld-chat-label{font-size:9.5px;font-weight:850;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-faint);margin:0 2px}
+.ld-chat-bubble{max-width:90%;background:var(--panel2);border:1px solid var(--border-soft);border-radius:14px;border-top-left-radius:4px;padding:9px 11px}
+.ld-chat-bubble p{margin:3px 0 5px;font-size:13px;line-height:1.5;color:var(--text)}
+.ld-chat-bubble-who{font-size:11px;font-weight:850;color:var(--text)}
+.ld-chat-bubble em{font-style:normal;font-size:10px;color:var(--text-faint)}
+.ld-chat-system{font-size:11px;line-height:1.4;color:var(--text-faint);text-align:center;border-top:1px dashed var(--border-soft);padding-top:8px}
+.ld-chat-compose{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border-soft);padding-top:12px}
+.ld-chat-compose .ld-primary{flex:1;min-width:180px}
+.ld-chat-foot{display:flex;flex-direction:column;gap:8px}
+
+/* --- shared sheet / listing bits (the open thread uses .ld-chat-*) --- */
 .ld-overlay{position:fixed;inset:0;background:rgba(3,7,20,.72);z-index:40;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px)}
 .ld-sheet{background:var(--panel);border:2px solid var(--border);border-radius:18px;width:min(940px,100%);max-height:92vh;overflow:auto;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.5)}
 .ld-close{position:absolute;top:12px;right:12px;z-index:2;background:var(--panel2);border:2px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:800;line-height:1}
@@ -1717,6 +1846,17 @@ to{opacity:1;transform:none}
   .ld-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   .ld-sheet-grid{grid-template-columns:1fr}
   .ld-hero{border-right:none;border-bottom:1px solid var(--border-soft);min-height:240px;padding:22px}
+  .ld-thread-row{grid-template-columns:34px minmax(0,1fr) 46px;gap:9px;padding:10px 11px}
+  .ld-thread-ava{width:34px;height:34px;font-size:14px}
+  .ld-thread-img{width:46px;height:64px}
+  .ld-thread-open{display:none}
+  .ld-chat-head{padding:13px 14px}
+  .ld-chat-body{padding:14px}
+  .ld-chat-listing{grid-template-columns:46px minmax(0,1fr)}
+  .ld-chat-img{width:46px;height:64px}
+  .ld-chat-ask{grid-column:2;flex-direction:row;align-items:baseline;gap:6px;text-align:left}
+  .ld-chat-ask b{font-size:17px}
+  .ld-chat-status{display:none}
 }
 
 /* ==========================================================================
@@ -2486,7 +2626,7 @@ to{opacity:1;transform:none}
    and the typical return. The till is a fixed piece of furniture beside the
    floor, so the selected product is always payable. */
 .shop{--plank:#2a2036;--plank-hi:#3d3050;--paper:#f3ead6;--ink:#1a1509}
-.shop-sign{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border-radius:16px;border:2px solid var(--border);background:
+.pack-shop-sign{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border-radius:16px;border:2px solid var(--border);background:
   radial-gradient(ellipse at 12% 0%,rgba(255,196,74,.16),transparent 60%),
   linear-gradient(180deg,var(--panel2),var(--panel));box-shadow:0 4px 0 var(--edge)}
 .shop-neon{flex:none;font-weight:900;font-size:13px;letter-spacing:2.5px;padding:7px 12px;border-radius:9px;color:#ff8fa6;border:2px solid #ff5d7d;text-shadow:0 0 10px rgba(255,93,125,.9),0 0 24px rgba(255,93,125,.5);box-shadow:inset 0 0 16px rgba(255,93,125,.35),0 0 18px rgba(255,93,125,.28)}
@@ -2494,6 +2634,52 @@ to{opacity:1;transform:none}
 .shop-sign-text h1{margin:0 0 4px}
 .shop-cash{display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:11px;letter-spacing:.5px}
 .shop-cash b{font-size:19px;font-variant-numeric:tabular-nums}
+/* The daily board sits between the door and the shelves: three products, one
+   per lane, with the price it was and the price it is until the day rolls. */
+.daily-deals{margin:14px 0 2px;padding:12px 14px;border-radius:16px;border:2px solid rgba(255,196,74,.45);background:
+  radial-gradient(ellipse at 8% 0%,rgba(255,196,74,.2),transparent 62%),
+  linear-gradient(180deg,rgba(255,196,74,.08),var(--panel));box-shadow:0 4px 0 var(--edge),inset 0 0 30px rgba(255,196,74,.05)}
+.daily-deals-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.daily-deals-kicker{display:block;font-size:9.5px;font-weight:900;letter-spacing:2px;color:#ffc44a}
+.daily-deals-head h2{margin:1px 0 0;font-size:19px;letter-spacing:.4px}
+.daily-deals-clock{font-size:11px;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.daily-deals-clock b{color:#ffe9b8}
+.daily-deals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px;margin-top:10px}
+.daily-deal{display:flex;align-items:center;gap:9px;min-width:0;padding:7px 9px;border-radius:12px;border:1px solid rgba(255,196,74,.28);background:rgba(255,255,255,.035);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .14s,border-color .14s,transform .14s}
+.daily-deal:hover,.daily-deal:focus-visible{background:rgba(255,214,140,.1);border-color:rgba(255,214,140,.6);transform:translateY(-1px);outline:none}
+.daily-deal.claimed{border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.02)}
+.daily-deal.claimed:hover,.daily-deal.claimed:focus-visible{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.2)}
+.daily-deal-art{flex:none;width:52px;height:64px;display:flex;align-items:center;justify-content:center}
+.daily-deal-art img{max-width:52px;max-height:64px;width:auto;height:auto;object-fit:contain;border-radius:5px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.5))}
+.daily-deal-art .bay-art-ph{width:48px;height:58px}
+.daily-deal-art .bay-art-ph img{width:32px;height:32px;max-width:32px;max-height:32px}
+.daily-deal-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.daily-deal-body b{font-size:11.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.daily-deal-body span{font-size:9.5px;line-height:1.25;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.daily-deal-price{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-variant-numeric:tabular-nums;line-height:1.15}
+.daily-deal-price s{font-size:9.5px;color:var(--text-dim)}
+.daily-deal-price strong{font-size:14px;color:var(--yellow)}
+.daily-deal-price em{font-size:8px;font-style:normal;font-weight:900;letter-spacing:.4px;color:#2ee6a8;white-space:nowrap}
+.daily-deal-price .daily-deal-claimed{color:var(--text-dim)}
+/* A short ledger under today's board: the last few days, and whether the
+   player claimed each offer. It is deliberately quieter than the live board. */
+.daily-history{margin:8px 0 2px;padding:9px 12px;border-radius:12px;border:1px dashed rgba(255,196,74,.22);background:rgba(255,255,255,.018)}
+.daily-history-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.daily-history-summary{display:inline-flex;align-items:baseline;gap:4px;font-size:9.5px;font-weight:800;letter-spacing:.2px;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.daily-history-summary b{color:#2ee6a8;font-weight:900}
+.daily-history-summary em{font-style:normal;color:#ff9b9b;font-weight:900}
+.daily-history-summary i{font-style:normal;color:rgba(255,255,255,.3)}
+.daily-history-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:7px}
+.daily-history-day{min-width:0;padding:5px 8px;border-radius:8px;background:rgba(0,0,0,.14);border:1px solid rgba(255,255,255,.06)}
+.daily-history-date{font-size:9px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#ffe9b8}
+.daily-history-items{display:flex;flex-direction:column;gap:3px;margin-top:3px}
+.daily-history-deal{display:flex;align-items:baseline;gap:6px;min-width:0;font-size:9.5px;line-height:1.25}
+.daily-history-deal b{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;color:var(--text-dim)}
+.daily-history-deal span{flex:none;color:var(--yellow);font-variant-numeric:tabular-nums}
+.daily-history-deal em{flex:none;font-style:normal;font-size:7.5px;font-weight:900;letter-spacing:.35px}
+.daily-history-deal.missed b{color:var(--text)}
+.daily-history-deal.missed em{color:#ff9b9b}
+.daily-history-deal.bought em{color:#2ee6a8}
 .shop-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 10px}
 .shop-aisles{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 11px;border-radius:12px;border:1px dashed var(--border);background:var(--panel2)}
 .shop-aisles-sep{width:1px;height:20px;background:var(--border);margin:0 3px}
@@ -2516,6 +2702,7 @@ to{opacity:1;transform:none}
 .bay-art img{height:104px;width:auto;max-width:118px;object-fit:contain;border-radius:6px;display:block}
 .bay-art-ph{width:86px;height:102px;display:grid;place-items:center;border-radius:7px;background:linear-gradient(160deg,#1b3a72,#0d1c3d);border:1px solid #2a4c8a}
 .bay-art-ph img{width:52px;height:52px;object-fit:contain}
+.bay-art-ph .bay-set-logo{width:76px;height:auto;max-height:76px;object-fit:contain}
 .bay-name{font-size:10.5px;line-height:1.25;text-align:center;color:var(--text-dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:26px}
 .bay-item.sel .bay-name{color:var(--text)}
 /* The promo included in a sealed product, named before it is bought. Three
@@ -2524,6 +2711,13 @@ to{opacity:1;transform:none}
 .bay-flag{position:absolute;top:4px;right:4px;font-size:8px;font-weight:900;letter-spacing:.6px;padding:1px 4px;border-radius:4px;z-index:2}
 .bay-flag.new{background:#2ee6a8;color:#04231a}
 .bay-flag.oop{background:#8a5cff;color:#fff}
+.bay-flag.deal{background:var(--yellow);color:#20180a;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.bay-flag.deal.claimed{background:#56617a;color:#e7ecf7;box-shadow:none}
+/* Price provenance on every facing: a published quote or a modelled shelf price. */
+.bay-price-source{position:absolute;top:4px;right:4px;z-index:2;font-size:7px;font-weight:900;letter-spacing:.5px;line-height:1.35;padding:1px 4px;border-radius:4px;border:1px solid transparent;cursor:help}
+.bay-price-source.below-flag{top:18px}
+.bay-price-source.quote{background:rgba(46,230,168,.12);border-color:rgba(46,230,168,.36);color:#bff5e2}
+.bay-price-source.model{background:rgba(170,190,225,.12);border-color:rgba(170,190,225,.3);color:#aebbd4}
 /* Shelf-edge label: paper sticker, big price, unit size, honesty rating. */
 .bay-label{display:flex;align-items:baseline;gap:4px;padding:2px 5px;border-radius:3px;background:var(--paper);color:var(--ink);font-variant-numeric:tabular-nums;box-shadow:0 1px 0 rgba(0,0,0,.4);transform:rotate(-1.2deg);max-width:100%}
 .bay-label b{font-size:11.5px}
@@ -2538,17 +2732,35 @@ to{opacity:1;transform:none}
 .till{position:sticky;top:10px;display:flex;flex-direction:column;gap:7px;padding:14px;border-radius:16px;border:2px solid var(--border);background:
   radial-gradient(ellipse at 50% 0%,rgba(255,206,120,.14),transparent 65%),
   linear-gradient(180deg,var(--panel2),var(--panel));
-  box-shadow:0 4px 0 var(--edge),0 14px 30px rgba(0,0,0,.35)}
+  box-shadow:0 4px 0 var(--edge),0 14px 30px rgba(0,0,0,.35);
+  /* The till stays put while you browse, so it must scroll itself: a long
+     description used to push the pay button below the window where no amount
+     of page scrolling could reach it. */
+  max-height:calc(100vh - 120px);max-height:calc(100dvh - 120px);overflow-y:auto}
 .till-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .till-sign{font-size:10px;font-weight:900;letter-spacing:2.4px;color:#ffe9b8;border:1px solid rgba(255,233,184,.4);padding:2px 7px;border-radius:5px}
 .till-clerk{width:34px;height:34px;display:grid;place-items:center;font-size:18px;border-radius:50%;background:radial-gradient(circle at 50% 32%,#2c559b,#152a4f);border:2px solid #33558f}
 .till-item{font-weight:800;font-size:13.5px;line-height:1.25}
 .till-meta{margin-top:-3px}
 .till-price{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--yellow);line-height:1.1}
+.till-price-source{display:flex;align-items:baseline;gap:6px;margin-top:-2px;font-size:8px;line-height:1.3}
+.till-price-source span{font-weight:900;letter-spacing:.75px}
+.till-price-source em{font-style:normal;color:var(--text-dim)}
+.till-price-source.quote span{color:#2ee6a8}
+.till-price-source.model span{color:#aebbd4}
+.till-deal{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:-3px;font-size:10px;line-height:1.3}
+.till-deal span{font-weight:900;letter-spacing:.7px;color:#2ee6a8}
+.till-deal.claimed span{color:var(--text-dim)}
+.till-deal s{color:var(--text-dim);font-variant-numeric:tabular-nums}
 .till-line{height:1px;background:repeating-linear-gradient(90deg,var(--border) 0 6px,transparent 6px 10px)}
 .till-say{margin:0;font-size:11.5px;line-height:1.45;color:var(--text-dim)}
 .till-slots{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.03)}
 .till-slots-head{font-size:9.5px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim)}
+.till-promos{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border:1px solid rgba(255,214,140,.4);border-radius:10px;background:rgba(255,214,140,.06)}
+.till-promos-head{font-size:9.5px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:#ffe9b8}
+.till-promo{display:flex;align-items:baseline;gap:5px;font-size:11.5px;font-weight:750;line-height:1.35}
+.till-promo-star{flex:none;color:var(--yellow)}
+.till-promo-note{font-size:10px;line-height:1.35;color:var(--text-dim)}
 .till-slot{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;font-size:10.5px;line-height:1.35}
 .till-slot-count{font-weight:800;color:var(--yellow);min-width:18px;font-variant-numeric:tabular-nums}
 .till-slot-label{font-weight:700}
@@ -2573,6 +2785,7 @@ to{opacity:1;transform:none}
    them. Isolating the stage creates the stacking context that lets a negative
    z-index land above the stage's own background but below its content. */
 .po-stage{isolation:isolate}
+.po-reveal-stage{touch-action:pan-y}
 .po-room{z-index:-1}
 .po-room:before{content:"";position:absolute;inset:0;background:
   radial-gradient(ellipse at 50% -14%,rgba(255,232,180,.26),transparent 46%),
@@ -2592,7 +2805,7 @@ to{opacity:1;transform:none}
 .po-stage[data-tier="massive"]{box-shadow:inset 0 0 170px rgba(240,171,252,.24)}
 .po-stage[data-tier="ghost"]{box-shadow:inset 0 0 170px rgba(167,139,250,.26)}
 /* The rest of the pack, held behind the card. */
-.po-deck{position:absolute;left:50%;top:50%;width:min(400px,60vw);aspect-ratio:245/342;pointer-events:none;z-index:0;transform:translate(-50%,-54%)}
+.po-deck{position:absolute;left:50%;top:50%;width:var(--po-card-w);aspect-ratio:245/342;pointer-events:none;z-index:0;transform:translate(-50%,-54%)}
 .po-deck span{position:absolute;inset:0;border-radius:14px;border:1px solid #2a3550;
   background:linear-gradient(160deg,#16203a,#0a1120);box-shadow:0 18px 44px rgba(0,0,0,.55);
   transform:translate(calc(var(--k) * 8px + 7px),calc(var(--k) * -7px)) rotate(calc(var(--k) * 2.4deg));
@@ -2618,6 +2831,25 @@ to{opacity:1;transform:none}
   box-shadow:inset 0 0 0 5px rgba(255,255,255,.03),0 18px 42px rgba(0,0,0,.45)}
 .po-binder:before{content:"";display:block;height:5px;margin:-6px 0 10px;border-radius:3px;
   background:repeating-linear-gradient(90deg,#6f7fa8 0 11px,transparent 11px 28px);opacity:.45}
+/* One wrapper's pulls per group, so a 36-pack skip reads as 36 packs rather
+   than a single 360-card wall. The label is a small shelf-style tag. */
+.po-pack-group{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.po-pack-group:not(.open){margin-bottom:8px}
+.po-pack-group:last-child{margin-bottom:0}
+.po-pack-group-label{display:inline-flex;align-items:baseline;align-self:flex-start;gap:6px;padding:2px 8px;border-radius:999px;
+  font-size:8.5px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#d8e6ff;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.04));border:1px solid rgba(180,210,255,.24);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);font-family:inherit;cursor:pointer;text-align:left;appearance:none;
+  transition:background .14s,border-color .14s,color .14s}
+.po-pack-group-label:hover,.po-pack-group-label:focus-visible{background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.07));border-color:rgba(200,225,255,.5);color:#fff;outline:none}
+.po-pack-group-label span{font-size:8px;font-weight:700;letter-spacing:.7px;color:#8ea6d8}
+.po-pack-group-label .po-pack-hits{color:#ffd166;font-weight:900}
+.po-pack-group-label .po-pack-group-chevron{font-size:10px;line-height:1;color:#b8c8e8}
+.po-pack-group.open .po-pack-group-label{border-color:rgba(200,225,255,.38)}
+.po-binder-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:9px}
+.po-pack-groups.all-open{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;align-items:start}
+.po-pack-groups.all-open .po-pack-group{margin-bottom:0;min-width:0}
+.po-binder-tools .faint{margin-right:auto;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#8090c2}
 .po-binder .po-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;max-width:none;justify-content:stretch}
 .po-binder .po-summary-cell{position:relative;width:auto;padding:5px;border-radius:8px;
   border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
@@ -2632,6 +2864,11 @@ to{opacity:1;transform:none}
    pixels down a 360-card page. */
 .po-stage-summary{justify-content:flex-start;padding-top:22px}
 .po-binder-nav{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.po-best-hit{display:flex;align-items:baseline;justify-content:center;gap:7px;flex-wrap:wrap;margin:0 0 8px;font-size:11px;line-height:1.4}
+.po-best-hit-label{font-size:8px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--magenta)}
+.po-best-hit b{color:#fff;font-weight:850}
+.po-best-hit-set{color:#8ea6d8;font-size:10px}
+.po-best-hit em{font-style:normal;color:var(--yellow);font-weight:900;font-variant-numeric:tabular-nums}
 
 /* ------------------------------ The rip itself --------------------------------
    A wrapper you tear, not a card you click. The art is rendered twice and cut by
@@ -3131,13 +3368,21 @@ to{opacity:1;transform:none}
 .sr-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px}
 .sr-head b{font-size:11.5px;letter-spacing:.3px}
 .sr-rows{display:flex;flex-direction:column;gap:5px}
-.sr-row{display:grid;grid-template-columns:minmax(0,1fr) 46px auto;gap:7px;align-items:center}
+.sr-row{display:grid;grid-template-columns:minmax(0,1fr) 46px auto auto;gap:7px;align-items:center;width:100%;margin:0;padding:3px 4px;background:none;border:0;border-radius:7px;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.sr-row:not(:disabled):hover{background:var(--panel3, rgba(255,255,255,.045))}
+.sr-row:disabled{cursor:default}
+.sr-go{font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--blue-text);white-space:nowrap}
+.sr-row.best .sr-go{color:var(--green)}
+.sr-row.locked .sr-go{color:var(--text-faint)}
 .sr-label{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text-dim);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sr-label em{font-style:normal;font-size:8.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px}
 .sr-tick{color:var(--green);font-weight:900}
 .sr-bar{height:6px;border-radius:4px;background:var(--track);overflow:hidden}
 .sr-bar i{display:block;height:100%;border-radius:4px;background:var(--blue-text);opacity:.55}
 .sr-row.best .sr-bar i{background:var(--green);opacity:1}
+.sr-row.locked{opacity:.55}
+.sr-row.locked .sr-bar i{background:var(--text-faint);opacity:.5}
+.sr-row.locked .sr-label{font-style:italic}
 .sr-net{display:flex;align-items:baseline;gap:4px;justify-content:flex-end}
 .sr-net b{font-size:11.5px;white-space:nowrap}
 .sr-net em{font-style:normal;font-size:9px;color:var(--text-faint)}

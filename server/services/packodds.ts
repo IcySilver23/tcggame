@@ -1,4 +1,5 @@
 import { db } from '../lib/db'
+import { onDerivedDataChanged } from '../lib/derived-cache'
 import { valueOf, round2 } from './market'
 import { ascendedVariantFor } from '../../src/foil/ball-stamps'
 import { holoFinishFor, rareVariantFor } from './finish-odds'
@@ -154,6 +155,99 @@ export const SET_SIR_OVERRIDE: Record<string, number> = {
   sv4pt5: 1 / 40, // Paldean Fates — shiny-loaded special set
 }
 
+/**
+ * Per-set tier odds where a big enough sample exists to replace the era's.
+ *
+ * Delta Reign is the first Mega Evolution set whose whole ladder has been
+ * counted: Double Rare ~1 in 5 packs, Illustration Rare ~1 in 9, Ultra Rare
+ * ~1 in 12, Special Illustration Rare ~1 in 80, and the gold Mega Hyper Rare
+ * ~1 in 1,000 (Drip Shop's launch count, and the same shape TCGplayer's
+ * 4,000-pack study gave Pitch Black). The era profile has no Mega Hyper Rare
+ * tier at all, so that card used to fall through to the generic 1-in-50 hit
+ * weight — which valued a Delta Reign pack at twice what the market charges.
+ *
+ * The pre-release sample that disagrees (152 packs: 2.0% SIR, 0.66% MHR) is
+ * three SIR pulls and a single gold Rayquaza — the hot end of the same range,
+ * not a second measurement, so these figures stay on the documented side.
+ */
+export const SET_UPGRADE_OVERRIDE: Record<string, Record<string, number>> = {
+  // The whole Mega Evolution line was counted by the TCGplayer Authentication
+  // Centre, one sample per set. Mega Hyper Rare is the tier this table exists
+  // for: no era profile carries it, so before these rows the gold cards were
+  // dealt at the generic 1-in-50 hit weight — twenty to thirty times their
+  // measured frequency, and enough to price each of these sets' packs at
+  // roughly twice what they trade for.
+  me1: { 'Mega Hyper Rare': 1 / 1260 }, // 5,000+ packs, Sept 2025
+  me2: { 'Mega Hyper Rare': 1 / 1260 }, // Phantasmal Flames, Nov 2025
+  // Ascended Heroes is the one set with its own tier: a Mega Attack Rare takes
+  // the Ultra Rare's place in the pack, so Ultra Rare falls to 1 in 21 and the
+  // new tier sits at 1 in 29 (2,000+ packs, Feb 2026).
+  me2pt5: { 'Ultra Rare': 0.0481, 'Mega Attack Rare': 1 / 29, 'Mega Hyper Rare': 1 / 540 },
+  me3: { 'Mega Hyper Rare': 1 / 1786 }, // Perfect Order, 3,500 packs, Apr 2026
+  me4: { 'Mega Hyper Rare': 1 / 956 }, // Chaos Rising, Jun 2026
+  me5: { 'Mega Hyper Rare': 1 / 1081 }, // Pitch Black, 4,000 packs, Jul 2026
+  // Paldean Fates is shiny-loaded and was measured on its own sample, so its
+  // whole hit ladder is the set's rather than the era's. Shiny Ultra Rare is
+  // the tier that used to fall through to a 1-in-50 table value: it really
+  // lands 1 in 13 packs, alongside a Shiny Rare in every fourth pack.
+  sv4pt5: {
+    'Double Rare': 0.1589,
+    'Ultra Rare': 0.0661,
+    'Illustration Rare': 0.0722,
+    'Special Illustration Rare': 0.0172,
+    'Shiny Rare': 0.2544,
+    'Shiny Ultra Rare': 0.0772,
+    'Hyper Rare': 0.0161,
+  },
+  // Crown Zenith's secret rares are 1 in 133 packs (0.75%) and its Galarian
+  // Gallery secrets 1 in 125 — nowhere near the 1-in-50 table fallback.
+  swsh12pt5: { 'Rare Secret': 1 / 133 },
+  // The gallery-only table (never sold; kept for owned stock) carries the same
+  // measured gallery rate as the host pack's subset slot: 35.2% per pack, not
+  // the era profile's 9% and not a certainty.
+  swsh12pt5gg: { 'Rare Secret': 1 / 133, 'Trainer Gallery Rare Holo': 0.352 },
+  // Prismatic Evolutions was measured over 1,200 packs (TCGplayer, Jan 2025):
+  // Double Rare 1 in 6, Ultra Rare 1 in 13, ACE SPEC 1 in 21, Hyper Rare 1 in 180.
+  // Its 32 art rares are all SIRs, and it prints no Illustration Rare, Shiny or
+  // Trainer Gallery card, so those tiers are zero rather than the era's share.
+  sv8pt5: {
+    'Double Rare': 0.1651,
+    'Ultra Rare': 0.0746,
+    'ACE SPEC Rare': 0.0468,
+    'Hyper Rare': 0.0056,
+    'Illustration Rare': 0,
+    'Shiny Rare': 0,
+    'Trainer Gallery Rare Holo': 0,
+  },
+  // Black Bolt and White Flare were counted together (TCGplayer's 700+ pack
+  // study, July 2025): Double Rare 1 in 5, Ultra Rare 1 in 17, Illustration Rare
+  // 1 in 6, Special Illustration Rare 1 in 80. Black White Rare never appeared in
+  // that sample, so its 1-in-496 rate is the community estimate and is disclosed
+  // as an estimate rather than presented as a count; it matters because the tier
+  // holds the two ~$700 Victini cards.
+  rsv10pt5: {
+    'Double Rare': 0.2111,
+    'Ultra Rare': 0.0583,
+    'Illustration Rare': 0.1639,
+    'Special Illustration Rare': 1 / 80,
+    'Black White Rare': 1 / 496,
+  },
+  zsv10pt5: {
+    'Double Rare': 0.2111,
+    'Ultra Rare': 0.0583,
+    'Illustration Rare': 0.1639,
+    'Special Illustration Rare': 1 / 80,
+    'Black White Rare': 1 / 496,
+  },
+  me6: {
+    'Double Rare': 1 / 5,
+    'Illustration Rare': 1 / 9,
+    'Ultra Rare': 1 / 12,
+    'Special Illustration Rare': 1 / 80,
+    'Mega Hyper Rare': 1 / 1000,
+  },
+}
+
 /** No set is a 100% hit machine: upgrades cap here even if the tiers sum past it. */
 const MAX_UPGRADE_CHANCE = 0.85
 
@@ -288,12 +382,19 @@ export const BLUEPRINTS: Record<string, SlotPlan[]> = {
   ],
 }
 
-/** English packs carried a reverse holo from Legendary Collection (2002) on. */
+/**
+ * English packs carried a reverse holo from Legendary Collection (2002) on.
+ * The date matters, not the year: Neo Destiny shipped in February 2002, before
+ * Legendary Collection introduced the reverse printing in May.
+ */
 export function reverseInPack(setId: string): boolean {
-  const year = releaseYearOf(setId)
+  const row = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(setId) as
+    | { release_date: string | null }
+    | undefined
+  const date = (row?.release_date ?? '').slice(0, 10)
   // No release date in the catalog: assume the modern shape rather than strip
   // a reverse slot a real pack had.
-  return year === 0 || year > 2001
+  return date === '' || date >= '2002/05/24'
 }
 
 /**
@@ -315,22 +416,89 @@ function printsBasicEnergy(setId: string): boolean {
   return prints
 }
 
+/**
+ * How often a bonus subset fills its pack slot.
+ *
+ * A host set normally prints one gallery or shiny card in every pack, so its
+ * subset slot is certain. Crown Zenith is the exception: its Galarian Gallery
+ * lands in 35.2% of packs (TCGplayer's per-rarity count), so a miss has to deal
+ * the ordinary reverse holo instead of a second gallery card.
+ */
+export const SUBSET_CHANCE: Record<string, number> = {
+  swsh12pt5: 0.352,
+  // Hidden Fates: one Shiny Vault card in about three packs, not every pack.
+  // Pokecompare's Elite Fourum figures are 21.20% baby shinies, 10.19% Shiny
+  // GX, 3.42% full-art Trainers and 1.01% gold, summing to 35.8%.
+  sm115: 0.3582,
+  // Shining Fates: ThePriceDex's per-rarity sample — Shiny Rare 1 in 4.4 packs,
+  // Shiny V 1 in 19.8, Shiny VMAX 1 in 25.5, SV Secret 1 in 109.9 — sums to
+  // 32.6%, matching the community figure of one Vault card in about three.
+  swsh45: 0.3261,
+  // A Trainer Gallery card fills the reverse-holo slot in about one pack in
+  // eight. TCGplayer counted 12.31% on Lost Origin; the Trainer Gallery run
+  // from Vivid Voltage to Lost Origin shares the shape, and none of the other
+  // three has a published per-tier table here, so the same slot rate is used.
+  swsh9: 0.1231,
+  swsh10: 0.1231,
+  swsh11: 0.1231,
+  swsh12: 0.1241,
+}
+
+/**
+ * How a bonus subset's slot rate splits between its rarities.
+ *
+ * The gallery's total is TCGplayer's per-pack count; how it divides inside the
+ * subset is published for one tier only. ThePriceDex lists Giratina VSTAR
+ * GG69, Arceus GG70, Dialga GG68 and Palkia GG67 at 1 in 500 packs each, which
+ * is 0.8% of packs and agrees with TCGplayer's 0.75–0.80% Secret Rare rate.
+ * The other 66 cards share what is left of the 35.2% evenly — that split is
+ * this build's distribution, not a measured one, but it is the shape the flat
+ * pool got wrong: a $290 Giratina cannot pull as often as a $2 Thievul.
+ */
+export const SUBSET_TIER_ODDS: Record<string, Record<string, number>> = {
+  swsh12pt5: { 'Rare Secret': 0.008 },
+  // Hidden Fates, per Pokecompare's Elite Fourum table: baby shinies 21.20%,
+  // Shiny GX 10.19%, full-art Trainers 3.42%, gold 1.01%.
+  sm115: { 'Rare Shiny': 0.212, 'Rare Shiny GX': 0.1019, 'Rare Ultra': 0.0342, 'Rare Secret': 0.0101 },
+  // Shining Fates, per ThePriceDex: Shiny Rare 1 in 4.4 packs, Shiny V 1 in
+  // 19.8, Shiny VMAX 1 in 25.5, SV Secret 1 in 109.9.
+  swsh45: { 'Rare Shiny': 1 / 4.4, 'Rare Holo V': 1 / 19.8, 'Rare Holo VMAX': 1 / 25.5, 'Rare Secret': 1 / 109.9 },
+  // Lost Origin's Trainer Gallery, per ThePriceDex's per-card figures: TG Rare
+  // Holo 1 in 128.2, TG Rare Holo V 1 in 577.4, TG VMAX 1 in 577.4, TG Ultra
+  // Rare 1 in 577.4, TG Secret Rare 1 in 218.2. Summed they give 12.4% of
+  // packs, which is TCGplayer's own 12.31% Trainer Gallery count.
+  swsh12: {
+    'Trainer Gallery Rare Holo': 1 / 11.7,
+    'Rare Holo V': 1 / 82.5,
+    'Rare Holo VMAX': 1 / 144.3,
+    'Rare Ultra': 1 / 96.2,
+    'Rare Secret': 1 / 109.1,
+  },
+}
+
+export function subsetChanceFor(setId: string): number {
+  const chance = SUBSET_CHANCE[setId]
+  return chance === undefined ? 1 : Math.max(0, Math.min(1, chance))
+}
+
 export function planFor(setId: string, cardsPerPack = 10): SlotPlan[] {
   const bp = BLUEPRINTS[setId]
   if (bp) return bp.map((s) => ({ ...s }))
   const era = eraOf(setId)
-  // WotC-era packs are the one branch that deals no reverse slot, so they must
-  // not reserve one in the common count either: a 2002 set (Legendary
-  // Collection, Neo Destiny) was losing a card to a slot the roller never adds.
-  const reverse = era === 'wotc' ? 0 : reverseInPack(setId) ? (era === 'sv' ? 2 : 1) : 0
-  // Likewise the energy slot: only a set whose table actually holds Basic
-  // Energy can fill it, or the blueprint asks for ten and the pack deals nine.
-  const energy = profileFor(setId).energyInPack && printsBasicEnergy(setId) ? 1 : 0
+  const year = releaseYearOf(setId)
+  // Legendary Collection and Expedition are WotC-era sets that DO carry a
+  // reverse slot; Neo Destiny is the same year but predates the introduction.
+  const reverse = reverseInPack(setId) ? (era === 'sv' ? 2 : 1) : 0
+  // The game deals the ten game cards. e-Card/EX packs are nine cards and carry
+  // no Basic Energy, so reserving a 2002 energy slot would invent a card the
+  // real wrapper never held. Older WotC packs still get their Energy slot.
+  const energy = profileFor(setId).energyInPack && year > 0 && year < 2002 && printsBasicEnergy(setId) ? 1 : 0
   const uncommon = 3
   const rare = 1
   const common = Math.max(1, cardsPerPack - (uncommon + rare + reverse + energy))
   // The order is the physical one, because the pack is revealed in order:
   //   1999–2001  commons, Energy, rare, uncommons   (Base Set's documented order)
+  //   2002       commons, reverse holo, rare, uncommons
   //   2002–2022  commons, reverse holo, rare, uncommons
   //   2023–      commons, uncommons, two reverse holos, rare
   //              (PokeBeach: "each pack will now be ordered with the rarest
@@ -344,6 +512,7 @@ export function planFor(setId: string, cardsPerPack = 10): SlotPlan[] {
     return slots
   }
   if (era === 'wotc') {
+    if (reverse) slots.push({ slot: 'reverse', count: reverse })
     if (energy) slots.push({ slot: 'energy', count: 1 })
     slots.push({ slot: 'hit', count: rare })
     slots.push({ slot: 'uncommon', count: uncommon })
@@ -433,15 +602,19 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
       case 'energy':
         detail = 'one Basic Energy'
         break
-      case 'subset':
+      case 'subset': {
+        const subsetChance = subsetChanceFor(setId)
         detail = hostSubsetName
-          ? `one ${hostSubsetName} card in the reverse-holo position`
+          ? subsetChance < 1
+            ? `one ${hostSubsetName} card in ${pct(subsetChance)} of packs, else the reverse holo`
+            : `one ${hostSubsetName} card in the reverse-holo position`
           : setId === 'me55'
             ? 'one 30th Celebration Pikachu'
             : count > 1
               ? `all ${count} cards come from this set's own pool`
               : 'a guaranteed classic reprint'
         break
+      }
       case 'phantom':
         detail = 'an RGB Mew, about 1 in 12,000 packs'
         break
@@ -510,7 +683,7 @@ export function finishOddsFor(setId: string, slot: 'rare' | 'hit' | 'reverse'): 
 
 /** The tier odds a set actually rolls, with its own SIR figure applied. */
 export function upgradeOdds(setId: string): Record<string, number> {
-  const odds = { ...profileFor(setId).upgrade }
+  const odds = { ...profileFor(setId).upgrade, ...SET_UPGRADE_OVERRIDE[setId] }
   const sir = SET_SIR_OVERRIDE[setId]
   if (sir !== undefined && 'Special Illustration Rare' in odds) odds['Special Illustration Rare'] = sir
   return odds
@@ -623,16 +796,22 @@ export function invalidatePackOdds(setId?: string) {
     evCache.delete(setId)
     yearCache.delete(setId)
     secondCache.delete(setId)
+    basicEnergyCache.delete(setId)
     for (const key of [...tierCache.keys()]) if (key.startsWith(`${setId}:`)) tierCache.delete(key)
     for (const key of [...slotCache.keys()]) if (key.startsWith(`${setId}:`)) slotCache.delete(key)
   } else {
     evCache.clear()
     yearCache.clear()
     secondCache.clear()
+    basicEnergyCache.clear()
     tierCache.clear()
     slotCache.clear()
   }
 }
+
+// Expected value, slot plans and basic-Energy presence all depend on the same
+// price/catalogue snapshot.
+onDerivedDataChanged(() => invalidatePackOdds())
 
 function weightedAvg(rows: { weight: number; v: number }[]): number {
   let total = 0
@@ -737,7 +916,12 @@ export function expectedPackValue(setId: string, cardsPerPack = 10): number {
     else if (s.slot === 'reverse2') total += s.count * secondSlotValue()
     else if (s.slot === 'hit') total += s.count * finalValue
     else if (s.slot === 'energy') total += s.count * weightedAvg(energy)
-    else if (s.slot === 'subset') total += s.count * weightedAvg(withValue('subset'))
+    else if (s.slot === 'subset') {
+      // The subset card takes the reverse-holo position, so a pack that misses
+      // the measured subset rate deals a reverse holo in its place.
+      const p = subsetChanceFor(setId)
+      total += s.count * (p * weightedAvg(withValue('subset')) + (1 - p) * reverseValue)
+    }
     else if (s.slot === 'phantom') total += s.count * weightedAvg(withValue('phantom'))
   }
   const result = round2(total)

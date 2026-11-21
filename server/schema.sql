@@ -214,6 +214,32 @@ CREATE TABLE IF NOT EXISTS sealed_inventory (
   acquired_at TEXT NOT NULL
 );
 
+-- One row per daily deal bought this game-day. The primary key is the limit:
+-- a second purchase of the same product on the same day cannot be recorded.
+CREATE TABLE IF NOT EXISTS daily_deal_purchases (
+  day_key TEXT NOT NULL,
+  product_id TEXT NOT NULL,            -- a journal row, not stock: catalog pruning must not be blocked
+  purchased_at TEXT NOT NULL,
+  PRIMARY KEY (day_key, product_id)
+);
+
+-- The board as it stood on each past game day. Names and prices are copied in
+-- so a later catalogue change cannot rewrite what the player missed.
+CREATE TABLE IF NOT EXISTS daily_deal_history (
+  day_key TEXT NOT NULL,
+  product_id TEXT NOT NULL,
+  slot INTEGER NOT NULL,               -- 0..2, the order the three cards sat in
+  product_name TEXT NOT NULL,
+  set_name TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  discount_pct INTEGER NOT NULL,
+  base_price REAL NOT NULL,
+  deal_price REAL NOT NULL,
+  ends_at TEXT NOT NULL,
+  recorded_at TEXT NOT NULL,
+  PRIMARY KEY (day_key, product_id)
+);
+
 -- Sealed futures desk — the collectible-asset loan book. Boxes posted as
 -- collateral carry escrow_loan = this id and never touch free stock.
 CREATE TABLE IF NOT EXISTS sealed_loans (

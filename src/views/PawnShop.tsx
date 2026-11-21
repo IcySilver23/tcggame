@@ -3,7 +3,7 @@ import { api } from '../api'
 import { gameDayMsFor } from '../lib/gameday'
 import type { PawnSection, PawnQuoteRow } from '../api'
 import { useStore } from '../store'
-import { CardImg, EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, TipList } from '../components'
 
 // ---------------------------------------------------------------------------
 // 💠 THE GOLD EXCHANGE — rebuilt as "a counter with a clock" (roadmap 4.0).
@@ -102,9 +102,15 @@ export function PawnShopView() {
   const [hockAmt, setHockAmt] = useState<Record<number, string>>({})
   const [filter, setFilter] = useState('')
   const [showHistory, setShowHistory] = useState(false)
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const load = () => api.pawn().then(setData).catch(() => {})
-  useEffect(() => { load() }, [])
+  const load = (initial = false) => {
+    if (initial) setLoadState('loading')
+    api.pawn()
+      .then((d) => { setData(d); setLoadState('ready') })
+      .catch(() => { if (initial) setLoadState('error') })
+  }
+  useEffect(() => { load(true) }, [])
 
   const run = async (fn: () => Promise<{ ok: boolean; error?: string; paid?: number; principal?: number }>, okMsg: (r: { paid?: number; principal?: number }) => string) => {
     setBusy(true)
@@ -127,6 +133,9 @@ export function PawnShopView() {
     const needle = filter.trim().toLowerCase()
     return needle ? quotes.filter((q) => q.name.toLowerCase().includes(needle)) : quotes
   }, [quotes, filter])
+
+  if (loadState === 'error') return <LoadFailure what="the pawn counter" onRetry={() => load(true)} />
+  if (!data) return <EmptyState icon="💠" text="Opening the counter…" sub="Reading today's buy list and your tickets." />
 
   const owedToday = loans.reduce((a, l) => a + l.total, 0)
   const nextDue = loans.length > 0 ? Math.min(...loans.map((l) => daysLeft(l.due_at))) : 0

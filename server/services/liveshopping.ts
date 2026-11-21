@@ -1,7 +1,7 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { round2, valueOf } from './market'
 import { rollPack } from './packs'
-import { priceOf as sealedPriceOf, sellsOwnPacks } from './sealed'
+import { priceOf as sealedPriceOf, sellsProduct } from './sealed'
 import { nowMs } from './schedule'
 import { VIEWER_AVATARS, cardName } from './streaming'
 import { walkInMultiplier } from './seasonal'
@@ -234,7 +234,7 @@ function showProductFor(h: { style: string }): { id: string; name: string; cost:
      ORDER BY COALESCE(p.msrp, 999) ASC`,
   ).all() as { id: string; name: string; set_id: string; msrp: number | null }[]
   // A show cannot rip a subset-only set: there is no honest pack to deal.
-  const sold = rows.filter((r) => sellsOwnPacks(r.set_id))
+  const sold = rows.filter((r) => sellsProduct(r.id, r.set_id))
   if (sold.length === 0) throw new Error('no-seed-product')
   // $1 rooms rotate between the two cheapest; the auction room takes the
   // priciest (vintage msrps sort last); everyone else lands mid-tier.
@@ -272,7 +272,7 @@ function ensureSeedProducts(slot: string): { id: string; name: string; cost: num
        WHERE EXISTS (SELECT 1 FROM pack_product_cards ppc WHERE ppc.pack_product_id = p.id)
        ORDER BY p.msrp ASC`,
     ).all() as { id: string; name: string; set_id: string; msrp: number }[]
-  ).find((r) => sellsOwnPacks(r.set_id))
+  ).find((r) => sellsProduct(r.id, r.set_id))
   if (!any) throw new Error('no-seed-product')
   return { id: any.id, name: any.name, cost: round2(sealedPriceOf(any.id).market || any.msrp), setId: any.set_id }
 }

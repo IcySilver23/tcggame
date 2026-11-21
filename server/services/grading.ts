@@ -4,13 +4,15 @@ import { round2, gradedPriceOf, gradedPrices } from './market'
 import { ensureGradedComp } from './pricesources'
 import { taxSavingsEstimate } from './tax'
 import * as psarush from './psarush'
-import { trueStats } from './substats'
+import { readFor, trueStats } from './substats'
 import { guardGrading } from './auth'
 
 // ---------------------------------------------------------------------------
 // Grading — send raw cards to a grading service, get a grade back, and value
 // the result with REAL PriceCharting PSA/BGS/CGC/SGC price data when available.
 // ---------------------------------------------------------------------------
+
+export type GradingCompany = 'PSA' | 'BGS' | 'CGC'
 
 export type GradingService = {
   id: string
@@ -20,30 +22,97 @@ export type GradingService = {
   daysMin: number // turnaround in game-days (1 game-day = 1 real UTC day)
   daysMax: number
   gradeBias: number // shifts the grade roll (higher = better grades)
+  company?: GradingCompany // which slab and grade scale comes back (PSA when absent)
   desc: string
 }
 
 export const GRADING_SERVICES: GradingService[] = [
-  { id: 'standard', name: 'Standard Grading', cost: 18, minRawValue: 15, daysMin: 3, daysMax: 6, gradeBias: 0, desc: 'Cheap and slow. A fair shot at a 10 — the value pick for clean mid-tier cards.' },
-  { id: 'express', name: 'Express Grading', cost: 45, minRawValue: 40, daysMin: 1, daysMax: 2, gradeBias: 0.15, desc: 'Fast turnaround and better handling — the workhorse for $100+ cards.' },
-  { id: 'premium', name: 'Premium Grading', cost: 190, minRawValue: 250, daysMin: 1, daysMax: 1, desc: 'White-glove service for serious cards — the best odds at a gem mint, priced for grails.', gradeBias: 0.35 },
+  { id: 'standard', name: 'PSA Standard Grading', cost: 18, minRawValue: 15, daysMin: 3, daysMax: 6, gradeBias: 0, company: 'PSA', desc: 'Cheap and slow. A fair shot at a PSA 10 — the value pick for clean mid-tier cards.' },
+  { id: 'express', name: 'PSA Express Grading', cost: 45, minRawValue: 40, daysMin: 1, daysMax: 2, gradeBias: 0.15, company: 'PSA', desc: 'Fast turnaround and better handling — the workhorse for $100+ cards.' },
+  { id: 'premium', name: 'PSA Premium Grading', cost: 190, minRawValue: 250, daysMin: 1, daysMax: 1, company: 'PSA', desc: 'White-glove service for serious cards — the best odds at a gem mint, priced for grails.', gradeBias: 0.35 },
+  { id: 'beckett', name: 'Beckett Grading (BGS)', cost: 60, minRawValue: 50, daysMin: 2, daysMax: 4, gradeBias: 0.18, company: 'BGS', desc: 'Subgrades and the only route to a BGS 10 Black Label — four perfect 10s, far rarer than a gem mint.' },
+  { id: 'cgc', name: 'CGC Cards Grading', cost: 20, minRawValue: 15, daysMin: 6, daysMax: 10, gradeBias: 0.05, company: 'CGC', desc: 'The value lab: slower than PSA standard, strict on centering, and the only route to a CGC Pristine 10 — flawless under 10× magnification, with the gold Pristine label.' },
 ]
 
 export const GRADE_LABELS: Record<string, string> = {
   PSA10: 'GEM MNT 10', PSA9: 'MINT 9', PSA8: 'NM-MT 8', PSA7: 'NM 7',
-  BGS10: 'BGS PRISTINE 10', CGC10: 'CGC GEM 10', SGC10: 'SGC 10',
+  'BGS10BL': 'BLACK LABEL 10', BGS10: 'BGS PRISTINE 10', BGS9: 'BGS MINT 9', BGS8: 'BGS NM-MT 8',
+  CGC10P: 'CGC PRISTINE 10', CGC10: 'CGC GEM MINT 10', CGC9: 'CGC MINT 9', CGC8: 'CGC NM-MT 8',
+  SGC10: 'SGC 10', SGC9: 'SGC 9',
 }
 
-export type GradeSlot = 'PSA10' | 'PSA9' | 'PSA8' | 'PSA7'
+export type GradeSlot = 'PSA10' | 'PSA9' | 'PSA8' | 'PSA7' | 'BGS10BL' | 'BGS10' | 'BGS9' | 'BGS8' | 'CGC10P' | 'CGC10' | 'CGC9' | 'CGC8'
+
+/** Every grade that counts as a gem for the service ROI figures. */
+const GEM_GRADES = new Set<string>(['PSA10', 'BGS10BL', 'BGS10', 'CGC10P', 'CGC10', 'SGC10'])
+const TOP_TEN_GRADES = new Set<string>(['CGC10P', 'BGS10BL'])
+
+function gemChanceOf(odds: [GradeSlot, number][]): number {
+  return odds.reduce((sum, [grade, chance]) => sum + (GEM_GRADES.has(grade) ? chance : 0), 0)
+}
+
+function pristineChanceOf(odds: [GradeSlot, number][]): number {
+  return odds.reduce((sum, [grade, chance]) => sum + (TOP_TEN_GRADES.has(grade) ? chance : 0), 0)
+}
+
+export type PristineTraits = { centering: number; whitening: number; corners: number }
+
+// A copy that is genuinely Pristine material gets a meaningful share of its gem
+// outcome as the gold label. The gate is multiplicative: a single real flaw
+// (off-centre, whitened edge, soft corner) takes the Pristine path to zero.
+// An unowned/unknown copy uses the old 2% average; every owned copy uses its
+// actual hidden traits, so inspecting before submitting is the point.
+const PRISTINE_MAX_GEM_SHARE = 0.35
+const PRISTINE_AVERAGE_GEM_SHARE = 0.02
+
+function clamp01(n: number): number {
+  return Math.max(0, Math.min(1, n))
+}
+
+/** How much of a CGC gem result can become Pristine, from 0 to 1. */
+export function pristineFactor(traits?: PristineTraits): number {
+  if (!traits) return 1
+  // CGC Pristine requires 50/50 centering; the score falls to zero by 12
+  // points off-centre. Whitening is clean through 0 and gone by 25. Corners
+  // earn the pass from 60 upward, full marks at 95+.
+  const centering = clamp01(1 - Math.abs(traits.centering - 50) / 12)
+  const whitening = clamp01(1 - traits.whitening / 25)
+  const corners = clamp01((traits.corners - 60) / 35)
+  return centering * whitening * corners
+}
 
 export type GradeRun = {
   serviceId: string
   serviceName: string
   cost: number
   gemChance: number
+  /** Chance of the service's top 10 designation (CGC Pristine, BGS Black Label).
+   *  Null for a CGC copy you have not inspected; the read decides what you see. */
+  pristineChance: number | null
   evNet: number // EV of net proceeds after the marketplace fee, before the fee
   roi: number // evNet − cost, per dollar of fee (1.0 = double your money)
   recommended: boolean
+}
+
+function pristineChanceForDisplay(company: GradingCompany | undefined, inventoryId: number | undefined, odds: [GradeSlot, number][]): number | null {
+  const raw = pristineChanceOf(odds)
+  if (company !== 'CGC' || inventoryId == null) return Math.round(raw * 100)
+  const read = readFor(inventoryId)
+  // Never reveal the hidden Pristine gate before the player looks. After a
+  // look, quote the chance from that imperfect READ, not the hidden truth.
+  if (!read) return null
+  return Math.round(gemChanceOf(odds) * PRISTINE_MAX_GEM_SHARE * pristineFactor(read.stats) * 100)
+}
+
+/** The rung the player can reasonably chase. Before inspection a CGC copy only
+ *  promises Gem Mint; the read can uncover a Pristine path. */
+function topGradeForDisplay(svc: GradingService, inventoryId: number | undefined, odds: [GradeSlot, number][]): GradeSlot {
+  if (svc.company === 'CGC' && inventoryId != null) {
+    const read = readFor(inventoryId)
+    if (!read || pristineFactor(read.stats) === 0) return 'CGC10'
+    return 'CGC10P'
+  }
+  return odds.find(([, p]) => p > 0)?.[0] ?? (svc.company === 'CGC' ? 'CGC10P' : svc.company === 'BGS' ? 'BGS10' : 'PSA10')
 }
 
 /** ROI of chasing each graded rung on a card you own raw: for every eligible
@@ -55,9 +124,9 @@ export function bestRoiRung(cardId: string, condition: string, inventoryId?: num
   if (raw <= 0) return null
   const eligible = GRADING_SERVICES.filter((s) => raw >= s.minRawValue)
   if (eligible.length === 0) return null
-  const adj = inventoryId != null ? trueStats(inventoryId).adjustment : 0
+  const stats = inventoryId != null ? trueStats(inventoryId) : null
   const runs = eligible.map((svc) => {
-    const odds = oddsFor(condition, svc.gradeBias, adj)
+    const odds = oddsFor(condition, svc.gradeBias, stats?.adjustment ?? 0, svc.company, stats ?? undefined)
     const ev = odds.reduce((a, [grade, p]) => a + p * gradedPriceOf(cardId, grade).usd, 0)
     const evNet = round2(ev * (1 - SALE_FEE))
     const net = evNet - svc.cost
@@ -65,7 +134,8 @@ export function bestRoiRung(cardId: string, condition: string, inventoryId?: num
       serviceId: svc.id,
       serviceName: svc.name,
       cost: svc.cost,
-      gemChance: Math.round(odds[0][1] * 100),
+      gemChance: Math.round(gemChanceOf(odds) * 100),
+      pristineChance: pristineChanceForDisplay(svc.company, inventoryId, odds),
       evNet,
       roi: round2(net / svc.cost),
       recommended: net > raw * (1 - SALE_FEE),
@@ -90,8 +160,13 @@ export function bestRoiRung(cardId: string, condition: string, inventoryId?: num
  *    56% gem on standard — better than baseline, still a gamble. Premium
  *    remains the best route to a gem (72%) and stays priced for grails.
  *  • The gem floor rises 2% → 5%: total hopelessness was fake variance and
- *    made low-end submission outcomes feel scripted. */
-export function oddsFor(condition: string, bias: number, adj = 0): [GradeSlot, number][] {
+ *    made low-end submission outcomes feel scripted.
+ *  • CGC Pristine is NOT another flat slice of the gem result. It is gated by
+ *    the copy's centering, whitening and corners: a dead-centered, clean-edged,
+ *    sharp-cornered copy can be Pristine; a gem-grade copy with one real flaw
+ *    cannot. A copy we know nothing about (no inventory row) uses the 2%
+ *    average share. */
+export function oddsFor(condition: string, bias: number, adj = 0, company: GradingCompany = 'PSA', traits?: PristineTraits): [GradeSlot, number][] {
   const condFactor = condition === 'NM' ? 0 : condition === 'LP' ? -0.25 : condition === 'MP' ? -0.55 : -0.95
   const eff = condFactor + adj
   const taper = Math.pow(2, Math.max(-2.5, Math.min(1, eff))) // smooth 2^eff compounding
@@ -114,6 +189,31 @@ export function oddsFor(condition: string, bias: number, adj = 0): [GradeSlot, n
     }
   }
   const rest = Math.max(0.01, 1 - gem - nine - eight)
+  if (company === 'BGS') {
+    // A BGS 10 is the gem outcome; Black Label is the sliver of those that
+    // earn four 10 subgrades. Nine and eight absorb the old lower rungs.
+    const blackLabel = gem * 0.03
+    return [
+      ['BGS10BL', blackLabel],
+      ['BGS10', gem - blackLabel],
+      ['BGS9', nine],
+      ['BGS8', eight + rest],
+    ]
+  }
+  if (company === 'CGC') {
+    // CGC splits its top grade: an ordinary CGC 10 is Gem Mint, while Pristine
+    // is reserved for cards flawless under 10× magnification. The copy's own
+    // centering, whitening and corners decide its share of the gem outcome; a
+    // copy with any real flaw has no Pristine path at all.
+    const share = traits ? PRISTINE_MAX_GEM_SHARE * pristineFactor(traits) : PRISTINE_AVERAGE_GEM_SHARE
+    const pristine = gem * share
+    return [
+      ['CGC10P', pristine],
+      ['CGC10', gem - pristine],
+      ['CGC9', nine],
+      ['CGC8', eight + rest],
+    ]
+  }
   return [
     ['PSA10', gem],
     ['PSA9', nine],
@@ -122,14 +222,14 @@ export function oddsFor(condition: string, bias: number, adj = 0): [GradeSlot, n
   ]
 }
 
-function rollGrade(condition: string, bias: number, adj = 0): GradeSlot {
-  const odds = oddsFor(condition, bias, adj)
+function rollGrade(condition: string, bias: number, adj = 0, company: GradingCompany = 'PSA', traits?: PristineTraits): GradeSlot {
+  const odds = oddsFor(condition, bias, adj, company, traits)
   let r = Math.random()
   for (const [grade, p] of odds) {
     if (r < p) return grade
     r -= p
   }
-  return 'PSA7'
+  return company === 'BGS' ? 'BGS8' : company === 'CGC' ? 'CGC8' : 'PSA7'
 }
 
 function ensureColumns() {
@@ -181,20 +281,24 @@ export type GradingAdvice = {
   upside: number
   edge: number
   gemChance: number
+  pristineChance: number | null
   recommended: boolean
 }
 
 /** Expected-value analysis of grading a specific card with a specific service.
  *  When you own the copy, its hidden sub-stats sharpen the odds. */
-export function adviceForCard(cardId: string, condition: string, svc: GradingService, inventoryId?: number): GradingAdvice {
-  const adj = inventoryId != null ? trueStats(inventoryId).adjustment : 0
-  const odds = oddsFor(condition, svc.gradeBias, adj)
+export function adviceForCard(cardId: string, condition: string, svc: GradingService, inventoryId?: number, rawValue?: number): GradingAdvice {
+  const stats = inventoryId != null ? trueStats(inventoryId) : null
+  const odds = oddsFor(condition, svc.gradeBias, stats?.adjustment ?? 0, svc.company, stats ?? undefined)
   const ev = odds.reduce((a, [grade, p]) => a + p * gradedPriceOf(cardId, grade).usd, 0)
   const expectedValue = round2(ev)
   const expectedProfit = round2(ev * (1 - SALE_FEE) - svc.cost)
-  const gemGrade = odds[0][0]
-  const upside = round2(gradedPriceOf(cardId, gemGrade).usd * (1 - SALE_FEE) - svc.cost)
-  const raw = rawAnchor(cardId)
+  // A Pristine-ineligible copy cannot chase the Pristine rung: its upside is
+  // the best grade it can actually receive, which for CGC is Gem Mint 10.
+  // Uninspected copies show the same promise; the read can uncover Pristine.
+  const topGrade = topGradeForDisplay(svc, inventoryId, odds)
+  const upside = round2(gradedPriceOf(cardId, topGrade).usd * (1 - SALE_FEE) - svc.cost)
+  const raw = rawValue ?? rawAnchor(cardId)
   const edge = round2(expectedProfit - raw * (1 - SALE_FEE))
   return {
     serviceId: svc.id,
@@ -204,7 +308,8 @@ export function adviceForCard(cardId: string, condition: string, svc: GradingSer
     expectedProfit,
     upside,
     edge,
-    gemChance: Math.round(odds[0][1] * 100),
+    gemChance: Math.round(gemChanceOf(odds) * 100),
+    pristineChance: pristineChanceForDisplay(svc.company, inventoryId, odds),
     recommended: edge > 0 && expectedProfit > 0,
   }
 }
@@ -220,7 +325,7 @@ export function gradingAdviceFor(cardId: string, condition: string, inventoryId?
   const special = psarush.specialService()
   if (special && raw >= special.minRawValue) eligible.push(special as GradingService)
   if (eligible.length === 0) return null
-  const advices = eligible.map((s) => adviceForCard(cardId, condition, s, inventoryId))
+  const advices = eligible.map((s) => adviceForCard(cardId, condition, s, inventoryId, raw))
   const best = advices.reduce((a, b) => (b.edge > a.edge ? b : a))
   return best.recommended ? best : null
 }
@@ -295,6 +400,21 @@ export function submitForGrading(inventoryId: number, serviceId: string): { cost
   // Rush accounting (quota burn + backlog growth) AFTER the submission sticks.
   psarush.onSubmission(serviceId, inventoryId)
   logActivity('grading', `Submitted a card to ${svc.name} ($${svc.cost}) — results in ${dMin}–${dMax} game-day${dMax === 1 ? '' : 's'} (real days — watch the header clock)${delay > 0 ? ` — the rush queue adds ~${delay}d` : ''}`, -svc.cost)
+  if (svc.company === 'BGS') {
+    // Fetch the exact Black Label and BGS 10 comps while the slab is away, so
+    // a Black Label has a real quote the moment it is revealed.
+    void (async () => {
+      await ensureGradedComp(row.card_id, 'BGS10BL').catch(() => {})
+      await ensureGradedComp(row.card_id, 'BGS10').catch(() => {})
+    })()
+  } else if (svc.company === 'CGC') {
+    // CGC Pristine is its own market; fetch it alongside the ordinary CGC 10
+    // comp so a gold label lands with a real quote when one exists.
+    void (async () => {
+      await ensureGradedComp(row.card_id, 'CGC10P').catch(() => {})
+      await ensureGradedComp(row.card_id, 'CGC10').catch(() => {})
+    })()
+  }
   return { cost: svc.cost }
 }
 
@@ -307,27 +427,36 @@ export function resolveGrading(): number[] {
   for (const row of due) {
     const svc = GRADING_SERVICES.find((s) => s.id === row.grading_service) ?? GRADING_SERVICES[0]
     // Sub-stats decide: the hidden traits of THIS copy shift the grade roll.
-    const adj = trueStats(row.id).adjustment
-    const grade = rollGrade(row.condition, svc.gradeBias, adj)
+    const stats = trueStats(row.id)
+    const grade = rollGrade(row.condition, svc.gradeBias, stats.adjustment, svc.company, stats)
     const value = gradedPriceOf(row.card_id, grade)
     // Keep grading_service for per-service stats attribution; clear only the in-flight fields.
     db.prepare(
       `UPDATE inventory SET status = 'collection', graded_grade = ?, condition = 'NM', grading_submitted_at = NULL, grading_due_at = NULL WHERE id = ?`,
     ).run(grade, row.id)
     const name = (db.prepare('SELECT name FROM cards WHERE id = ?').get(row.card_id) as { name: string } | undefined)?.name ?? row.card_id
-    logActivity(
-      'grading',
-      value.source === 'live'
-        ? `${name} came back ${GRADE_LABELS[grade] ?? grade} — PriceCharting values it at $${value.usd.toFixed(2)}`
-        : `${name} came back ${GRADE_LABELS[grade] ?? grade} — estimated value $${value.usd.toFixed(2)}`,
-    )
+    const valueLine = value.basis === 'asking'
+      ? `eBay active asking prices put it around $${value.usd.toFixed(2)}`
+      : value.basis === 'estimated'
+        ? value.kind === 'pc-graded'
+          ? `PriceCharting estimates it at $${value.usd.toFixed(2)} — BGS 10 Black, no published sales count`
+          : `estimated value $${value.usd.toFixed(2)}`
+        : value.kind === 'ebay-graded'
+          ? `eBay sold comps value it at $${value.usd.toFixed(2)}`
+          : `PriceCharting sold-based value is $${value.usd.toFixed(2)}`
+    logActivity('grading', `${name} came back ${GRADE_LABELS[grade] ?? grade} — ${valueLine}`)
     revealed.push(row.id)
     // Slabs are sealed — clear any leftover protection state so the wear
     // engine never looks at them again.
     import('./supplies').then((s) => s.markSlabbed([row.id])).catch(() => {})
     // Fire-and-forget: top up missing real grade prices for this card's other
     // grades via PriceCharting/eBay comps so the reveal table is full.
-    for (const g of ['PSA10', 'PSA9', 'PSA8', 'PSA7']) {
+    const topUp = svc.company === 'BGS'
+      ? ['PSA10', 'PSA9', 'PSA8', 'PSA7', 'BGS10BL', 'BGS10']
+      : svc.company === 'CGC'
+        ? ['CGC10P', 'CGC10', 'CGC9', 'CGC8']
+        : ['PSA10', 'PSA9', 'PSA8', 'PSA7']
+    for (const g of topUp) {
       void ensureGradedComp(row.card_id, g).catch(() => {})
     }
   }
@@ -350,6 +479,8 @@ export function revealResult(inventoryId: number) {
     gradeLabel: GRADE_LABELS[row.graded_grade] ?? row.graded_grade,
     value: quote.usd,
     valueSource: quote.source,
+    valueKind: quote.kind,
+    valueBasis: quote.basis,
     costBasis: row.cost_basis,
     allGrades: raw,
     profitIfSoldNow: round2(quote.usd * 0.9 - row.cost_basis),
@@ -370,8 +501,6 @@ export function pendingGrading() {
 // Stats — submission history, grade distribution, ROI per service
 // ---------------------------------------------------------------------------
 
-const GEM_GRADES = ['PSA10', 'BGS10', 'CGC10', 'SGC10']
-
 type ServiceRow = {
   grading_service: string | null
   submitted: number
@@ -391,7 +520,7 @@ function serviceRollups(): ServiceRow[] {
     .prepare(
       `SELECT grading_service, COUNT(*) AS submitted, COALESCE(SUM(grading_cost), 0) AS spent,
               SUM(CASE WHEN graded_grade IS NOT NULL THEN 1 ELSE 0 END) AS returned,
-              SUM(CASE WHEN graded_grade IN ('PSA10','BGS10','CGC10','SGC10') THEN 1 ELSE 0 END) AS gems
+              SUM(CASE WHEN graded_grade IN ('PSA10','BGS10BL','BGS10','CGC10P','CGC10','SGC10') THEN 1 ELSE 0 END) AS gems
        FROM inventory WHERE grading_service IS NOT NULL OR grading_cost IS NOT NULL
        GROUP BY grading_service`,
     )
@@ -465,7 +594,7 @@ export function gradingStats(candidates?: ReturnType<typeof gradingCandidates>) 
     .prepare(
       `SELECT COUNT(*) AS submitted, COALESCE(SUM(grading_cost), 0) AS spent,
               SUM(CASE WHEN graded_grade IS NOT NULL THEN 1 ELSE 0 END) AS returned,
-              SUM(CASE WHEN graded_grade IN ('PSA10','BGS10','CGC10','SGC10') THEN 1 ELSE 0 END) AS gems,
+              SUM(CASE WHEN graded_grade IN ('PSA10','BGS10BL','BGS10','CGC10P','CGC10','SGC10') THEN 1 ELSE 0 END) AS gems,
               SUM(CASE WHEN status = 'grading' THEN 1 ELSE 0 END) AS pending
        FROM inventory WHERE grading_service IS NOT NULL OR grading_cost IS NOT NULL`,
     )
@@ -509,6 +638,15 @@ export function gradingStats(candidates?: ReturnType<typeof gradingCandidates>) 
     .all() as { id: number; inventory_id: number; card_id: string; sale_price: number; fee: number; profit: number; cost_basis: number; sold_at: string; name: string; image_small: string | null; grade: string; service: string | null; grading_cost: number | null }[]
 
   const services = serviceRollups()
+  // The pool the candidates list scans, and the cheapest open door. Both are
+  // needed for the honest empty state: "nothing worth grading" is a claim about
+  // a fee and a raw-value floor, and the page used to show neither.
+  const ownedRaw = db
+    .prepare(`SELECT COUNT(*) AS n FROM inventory WHERE status = 'collection' AND quantity = 1 AND graded_grade IS NULL`)
+    .get() as { n: number }
+  const special = psarush.specialService()
+  const doors = special ? [...GRADING_SERVICES, special] : [...GRADING_SERVICES]
+  const cheapest = doors.reduce((a, b) => (b.minRawValue < a.minRawValue ? b : a))
   const totalSpent = round2(totals.spent)
   const totalProfit = round2(sold.profit)
   return {
@@ -542,6 +680,8 @@ export function gradingStats(candidates?: ReturnType<typeof gradingCandidates>) 
     distribution,
     history,
     candidates: candidates ?? [],
+    ownedRaw: ownedRaw.n,
+    floor: { name: cheapest.name, cost: cheapest.cost, minRawValue: cheapest.minRawValue },
     rush: psarush.section(),
   }
 }

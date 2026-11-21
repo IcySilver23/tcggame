@@ -1,6 +1,6 @@
 import { db, nowIso, logActivity, setMeta } from '../lib/db'
 import { gameDayKey } from '../lib/gameday'
-import { round2, valueOf } from './market'
+import { round2, valueOf, withTcgPriceCache } from './market'
 
 // ---------------------------------------------------------------------------
 // Achievements & milestones.
@@ -39,19 +39,37 @@ const one = (sql: string): number => {
 
 // --- Collection -------------------------------------------------------------
 
+// One pass to count owned cards per set, then join the catalogue totals. The
+// old correlated subquery re-scanned every card in the set for each set, and
+// the badge evaluator asked for it four times per request (~5s on a 20k-card
+// catalogue). The result is now computed once per evaluation.
 const COMPLETION_IDS = `
-  SELECT s.id, s.name, COUNT(c.id) AS total,
-         (SELECT COUNT(DISTINCT i.card_id) FROM inventory i WHERE i.card_id IN (SELECT id FROM cards WHERE set_id = s.id) AND i.status IN ('collection','grading')) AS owned
-  FROM sets s JOIN cards c ON c.set_id = s.id
+  WITH owned AS (
+    SELECT c.set_id, COUNT(DISTINCT i.card_id) AS owned
+    FROM inventory i JOIN cards c ON c.id = i.card_id
+    WHERE i.status IN ('collection','grading')
+    GROUP BY c.set_id
+  )
+  SELECT s.id, s.name, COUNT(c.id) AS total, COALESCE(o.owned, 0) AS owned
+  FROM sets s
+  JOIN cards c ON c.set_id = s.id
+  LEFT JOIN owned o ON o.set_id = s.id
   GROUP BY s.id HAVING total >= 8 AND owned > 0`
+
+type CompletionRow = { id: string; name: string; total: number; owned: number }
+let completionRowsCache: CompletionRow[] | null = null
+
+function completionRows(): CompletionRow[] {
+  if (!completionRowsCache) completionRowsCache = db.prepare(COMPLETION_IDS).all() as CompletionRow[]
+  return completionRowsCache
+}
 
 function bestSetCompletion(): { name: string; pct: number; owned: number; total: number } | null {
   try {
-    const rows = db.prepare(`SELECT * FROM (${COMPLETION_IDS}) ORDER BY owned * 1.0 / total DESC LIMIT 1`).get() as
-      | { id: string; name: string; total: number; owned: number }
-      | undefined
-    if (!rows) return null
-    return { name: rows.name, pct: rows.owned / rows.total, owned: rows.owned, total: rows.total }
+    const rows = completionRows()
+    if (rows.length === 0) return null
+    const best = rows.reduce((a, b) => (b.owned / b.total > a.owned / a.total ? b : a))
+    return { name: best.name, pct: best.owned / best.total, owned: best.owned, total: best.total }
   } catch {
     return null
   }
@@ -59,8 +77,7 @@ function bestSetCompletion(): { name: string; pct: number; owned: number; total:
 
 function completedSetsCount(): number {
   try {
-    const rows = db.prepare(`SELECT * FROM (${COMPLETION_IDS})`).all() as { owned: number; total: number }[]
-    return rows.filter((r) => r.owned >= r.total).length
+    return completionRows().filter((r) => r.owned >= r.total).length
   } catch {
     return 0
   }
@@ -105,7 +122,7 @@ function netWorth(): number {
 // --- Grading ----------------------------------------------------------------
 
 function gemStats(): { gems: number; submitted: number; rate: number } {
-  const gems = one(`SELECT COUNT(*) AS n FROM inventory WHERE graded_grade LIKE '%10'`)
+  const gems = one(`SELECT COUNT(*) AS n FROM inventory WHERE graded_grade LIKE '%10%'`)
   const submitted = one(`SELECT COUNT(*) AS n FROM inventory WHERE graded_grade IS NOT NULL`)
   return { gems, submitted, rate: submitted > 0 ? gems / submitted : 0 }
 }
@@ -216,20 +233,30 @@ export const DEFS: AchievementDef[] = [
 
 function whaleSet(): number {
   try {
-    const rows = db
-      .prepare(`SELECT s.id FROM sets s JOIN cards c ON c.set_id = s.id GROUP BY s.id HAVING COUNT(c.id) >= 8`)
-      .all() as { id: string }[]
-    let best = 0
-    for (const s of rows) {
-      // Set value = market anchors of owned cards (valueOf handles the price
-      // sources the same way the rest of the game reads them).
-      const held = db
-        .prepare(`SELECT c.id FROM cards c WHERE c.set_id = ? AND c.id IN (SELECT card_id FROM inventory WHERE status IN ('collection','grading'))`)
-        .all(s.id) as { id: string }[]
-      const total = held.reduce((a, h) => a + valueOf(h.id), 0)
-      if (total > best) best = total
+    // One inventory join, then group in memory. The old loop queried every set
+    // and priced each held card with its own TCGplayer lookup.
+    const held = db
+      .prepare(
+        `SELECT i.card_id AS id, c.set_id
+         FROM inventory i JOIN cards c ON c.id = i.card_id
+         WHERE i.status IN ('collection','grading')`,
+      )
+      .all() as { id: string; set_id: string }[]
+    if (held.length === 0) return 0
+    const bySet = new Map<string, string[]>()
+    for (const h of held) {
+      const list = bySet.get(h.set_id)
+      if (list) list.push(h.id)
+      else bySet.set(h.set_id, [h.id])
     }
-    return best
+    return withTcgPriceCache(held.map((h) => h.id), () => {
+      let best = 0
+      for (const ids of bySet.values()) {
+        const total = ids.reduce((a, id) => a + valueOf(id), 0)
+        if (total > best) best = total
+      }
+      return best
+    })
   } catch {
     return 0
   }
@@ -271,6 +298,7 @@ export type AchievementRow = {
 }
 
 export function status() {
+  completionRowsCache = null
   const unlocked = new Set(
     (db.prepare(`SELECT id FROM achievements`).all() as { id: string }[]).map((r) => r.id),
   )
@@ -301,6 +329,7 @@ export function achievementsTick(dayKey?: string) {
   if (db.prepare(`SELECT value FROM meta WHERE key = ?`).get(key)) return
   try {
     setMeta(key, '1')
+    completionRowsCache = null
     const unlocked = new Set((db.prepare(`SELECT id FROM achievements`).all() as { id: string }[]).map((r) => r.id))
     const fresh: AchievementDef[] = []
     for (const d of DEFS) {

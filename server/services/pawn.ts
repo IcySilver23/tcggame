@@ -90,12 +90,14 @@ export interface PawnQuote {
 }
 
 export function quotes(): { quotes: PawnQuote[]; terms: typeof TERMS; activeLoans: number; outstanding: number } {
-  const rows = db.prepare(`SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, c.image_small FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.status = 'collection' AND i.quantity > 0`).all() as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null; image_small: string | null }[]
+  const rows = db.prepare(`SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, c.name, c.image_small FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.status = 'collection' AND i.quantity > 0`).all() as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null; name: string; image_small: string | null }[]
   const qs = rows.map((r) => {
+    // One price lookup per row: the market value is what the fire-sale quote
+    // was recomputing. The card name arrives in the same join, not a query each.
     const market = r.graded_grade ? gradedPriceOf(r.card_id, r.graded_grade).usd : valueOf(r.card_id, r.variant, r.condition)
-    const fire = fireSaleValue(r.card_id, r.variant, r.condition, r.graded_grade)
+    const fire = round2(market * TERMS.fireSaleOfMarket * regimeFactor(r.card_id))
     return {
-      inventoryId: r.id, cardId: r.card_id, name: cardName(r.card_id), variant: r.variant, condition: r.condition, gradedGrade: r.graded_grade, image: r.image_small,
+      inventoryId: r.id, cardId: r.card_id, name: r.name, variant: r.variant, condition: r.condition, gradedGrade: r.graded_grade, image: r.image_small,
       market: round2(market), fireSale: fire, cashNow: round2(fire * TERMS.quotePct), loanMax: round2(fire * TERMS.loanPct),
     }
   }).sort((a, b) => b.cashNow - a.cashNow)
@@ -268,10 +270,13 @@ export function history(): { loans: { id: number; card: string; principal: numbe
 
 export function section(): unknown {
   const q = quotes()
+  // One history scan, two views of it — this used to rebuild both the active
+  // ticket list and the full history (each with a name lookup per loan).
+  const loans = history().loans
   return {
     ...q,
-    loans: history().loans.filter((l) => l.status === 'active'),
+    loans: loans.filter((l) => l.status === 'active'),
     shelf: shelf(),
-    history: history().loans,
+    history: loans,
   }
 }

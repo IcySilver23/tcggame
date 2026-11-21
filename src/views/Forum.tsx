@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import type { ForumSection, ForumGroupBuy, ForumPost } from '../api'
 import { useStore } from '../store'
-import { EmptyState, fmtUsd, timeAgo } from '../components'
+import { EmptyState, fmtUsd, LoadFailure, timeAgo } from '../components'
 
 // ---------------------------------------------------------------------------
 // 🫂 The community scene — the local collector forum. Where the street layer
@@ -137,11 +137,17 @@ export function ForumView() {
   const [tab, setTab] = useState<Tab>('threads')
   const [filter, setFilter] = useState<Filter>('all')
   const [openId, setOpenId] = useState<number | null>(null)
+  // The board silently rendered "0 threads on the board" when its fetch
+  // failed, which reads as a real, empty forum. It now says what happened.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const load = () => api.forum().then(setS).catch(() => {})
+  const load = () =>
+    api.forum()
+      .then((r) => { setS(r); setStatus('ready') })
+      .catch(() => setStatus((st) => (st === 'ready' ? st : 'error')))
   useEffect(() => {
     load()
-    api.inventory()
+    api.inventoryLight()
       .then((rows) =>
         setCollection(
           rows
@@ -180,6 +186,9 @@ export function ForumView() {
   const pinnedId = (posts.find((p) => p.kind === 'guide' && p.warmth >= 2) ?? ({} as ForumPost)).id
   const selected = collection.find((c) => String(c.id) === pullId)
   const tier = s ? TIER_META[s.tier] : null
+
+  if (status === 'error') return <LoadFailure what="the community board" sub="The local server did not answer. No thread or co-buy was touched." onRetry={load} />
+  if (!s) return <EmptyState icon="🫂" text="Opening the board…" sub="Reading the threads, your standing and the co-buys in flight." />
 
   return (
     <div>

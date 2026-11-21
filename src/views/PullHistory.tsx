@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
-import { byNum, byStr, EmptyState, fmtUsd, matchesQuery, SearchInput, SortSelect, Chip, BestPullCard } from '../components'
+import { byNum, byStr, EmptyState, fmtUsd, LoadFailure, matchesQuery, SearchInput, SortSelect, Chip, BestPullCard } from '../components'
 import type { PullRow } from '../types'
 
 export function PullHistoryView() {
@@ -12,12 +12,16 @@ export function PullHistoryView() {
   const [q, setQ] = useState('')
   const [hitsOnly, setHitsOnly] = useState(false)
   const [sort, setSort] = useState('recent')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  useEffect(() => {
-    api.pulls().then(setPulls).catch(() => {})
-    api.pullsSummary().then(setSummary).catch(() => {})
-    api.pullsBest().then(setBest).catch(() => {})
-  }, [])
+  const load = () => {
+    Promise.allSettled([
+      api.pulls().then(setPulls),
+      api.pullsSummary().then(setSummary),
+      api.pullsBest().then(setBest),
+    ]).then((rs) => setStatus(rs.some((r) => r.status === 'fulfilled') ? 'ready' : 'error'))
+  }
+  useEffect(() => { load() }, [])
 
   const sessions = summary?.sessions ?? []
   const spentBySession = new Map<string, number>()
@@ -50,7 +54,9 @@ export function PullHistoryView() {
         </div>
       </div>
 
-      {sessions.length === 0 ? (
+      {status === 'error' && pulls.length === 0 ? (
+        <LoadFailure what="your pull history" sub="The pack log did not load. Nothing was changed." onRetry={load} />
+      ) : sessions.length === 0 ? (
         <EmptyState icon="📦" text="No packs opened yet" sub="Your sessions, pull values, and ROI will appear here." />
       ) : (
         <>

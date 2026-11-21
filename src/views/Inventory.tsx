@@ -3,7 +3,7 @@ import { api } from '../api'
 import { gameDayEtaFor } from '../lib/gameday'
 import type { GradingReveal, GradingService, GradingPendingRow, MarketIncomingRow, SealedStockRow, SuppliesStatus, InsuranceStatus, AuthSection, AuthReveal, SealedFuturesSection } from '../api'
 import { useStore , setOpeningHandoff } from '../store'
-import { byNum, byStr, CardImg, ConditionBadge, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, FirstUseTip, fmtUsd, GRADE_BADGE, GradeRevealModal, matchesQuery, OverflowMenu, PriceTag, SearchInput, SetSection, SlabCard, SortSelect, SourceBadge, VirtualGrid } from '../components'
+import { byNum, byStr, CardImg, ConditionBadge, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, FirstUseTip, fmtUsd, GRADE_BADGE, GradeRevealModal, LoadFailure, matchesQuery, OverflowMenu, PriceTag, SearchInput, SetSection, SlabCard, SortSelect, SourceBadge, TipList, VirtualGrid } from '../components'
 import type { MenuItem } from '../components'
 import type { InventoryRow } from '../types'
 import type { SaleRow } from '../api'
@@ -49,6 +49,10 @@ export function InventoryView() {
   // Backdrop-close grace window — see closeMenu().
   const menuOpenedAt = useRef(0)
 
+  // The whole inventory load used to be one silent try/catch: a failed fetch
+  // left the tabs showing an empty collection, as if every card were gone.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
   const load = useCallback(async () => {
     try {
       // Ask the lab FIRST: /api/inventory resolves due grades server-side, so
@@ -72,7 +76,12 @@ export function InventoryView() {
       api.gradingServices().then(setGradingSvc).catch(() => {})
       api.marketIncoming().then((r) => setIncoming(r.incoming)).catch(() => {})
       api.authSection().then(setAuthData).catch(() => {})
-    } catch { /* ignore */ }
+      setStatus('ready')
+    } catch {
+      // Keep the last good binder on screen; only a failure with nothing to
+      // show is the error state.
+      setStatus((s) => (s === 'ready' ? s : 'error'))
+    }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -387,8 +396,8 @@ export function InventoryView() {
               </div>
             ))}
             <p className="small muted">
-              Grade odds depend on raw condition (NM grades best). Values come from real PriceCharting
-              PSA/BGS/CGC price data when available.
+              Grade odds depend on raw condition (NM grades best). PSA, Beckett BGS and CGC return their own slabs;
+              a BGS 10 Black Label is the rarest Beckett result, and a CGC Pristine 10 is CGC's gold-label step above Gem Mint. Values come from real PriceCharting graded data when available.
             </p>
           </div>
         </div>
@@ -982,6 +991,13 @@ export function InventoryView() {
     )
   }
 
+  if (status === 'error') {
+    return <LoadFailure what="your inventory" sub="The local server did not answer. No card, listing or sealed box was touched." onRetry={() => { setStatus('loading'); load() }} />
+  }
+  if (status === 'loading') {
+    return <EmptyState icon="🗃" text="Reading your inventory…" sub="Raw cards, active listings, sealed stock and their cost basis." />
+  }
+
   return (
     <div>
       <div className="page-head desk">
@@ -1252,7 +1268,7 @@ export function InventoryView() {
 
       {tab === 'grading' && (
         pendingGrading.length === 0 ? (
-          <EmptyState icon="⚖" text="Nothing at the grading company" sub="Use the ⚖ Grade button on a raw card worth $15+." />
+          <EmptyState icon="⚖" text="Nothing at the grading company" sub="Use the ⚖ Grade button on a raw card worth $15+. CGC takes cards from $15 and can return a gold-label Pristine 10; Beckett BGS accepts $50+ and can return a Black Label 10." />
         ) : (
           <table className="table">
             <thead><tr><th>Card</th><th>Service</th><th>Submitted as</th><th className="right">Back in</th></tr></thead>
@@ -1355,7 +1371,7 @@ export function InventoryView() {
             </div>
           )}
           {sealed.length === 0 ? (
-            <EmptyState icon="📦" text="No sealed stock" sub="Buy from the Pack Shop and choose KEEP SEALED." />
+            <EmptyState icon="📦" text="No sealed stock" sub="Buy from the Pack Shop — every purchase arrives sealed. Open it here whenever you want." />
           ) : (
             <div>
               <div className="filter-row" style={{ marginBottom: 10 }}>
@@ -1435,8 +1451,14 @@ export function InventoryView() {
                   })}
                 </tbody>
               </table>
-              <div className="faint small mt8">
-                Selling pays today's price at your boxes' condition (fresh above market, worn below) minus a 10% dealer fee — the damage dock's DUMP pays worn price with no fee. Out-of-print sealed appreciates as supply dries up; case-fresh premium fades on vintage.
+              <div className="small faint mt8">
+                <TipList
+                  items={[
+                    { icon: '💵', label: 'Sell now', text: <>today's price at the box's condition, minus a 10% dealer fee</> },
+                    { icon: '🗑️', label: 'Dump', text: <>worn price at the damage dock, no fee</> },
+                    { icon: '📈', label: 'Hold', text: <>out-of-print sealed appreciates; case-fresh premium fades on vintage</> },
+                  ]}
+                />
               </div>
             </div>
           )}

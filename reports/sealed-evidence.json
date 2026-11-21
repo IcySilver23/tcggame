@@ -1,0 +1,4659 @@
+{
+  "modern": 223,
+  "sold": 223,
+  "hidden": 0,
+  "evidence": 328,
+  "withoutEvidence": 0,
+  "hiddenWithoutEvidence": 0,
+  "missing": [],
+  "mismatches": [],
+  "removed": [
+    {
+      "id": "bw1-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw1-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw10-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw11-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw11-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw2-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw2-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw3-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw3-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw4-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw4-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw5-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw5-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw6-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw6-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw7-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw7-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "bw8-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw9-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "bw9-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "cel25-bundle",
+      "reason": "Celebrations' product line was collections, mini tins, an Elite Trainer Box and the Ultra-Premium Collection; no Booster Bundle was made.",
+      "present": false
+    },
+    {
+      "id": "cel25-display",
+      "reason": "Celebrations packs were only sold inside collections, so the set never had a 36-pack Booster Display.",
+      "present": false
+    },
+    {
+      "id": "col1-bundle",
+      "reason": "Call of Legends predates the Booster Bundle, which first shipped with Lost Origin in 2022.",
+      "present": false
+    },
+    {
+      "id": "col1-etb",
+      "reason": "Call of Legends shipped in 2011, before the Elite Trainer Box line began with Plasma Storm; no box was printed.",
+      "present": false
+    },
+    {
+      "id": "dc1-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "dc1-display",
+      "reason": "Double Crisis never shipped a 36-pack display; its seven-card packs came only in four-pack blisters.",
+      "present": false
+    },
+    {
+      "id": "dc1-etb",
+      "reason": "Double Crisis never shipped an Elite Trainer Box; its packs came only in four-pack blisters.",
+      "present": false
+    },
+    {
+      "id": "det1-bundle",
+      "reason": "Detective Pikachu was sold as Case Files and a Collector Chest, never a Booster Bundle.",
+      "present": false
+    },
+    {
+      "id": "det1-display",
+      "reason": "Detective Pikachu never shipped a 36-pack Booster Display; its four-card packs were sold inside Case Files and collections.",
+      "present": false
+    },
+    {
+      "id": "det1-etb",
+      "reason": "Detective Pikachu never shipped an Elite Trainer Box; the set’s packs came inside the Case Files, tins and collections.",
+      "present": false
+    },
+    {
+      "id": "dv1-bundle",
+      "reason": "Black & White did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any expansion in the era.",
+      "present": false
+    },
+    {
+      "id": "dv1-display",
+      "reason": "Dragon Vault never shipped a 36-pack display; its five-card packs came only in three-pack blisters.",
+      "present": false
+    },
+    {
+      "id": "dv1-etb",
+      "reason": "The Elite Trainer Box line began with Plasma Storm; this Black & White expansion never shipped one.",
+      "present": false
+    },
+    {
+      "id": "g1-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "g1-display",
+      "reason": "Generations never shipped a 36-pack display; its packs came inside collections and the ten-pack ETB.",
+      "present": false
+    },
+    {
+      "id": "mcd21-bundle",
+      "reason": "McDonald’s Collection 2021 was four-card Happy Meal packs; the promotion never shipped a Booster Bundle.",
+      "present": false
+    },
+    {
+      "id": "mcd21-display",
+      "reason": "McDonald’s Collection 2021 was four-card Happy Meal packs; the promotion never shipped a 36-pack display.",
+      "present": false
+    },
+    {
+      "id": "mcd21-etb",
+      "reason": "McDonald’s Collection 2021 was four-card Happy Meal packs; the promotion never shipped an Elite Trainer Box.",
+      "present": false
+    },
+    {
+      "id": "mcd22-bundle",
+      "reason": "McDonald’s Collection 2022 was four-card Happy Meal packs; the promotion never shipped a Booster Bundle.",
+      "present": false
+    },
+    {
+      "id": "mcd22-display",
+      "reason": "McDonald’s Collection 2022 was four-card Happy Meal packs; the promotion never shipped a 36-pack display.",
+      "present": false
+    },
+    {
+      "id": "mcd22-etb",
+      "reason": "McDonald’s Collection 2022 was four-card Happy Meal packs; the promotion never shipped an Elite Trainer Box.",
+      "present": false
+    },
+    {
+      "id": "me55-display",
+      "reason": "30th Celebration never shipped a 36-pack Booster Display; the official product showcase lists packs, bundles, ETBs, collections and mini tins instead.",
+      "present": false
+    },
+    {
+      "id": "pgo-bundle",
+      "reason": "Pokémon GO never shipped a Booster Bundle; that product first appeared with Lost Origin.",
+      "present": false
+    },
+    {
+      "id": "pgo-display",
+      "reason": "Pokémon GO was a special set sold in packs, an Elite Trainer Box, tins and collections; it never had a 36-pack Booster Display.",
+      "present": false
+    },
+    {
+      "id": "sm1-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm10-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm11-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm115-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm115-display",
+      "reason": "Hidden Fates never shipped a 36-pack Booster Display; it was sold in its ten-pack Elite Trainer Box and its tins and collection boxes.",
+      "present": false
+    },
+    {
+      "id": "sm12-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm2-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm3-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm35-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm35-display",
+      "reason": "Shining Legends never shipped a 36-pack Booster Display; it was sold in its ten-pack Elite Trainer Box and its collection and pin boxes.",
+      "present": false
+    },
+    {
+      "id": "sm4-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm5-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm6-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm7-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm75-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm75-display",
+      "reason": "Dragon Majesty never shipped a 36-pack Booster Display; it was sold in its ten-pack Elite Trainer Box and its collection and pin boxes.",
+      "present": false
+    },
+    {
+      "id": "sm8-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sm9-bundle",
+      "reason": "Sun & Moon did not ship a six-pack Booster Bundle; the era sold packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "sma-booster",
+      "reason": "Hidden Fates Shiny Vault was never sold as a booster pack; its cards only came inside Hidden Fates packs.",
+      "present": false
+    },
+    {
+      "id": "sma-bundle",
+      "reason": "Hidden Fates Shiny Vault never shipped a Booster Bundle; its cards only came inside Hidden Fates packs.",
+      "present": false
+    },
+    {
+      "id": "sma-display",
+      "reason": "Hidden Fates Shiny Vault never shipped a Booster Display; its cards only came inside Hidden Fates packs.",
+      "present": false
+    },
+    {
+      "id": "sma-etb",
+      "reason": "Hidden Fates Shiny Vault never shipped an Elite Trainer Box; its cards only came inside Hidden Fates packs.",
+      "present": false
+    },
+    {
+      "id": "sv3pt5-display",
+      "reason": "Scarlet & Violet—151 never shipped a 36-pack Booster Display; the set was sold in packs, bundles, ETBs and collection products.",
+      "present": false
+    },
+    {
+      "id": "swsh1-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh10-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh2-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh3-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh35-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh35-display",
+      "reason": "Champion's Path never shipped a 36-pack Booster Display; the set was sold in packs, the ETB and the Gym pin collections.",
+      "present": false
+    },
+    {
+      "id": "swsh4-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh45-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh45-display",
+      "reason": "Shining Fates never shipped a 36-pack Booster Display; the set was sold in packs, the ETB, tins and the Mad Party pin collections.",
+      "present": false
+    },
+    {
+      "id": "swsh5-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh6-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh7-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh8-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "swsh9-bundle",
+      "reason": "Sword & Shield did not ship a six-pack Booster Bundle before Lost Origin; the bundles in this era began with that set.",
+      "present": false
+    },
+    {
+      "id": "xy0-booster",
+      "reason": "Kalos Starter Set was sold as three 39-card decks; it never had booster packs.",
+      "present": false
+    },
+    {
+      "id": "xy0-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy0-display",
+      "reason": "Kalos Starter Set never shipped a 36-pack display; it was sold as three 39-card decks.",
+      "present": false
+    },
+    {
+      "id": "xy0-etb",
+      "reason": "Kalos Starter Set never shipped an Elite Trainer Box; it was sold as three 39-card decks.",
+      "present": false
+    },
+    {
+      "id": "xy1-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy10-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy11-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy12-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy2-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy2-etb",
+      "reason": "Flashfire did not receive an Elite Trainer Box; the early line shipped one box every other expansion and skipped it, as it had Plasma Freeze and Legendary Treasures.",
+      "present": false
+    },
+    {
+      "id": "xy3-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy4-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy5-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy6-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy7-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy8-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    },
+    {
+      "id": "xy9-bundle",
+      "reason": "XY did not ship a six-pack Booster Bundle; TCGplayer lists no bundle for any XY expansion, only packs, 36-pack displays and Elite Trainer Boxes.",
+      "present": false
+    }
+  ],
+  "removedStillPresent": 0,
+  "products": [
+    {
+      "id": "bw10-etb",
+      "set": "bw10",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (Composition and Black & White list); Plasma Storm and Plasma Blast box copy",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "bw8-etb",
+      "set": "bw8",
+      "kind": "etb",
+      "packs": 7,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (Composition and Black & White list); Plasma Storm and Plasma Blast box copy",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "cel25-deluxe-pin",
+      "set": "cel25",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Zacian LV.X"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "cel25-dragapult-prime",
+      "set": "cel25",
+      "kind": "special",
+      "packs": 2,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "cel25-pikachu-v-union",
+      "set": "cel25",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Professor Burnet"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "cel25-premium-figure",
+      "set": "cel25",
+      "kind": "special",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "cel25-upc",
+      "set": "cel25",
+      "kind": "special",
+      "packs": 17,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "cel25-v-memories",
+      "set": "cel25",
+      "kind": "special",
+      "packs": 6,
+      "promos": [
+        "Lance's Charizard V",
+        "Dark Sylveon V"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "dc1-blister",
+      "set": "dc1",
+      "kind": "special",
+      "packs": 4,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Double Crisis Booster Pack (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/229226"
+      }
+    },
+    {
+      "id": "det1-booster",
+      "set": "det1",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Serebii — Detective Pikachu set; Pokémon Center product pages",
+        "url": "https://www.serebii.net/card/pokemondetectivepikachu/"
+      }
+    },
+    {
+      "id": "dv1-blister",
+      "set": "dv1",
+      "kind": "special",
+      "packs": 3,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Dragon Vault 3 Pack Blister (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/98947"
+      }
+    },
+    {
+      "id": "g1-etb",
+      "set": "g1",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Shaymin-EX"
+      ],
+      "source": {
+        "label": "TCGplayer — Generations Elite Trainer Box (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/123741"
+      }
+    },
+    {
+      "id": "me1-booster",
+      "set": "me1",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Mega Evolution expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/mega-evolution/"
+      }
+    },
+    {
+      "id": "me1-build-battle",
+      "set": "me1",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Meganium",
+        "Inteleon",
+        "Alakazam",
+        "Lunatone"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me1-bundle",
+      "set": "me1",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Mega Evolution expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/mega-evolution/"
+      }
+    },
+    {
+      "id": "me1-display",
+      "set": "me1",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Mega Evolution expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/mega-evolution/"
+      }
+    },
+    {
+      "id": "me1-etb",
+      "set": "me1",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Riolu"
+      ],
+      "source": {
+        "label": "TCGplayer — Mega Evolution Elite Trainer Box [Mega Lucario] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/648394"
+      }
+    },
+    {
+      "id": "me1-etb-gardevoir",
+      "set": "me1",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Alakazam"
+      ],
+      "source": {
+        "label": "TCGplayer — Mega Evolution Elite Trainer Box [Mega Gardevoir] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/644279"
+      }
+    },
+    {
+      "id": "me1-etb-pc",
+      "set": "me1",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Alakazam"
+      ],
+      "source": {
+        "label": "TCGplayer — Mega Evolution Pokémon Center Elite Trainer Box [Mega Gardevoir] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/648415"
+      }
+    },
+    {
+      "id": "me1-etb-pc-lucario",
+      "set": "me1",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Riolu"
+      ],
+      "source": {
+        "label": "TCGplayer — Mega Evolution Pokémon Center Elite Trainer Box [Mega Lucario] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/644282"
+      }
+    },
+    {
+      "id": "me1-single-blister",
+      "set": "me1",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Drifloon",
+        "Drifblim"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me1-triple-blister",
+      "set": "me1",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Psyduck",
+        "Golduck"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me2-booster",
+      "set": "me2",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Phantasmal Flames expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/phantasmal-flames/"
+      }
+    },
+    {
+      "id": "me2-build-battle",
+      "set": "me2",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Ceruledge",
+        "Zacian",
+        "Flygon",
+        "Toxtricity"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me2-bundle",
+      "set": "me2",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Phantasmal Flames expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/phantasmal-flames/"
+      }
+    },
+    {
+      "id": "me2-display",
+      "set": "me2",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Phantasmal Flames expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/phantasmal-flames/"
+      }
+    },
+    {
+      "id": "me2-etb",
+      "set": "me2",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Charcadet"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Phantasmal Flames expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/phantasmal-flames/"
+      }
+    },
+    {
+      "id": "me2-etb-pc",
+      "set": "me2",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Charcadet"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me2-single-blister",
+      "set": "me2",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Cottonee",
+        "Whimsicott"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me2-triple-blister",
+      "set": "me2",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Sneasel",
+        "Weavile"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me2-upc-mega-charizard-x",
+      "set": "me2",
+      "kind": "special",
+      "packs": 18,
+      "promos": [
+        "Mega Charizard X ex",
+        "Oricorio ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "me2pt5-2pack-blister",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 2,
+      "promos": [
+        "Erika's Tangela",
+        "Larry's Komala"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Mega Evolution Ascended Heroes Collection—Erika / Larry (product copy)",
+        "url": "https://www.midwestcards.com/pokemon-non-sports-cards/pokemon-mega-evolution-ascended-heroes-2-pack-blister"
+      }
+    },
+    {
+      "id": "me2pt5-booster",
+      "set": "me2pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/ascended-heroes/"
+      }
+    },
+    {
+      "id": "me2pt5-bundle",
+      "set": "me2pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/ascended-heroes/"
+      }
+    },
+    {
+      "id": "me2pt5-etb",
+      "set": "me2pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "N's Zekrom"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/ascended-heroes/"
+      }
+    },
+    {
+      "id": "me2pt5-etb-pc",
+      "set": "me2pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "N's Zekrom"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me2pt5-first-partners-pin",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 5,
+      "promos": [
+        "Chikorita",
+        "Tepig",
+        "Totodile"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-mega-evolution-ascended-heroes-product-showcase"
+      }
+    },
+    {
+      "id": "me2pt5-mega-emboar-box",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Mega Emboar ex"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-mega-evolution-ascended-heroes-product-showcase"
+      }
+    },
+    {
+      "id": "me2pt5-mega-feraligatr-box",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Mega Feraligatr ex"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-mega-evolution-ascended-heroes-product-showcase"
+      }
+    },
+    {
+      "id": "me2pt5-mega-meganium-box",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Mega Meganium ex"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-mega-evolution-ascended-heroes-product-showcase"
+      }
+    },
+    {
+      "id": "me2pt5-mini-tin",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 2,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes Mini Tin",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/mega-evolution-ascended-heroes-mini-tin"
+      }
+    },
+    {
+      "id": "me2pt5-premium-poster",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 10,
+      "promos": [
+        "Mega Lucario ex",
+        "Mega Gardevoir ex"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes Premium Poster Collection",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/mega-evolution-ascended-heroes-premium-poster-collection-mega-lucario-mega-evolution-ascended-heroes-premium-poster-collection-mega-gardevoir"
+      }
+    },
+    {
+      "id": "me2pt5-tech-sticker",
+      "set": "me2pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Charmander",
+        "Gastly"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Ascended Heroes Tech Sticker Collection",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/mega-evolution-ascended-heroes-tech-sticker-collection"
+      }
+    },
+    {
+      "id": "me3-booster",
+      "set": "me3",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Perfect Order expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/perfect-order/"
+      }
+    },
+    {
+      "id": "me3-build-battle",
+      "set": "me3",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Serperior",
+        "Barbaracle",
+        "Tyrantrum",
+        "Doublade"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me3-bundle",
+      "set": "me3",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Perfect Order expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/perfect-order/"
+      }
+    },
+    {
+      "id": "me3-display",
+      "set": "me3",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Perfect Order expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/perfect-order/"
+      }
+    },
+    {
+      "id": "me3-etb",
+      "set": "me3",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Tyrunt"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Perfect Order expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/perfect-order/"
+      }
+    },
+    {
+      "id": "me3-etb-pc",
+      "set": "me3",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Tyrunt"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me4-booster",
+      "set": "me4",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Chaos Rising expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/chaos-rising/"
+      }
+    },
+    {
+      "id": "me4-build-battle",
+      "set": "me4",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Delphox",
+        "Ampharos",
+        "Crobat",
+        "Goodra"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me4-bundle",
+      "set": "me4",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Chaos Rising expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/chaos-rising/"
+      }
+    },
+    {
+      "id": "me4-display",
+      "set": "me4",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Chaos Rising expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/chaos-rising/"
+      }
+    },
+    {
+      "id": "me4-etb",
+      "set": "me4",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Fennekin"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Chaos Rising expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/chaos-rising/"
+      }
+    },
+    {
+      "id": "me4-etb-pc",
+      "set": "me4",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Fennekin"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me4-single-blister",
+      "set": "me4",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Toxel"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me4-triple-blister",
+      "set": "me4",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Charmeleon"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me5-booster",
+      "set": "me5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Pitch Black expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/pitch-black/"
+      }
+    },
+    {
+      "id": "me5-build-battle",
+      "set": "me5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Miraidon",
+        "Slowbro",
+        "Dhelmise",
+        "Bastiodon"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me5-bundle",
+      "set": "me5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Pitch Black expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/pitch-black/"
+      }
+    },
+    {
+      "id": "me5-display",
+      "set": "me5",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Pitch Black expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/pitch-black/"
+      }
+    },
+    {
+      "id": "me5-etb",
+      "set": "me5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Zarude"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Pitch Black expansion",
+        "url": "https://tcg.pokemon.com/en-us/expansions/pitch-black/"
+      }
+    },
+    {
+      "id": "me5-etb-pc",
+      "set": "me5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Zarude"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me55-2pack-blister",
+      "set": "me55",
+      "kind": "special",
+      "packs": 2,
+      "promos": [
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bill's Archive — 30th Celebration English products (2-Pack Blister)",
+        "url": "https://billsarchive.com/30th-celebration.html"
+      }
+    },
+    {
+      "id": "me55-binder",
+      "set": "me55",
+      "kind": "special",
+      "packs": 5,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration Binder Collection",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/30th-celebration-binder-collection"
+      }
+    },
+    {
+      "id": "me55-booster",
+      "set": "me55",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-30th-celebration-product-showcase"
+      }
+    },
+    {
+      "id": "me55-bundle",
+      "set": "me55",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-30th-celebration-product-showcase"
+      }
+    },
+    {
+      "id": "me55-ditto-premium",
+      "set": "me55",
+      "kind": "special",
+      "packs": 8,
+      "promos": [
+        "Ditto"
+      ],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me55-etb",
+      "set": "me55",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Nidorina"
+      ],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-30th-celebration-product-showcase"
+      }
+    },
+    {
+      "id": "me55-etb-pc",
+      "set": "me55",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Nidorina"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me55-figure-mew",
+      "set": "me55",
+      "kind": "special",
+      "packs": 5,
+      "promos": [
+        "Mew"
+      ],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me55-figure-mewtwo",
+      "set": "me55",
+      "kind": "special",
+      "packs": 5,
+      "promos": [
+        "Mewtwo"
+      ],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me55-greninja-ex-box",
+      "set": "me55",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Greninja ex"
+      ],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-30th-celebration-product-showcase"
+      }
+    },
+    {
+      "id": "me55-knockout",
+      "set": "me55",
+      "kind": "special",
+      "packs": 2,
+      "promos": [
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bulbapedia — Pokémon 30th Anniversary (card 116/128 [Cosmos Holofoil])",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_30th_Anniversary"
+      }
+    },
+    {
+      "id": "me55-mini-tin",
+      "set": "me55",
+      "kind": "special",
+      "packs": 2,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration Mini Tin",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/30th-celebration-mini-tin"
+      }
+    },
+    {
+      "id": "me55-poster",
+      "set": "me55",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Articuno",
+        "Zapdos",
+        "Moltres"
+      ],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration Poster Collection",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/30th-celebration-poster-collection"
+      }
+    },
+    {
+      "id": "me55-sylveon-ex-box",
+      "set": "me55",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Sylveon ex"
+      ],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration product showcase",
+        "url": "https://www.pokemon.com/us/news/pokemon-tcg-30th-celebration-product-showcase"
+      }
+    },
+    {
+      "id": "me55-tech-sticker",
+      "set": "me55",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Alolan Exeggutor",
+        "Lucario"
+      ],
+      "source": {
+        "label": "Pokémon TCG — 30th Celebration Tech Sticker Collection",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/30th-celebration-tech-sticker-collection"
+      }
+    },
+    {
+      "id": "me55-upc-day",
+      "set": "me55",
+      "kind": "special",
+      "packs": 29,
+      "promos": [
+        "Pikachu ex",
+        "Espeon ex"
+      ],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me55-upc-night",
+      "set": "me55",
+      "kind": "special",
+      "packs": 29,
+      "promos": [
+        "Pikachu ex",
+        "Umbreon ex"
+      ],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me6-booster",
+      "set": "me6",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me6-build-battle",
+      "set": "me6",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Masquerain",
+        "Magmortar",
+        "Enamorus",
+        "Kommo-o"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me6-bundle",
+      "set": "me6",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me6-display",
+      "set": "me6",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me6-etb",
+      "set": "me6",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Kyogre"
+      ],
+      "source": {
+        "label": "server/catalog/local-releases.json — published product copy",
+        "url": null
+      }
+    },
+    {
+      "id": "me6-etb-pc",
+      "set": "me6",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Kyogre"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "me6-single-blister",
+      "set": "me6",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Spritzee"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "me6-triple-blister",
+      "set": "me6",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Seel"
+      ],
+      "source": {
+        "label": "Bulbapedia — MEP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/MEP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "rsv10pt5-booster",
+      "set": "rsv10pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Black Bolt & White Flare expansions",
+        "url": "https://tcg.pokemon.com/en-us/expansions/black-white/"
+      }
+    },
+    {
+      "id": "rsv10pt5-bundle",
+      "set": "rsv10pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Black Bolt & White Flare expansions",
+        "url": "https://tcg.pokemon.com/en-us/expansions/black-white/"
+      }
+    },
+    {
+      "id": "rsv10pt5-etb",
+      "set": "rsv10pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Tornadus"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Black Bolt & White Flare expansions",
+        "url": "https://tcg.pokemon.com/en-us/expansions/black-white/"
+      }
+    },
+    {
+      "id": "rsv10pt5-etb-pc",
+      "set": "rsv10pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Tornadus"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm1-build-battle",
+      "set": "sm1",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Shiinotic",
+        "Bruxish",
+        "Passimian",
+        "Oranguru"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm1-etb",
+      "set": "sm1",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Sun & Moon Elite Trainer Box [Solgaleo] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/126089"
+      }
+    },
+    {
+      "id": "sm1-etb-lunala",
+      "set": "sm1",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Sun & Moon Elite Trainer Box [Lunala] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/126091"
+      }
+    },
+    {
+      "id": "sm10-build-battle",
+      "set": "sm10",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Volcanion",
+        "Stakataka",
+        "Melmetal",
+        "Persian"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm10-etb",
+      "set": "sm10",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm11-build-battle",
+      "set": "sm11",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Amoonguss",
+        "Tapu Fini",
+        "Necrozma",
+        "Terrakion"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm11-etb",
+      "set": "sm11",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm115-etb",
+      "set": "sm115",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Moltres & Zapdos & Articuno-GX"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm12-build-battle",
+      "set": "sm12",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Buzzwole",
+        "Entei",
+        "Phione",
+        "Blacephalon"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm12-etb",
+      "set": "sm12",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm2-build-battle",
+      "set": "sm2",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Alolan Sandslash",
+        "Oricorio",
+        "Mudsdale",
+        "Drampa"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm2-etb",
+      "set": "sm2",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm3-build-battle",
+      "set": "sm3",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Seviper",
+        "Crabominable",
+        "Zygarde",
+        "Bewear"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm3-etb",
+      "set": "sm3",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm35-etb",
+      "set": "sm35",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Shining Ho-Oh"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm4-build-battle",
+      "set": "sm4",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Alolan Raichu",
+        "Salazzle",
+        "Regirock",
+        "Registeel"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm4-etb",
+      "set": "sm4",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm5-build-battle",
+      "set": "sm5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Wash Rotom",
+        "Lucario",
+        "Heatran",
+        "Gumshoos"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm5-etb",
+      "set": "sm5",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Ultra Prism Elite Trainer Box [Dawn Wings Necrozma] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/155663"
+      }
+    },
+    {
+      "id": "sm5-etb-dusk-mane",
+      "set": "sm5",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Ultra Prism Elite Trainer Box [Dusk Mane Necrozma] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/155664"
+      }
+    },
+    {
+      "id": "sm6-build-battle",
+      "set": "sm6",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Pheromosa",
+        "Xurkitree",
+        "Malamar",
+        "Lycanroc"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm6-etb",
+      "set": "sm6",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm7-build-battle",
+      "set": "sm7",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Kyogre",
+        "Manectric",
+        "Celesteela",
+        "Delcatty"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm7-etb",
+      "set": "sm7",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm75-etb",
+      "set": "sm75",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Naganadel-GX"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm8-build-battle",
+      "set": "sm8",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Suicune",
+        "Raikou",
+        "Giratina",
+        "Tapu Lele"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm8-etb",
+      "set": "sm8",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm9-build-battle",
+      "set": "sm9",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Charizard",
+        "Zapdos",
+        "Nidoqueen",
+        "Jirachi"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sm9-etb",
+      "set": "sm9",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv1-booster",
+      "set": "sv1",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv1-build-battle",
+      "set": "sv1",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Quaquaval",
+        "Pawmot",
+        "Hawlucha",
+        "Revavroom"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv1-bundle",
+      "set": "sv1",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv1-display",
+      "set": "sv1",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv1-etb",
+      "set": "sv1",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Koraidon"
+      ],
+      "source": {
+        "label": "TCGplayer — Scarlet & Violet Elite Trainer Box [Koraidon] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/478335"
+      }
+    },
+    {
+      "id": "sv1-etb-miraidon",
+      "set": "sv1",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Miraidon"
+      ],
+      "source": {
+        "label": "TCGplayer — Scarlet & Violet Elite Trainer Box [Miraidon] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/478336"
+      }
+    },
+    {
+      "id": "sv1-etb-pc",
+      "set": "sv1",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Koraidon"
+      ],
+      "source": {
+        "label": "TCGplayer — Scarlet & Violet Pokémon Center Elite Trainer Box [Koraidon] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/478758"
+      }
+    },
+    {
+      "id": "sv1-etb-pc-miraidon",
+      "set": "sv1",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Miraidon"
+      ],
+      "source": {
+        "label": "TCGplayer — Scarlet & Violet Pokémon Center Elite Trainer Box [Miraidon] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/478756"
+      }
+    },
+    {
+      "id": "sv1-single-blister",
+      "set": "sv1",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Spidops",
+        "Espathra"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv1-triple-blister",
+      "set": "sv1",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Arcanine",
+        "Dondozo"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv10-booster",
+      "set": "sv10",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv10-build-battle",
+      "set": "sv10",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Ethan's Typhlosion",
+        "Misty's Gyarados",
+        "Team Rocket's Mimikyu",
+        "Team Rocket's Tyranitar"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv10-bundle",
+      "set": "sv10",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv10-display",
+      "set": "sv10",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv10-etb",
+      "set": "sv10",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Team Rocket's Wobbuffet"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv10-etb-pc",
+      "set": "sv10",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Team Rocket's Wobbuffet"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv10-half-display",
+      "set": "sv10",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv10-single-blister",
+      "set": "sv10",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Zarude",
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv10-triple-blister",
+      "set": "sv10",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Zebstrika",
+        "Kangaskhan"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv10-upc-moltres",
+      "set": "sv10",
+      "kind": "special",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv2-booster",
+      "set": "sv2",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv2-build-battle",
+      "set": "sv2",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Baxcalibur",
+        "Tinkaton",
+        "Murkrow",
+        "Pelipper"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv2-bundle",
+      "set": "sv2",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv2-display",
+      "set": "sv2",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv2-etb",
+      "set": "sv2",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Pikachu"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv2-etb-pc",
+      "set": "sv2",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Pikachu"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv2-single-blister",
+      "set": "sv2",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Smoliv",
+        "Growlithe"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv2-triple-blister",
+      "set": "sv2",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Tinkatink",
+        "Varoom"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv3-booster",
+      "set": "sv3",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3-build-battle",
+      "set": "sv3",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Palafin",
+        "Cleffa",
+        "Togekiss",
+        "Mawile"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv3-bundle",
+      "set": "sv3",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3-display",
+      "set": "sv3",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3-etb",
+      "set": "sv3",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Charmander"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3-etb-pc",
+      "set": "sv3",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Charmander"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv3-single-blister",
+      "set": "sv3",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Pawmi",
+        "Paldean Wooper"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv3-triple-blister",
+      "set": "sv3",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Houndstone",
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv3pt5-alakazam-ex-collection",
+      "set": "sv3pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Alakazam ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv3pt5-binder-collection",
+      "set": "sv3pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv3pt5-blooming-waters",
+      "set": "sv3pt5",
+      "kind": "special",
+      "packs": 12,
+      "promos": [
+        "Bulbasaur",
+        "Squirtle"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv3pt5-booster",
+      "set": "sv3pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3pt5-bundle",
+      "set": "sv3pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3pt5-etb",
+      "set": "sv3pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Snorlax"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv3pt5-etb-pc",
+      "set": "sv3pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Snorlax"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv3pt5-poster-collection",
+      "set": "sv3pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Bulbasaur",
+        "Charmander",
+        "Squirtle"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv3pt5-upc",
+      "set": "sv3pt5",
+      "kind": "special",
+      "packs": 16,
+      "promos": [
+        "Mew ex",
+        "Mewtwo"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv3pt5-zapdos-ex-collection",
+      "set": "sv3pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Zapdos ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4-booster",
+      "set": "sv4",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv4-build-battle",
+      "set": "sv4",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Chi-Yu",
+        "Iron Bundle",
+        "Xatu",
+        "Aegislash"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv4-bundle",
+      "set": "sv4",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv4-display",
+      "set": "sv4",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv4-etb",
+      "set": "sv4",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Iron Bundle"
+      ],
+      "source": {
+        "label": "TCGplayer — Paradox Rift Elite Trainer Box [Iron Valiant] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/512813"
+      }
+    },
+    {
+      "id": "sv4-etb-pc",
+      "set": "sv4",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Iron Bundle"
+      ],
+      "source": {
+        "label": "TCGplayer — Paradox Rift Pokémon Center Elite Trainer Box [Iron Valiant] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/512801"
+      }
+    },
+    {
+      "id": "sv4-etb-pc-roaring-moon",
+      "set": "sv4",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Scream Tail"
+      ],
+      "source": {
+        "label": "TCGplayer — Paradox Rift Pokémon Center Elite Trainer Box [Roaring Moon] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/512809"
+      }
+    },
+    {
+      "id": "sv4-etb-roaring-moon",
+      "set": "sv4",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Scream Tail"
+      ],
+      "source": {
+        "label": "TCGplayer — Paradox Rift Elite Trainer Box [Roaring Moon] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/512815"
+      }
+    },
+    {
+      "id": "sv4-single-blister",
+      "set": "sv4",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Pineco",
+        "Sinistea"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv4-triple-blister",
+      "set": "sv4",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Cetitan",
+        "Arctibax"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv4pt5-booster",
+      "set": "sv4pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv4pt5-bundle",
+      "set": "sv4pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv4pt5-etb",
+      "set": "sv4pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Mimikyu"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv4pt5-etb-pc",
+      "set": "sv4pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Mimikyu"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv4pt5-premium-meowscarada",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 8,
+      "promos": [
+        "Sprigatito",
+        "Floragato",
+        "Meowscarada ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4pt5-premium-quaquaval",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 8,
+      "promos": [
+        "Quaxly",
+        "Quaxwell",
+        "Quaquaval ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4pt5-premium-skeledirge",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 8,
+      "promos": [
+        "Fuecoco",
+        "Crocalor",
+        "Skeledirge ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4pt5-tech-sticker-fidough",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Fidough"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4pt5-tech-sticker-greavard",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Greavard"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4pt5-tech-sticker-maschiff",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Maschiff"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv4pt5-tusk-treads-premium",
+      "set": "sv4pt5",
+      "kind": "special",
+      "packs": 11,
+      "promos": [
+        "Great Tusk ex",
+        "Iron Treads ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv5-booster",
+      "set": "sv5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv5-build-battle",
+      "set": "sv5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Feraligatr",
+        "Metang",
+        "Koraidon",
+        "Miraidon"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv5-bundle",
+      "set": "sv5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv5-display",
+      "set": "sv5",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv5-etb",
+      "set": "sv5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Flutter Mane"
+      ],
+      "source": {
+        "label": "TCGplayer — Temporal Forces Elite Trainer Box [Walking Wake] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/532845"
+      }
+    },
+    {
+      "id": "sv5-etb-iron-leaves",
+      "set": "sv5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Iron Thorns"
+      ],
+      "source": {
+        "label": "TCGplayer — Temporal Forces Elite Trainer Box [Iron Leaves] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/532848"
+      }
+    },
+    {
+      "id": "sv5-etb-pc",
+      "set": "sv5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Iron Thorns"
+      ],
+      "source": {
+        "label": "TCGplayer — Temporal Forces Pokémon Center Elite Trainer Box [Iron Leaves] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/532853"
+      }
+    },
+    {
+      "id": "sv5-etb-pc-walking-wake",
+      "set": "sv5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Flutter Mane"
+      ],
+      "source": {
+        "label": "TCGplayer — Temporal Forces Pokémon Center Elite Trainer Box [Walking Wake] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/538775"
+      }
+    },
+    {
+      "id": "sv5-single-blister",
+      "set": "sv5",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Carvanha",
+        "Bellibolt"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv5-triple-blister",
+      "set": "sv5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Cleffa",
+        "Cyclizar"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv6-booster",
+      "set": "sv6",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6-build-battle",
+      "set": "sv6",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Thwackey",
+        "Infernape",
+        "Froslass",
+        "Tatsugiri"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv6-bundle",
+      "set": "sv6",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6-display",
+      "set": "sv6",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6-etb",
+      "set": "sv6",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Teal Mask Ogerpon"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6-etb-pc",
+      "set": "sv6",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Teal Mask Ogerpon"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv6-half-display",
+      "set": "sv6",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6-single-blister",
+      "set": "sv6",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Toxel",
+        "Pupitar"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv6-triple-blister",
+      "set": "sv6",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Revavroom",
+        "Snorlax"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv6-upc-greninja",
+      "set": "sv6",
+      "kind": "special",
+      "packs": 16,
+      "promos": [
+        "Greninja ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv6pt5-booster",
+      "set": "sv6pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6pt5-bundle",
+      "set": "sv6pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6pt5-etb",
+      "set": "sv6pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Pecharunt"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv6pt5-etb-pc",
+      "set": "sv6pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Pecharunt"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv6pt5-greninja-collection",
+      "set": "sv6pt5",
+      "kind": "special",
+      "packs": 5,
+      "promos": [
+        "Greninja ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv6pt5-kingambit-collection",
+      "set": "sv6pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Kingambit"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv6pt5-kingdra-collection",
+      "set": "sv6pt5",
+      "kind": "special",
+      "packs": 5,
+      "promos": [
+        "Kingdra ex",
+        "Horsea"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv7-booster",
+      "set": "sv7",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv7-build-battle",
+      "set": "sv7",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Ledian",
+        "Crabominable",
+        "Drifblim",
+        "Bouffalant"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv7-bundle",
+      "set": "sv7",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv7-display",
+      "set": "sv7",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv7-etb",
+      "set": "sv7",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Noctowl"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv7-etb-pc",
+      "set": "sv7",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Noctowl"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv7-half-display",
+      "set": "sv7",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv7-single-blister",
+      "set": "sv7",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Horsea",
+        "Porygon2"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv7-triple-blister",
+      "set": "sv7",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Latias",
+        "Tinkaton"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv7-upc-terapagos",
+      "set": "sv7",
+      "kind": "special",
+      "packs": 18,
+      "promos": [
+        "Cinderace ex",
+        "Lapras ex",
+        "Terapagos ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8-booster",
+      "set": "sv8",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8-build-battle",
+      "set": "sv8",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Gouging Fire",
+        "Chien-Pao",
+        "Magneton",
+        "Indeedee"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv8-bundle",
+      "set": "sv8",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8-display",
+      "set": "sv8",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8-etb",
+      "set": "sv8",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Magneton"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8-etb-pc",
+      "set": "sv8",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Magneton"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv8-half-display",
+      "set": "sv8",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8-single-blister",
+      "set": "sv8",
+      "kind": "special",
+      "packs": 1,
+      "promos": [
+        "Wooper",
+        "Pachirisu"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv8-triple-blister",
+      "set": "sv8",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Quagsire",
+        "Zapdos"
+      ],
+      "source": {
+        "label": "Bulbapedia — SVP Black Star Promos (blister promotions)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/SVP_Black_Star_Promos_(TCG)"
+      }
+    },
+    {
+      "id": "sv8pt5-2pack-blister",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 2,
+      "promos": [
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bulbapedia — Eevee (Pokémon Day 2025 Cosmos Parallel Holofoil)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Eevee_(SVP_Promo_173)"
+      }
+    },
+    {
+      "id": "sv8pt5-accessory-pouch",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 5,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-binder-collection",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 5,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-booster",
+      "set": "sv8pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8pt5-bundle",
+      "set": "sv8pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8pt5-etb",
+      "set": "sv8pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv8pt5-etb-pc",
+      "set": "sv8pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Eevee"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv8pt5-figure-collection",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 11,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-poster-collection",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Flareon",
+        "Vaporeon",
+        "Jolteon"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-spc",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 15,
+      "promos": [
+        "Eevee ex"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-surprise-box",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-tech-sticker-glaceon",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Glaceon"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-tech-sticker-leafeon",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Leafeon"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv8pt5-tech-sticker-sylveon",
+      "set": "sv8pt5",
+      "kind": "special",
+      "packs": 3,
+      "promos": [
+        "Sylveon"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "sv9-booster",
+      "set": "sv9",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv9-build-battle",
+      "set": "sv9",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "N's Darmanitan",
+        "Iono's Kilowattrel",
+        "Lillie's Ribombee",
+        "Hop's Snorlax"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv9-bundle",
+      "set": "sv9",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv9-display",
+      "set": "sv9",
+      "kind": "display",
+      "packs": 36,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv9-display-enhanced",
+      "set": "sv9",
+      "kind": "display",
+      "packs": 36,
+      "promos": [
+        "N's Reshiram"
+      ],
+      "source": {
+        "label": "Bulbapedia — Journey Together (Enhanced Booster Display Box)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Journey_Together_(TCG)"
+      }
+    },
+    {
+      "id": "sv9-etb",
+      "set": "sv9",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "N's Zorua"
+      ],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "sv9-etb-pc",
+      "set": "sv9",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "N's Zorua"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "sv9-half-display",
+      "set": "sv9",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Scarlet & Violet TCG Series merchandise",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Scarlet_%26_Violet_TCG_Series_merchandise"
+      }
+    },
+    {
+      "id": "swsh1-build-battle",
+      "set": "swsh1",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Rillaboom",
+        "Frosmoth",
+        "Galarian Perrserker",
+        "Cinccino"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh1-etb",
+      "set": "swsh1",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Sword & Shield Elite Trainer Box [Zacian] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/206038"
+      }
+    },
+    {
+      "id": "swsh1-etb-plus",
+      "set": "swsh1",
+      "kind": "etb",
+      "packs": 12,
+      "promos": [
+        "Zacian V"
+      ],
+      "source": {
+        "label": "TCGplayer — Sword & Shield Elite Trainer Box Plus [Zacian] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/222987"
+      }
+    },
+    {
+      "id": "swsh1-etb-plus-zamazenta",
+      "set": "swsh1",
+      "kind": "etb",
+      "packs": 12,
+      "promos": [
+        "Zamazenta V"
+      ],
+      "source": {
+        "label": "TCGplayer — Sword & Shield Elite Trainer Box Plus [Zamazenta] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/222986"
+      }
+    },
+    {
+      "id": "swsh1-etb-zamazenta",
+      "set": "swsh1",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Sword & Shield Elite Trainer Box [Zamazenta] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/206039"
+      }
+    },
+    {
+      "id": "swsh1-upc-zacian-zamazenta",
+      "set": "swsh1",
+      "kind": "special",
+      "packs": 16,
+      "promos": [
+        "Zacian V",
+        "Zamazenta V"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "swsh10-build-battle",
+      "set": "swsh10",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Hisuian Basculegion",
+        "Wyrdeer",
+        "Hisuian Samurott",
+        "Magnezone"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh10-etb",
+      "set": "swsh10",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh10-etb-pc",
+      "set": "swsh10",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Astral Radiance Pokémon Center Elite Trainer Box (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/265528"
+      }
+    },
+    {
+      "id": "swsh10-half-display",
+      "set": "swsh10",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh11-build-battle",
+      "set": "swsh11",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Finneon",
+        "Gengar",
+        "Comfey",
+        "Machamp"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh11-etb",
+      "set": "swsh11",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh11-etb-pc",
+      "set": "swsh11",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Lost Origin Pokémon Center Elite Trainer Box (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/277336"
+      }
+    },
+    {
+      "id": "swsh11-upc-arceus",
+      "set": "swsh11",
+      "kind": "special",
+      "packs": 15,
+      "promos": [],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "swsh11-upc-charizard",
+      "set": "swsh11",
+      "kind": "special",
+      "packs": 16,
+      "promos": [
+        "Charizard V",
+        "Charizard VMAX",
+        "Charizard VSTAR"
+      ],
+      "source": {
+        "label": "Pokémon product galleries and press releases — collection contents",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery"
+      }
+    },
+    {
+      "id": "swsh12-build-battle",
+      "set": "swsh12",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Sunflora",
+        "Rapidash",
+        "Kirlia",
+        "Archeops"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh12-etb",
+      "set": "swsh12",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh12-etb-pc",
+      "set": "swsh12",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Silver Tempest Pokémon Center Elite Trainer Box (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/285860"
+      }
+    },
+    {
+      "id": "swsh12pt5-booster",
+      "set": "swsh12pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Crown Zenith Elite Trainer Box",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/crown-zenith-elite-trainer-box"
+      }
+    },
+    {
+      "id": "swsh12pt5-bundle",
+      "set": "swsh12pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Crown Zenith Booster Bundle (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/527562"
+      }
+    },
+    {
+      "id": "swsh12pt5-etb",
+      "set": "swsh12pt5",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Lucario VSTAR"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Crown Zenith Elite Trainer Box",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/crown-zenith-elite-trainer-box"
+      }
+    },
+    {
+      "id": "swsh12pt5-etb-pc",
+      "set": "swsh12pt5",
+      "kind": "etb",
+      "packs": 12,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Crown Zenith Pokémon Center Elite Trainer Box Plus (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/454246"
+      }
+    },
+    {
+      "id": "swsh2-build-battle",
+      "set": "swsh2",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Flapple",
+        "Luxray",
+        "Coalossal",
+        "Garbodor"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh2-etb",
+      "set": "swsh2",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh3-build-battle",
+      "set": "swsh3",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Decidueye",
+        "Arctozolt",
+        "Hydreigon",
+        "Kangaskhan"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh3-etb",
+      "set": "swsh3",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh35-etb",
+      "set": "swsh35",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Charizard V"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh4-build-battle",
+      "set": "swsh4",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Charizard",
+        "Donphan",
+        "Snorlax",
+        "Lugia"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh4-etb",
+      "set": "swsh4",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh45-etb",
+      "set": "swsh45",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [
+        "Eevee VMAX"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh5-build-battle",
+      "set": "swsh5",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Cherrim",
+        "Octillery",
+        "Houndoom",
+        "Bronzong"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh5-etb",
+      "set": "swsh5",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Battle Styles Elite Trainer Box [Single Strike Urshifu] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/229284"
+      }
+    },
+    {
+      "id": "swsh5-etb-rapid-strike",
+      "set": "swsh5",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Battle Styles Elite Trainer Box [Rapid Strike Urshifu] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/229285"
+      }
+    },
+    {
+      "id": "swsh6-build-battle",
+      "set": "swsh6",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Cinderace",
+        "Inteleon",
+        "Cresselia",
+        "Passimian"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh6-etb",
+      "set": "swsh6",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Chilling Reign Elite Trainer Box [Ice Rider Calyrex] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/236260"
+      }
+    },
+    {
+      "id": "swsh6-etb-pc",
+      "set": "swsh6",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Chilling Reign Pokémon Center Elite Trainer Box [Ice Rider Calyrex] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/247281"
+      }
+    },
+    {
+      "id": "swsh6-etb-pc-shadow",
+      "set": "swsh6",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Chilling Reign Pokémon Center Elite Trainer Box [Shadow Rider Calyrex] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/247282"
+      }
+    },
+    {
+      "id": "swsh6-etb-shadow-rider",
+      "set": "swsh6",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Chilling Reign Elite Trainer Box [Shadow Rider Calyrex] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/236261"
+      }
+    },
+    {
+      "id": "swsh7-build-battle",
+      "set": "swsh7",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Flaaffy",
+        "Galarian Articuno",
+        "Galarian Zapdos",
+        "Galarian Moltres"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh7-etb",
+      "set": "swsh7",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Evolving Skies Elite Trainer Box [Flareon, Jolteon, Umbreon, Leafeon] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/242434"
+      }
+    },
+    {
+      "id": "swsh7-etb-glaceon",
+      "set": "swsh7",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Evolving Skies Elite Trainer Box [Glaceon, Vaporeon, Sylveon, Espeon] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/242443"
+      }
+    },
+    {
+      "id": "swsh7-etb-pc",
+      "set": "swsh7",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Evolving Skies Pokémon Center Elite Trainer Box [Jolteon/Flareon/Umbreon/Leafeon] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/245376"
+      }
+    },
+    {
+      "id": "swsh7-etb-pc-glaceon",
+      "set": "swsh7",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Evolving Skies Pokémon Center Elite Trainer Box [Glaceon/Vaporeon/Sylveon/Espeon] (Exclusive) (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/245352"
+      }
+    },
+    {
+      "id": "swsh7-half-display",
+      "set": "swsh7",
+      "kind": "display",
+      "packs": 18,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh8-build-battle",
+      "set": "swsh8",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Oricorio",
+        "Pyukumuku",
+        "Deoxys",
+        "Latias"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh8-etb",
+      "set": "swsh8",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh8-etb-pc",
+      "set": "swsh8",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Fusion Strike Pokémon Center Elite Trainer Box (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/247673"
+      }
+    },
+    {
+      "id": "swsh9-build-battle",
+      "set": "swsh9",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Moltres",
+        "Lucario",
+        "Liepard",
+        "Bibarel"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh9-etb",
+      "set": "swsh9",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon TCG product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    },
+    {
+      "id": "swsh9-etb-pc",
+      "set": "swsh9",
+      "kind": "etb",
+      "packs": 10,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Brilliant Stars Pokémon Center Elite Trainer Box (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/256140"
+      }
+    },
+    {
+      "id": "xy1-etb",
+      "set": "xy1",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — XY Elite Trainer Box [Xerneas] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/97747"
+      }
+    },
+    {
+      "id": "xy1-etb-yveltal",
+      "set": "xy1",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — XY Elite Trainer Box [Yveltal] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/97748"
+      }
+    },
+    {
+      "id": "xy10-build-battle",
+      "set": "xy10",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Moltres",
+        "White Kyurem",
+        "Zygarde",
+        "Tyranitar"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "xy10-etb",
+      "set": "xy10",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy11-build-battle",
+      "set": "xy11",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Yanmega",
+        "Volcanion",
+        "Clawitzer",
+        "Hoopa"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "xy11-etb",
+      "set": "xy11",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy12-build-battle",
+      "set": "xy12",
+      "kind": "special",
+      "packs": 4,
+      "promos": [
+        "Charizard",
+        "Gyarados",
+        "Mewtwo",
+        "Machamp"
+      ],
+      "source": {
+        "label": "Bulbapedia — Build & Battle Box (list of boxes)",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Build_%26_Battle_Box_(TCG)"
+      }
+    },
+    {
+      "id": "xy12-etb",
+      "set": "xy12",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Evolutions Elite Trainer Box [Mega Charizard Y] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/123447"
+      }
+    },
+    {
+      "id": "xy12-etb-blastoise",
+      "set": "xy12",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "TCGplayer — Evolutions Elite Trainer Box [Mega Blastoise] (market, via the tcgcsv mirror)",
+        "url": "https://www.tcgplayer.com/product/123448"
+      }
+    },
+    {
+      "id": "xy3-etb",
+      "set": "xy3",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy4-etb",
+      "set": "xy4",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy5-etb",
+      "set": "xy5",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Primal Clash Elite Trainer Box",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-primal-clash-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy5-etb-kyogre",
+      "set": "xy5",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Primal Clash Elite Trainer Box",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-primal-clash-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy6-etb",
+      "set": "xy6",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy7-etb",
+      "set": "xy7",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy8-etb",
+      "set": "xy8",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY BREAKthrough Elite Trainer Box",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-breakthrough-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy8-etb-mewtwo-y",
+      "set": "xy8",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY BREAKthrough Elite Trainer Box",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-breakthrough-elite-trainer-box"
+      }
+    },
+    {
+      "id": "xy9-etb",
+      "set": "xy9",
+      "kind": "etb",
+      "packs": 8,
+      "promos": [],
+      "source": {
+        "label": "Pokémon.com — XY Elite Trainer Box product pages; Bulbapedia",
+        "url": "https://www.pokemon.com/us/pokemon-tcg/product-gallery/xy-elite-trainer-box"
+      }
+    },
+    {
+      "id": "zsv10pt5-booster",
+      "set": "zsv10pt5",
+      "kind": "booster",
+      "packs": 1,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Black Bolt & White Flare expansions",
+        "url": "https://tcg.pokemon.com/en-us/expansions/black-white/"
+      }
+    },
+    {
+      "id": "zsv10pt5-bundle",
+      "set": "zsv10pt5",
+      "kind": "bundle",
+      "packs": 6,
+      "promos": [],
+      "source": {
+        "label": "Pokémon TCG — Black Bolt & White Flare expansions",
+        "url": "https://tcg.pokemon.com/en-us/expansions/black-white/"
+      }
+    },
+    {
+      "id": "zsv10pt5-etb",
+      "set": "zsv10pt5",
+      "kind": "etb",
+      "packs": 9,
+      "promos": [
+        "Thundurus"
+      ],
+      "source": {
+        "label": "Pokémon TCG — Black Bolt & White Flare expansions",
+        "url": "https://tcg.pokemon.com/en-us/expansions/black-white/"
+      }
+    },
+    {
+      "id": "zsv10pt5-etb-pc",
+      "set": "zsv10pt5",
+      "kind": "etb",
+      "packs": 11,
+      "promos": [
+        "Thundurus"
+      ],
+      "source": {
+        "label": "Bulbapedia — Elite Trainer Box (TCG); Pokémon Center product pages",
+        "url": "https://bulbapedia.bulbagarden.net/wiki/Elite_Trainer_Box_(TCG)"
+      }
+    }
+  ]
+}

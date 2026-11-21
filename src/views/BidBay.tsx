@@ -7,7 +7,7 @@ import {
   type EbayNpcAuction,
 } from '../api'
 import { useStore } from '../store'
-import { CardImg, FirstUseTip, fmtUsd, TipList } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, TipList } from '../components'
 import { variantTag } from '../variant-label'
 import { ShipSection } from './ShipBay'
 
@@ -596,6 +596,7 @@ export function BidBayView() {
   const [listingId, setListingId] = useState<number | ''>('')
   const [ask, setAsk] = useState('')
   const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const [q, setQ] = useState('')
   const [appliedQ, setAppliedQ] = useState('')
@@ -614,13 +615,18 @@ export function BidBayView() {
   })
   const setF = (patch: Partial<typeof f>) => setFstate((s) => ({ ...s, ...patch }))
 
-  const load = () => api.ebay().then(setData).catch(() => {})
+  const load = (initial = false) => {
+    if (initial) setStatus('loading')
+    api.ebay()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => { if (initial) setStatus('error') })
+  }
   const loadMarket = () => api.ebayMarket().then(setMarket).catch(() => {})
   const loadLots = () => api.ebayAuctions().then((d) => setLots(d.live)).catch(() => {})
   const loadRecent = () => api.ebayAuctions().then((d) => setRecent(d.recent)).catch(() => {})
   const loadNpcLots = () => api.ebayNpcAuctions().then(setNpcLots).catch(() => {})
 
-  useEffect(() => { load(); loadMarket(); loadLots(); loadRecent(); loadNpcLots() }, [])
+  useEffect(() => { load(true); loadMarket(); loadLots(); loadRecent(); loadNpcLots() }, [])
   useEffect(() => {
     const t = setInterval(load, 8000)
     const t2 = setInterval(loadMarket, 12000)
@@ -631,7 +637,7 @@ export function BidBayView() {
   }, [])
 
   useEffect(() => {
-    api.inventory().then((rows) =>
+    api.inventoryLight().then((rows) =>
       setCollection(
         rows
           .filter((r) => r.status === 'collection' && !r.graded_grade)
@@ -811,6 +817,9 @@ export function BidBayView() {
       onPromote={r.kind === 'mine' && r.listing ? () => promote(r.listing!.id) : undefined}
     />
   )
+
+  if (status === 'error') return <LoadFailure what="BidBay" onRetry={() => load(true)} />
+  if (!data) return <EmptyState icon="📦" text="Opening BidBay…" sub="Pulling live listings, auctions and your watchlist." />
 
   return (
     <div className="bb">

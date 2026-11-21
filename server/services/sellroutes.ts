@@ -34,6 +34,8 @@ export type SellRoute = {
   /** When the money arrives. */
   wait: string
   note: string
+  /** Why this door is not usable yet — a nav gate, not a market condition. */
+  locked?: string
 }
 
 const MARKET_FEE = 0.1 // market.ts commissions every listing at 10%
@@ -54,6 +56,10 @@ export function forCard(inventoryId: number) {
   }))
   if (!(market > 0)) return { ok: false as const, error: 'No market price for this card yet — sync the set first' }
 
+  // Two of the four doors are still behind a nav gate on a young save. The
+  // comparison must not recommend them as if they were available.
+  const cash = (db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }).cash
+  const sales = (db.prepare('SELECT COUNT(*) AS n FROM sale_history').get() as { n: number }).n
   const dealerNet = round2(market * dealerMultiplier(row.id))
   const marketNet = round2(market * (1 - MARKET_FEE))
   const buylistNet = round2(market * BEST_BUYLIST)
@@ -83,6 +89,7 @@ export function forCard(inventoryId: number) {
       pct: dealerNet / market,
       wait: 'now',
       note: 'The resale desk dealer takes it off your hands at 70–92% of market.',
+      locked: cash < 400 ? 'Resale Desk opens at $400 cash' : undefined,
     },
     {
       id: 'pawn',
@@ -91,10 +98,14 @@ export function forCard(inventoryId: number) {
       pct: pawnNet / market,
       wait: 'now',
       note: `The last resort — ${Math.round(PAWN_QUOTE * 100)}% of fire-sale value, and fire-sale value is already a discount.`,
+      locked: sales < 3 ? 'Pawn Shop opens at 3 sales' : undefined,
     },
   ]
 
-  const best = routes.reduce((a, b) => (b.net > a.net ? b : a))
+  // "Best" means best door you can actually walk through. A locked counter
+  // still shows what it would pay, but it cannot win the comparison.
+  const open = routes.filter((r) => !r.locked)
+  const best = (open.length > 0 ? open : routes).reduce((a, b) => (b.net > a.net ? b : a))
   return {
     ok: true as const,
     inventoryId,

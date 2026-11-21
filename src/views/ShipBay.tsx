@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, type ShipmentRow, type ShipMethodInfo, type PackLevelInfo, type SuppliesStatus } from '../api'
 import { useStore } from '../store'
-import { CardImg, FirstUseTip, fmtUsd } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
 // 📮 To-ship & disputes — a BidBay sale isn't money until the envelope lands.
@@ -16,9 +16,14 @@ export function ShipSection() {
   const [supplies, setSupplies] = useState<SuppliesStatus | null>(null)
   const [shipFor, setShipFor] = useState<ShipmentRow | null>(null)
   const [busy, setBusy] = useState(false)
+  // A failed read used to render every section as empty — "nothing to ship"
+  // when the truth was that nobody answered.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const load = () => {
-    api.shipments().then(setData).catch(() => {})
+    api.shipments()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
     api.supplies().then(setSupplies).catch(() => {})
   }
   useEffect(() => { load() }, [])
@@ -61,6 +66,12 @@ export function ShipSection() {
   const disputes = (data?.inFlight ?? []).filter((s) => s.status === 'disputed')
   const transit = (data?.inFlight ?? []).filter((s) => s.status === 'in_transit')
   const history = data?.history ?? []
+
+  if (!data) {
+    return status === 'error'
+      ? <LoadFailure what="the ship bay" sub="The to-ship queue did not load. No shipment was changed." onRetry={load} />
+      : <EmptyState icon="📮" text="Checking the to-ship queue…" />
+  }
 
   return (
     <div>

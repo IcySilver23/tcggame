@@ -28,8 +28,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { db } from '../server/lib/db'
 import { rollPack } from '../server/services/packs'
-import { planFor, expectedPackValue } from '../server/services/packodds'
-import { ensureFullCatalog, sellsOwnPacks, priceDetail, SUBSET_ONLY_SETS } from '../server/services/sealed'
+import { planFor, expectedPackValue, HOST_SUBSETS, SUBSET_TIER_ODDS, subsetChanceFor } from '../server/services/packodds'
+import { ensureFullCatalog, sellsProduct, priceDetail, promoValueOf, SEALED_FLOOR, SEALED_REALIZATION, SUBSET_ONLY_SETS } from '../server/services/sealed'
 import { miniPackFor } from '../server/catalog/general-mills'
 
 const N = Number(process.env.SEALED_PACKS ?? 40)
@@ -105,6 +105,8 @@ type Row = {
   ratio: number | null
   hidden: boolean
   mini: boolean
+  source: string
+  year: number
   issues: string[]
 }
 
@@ -112,7 +114,7 @@ const rows: Row[] = []
 const failures: Row[] = []
 for (const p of products) {
   const mini = !!miniPackFor(p.id)
-  const hidden = !sellsOwnPacks(p.set_id)
+  const hidden = !sellsProduct(p.id, p.set_id)
   const shape = shapeOf(p.set_id)
   const issues: string[] = []
   if (!mini) {
@@ -121,12 +123,18 @@ for (const p of products) {
       if (shape.pool === 0) issues.push('no-table')
       if (shape.pool > 0 && shape.avg < shape.plan - 0.01) issues.push('short')
       if (shape.plan >= 4 && shape.pool > 0 && shape.avg <= 1.5) issues.push('one-card')
-      if (p.kind === 'booster' && p.cards_per_pack !== shape.plan) issues.push('declared')
+      // `cards_per_pack` is the game count, not the physical wrapper count.
+      // Resolve it through the same blueprint the opener uses: a 30th
+      // Celebration row that says six would otherwise advertise a six-card
+      // rip while the roller deals ten.
+      const gamePlan = planFor(p.set_id, p.cards_per_pack || 10).reduce((a, s) => a + s.count, 0)
+      if (p.cards_per_pack && gamePlan !== p.cards_per_pack) issues.push(`declared ${p.cards_per_pack} vs plan ${gamePlan}`)
       if (p.kind !== 'booster' && p.kind !== 'special' && (!p.packs || p.packs < 1)) issues.push('bad-box')
       if (SUBSET_ONLY_SETS.has(p.set_id)) issues.push('sold-subset')
     }
   }
-  const quoted = priceDetail(p.id).market
+  const detail = priceDetail(p.id)
+  const quoted = detail.market
   const market = FIXTURE_RIP === p.id ? Math.round(quoted * 0.25 * 100) / 100 : quoted
   const ev = expectedPackValue(p.set_id)
   const packs = Math.max(1, p.packs ?? 1)
@@ -149,6 +157,8 @@ for (const p of products) {
     ratio,
     hidden,
     mini,
+    source: detail.source,
+    year: Number((p.release_date ?? '').slice(0, 4)) || 0,
     issues,
   }
   rows.push(row)
@@ -168,12 +178,58 @@ for (const r of ripPositive) {
   if (!failures.includes(r)) failures.push(r)
 }
 
+// Modern sealed prices at its contents: since the out-of-print curve stopped
+// stacking on a content value that is already a today's market figure, no
+// modern box should cost materially more than the packs inside it. The Crown
+// Zenith ETB sat at $790 against $180 of packs, so this is a failure, not a
+// warning. Real quotes are exempt (a marketplace price is data, not a model),
+// and so is anything the box guarantees beyond packs: a promo sealed inside it
+// is a card, not scarcity appreciation, so the bar is contents + promo. The
+// per-kind floor is the other legitimate reason to sit above contents: a $32
+// ETB minimum is a shop rule, not a scarcity curve. Contents are counted at
+// their realized value, because the floor is what selling the pulls pays.
+const stacked = sold.filter((r) => {
+  if (r.kind === 'special' || r.source !== 'estimated' || r.year < 2011) return false
+  const allowed = Math.max(r.productEv * SEALED_REALIZATION, SEALED_FLOOR[r.kind] ?? 0) + promoValueOf(r.id) + 0.5
+  if (r.market <= allowed) return false
+  return priceDetail(r.id).oopMonths > 0
+})
+for (const r of stacked) {
+  if (!r.issues.includes('stacked')) r.issues.push('stacked')
+  if (!failures.includes(r)) failures.push(r)
+}
+
+// A bonus subset is never guaranteed in every pack and is never a flat pool.
+// Every host here (the two Shiny Vaults and the four Trainer Galleries) was
+// seeding its subset into all packs at 1/n, which priced a $290 Giratina like a
+// $2 Thievul and a Shiny Charizard like a Shiny Skwovet. A host with researched
+// tier odds must weight its rarities apart; a host without them may stay even,
+// but its slot rate still has to be below certainty.
+const subsetIssues: string[] = []
+for (const host of Object.keys(HOST_SUBSETS)) {
+  const rows = db
+    .prepare(
+      `SELECT p.weight AS w, c.rarity AS rarity FROM pack_product_cards p
+       JOIN cards c ON c.id = p.card_id
+       WHERE p.pack_product_id = ? AND p.slot = 'subset'`,
+    )
+    .all(`${host}-booster`) as { w: number; rarity: string | null }[]
+  if (rows.length === 0) {
+    subsetIssues.push(`${host}: no subset pool`)
+    continue
+  }
+  if (subsetChanceFor(host) >= 1) subsetIssues.push(`${host}: the subset fills every pack`)
+  const distinct = new Set(rows.map((r) => r.w.toFixed(9)))
+  if (SUBSET_TIER_ODDS[host] && distinct.size < 2) subsetIssues.push(`${host}: flat pool despite researched tier odds`)
+}
+for (const i of subsetIssues) console.log(`  FAIL subset: ${i}`)
+
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`
 const md: string[] = []
 md.push('# Sealed products, every product')
 md.push('')
 md.push(
-  `Swept ${rows.length} sealed products across ${new Set(rows.map((r) => r.set)).size} sets; ${sold.length} offered for sale, ${hiddenRows.length} kept for owned stock only, ${miniRows.length} mini packs with their own composition. Each set is dealt ${N} packs.`,
+  `Swept ${rows.length} sealed products across ${new Set(rows.map((r) => r.set)).size} sets; ${sold.length} offered for sale, ${hiddenRows.length} hidden pull-table hosts, ${miniRows.length} mini packs with their own composition. Each set is dealt ${N} packs.`,
 )
 md.push('')
 md.push('## Summary')
@@ -181,7 +237,7 @@ md.push('')
 md.push('| | Products |')
 md.push('|---|---:|')
 md.push(`| Offered for sale | ${sold.length} |`)
-md.push(`| Hidden (no wrapper of their own) | ${hiddenRows.length} |`)
+md.push(`| Hidden (pull-table hosts) | ${hiddenRows.length} |`)
 md.push(`| Mini packs (own composition) | ${miniRows.length} |`)
 md.push(`| Failures | ${failures.length} |`)
 md.push('')
@@ -205,11 +261,11 @@ else {
   for (const r of ripPositive) md.push(`| ${r.id} | ${r.set_name} | ${r.kind} | $${r.productEv.toFixed(2)} | $${r.market.toFixed(2)} | ${(r.ratio ?? 0).toFixed(2)}× |`)
 }
 md.push('')
-md.push('## Hidden, not sold')
+md.push('## Pull-table hosts (not sold)')
 md.push('')
 if (hiddenRows.length === 0) md.push('None.')
 else {
-  md.push('These sets have no wrapper of their own: they are subset-only, or their cards came in decks, promo giveaways, a fixed binder, or one per toy. Their rows are kept so stock already owned still resolves; the shop, pack battles and live shows do not offer them.')
+  md.push('These rows are kept only as internal pull-table hosts: the real products for those sets read the booster table, so deleting the host would break them. They are not offered in the shop, pack battles or live shows.')
   md.push('')
   md.push('| Set | Products |')
   md.push('|---|---:|')
@@ -232,7 +288,7 @@ md.push('')
 md.push('## Method')
 md.push('')
 md.push(
-  'Each set is dealt 40 packs through the same roller the shop uses; the blueprint is the source of truth, so a four-card Celebrations pack is judged as four. A product fails when its set has no booster pool, the pack deals fewer cards than the blueprint, it deals one card or fewer, the product advertises a different card count, a box has no pack count, or a subset-only set is somehow still offered. Every sold product\'s shelf price is floored at expected pull value × its real pack count; a rip-positive product is a pricing failure and makes the audit exit non-zero. Boxes reuse the set\'s per-pack roll, so the check covers them through their set.',
+  'Each set is dealt 40 packs through the same roller the shop uses; the blueprint is the source of truth, so a four-card Celebrations pack is judged as four. A product fails when its set has no booster pool, the pack deals fewer cards than the blueprint, it deals one card or fewer, the product advertises a different card count, a box has no pack count, or a subset-only set is somehow still offered. Every sold product\'s shelf price is floored at the realized value of its pulls (92%, the best any sell route pays) for its real pack count; a rip-positive product is a pricing failure and makes the audit exit non-zero. Boxes reuse the set\'s per-pack roll, so the check covers them through their set.',
 )
 md.push('')
 md.push('## Every sold product')
@@ -263,4 +319,4 @@ console.log(`products ${rows.length} | sold ${sold.length} | hidden ${hiddenRows
 for (const r of failures.slice(0, 40)) console.log(`  FAIL ${r.id} (${r.kind}) declared ${r.cards_per_pack} plan ${r.plan} dealt ${r.dealt}: ${r.issues.join(', ')}`)
 for (const r of ripPositive.slice(0, 10)) console.log(`  RIP-POSITIVE ${r.id}: EV $${r.ev.toFixed(2)} vs $${r.market.toFixed(2)} (${(r.ratio ?? 0).toFixed(2)}×)`)
 console.log(`report: ${REPORT_DIR}/sealed-products.{json,md}`)
-process.exit(failures.length === 0 ? 0 : 1)
+process.exit(failures.length === 0 && subsetIssues.length === 0 ? 0 : 1)

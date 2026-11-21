@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import type { TradeOfferRow, TradeReply, TraderRow } from '../api'
 import { useStore } from '../store'
-import { CardImg, fmtUsd } from '../components'
+import { CardImg, EmptyState, fmtUsd, LoadFailure } from '../components'
 import { variantTag } from '../variant-label'
 
 // ---------------------------------------------------------------------------
@@ -525,11 +525,19 @@ export function TradeView() {
   const [history, setHistory] = useState<{ id: number; message: string; created_at: string }[]>([])
   const [tab, setTab] = useState<'offers' | 'traders' | 'ledger'>('offers')
   const { state } = useStore()
+  // A dead server used to read as "0 traders in town" and "nothing on the
+  // table" — both of which are real game states, so the screen could not be
+  // trusted. It now says which one it is.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const load = () => {
-    api.traders().then(setTraders).catch(() => {})
-    api.tradePending().then(setOffers).catch(() => {})
-    api.tradeHistory().then(setHistory).catch(() => {})
+    Promise.allSettled([
+      api.traders().then(setTraders),
+      api.tradePending().then(setOffers),
+      api.tradeHistory().then(setHistory),
+    ]).then((settled) =>
+      setStatus(settled.some((r) => r.status === 'fulfilled') ? 'ready' : 'error'),
+    )
   }
   useEffect(() => { load() }, [])
   // Offers arrive on the game tick — poll alongside the state cycle. Traders
@@ -548,6 +556,13 @@ export function TradeView() {
     [traders],
   )
   const netEv = lifetime.reduce((a, t) => a + t.ev_net, 0)
+
+  if (status === 'error') {
+    return <LoadFailure what="the trading post" sub="The local server did not answer. No offer was answered." onRetry={() => { setStatus('loading'); load() }} />
+  }
+  if (status === 'loading') {
+    return <EmptyState icon="🤝" text="Opening the trading post…" sub="Reading the traders, the offers on the table and your trade log." />
+  }
 
   return (
     <div>

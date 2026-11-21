@@ -11,7 +11,7 @@ import {
   type TournamentStatus,
 } from '../api'
 import { useStore } from '../store'
-import { byNum, CardImg, Chip, EmptyState, fmtUsd, matchesQuery, SearchInput, SortSelect, TearPack, RecordMoment, glowClass } from '../components'
+import { byNum, CardImg, Chip, EmptyState, fmtUsd, LoadFailure, matchesQuery, SearchInput, SortSelect, TearPack, RecordMoment, glowClass } from '../components'
 import { hitStinger } from '../audio'
 
 // ---------------------------------------------------------------------------
@@ -44,11 +44,18 @@ export function PackBattlesView() {
   // The affordability chip: hide products whose stake is more cash than you hold.
   const [affordableOnly, setAffordableOnly] = useState(false)
   const cash = state?.cash ?? null
+  // Three silent fetches used to leave an empty rival roster and an empty
+  // product list looking like the game had no opponents and nothing to buy.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const load = () => {
-    api.battleRivals().then(setRivals).catch(() => {})
-    api.battleProducts().then(setProducts).catch(() => {})
-    api.battleRecord().then(setRecord).catch(() => {})
+    Promise.allSettled([
+      api.battleRivals().then(setRivals),
+      api.battleProducts().then(setProducts),
+      api.battleRecord().then(setRecord),
+    ]).then((settled) =>
+      setStatus(settled.some((r) => r.status === 'fulfilled') ? 'ready' : 'error'),
+    )
   }
 
   const duck = async (id: string) => {
@@ -133,6 +140,13 @@ export function PackBattlesView() {
   }
 
   if (result) return <BattleCeremony result={result} onDone={() => { setResult(null) }} onOpenCard={openCard} />
+
+  if (status === 'error') {
+    return <LoadFailure what="the battle board" sub="The local server did not answer. Nothing was staked." onRetry={() => { setStatus('loading'); load() }} />
+  }
+  if (status === 'loading') {
+    return <EmptyState icon="⚔️" text="Opening the arena…" sub="Reading the rival roster, the products you can stake and your record." />
+  }
 
   return (
     <div>

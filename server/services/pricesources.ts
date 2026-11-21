@@ -1,4 +1,5 @@
 import { db, getMeta, setMeta, getSetting, nowIso, logActivity } from '../lib/db'
+import { markPricesChanged } from '../lib/derived-cache'
 import { fetchJson } from '../lib/http'
 import { syncAllTcgcsv } from './tcgcsv'
 import { chargePc, chargeEbay, markQuotaExhausted, pcBudget, ebayBudget, generateSimPrices } from './simmarket'
@@ -17,10 +18,11 @@ import { chargePc, chargeEbay, markQuotaExhausted, pcBudget, ebayBudget, generat
 // flow through resolvePrice exactly like TCGplayer data. Cards without BOTH
 // TCGplayer and external data still fall back to the model estimate.
 //
-// GRADED prices: PriceCharting exposes PSA/BGS/CGC/SGC grade columns (kind
-// 'pc-graded'). When a card has no PC data (or PC has no price for that grade),
-// we compute an eBay comp: the median of active fixed-price listings whose
-// titles mention the card AND the grade (kind 'ebay-graded').
+// GRADED prices: PriceCharting exposes PSA/BGS/CGC/SGC grade columns, including
+// BGS 10 Black (kind 'pc-graded'). When a card has no PC data (or PC has no
+// price for that grade), we compute an eBay comp: the median of active
+// fixed-price listings whose titles mention the card AND the grade (kind
+// 'ebay-graded').
 // ---------------------------------------------------------------------------
 
 export type ExternalSource = 'pricecharting' | 'ebay'
@@ -32,11 +34,12 @@ export type ExternalSource = 'pricecharting' | 'ebay'
 //   new-price          = PSA 8
 //   cib-price          = PSA 7
 //   bgs-10-price       = BGS 10
+//   condition-20-price = BGS 10 Black (Black Label)
 //   condition-17-price = CGC 10
 //   condition-18-price = SGC 10
-export type PcGrades = Partial<Record<'PSA10' | 'PSA9' | 'PSA8' | 'PSA7' | 'BGS10' | 'CGC10' | 'SGC10', number>>
-const PC_GRADE_KEYS = ['manual-only-price', 'graded-price', 'new-price', 'cib-price', 'bgs-10-price', 'condition-17-price', 'condition-18-price'] as const
-const PC_GRADE_NAMES = ['PSA10', 'PSA9', 'PSA8', 'PSA7', 'BGS10', 'CGC10', 'SGC10'] as const
+export type PcGrades = Partial<Record<'PSA10' | 'PSA9' | 'PSA8' | 'PSA7' | 'BGS10BL' | 'BGS10' | 'CGC10' | 'SGC10', number>>
+const PC_GRADE_KEYS = ['manual-only-price', 'graded-price', 'new-price', 'cib-price', 'bgs-10-price', 'condition-20-price', 'condition-17-price', 'condition-18-price'] as const
+const PC_GRADE_NAMES = ['PSA10', 'PSA9', 'PSA8', 'PSA7', 'BGS10', 'BGS10BL', 'CGC10', 'SGC10'] as const
 
 export function pricechartingToken(): string | null {
   return process.env.PRICECHARTING_TOKEN || getSetting('pricechartingToken') || null
@@ -184,15 +187,31 @@ type EbaySearch = { itemSummaries?: { title: string; price?: { value: string } }
 // ---------------------------------------------------------------------------
 
 // Grade → title patterns, ordered most-specific first. A listing must match the
-// card name (checked separately) AND one of the grade's patterns.
+// card name (checked separately) AND the grade. Black Label and ordinary BGS 10
+// are separate markets: never let a Black Label listing anchor a BGS 10 comp.
 const GRADE_PATTERNS: Record<string, RegExp[]> = {
   PSA10: [/psa\s*10/, /gem\s*mint/, /psa\s*gem/i],
   PSA9: [/psa\s*9(?![\.\d])/], // 9 but not 9.x / 9.8 etc.
   PSA8: [/psa\s*8(?![\.\d])/],
   PSA7: [/psa\s*7(?![\.\d])/],
-  BGS10: [/bgs\s*10/, /black\s*label/i],
+  BGS10BL: [/bgs\s*10/, /black\s*label/],
+  BGS10: [/bgs\s*10/],
+  CGC10P: [/cgc\s*(?:10\s*)?pristine/, /pristine\s*(?:cgc\s*)?10/],
   CGC10: [/cgc\s*10/],
   SGC10: [/sgc\s*10/],
+}
+
+function titleMatchesGrade(title: string, grade: string, patterns: RegExp[]): boolean {
+  // Sellers write both "BGS 10 Black Label" and "BGS Black Label 10"; accept
+  // either order, and PriceCharting's shorter "BGS 10 Black" wording.
+  const blackLabel = /black\s*label/.test(title) || /bgs\s*10\s*black/.test(title)
+  if (grade === 'BGS10BL') return /\bbgs\b/.test(title) && blackLabel && /\b10\b/.test(title)
+  if (grade === 'BGS10') return /bgs\s*10/.test(title) && !blackLabel
+  // Pristine and ordinary CGC 10 are separate markets; a Pristine listing
+  // must never anchor a Gem Mint comp (or vice versa).
+  if (grade === 'CGC10') return /\bcgc\b/.test(title) && /\b10\b/.test(title) && !/pristine/.test(title)
+  if (grade === 'CGC10P') return /\bcgc\b/.test(title) && /\b10\b/.test(title) && /pristine/.test(title)
+  return patterns.some((p) => p.test(title))
 }
 
 export async function fetchEbayGraded(card: CardRef, grade: string): Promise<{ market: number; low: number | null; high: number | null; comps: number } | null> {
@@ -200,7 +219,8 @@ export async function fetchEbayGraded(card: CardRef, grade: string): Promise<{ m
   if (!token) return null
   const patterns = GRADE_PATTERNS[grade]
   if (!patterns) return null
-  const q = `${card.name} ${card.set_name} ${card.number} ${grade.startsWith('PSA') ? 'PSA' : grade.slice(0, 3)}`
+  const gradeTerm = grade === 'BGS10BL' ? 'BGS 10 Black Label' : grade === 'CGC10P' ? 'CGC 10 Pristine' : grade.startsWith('PSA') ? 'PSA' : grade.slice(0, 3)
+  const q = `${card.name} ${card.set_name} ${card.number} ${gradeTerm}`
   const url =
     `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(q)}` +
     `&limit=40&filter=buyingOptions:{FIXED_PRICE},itemLocationCountry:US`
@@ -214,10 +234,13 @@ export async function fetchEbayGraded(card: CardRef, grade: string): Promise<{ m
   const prices = (data.itemSummaries ?? [])
     .map((i) => ({ title: i.title.toLowerCase(), price: Number(i.price?.value) }))
     .filter((i) => Number.isFinite(i.price) && i.price > 0 && i.title.includes(name))
-    .filter((i) => patterns.some((p) => p.test(i.title)) && !/raw|ungraded/.test(i.title))
+    .filter((i) => titleMatchesGrade(i.title, grade, patterns) && !/raw|ungraded/.test(i.title))
     .map((i) => i.price as number)
     .sort((a, b) => a - b)
-  if (prices.length < 3) return null // too few graded comps to trust
+  // Black Labels and CGC Pristines are scarce; one exact-title listing is
+  // still a real comp and far better than a multiplier. Ordinary grades keep
+  // the 3-comp floor.
+  if (prices.length < (grade === 'BGS10BL' || grade === 'CGC10P' ? 1 : 3)) return null
   // Trim 10% outliers each side before the median so one wild listing doesn't anchor the price.
   const trim = Math.floor(prices.length * 0.1)
   const core = prices.slice(trim, prices.length - trim)
@@ -234,6 +257,7 @@ const insertEbayGraded = db.prepare(
 export function storeEbayGrades(cardId: string, grade: string, p: { market: number; low: number | null; high: number | null }): boolean {
   if (alreadyStoredToday.get(cardId, 'ebay-graded', grade)) return false
   insertEbayGraded.run(cardId, grade, p.low, p.market, p.high, p.market, nowIso())
+  markPricesChanged()
   return true
 }
 
@@ -248,7 +272,14 @@ export async function ensureGradedComp(cardId: string, grade: string): Promise<'
       `SELECT kind FROM price_records WHERE card_id = ? AND kind IN ('pc-graded', 'ebay-graded') AND variant = ? AND market IS NOT NULL LIMIT 1`,
     )
     .get(cardId, grade) as { kind: string } | undefined
-  if (have) return have.kind as 'pc-graded' | 'ebay-graded'
+  // Black Label: if only an eBay comp is stored, still give PriceCharting a
+  // chance to supply its BGS 10 Black value. That value can itself be an
+  // estimate, so the UI never calls it sold; it is preferred over a single
+  // active ask because it is a broader market value. Every other grade keeps
+  // the existing first-hit behaviour.
+  if (have && !(grade === 'BGS10BL' && have.kind === 'ebay-graded' && pricechartingToken())) {
+    return have.kind as 'pc-graded' | 'ebay-graded'
+  }
   const card = db
     .prepare(
       `SELECT c.id, c.name, c.number, s.name AS set_name, s.ptcgo_code
@@ -256,15 +287,20 @@ export async function ensureGradedComp(cardId: string, grade: string): Promise<'
     )
     .get(cardId) as CardRef | undefined
   if (!card) return null
-  if (pricechartingToken()) {
+  // PriceCharting has no CGC Pristine column, so asking it for that grade only
+  // burns a call and lands back here. The CGC 10 comp is fetched separately.
+  if (pricechartingToken() && grade !== 'CGC10P') {
     try {
       const res = await fetchPriceCharting(card)
-      if (res?.grades?.[grade as keyof PcGrades]) {
+      if (res) {
+        // Store the whole ladder even when this grade is missing: the BGS 10
+        // price is the fallback for a Black Label that has no quote of its own.
         storePriceCharting(cardId, res)
-        return 'pc-graded'
+        if (res.grades?.[grade as keyof PcGrades]) return 'pc-graded'
       }
     } catch { /* fall through to eBay */ }
   }
+  if (have) return have.kind as 'pc-graded' | 'ebay-graded'
   if (ebayConfig()) {
     try {
       const comp = await fetchEbayGraded(card, grade)
@@ -320,6 +356,7 @@ const insertGraded = db.prepare(
 function storeExternal(cardId: string, kind: ExternalSource, p: { market: number; low: number | null; high: number | null }): boolean {
   if (alreadyStoredToday.get(cardId, kind, 'normal')) return false
   insertPrice.run(cardId, kind, p.low, p.market, p.high, p.market, nowIso())
+  markPricesChanged()
   return true
 }
 
@@ -336,6 +373,7 @@ export function storeGrades(cardId: string, grades: PcGrades): number {
     insertGraded.run(cardId, grade, usd, usd, usd, nowIso())
     n++
   }
+  if (n > 0) markPricesChanged()
   return n
 }
 
@@ -585,6 +623,10 @@ const gradedCompQueue = db.prepare(
      JOIN (SELECT 'PSA10' AS grade UNION SELECT 'PSA9' UNION SELECT 'PSA8' UNION SELECT 'PSA7'
                 UNION SELECT 'BGS10' UNION SELECT 'CGC10' UNION SELECT 'SGC10') g
      WHERE i.graded_grade IS NOT NULL
+     UNION ALL
+     SELECT i.card_id, 'BGS10BL' FROM inventory i WHERE i.graded_grade = 'BGS10BL'
+     UNION ALL
+     SELECT i.card_id, 'CGC10P' FROM inventory i WHERE i.graded_grade = 'CGC10P'
    ) WHERE card_id || ':' || variant NOT IN (
      SELECT card_id || ':' || variant FROM price_records WHERE kind IN ('pc-graded', 'ebay-graded') AND market IS NOT NULL
    )

@@ -5,11 +5,17 @@
 // a DOM node. Two rules keep it from ever making a card worse than the scan:
 //
 //   - the artwork is the <img> underneath, untouched. The foil is a canvas on
-//     top that is not drawn until the pointer is over the card, so a card at
-//     rest is the scan, pixel for pixel — not a dimmed or tinted version of it;
+//     top; its paper renders at a fixed neutral tilt, and the advanced mode adds
+//     pointer tilt plus the iridescent/relief treatment — never a filter over the
+//     scan;
 //   - anything that could fail leaves the plain artwork alone instead of drawing
-//     a broken overlay: a CDN without CORS, a missing 2D context, a user who
-//     asked for reduced motion, a thumbnail too small to read, a decode error.
+//     a broken overlay: a CDN without CORS, a missing 2D context, a browser that
+//     asks for reduced motion (the paper stays still), a thumbnail too small to
+//     read, a decode error.
+//
+// The Settings switch is not a gate on the paper: it turns the advanced treatment
+// on and off. Cosmos, reverse, Cracked Ice and every other resolved paper render
+// at rest whether that switch is on or off.
 //
 // A Radiant Collection card draws its OWN motif from the concept pack. Until that
 // texture is decoded it shows an unpatterned reflection rather than a stand-in —
@@ -17,17 +23,18 @@
 // texture renders plain foil — uniform light, no marks — because using another
 // card's motif would be a claim about a card we have not researched.
 //
-// It also refuses to be expensive. The foil is computed at a fixed 200x279 no
-// matter how large the card is on screen, at most ~30 times a second, only for
-// the card under the pointer, and textures are decoded once per card.
+// It also refuses to be expensive. The foil is computed at a fixed 200x279, at
+// most ~30 times a second, only when the card is visible and large enough to read.
+// The paper paints one static frame; the animation loop only runs while the
+// advanced treatment has the pointer.
 
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import { foilMaskFor } from './mask'
 import { reverseSettingsFor } from './reverse-db'
 import { setIdOf } from '../holo'
-import { FACE_ON, tiltForPointer, type FoilTilt } from './reflection'
-import { DEFAULT_FOIL_SETTINGS } from './stages'
+import { tiltForPointer, type FoilTilt } from './reflection'
+import { DEFAULT_FOIL_SETTINGS, type FoilSettings } from './stages'
 import { composeFrameInto } from './engine'
 import { loadMarkFieldFor, type MarkField } from './mark-field'
 import { loadSurface, surfaceFor } from './surface-textures'
@@ -58,6 +65,21 @@ const MIN_WIDTH = 96
 const FRAME_MS = 32
 /** How quickly the card eases toward the pointer. */
 const EASE = 0.22
+/** Fixed neutral tilt for the always-on paper fallback. */
+const PAPER_TILT: FoilTilt = { deg: 22, axis: Math.PI / 4 }
+/** The paper fallback is quieter than the advanced hover treatment. */
+const PAPER_INTENSITY = 0.6
+
+/**
+ * A zero-to-seven-second stagger, derived from the card id so it is stable.
+ * A shelf of holos that swept in lockstep would read as one blinking panel.
+ */
+function shineDelayFor(cardId?: string | null): number {
+  let h = 0
+  const s = cardId ?? ''
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return h % 7000
+}
 
 type Props = {
   wrapRef: React.RefObject<HTMLDivElement | null>
@@ -69,15 +91,17 @@ type Props = {
 
 export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  // Foil is parked behind a switch (Settings → Appearance). Off means the card is
-  // its scan: no reflection, no sheet fetch, no pointer listeners. Flipping the
-  // switch re-runs this effect, so nothing else has to know.
+  // Settings → Appearance controls the ADVANCED treatment, not whether foil
+  // exists. The paper fallback always renders; this switch adds the pointer tilt,
+  // iridescence and relief. Flipping it re-runs the effect.
   const foil = useStore((s) => s.foil)
 
   useEffect(() => {
     const wrap = wrapRef.current
     const canvas = canvasRef.current
-    if (!foil || !wrap || !canvas || !src) return
+    if (!wrap || !canvas || !src) return
+    const advanced = foil
+    canvas.style.opacity = '0'
 
     // Not foil at all? Nothing to load, nothing to draw.
     const spec = foilMaskFor({ cardId, rarity, variant })
@@ -88,12 +112,25 @@ export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
     const etchSpec = etch ? specialReverseEtchMaskFor(cardId ?? null) : undefined
     // Reverse printings carry their own reflection profile: a plain foil is
     // uniform, while a patterned one lets the marks shape the light.
-    const foilSettings = { ...DEFAULT_FOIL_SETTINGS, ...(reverseSettingsFor(setIdOf(cardId)) ?? {}) }
-    if (!spec) return
+    const reverseSettings: Partial<FoilSettings> = reverseSettingsFor(setIdOf(cardId)) ?? {}
+    // The paper is always lit. With advanced foil off it sits at a fixed neutral
+    // tilt, quieter than the hover treatment; the switch only owns the pointer
+    // sweep, colour and relief below.
+    const foilSettings = advanced
+      ? { ...DEFAULT_FOIL_SETTINGS, ...reverseSettings }
+      : {
+          ...DEFAULT_FOIL_SETTINGS,
+          ...reverseSettings,
+          intensity: (reverseSettings.intensity ?? DEFAULT_FOIL_SETTINGS.intensity) * PAPER_INTENSITY,
+          iridescence: 0,
+        }
+    if (!spec) { canvas.style.opacity = '0'; delete wrap.dataset.foil; return }
 
-    // Motion is the point of this effect, so a reduced-motion request gets the
-    // artwork and nothing else.
-    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // Reduced motion keeps the paper but removes the pointer treatment. The
+    // fallback is static, so it is still safe to draw.
+    const reducedMotion = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const animated = advanced && !reducedMotion
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) return
@@ -104,8 +141,8 @@ export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
     let base: Uint8ClampedArray | null = null
     let field: MarkField | null = null
     let surface: FoilSurface | null = null
-    let wanted: FoilTilt = FACE_ON
-    let held: FoilTilt = FACE_ON
+    let wanted: FoilTilt = PAPER_TILT
+    let held: FoilTilt = PAPER_TILT
     let raf = 0
     let last = 0
     let armed = false
@@ -134,10 +171,15 @@ export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
         deg: held.deg + (wanted.deg - held.deg) * EASE,
         axis: held.axis + (wanted.axis - held.axis) * EASE,
       }
-      // Back at rest with nobody pointing at it: show the scan and stop working.
-      if (!armed && held.deg < 0.4) {
-        held = FACE_ON
-        canvas.style.opacity = '0'
+      // The paper is the resting state. Once the pointer has left and the card
+      // has eased back to it, paint one final frame and stop the loop; the canvas
+      // stays visible.
+      const settled = !armed
+        && Math.abs(held.deg - PAPER_TILT.deg) < 0.05
+        && Math.abs(held.axis - PAPER_TILT.axis) < 0.01
+      if (settled) {
+        held = PAPER_TILT
+        paint(held)
         raf = 0
         return
       }
@@ -156,27 +198,50 @@ export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
       wanted = tiltForPointer(nx, ny)
     }
 
-    const enter = (e: PointerEvent) => {
-      if (dead) return
+    const show = () => {
+      if (dead || !base) return
       if (wrap.clientWidth < MIN_WIDTH) return
-      armed = true
-      aim(e)
-      if (!base) return
+      // The shine (styles.css) hangs off this flag, so only a card whose paper
+      // actually exists sweeps — and only at a size where the paper is drawn.
+      wrap.dataset.foil = '1'
+      wrap.style.setProperty('--shine-delay', `${shineDelayFor(cardId)}ms`)
       canvas.style.opacity = '1'
       start()
     }
+
+    const enter = (e: PointerEvent) => {
+      if (dead || !animated) return
+      if (wrap.clientWidth < MIN_WIDTH) return
+      armed = true
+      aim(e)
+      show()
+    }
     const move = (e: PointerEvent) => {
-      if (armed && !dead) aim(e)
+      if (animated && armed && !dead) aim(e)
     }
     const leave = () => {
+      if (!animated) return
       armed = false
-      wanted = FACE_ON
+      wanted = PAPER_TILT
       start()
     }
 
-    wrap.addEventListener('pointerenter', enter)
-    wrap.addEventListener('pointermove', move)
-    wrap.addEventListener('pointerleave', leave)
+    if (animated) {
+      wrap.addEventListener('pointerenter', enter)
+      wrap.addEventListener('pointermove', move)
+      wrap.addEventListener('pointerleave', leave)
+    }
+
+    // A card can mount in a hidden tab at width 0. Watch the wrapper so the paper
+    // appears once the card is large enough, and disappears on real thumbnails.
+    const observer = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(() => {
+          if (dead) return
+          if (wrap.clientWidth >= MIN_WIDTH) show()
+          else { canvas.style.opacity = '0'; delete wrap.dataset.foil }
+        })
+      : null
+    observer?.observe(wrap)
 
     // A second, CORS-clean copy of the same artwork. The visible <img> keeps its
     // own request, so a CDN hiccup here can never blank a card.
@@ -198,22 +263,21 @@ export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
         dead = true
         return
       }
-      if (armed) {
-        canvas.style.opacity = '1'
-        start()
-      }
+      show()
       // The printing's own pattern, if it has one: a Radiant motif, the Cosmos
       // sheet, or nothing (generic tile). Arriving late simply repaints.
       void loadMarkFieldFor({ cardId, rarity, variant }).then((f) => {
         if (!f || dead) return
         field = f
-        if (armed) start()
+        start()
       })
       // Textured tiers and the special ball papers load an etched normal map. It
       // arrives only at tilt, so the artwork at rest is untouched; a failed load
       // simply means smooth foil. A reverse is never routed by rarity; its etch
       // comes from the explicit ball variant instead.
-      const surfaceId = surfaceFor({ rarity, variant, cardId }) ?? (etch ? SPECIAL_REVERSE_ETCH_SURFACE : null)
+      const surfaceId = animated
+        ? surfaceFor({ rarity, variant, cardId }) ?? (etch ? SPECIAL_REVERSE_ETCH_SURFACE : null)
+        : null
       if (surfaceId) {
         void loadSurface(surfaceId).then((s2) => {
           if (!s2 || dead) return
@@ -230,10 +294,14 @@ export function FoilOverlay({ wrapRef, src, cardId, rarity, variant }: Props) {
     }
 
     return () => {
-      wrap.removeEventListener('pointerenter', enter)
-      wrap.removeEventListener('pointermove', move)
-      wrap.removeEventListener('pointerleave', leave)
+      if (animated) {
+        wrap.removeEventListener('pointerenter', enter)
+        wrap.removeEventListener('pointermove', move)
+        wrap.removeEventListener('pointerleave', leave)
+      }
+      observer?.disconnect()
       if (raf) cancelAnimationFrame(raf)
+      delete wrap.dataset.foil
     }
   }, [foil, wrapRef, src, cardId, rarity, variant])
 

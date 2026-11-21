@@ -33,5 +33,5 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Sealed audit
+      - name: Sealed audit and hit odds
         run: npm run check:sealed

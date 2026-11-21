@@ -1,4 +1,5 @@
 import { db, nowIso } from '../lib/db'
+import { onDerivedDataChanged } from '../lib/derived-cache'
 import { valueOf, round2 } from './market'
 import { MINI_PACKS, miniPackFor, type MiniPackDef, type MiniPoolEntry, type MiniSlot } from '../catalog/general-mills'
 import { SEQUIN_VARIANT } from '../../src/foil/printing-db'
@@ -254,6 +255,16 @@ export type MiniSequinOdds = {
 
 const sequinOddsCache = new Map<string, MiniSequinOdds>()
 const nameCache = new Map<string, string>()
+
+// A price move changes every mini estimate and Sequin value; a catalogue move
+// can also change the host pool, rarity lookup and card names.
+onDerivedDataChanged(() => {
+  estimateCache.clear()
+  sequinOddsCache.clear()
+  hostCache.clear()
+  metaCache.clear()
+  nameCache.clear()
+})
 
 function cardName(id: string): string {
   const hit = nameCache.get(id)

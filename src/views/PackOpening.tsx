@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
 import { CardImg, EmptyState, fmtUsd, TearPack, glowClass, packHue } from '../components'
@@ -10,6 +10,7 @@ import { flipSwish, hitStinger } from '../audio'
 import type { BoxOpen, BoxPromo, OpenSession, OpenedCard, ProductRow } from '../types'
 
 type Phase = 'idle' | 'promo' | 'pack' | 'revealing' | 'summary'
+type SummaryPack = { packIndex: number; cards: OpenedCard[] }
 type Stage = 'hold' | 'flip' | 'landed' // where the card on stage is in its ceremony
 type Tier = 'common' | 'super' | 'epic' | 'massive' | 'ghost'
 
@@ -133,12 +134,17 @@ export function PackOpeningView() {
   const [idx, setIdx] = useState(0) // card currently on stage
   const [stage, setStage] = useState<Stage>('hold')
   const stungRef = useRef(-1) // last idx whose landing played its stinger
+  const swipeStart = useRef<{ x: number; y: number } | null>(null)
+  const suppressClick = useRef(false)
   // The back's face: the pack's hue, kept for the whole ceremony (the card
   // back itself is the official Pokémon print; the hue drives aura/glow).
   const [backArt, setBackArt] = useState<{ hue: number }>({ hue: 215 })
   const reduced = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true, [])
   const [session, setSession] = useState<OpenSession | null>(null)
   const [fast, setFast] = useState(false)
+  // Manual is the default: a landed card waits for the player. Auto schedules
+  // the next card after the usual beat, for a hands-off rip.
+  const [autoReveal, setAutoReveal] = useState(false)
   // The summary binder pages 40 pulls at a time: a 36-pack box is 360 cards,
   // and a 360-cell grid is a wall, not a keepsake page.
   const [page, setPage] = useState(0)
@@ -152,9 +158,23 @@ export function PackOpeningView() {
   // own tear and its own reveal, and the summary asks before the next one.
   const [box, setBox] = useState<{ boxId: number; productId: string; productName: string; packsTotal: number; packsLeft: number; packIndex: number } | null>(null)
   // The promo that shipped in the box, shown before a single wrapper opens.
-  const [promo, setPromo] = useState<BoxPromo | null>(null)
+  const [promo, setPromo] = useState<BoxPromo[]>([])
   const [promoThen, setPromoThen] = useState<{ s: OpenSession; product?: ProductRow; prevBest: number; prevPack: number } | null>(null)
   const [boxTotals, setBoxTotals] = useState<{ cards: number; value: number; spent: number } | null>(null)
+  // Every pull and every wrapper value already opened in this box. The summary
+  // normally shows only the current pack; skipping to the end combines these
+  // with the remaining packs so the final page holds the whole box.
+  const [boxPulls, setBoxPulls] = useState<OpenedCard[]>([])
+  const [boxPackValues, setBoxPackValues] = useState<number[]>([])
+  // The combined summary groups cards by the wrapper they came out of. Keep
+  // the cards per wrapper as the ceremony opens them; openBoxRest already
+  // returns the remaining wrappers grouped, so a skip can join the two.
+  const [boxPackCards, setBoxPackCards] = useState<SummaryPack[]>([])
+  // The combined summary shows one wrapper at a time: opening a pack folds
+  // the previous one, so a long box reads as a list of packs rather than a
+  // 360-card wall. Remember the choice per page, so paging away and back
+  // returns to the wrapper you were reading instead of the first one.
+  const [openPacksByPage, setOpenPacksByPage] = useState<Record<number, number[]>>({})
   // Boxes left half-open (a reload, a closed tab) are listed so the ceremony
   // can pick the box back up at the next wrapper instead of stranding it.
   const [openBoxList, setOpenBoxList] = useState<{ id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }[]>([])
@@ -243,6 +263,7 @@ export function PackOpeningView() {
     setPrevBestPack(prevPack ?? 0)
     setRecord(null)
     setPage(0)
+    setOpenPacksByPage({})
     const first = s.cards[0]
     const setName = product?.set_name ?? first?.setName ?? 'Booster pack'
     // What comes off is a PACK: an ETB hands you nine booster wrappers, so the
@@ -283,9 +304,18 @@ export function PackOpeningView() {
       packsLeft: res.packsLeft,
       packIndex: res.packIndex,
     })
-    setBoxTotals((t) => ({ cards: (t?.cards ?? 0) + res.cards.length, value: (t?.value ?? 0) + res.totalValue, spent: (t?.spent ?? 0) + res.spent }))
-    if (res.promo) {
-      setPromo(res.promo)
+    setBoxPulls(res.cards)
+    setBoxPackValues([res.totalValue])
+    setBoxPackCards([{ packIndex: res.packIndex, cards: res.cards }])
+    setBoxTotals({ cards: res.cards.length, value: res.totalValue, spent: res.spent })
+    // The promo screen comes before the first reveal, but pack 1 is already in
+    // this session. Record baselines must exist for a skip from that screen.
+    setPreviousBest(prevBest)
+    setPrevBestPack(prevPack)
+    setRecord(null)
+    const boxPromos = res.promos?.length ? res.promos : res.promo ? [res.promo] : []
+    if (boxPromos.length > 0) {
+      setPromo(boxPromos)
       setPromoThen({ s: res, product, prevBest, prevPack })
       setPhase('promo')
       return
@@ -299,12 +329,82 @@ export function PackOpeningView() {
     try {
       const res = await api.openBoxNext(box.boxId)
       setBox({ ...box, packsLeft: res.packsLeft, packIndex: res.packIndex })
+      setBoxPulls((pulls) => [...pulls, ...res.cards])
+      setBoxPackValues((values) => [...values, res.totalValue])
+      setBoxPackCards((packs) => [...packs, { packIndex: res.packIndex, cards: res.cards }])
       setBoxTotals((t) => ({ cards: (t?.cards ?? 0) + res.cards.length, value: (t?.value ?? 0) + res.totalValue, spent: (t?.spent ?? 0) + res.spent }))
       ensureProducts().catch(() => products).then((rows) => {
         runCeremony(res, rows.find((x) => x.id === res.productId), previousBest, prevBestPack)
       })
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Could not open the next pack', 'bad')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const skipRemainingPacks = async () => {
+    // The promo screen has no runCeremony session yet, but its first pack was
+    // already ripped by beginBox and sits in promoThen.s. The combined summary
+    // can use that pack without putting it on stage first. A previous box can
+    // leave a stale session in state, so promoThen decides which one is current.
+    const fromPromo = !!promoThen
+    const baseSession = promoThen?.s ?? session
+    if (!box || box.packsLeft <= 0 || busy || !baseSession) return
+    setBusy('skip')
+    try {
+      const res = await api.openBoxRest(box.boxId)
+      const allCards = [...boxPulls, ...res.cards]
+      const remainingValues = res.perPack?.map((p) => p.totalValue) ?? [res.totalValue]
+      const allPackValues = [...boxPackValues, ...remainingValues]
+      // openBoxRest returns the remaining wrappers in order. Its last packIndex
+      // gives the first one, so a resumed box keeps the real pack numbers.
+      const firstRemaining = res.packIndex - Math.max(1, res.perPack?.length ?? 1) + 1
+      const remainingPacks: SummaryPack[] = res.perPack?.length
+        ? res.perPack.map((p, i) => ({ packIndex: p.packIndex ?? firstRemaining + i, cards: p.cards ?? [] }))
+        : [{ packIndex: res.packIndex, cards: res.cards }]
+      const allPacks = [...boxPackCards, ...remainingPacks]
+      const totalValue = Number(((boxTotals?.value ?? 0) + res.totalValue).toFixed(2))
+      const spent = Number(((boxTotals?.spent ?? 0) + res.spent).toFixed(2))
+      setBox({ ...box, packsLeft: 0, packIndex: res.packsTotal })
+      setBoxTotals({ cards: allCards.length, value: totalValue, spent })
+      setBoxPulls(allCards)
+      setBoxPackValues(allPackValues)
+      setBoxPackCards(allPacks)
+      const bestPull = allCards.reduce((a, c) => (c.value > a.value ? c : a), allCards[0])
+      if (bestPull && previousBest > 0 && bestPull.value > previousBest) {
+        setRecord({ cardId: bestPull.cardId, value: bestPull.value })
+      }
+      // The summary reads one session; give it the whole box rather than the
+      // last wrapper, so the grid is every card pulled from every pack.
+      const combined: OpenSession & { perPack: NonNullable<BoxOpen['perPack']> } = {
+        ...baseSession,
+        cards: allCards,
+        totalValue,
+        spent,
+        perPack: allPacks.map((pack, i) => ({
+          sessionId: '',
+          cards: pack.cards,
+          totalValue: allPackValues[i] ?? 0,
+          spent: 0,
+          packIndex: pack.packIndex,
+        })),
+      }
+      setSession(combined)
+      setQueue(allCards)
+      setIdx(Math.max(0, allCards.length - 1))
+      setStage('landed')
+      setPage(0)
+      setOpenPacksByPage({})
+      if (fromPromo) {
+        setPromo([])
+        setPromoThen(null)
+      }
+      setPhase('summary')
+      refreshState()
+      loadBoxes()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not open the rest of the box', 'bad')
     } finally {
       setBusy(null)
     }
@@ -324,7 +424,10 @@ export function PackOpeningView() {
         packIndex: res.packIndex,
       })
       setBoxTotals({ cards: res.cards.length, value: res.totalValue, spent: res.spent })
-      setPromo(null)
+      setBoxPulls(res.cards)
+      setBoxPackValues([res.totalValue])
+      setBoxPackCards([{ packIndex: res.packIndex, cards: res.cards }])
+      setPromo([])
       setPromoThen(null)
       ensureProducts().catch(() => products).then((rows) => {
         runCeremony(res, rows.find((x) => x.id === res.productId), previousBest, prevBestPack)
@@ -339,7 +442,7 @@ export function PackOpeningView() {
 
   const dismissPromo = () => {
     const p = promoThen
-    setPromo(null)
+    setPromo([])
     setPromoThen(null)
     if (p) runCeremony(p.s, p.product, p.prevBest, p.prevPack)
   }
@@ -358,20 +461,17 @@ export function PackOpeningView() {
     }, 760)
   }, [])
 
-  const startSession = async (productId: string, qty: number) => {
+  const buySealed = async (productId: string, qty: number) => {
     setBusy(productId)
     try {
-      const best = await api.pullsBest().catch(() => ({ value: 0, bestPackTotal: 0 }))
-      const buy = await api.buyProduct(productId, qty, false)
+      const buy = await api.buyProduct(productId, qty)
       if (!buy.ok) { toast('Purchase failed', 'bad'); return }
-      // The box comes off the shelf here. A bundle is 6 separate rips, an ETB
-      // 9, a display 36 — the ceremony opens them one at a time.
-      const first = await api.openBox(productId)
-      ensureProducts().catch(() => products).then((rows) => {
-        beginBox(first, rows.find((x) => x.id === productId), best.value, best.bestPackTotal ?? 0)
-      })
+      const product = productsRef.current.find((p) => p.id === productId)
+      toast(`Added ${qty}× ${product?.name ?? 'product'} sealed — open it from Inventory → Sealed.`, 'good')
+      loadSealed()
+      refreshState()
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Open failed', 'bad')
+      toast(e instanceof Error ? e.message : 'Purchase failed', 'bad')
     } finally {
       setBusy(null)
     }
@@ -402,10 +502,9 @@ export function PackOpeningView() {
   const showHitBanner = Boolean(landed && current && (current.isHit || current.value >= 40))
   const remaining = queue.length - idx - (landed ? 1 : 0)
 
-  // Stage machine: back swings in → turns over → lands with its value, then
-  // a beat, then the next card (or the summary). Timers restart whenever the
-  // player clicks (advance) or toggles Skip — nothing can desync the card
-  // you're looking at from the timer driving it.
+  // Stage machine: back swings in → turns over → lands with its value. In
+  // Manual the landed card waits for a swipe or click; in Auto the next card
+  // is scheduled after the usual beat.
   useEffect(() => {
     if (phase !== 'revealing') return
     if (!queue[idx]) {
@@ -420,12 +519,13 @@ export function PackOpeningView() {
       const t = setTimeout(() => setStage('landed'), timing.flip)
       return () => clearTimeout(t)
     }
+    if (!autoReveal) return
     const t = setTimeout(() => {
       if (idx >= queue.length - 1) setPhase('summary')
       else { setIdx((i) => i + 1); setStage('hold') }
     }, timing.beat)
     return () => clearTimeout(t)
-  }, [phase, stage, idx, queue, timing])
+  }, [phase, stage, idx, queue, timing, autoReveal])
 
   // The turn-over swish: exactly when the card starts flipping.
   // Every phase starts at the top of the stage. Without this the pane keeps
@@ -459,7 +559,7 @@ export function PackOpeningView() {
     if (previousBest > 0 && !record && best.value > previousBest) setRecord({ cardId: best.cardId, value: best.value })
   }, [phase, stage, idx, queue, previousBest, record])
 
-  // Click anywhere on the stage to walk the ceremony faster: hold → flip →
+  // Click or swipe anywhere on the stage to walk the ceremony: hold → flip →
   // land → next card. A landed last card pushes straight to the summary.
   const advance = () => {
     if (phase !== 'revealing' || !queue[idx]) return
@@ -467,6 +567,28 @@ export function PackOpeningView() {
     else if (stage === 'flip') setStage('landed')
     else if (idx < queue.length - 1) { setIdx((i) => i + 1); setStage('hold') }
     else setPhase('summary')
+  }
+  const startSwipe = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    swipeStart.current = { x: e.clientX, y: e.clientY }
+  }
+  const endSwipe = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const start = swipeStart.current
+    swipeStart.current = null
+    if (!start) return
+    const dx = e.clientX - start.x
+    const dy = e.clientY - start.y
+    if (Math.abs(dx) < 45 || Math.abs(dx) <= Math.abs(dy)) return
+    // A drag can still emit a click after pointerup; swallow that one so the
+    // swipe advances exactly one step.
+    suppressClick.current = true
+    window.setTimeout(() => { suppressClick.current = false }, 350)
+    advance()
+  }
+  const cancelSwipe = () => { swipeStart.current = null }
+  const stageClick = () => {
+    if (suppressClick.current) { suppressClick.current = false; return }
+    advance()
   }
   const revealAll = () => {
     if (queue.length === 0) return
@@ -494,6 +616,64 @@ export function PackOpeningView() {
     return session.totalValue
   }, [session])
   const beatPackRecord = !!session && prevBestPack > 0 && bestPackOfSession > prevBestPack
+  // The skip-to-end summary carries the cards inside each wrapper. Group only
+  // when every wrapper is represented; otherwise keep the old flat page rather
+  // than putting a pack label over cards that may not belong to it.
+  const summaryPacks = useMemo<SummaryPack[]>(() => {
+    if (!session) return []
+    const per = (session as OpenSession & { perPack?: NonNullable<BoxOpen['perPack']> }).perPack
+    if (!per?.length || per.some((p) => !p.cards?.length)) return []
+    const groups = per.map((p, i) => ({ packIndex: p.packIndex ?? i + 1, cards: p.cards ?? [] }))
+    return groups.reduce((n, g) => n + g.cards.length, 0) === session.cards.length ? groups : []
+  }, [session])
+  // Page by wrapper, not by card: a pack may not be cut in half between pages.
+  const summaryPages = useMemo(() => {
+    if (!summaryPacks.length) return [] as SummaryPack[][]
+    const pages: SummaryPack[][] = []
+    let current: SummaryPack[] = []
+    let cards = 0
+    for (const pack of summaryPacks) {
+      if (current.length > 0 && cards + pack.cards.length > 40) {
+        pages.push(current)
+        current = []
+        cards = 0
+      }
+      current.push(pack)
+      cards += pack.cards.length
+    }
+    if (current.length) pages.push(current)
+    return pages
+  }, [summaryPacks])
+  const pageCount = summaryPacks.length ? summaryPages.length : Math.max(1, Math.ceil((session?.cards.length ?? 0) / 40))
+  const pageIndex = Math.min(page, Math.max(0, pageCount - 1))
+  // A box summary is a running scoreboard, not just the last wrapper: count
+  // every hit in every pack opened so far, including packs before this page.
+  const boxHitCards = box ? boxPulls.filter((card) => card.isHit) : []
+  const boxHits = boxHitCards.length
+  const boxAvgHit = boxHits > 0
+    ? boxHitCards.reduce((sum, card) => sum + card.value, 0) / boxHits
+    : null
+  const bestBoxHit = boxHitCards.reduce<OpenedCard | null>(
+    (best, card) => !best || card.value > best.value ? card : best,
+    null,
+  )
+  const bestBoxPack = boxPackValues.length > 0 ? Math.max(...boxPackValues) : 0
+  const pagePacks = summaryPages[pageIndex] ?? []
+  const openPacks = Object.prototype.hasOwnProperty.call(openPacksByPage, pageIndex)
+    ? openPacksByPage[pageIndex]
+    : pagePacks.length > 0 ? [pagePacks[0].packIndex] : []
+  const allPacksOpen = pagePacks.length > 0 && pagePacks.every((pack) => openPacks.includes(pack.packIndex))
+  const togglePack = (packIndex: number) => {
+    setOpenPacksByPage((pages) => {
+      const remembered = Object.prototype.hasOwnProperty.call(pages, pageIndex)
+      const first = pagePacks[0]?.packIndex
+      const current = remembered ? pages[pageIndex] : first == null ? [] : [first]
+      const next = current.includes(packIndex)
+        ? current.filter((index) => index !== packIndex)
+        : remembered ? [...current, packIndex] : [packIndex]
+      return { ...pages, [pageIndex]: next }
+    })
+  }
   // How many of this rip's pulls you didn't own a single copy of before it.
   const newCount = session?.cards.filter((c) => c.isNew).length ?? 0
 
@@ -507,6 +687,8 @@ export function PackOpeningView() {
           <div className="sub">The ceremony. Cards reveal one at a time — hits get the full treatment.</div>
         </div>
         <div className="chip-row">
+          <span className={`chip ${!autoReveal ? 'on' : ''}`} onClick={() => setAutoReveal(false)}>Manual reveal</span>
+          <span className={`chip ${autoReveal ? 'on' : ''}`} onClick={() => setAutoReveal(true)}>Auto reveal</span>
           <span className={`chip ${!fast ? 'on' : ''}`} onClick={() => setFast(false)}>Slow reveal</span>
           <span className={`chip ${fast ? 'on' : ''}`} onClick={() => setFast(true)}>Skip animation</span>
         </div>
@@ -519,15 +701,28 @@ export function PackOpeningView() {
       {phase === 'idle' && (
         <div>
           <div className="panel mb14">
-            <h2>Buy & open now</h2>
+            <h2>Buy sealed</h2>
+            <div className="faint small" style={{ marginBottom: 8 }}>
+              Purchases land in your sealed inventory. Open one here or in Inventory → Sealed whenever you choose.
+            </div>
             <div className="grid cols2 mt8">
               {products.map((p) => (
                 <div key={p.id} className="row" style={{ justifyContent: 'space-between', border: '1px solid var(--border-soft)', borderRadius: 10, padding: '10px 12px' }}>
                   <div>
                     <b className="small">{p.name}</b>
-                    <div className="faint small">{fmtUsd(p.msrp)} · {p.packs} pack{p.packs > 1 ? 's' : ''}</div>
+                    <div className="faint small">
+                      {fmtUsd(p.msrp)} · {p.packs} pack{p.packs > 1 ? 's' : ''}
+                      {p.deal?.claimed ? ' · daily deal claimed today' : ''}
+                    </div>
                   </div>
-                  <button className="primary small" disabled={busy === p.id} onClick={() => startSession(p.id, 1)}>OPEN</button>
+                  <button
+                    className="primary small"
+                    disabled={busy === p.id || p.deal?.claimed}
+                    title={p.deal?.claimed ? 'Daily deal claimed for this game day' : undefined}
+                    onClick={() => buySealed(p.id, 1)}
+                  >
+                    {p.deal?.claimed ? 'CLAIMED' : 'BUY SEALED'}
+                  </button>
                 </div>
               ))}
             </div>
@@ -576,20 +771,27 @@ export function PackOpeningView() {
         </div>
       )}
 
-      {phase === 'promo' && promo && (
+      {phase === 'promo' && promo.length > 0 && (
         <div className="po-stage po-stage-summary">
           <div className="po-banner">★ PROMO — SEALED IN THE BOX</div>
           <div className="faint small" style={{ maxWidth: 330, margin: '2px auto 12px', lineHeight: 1.5 }}>
-            {box?.productName ?? 'This product'} ships with {promo.name} in the box beside the packs.
-            It is already in your binder — the wrappers come next.
+            {box?.productName ?? 'This product'} ships with{' '}
+            {promo.map((p) => p.name).join(promo.length === 2 ? ' and ' : ', ')} in the box beside the packs.{
+              promo.length === 1 ? ' It is already in your binder — the wrappers come next.' : ' They are already in your binder — the wrappers come next.'
+            }
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-            <PromoCell cardId={promo.cardId} value={promo.value} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 14 }}>
+            {promo.map((p) => <PromoCell key={p.cardId} cardId={p.cardId} value={p.value} />)}
           </div>
           <div className="po-actions">
             <button className="primary" onClick={dismissPromo}>
               OPEN PACK 1 OF {box?.packsTotal ?? 1}
             </button>
+            {box && box.packsLeft > 0 && (
+              <button className="ghost" disabled={busy === 'skip'} onClick={skipRemainingPacks}>
+                {busy === 'skip' ? 'OPENING ALL…' : `SKIP TO END · REVEAL ALL ${box.packsTotal} PACKS`}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -630,7 +832,15 @@ export function PackOpeningView() {
       )}
 
       {phase === 'revealing' && current && (
-        <div className="po-stage" data-tier={tier} onClick={advance}>
+        <div
+          className="po-stage po-reveal-stage"
+          data-tier={tier}
+          onClick={stageClick}
+          onPointerDown={startSwipe}
+          onPointerUp={endSwipe}
+          onPointerCancel={cancelSwipe}
+          onPointerLeave={cancelSwipe}
+        >
           <div className="po-room" aria-hidden>
             <div className="po-dust">
               {Array.from({ length: 14 }).map((_, i) => <i key={i} style={{ '--d': i } as CSSProperties} />)}
@@ -654,19 +864,24 @@ export function PackOpeningView() {
               flip={timing.flip}
               hue={backArt.hue}
             />
-            {landed && (
-              <div className="po-value">
-                <CountUp value={current.value} dur={fast || reduced ? 0 : Math.min(900, timing.beat)} />
-              </div>
-            )}
-            {landed && current.variant && current.variant.startsWith('1stEdition') && (
-              <div className="po-banner massive ghost-banner">👻 1ST EDITION GHOST PULL — {fmtUsd(current.value)}</div>
-            )}
-            {showHitBanner && !(current.variant && current.variant.startsWith('1stEdition')) && (
-              <div className={`po-banner ${current.value >= 150 ? 'massive' : ''}`}>
-                {current.value >= 150 ? '🔥 MASSIVE PULL' : current.value >= 60 ? '⭐ HUGE PULL' : '✨ HIT!'}
-              </div>
-            )}
+            {/* This slot is always here, empty while the card is face-down.
+                Without it the value line appears after the flip and pushes the
+                progress row and the action buttons down under the cursor. */}
+            <div className="po-result">
+              {landed && (
+                <div className="po-value">
+                  <CountUp value={current.value} dur={fast || reduced ? 0 : Math.min(900, timing.beat)} />
+                </div>
+              )}
+              {landed && current.variant && current.variant.startsWith('1stEdition') && (
+                <div className="po-banner massive ghost-banner">👻 1ST EDITION GHOST PULL — {fmtUsd(current.value)}</div>
+              )}
+              {showHitBanner && !(current.variant && current.variant.startsWith('1stEdition')) && (
+                <div className={`po-banner ${current.value >= 150 ? 'massive' : ''}`}>
+                  {current.value >= 150 ? '🔥 MASSIVE PULL' : current.value >= 60 ? '⭐ HUGE PULL' : '✨ HIT!'}
+                </div>
+              )}
+            </div>
             {landed && tier !== 'common' && <div className="po-shock" data-tier={tier} aria-hidden />}
           </div>
           <div className="po-progress">
@@ -674,7 +889,17 @@ export function PackOpeningView() {
               <span key={i} className={`dot ${i < idx || (i === idx && landed) ? (queue[i].isHit ? 'hit-shown' : 'shown') : ''}`} />
             ))}
           </div>
-          <div className="faint small">{remaining > 0 ? `${remaining} card${remaining > 1 ? 's' : ''} left — click to reveal faster` : landed ? 'session complete' : ''}</div>
+          <div className="faint small">
+            {landed
+              ? autoReveal
+                ? remaining > 0
+                  ? `${remaining} card${remaining > 1 ? 's' : ''} left — next card automatically`
+                  : 'Auto — finishing…'
+                : remaining > 0
+                  ? `${remaining} card${remaining > 1 ? 's' : ''} left — swipe for the next card`
+                  : 'Last card — swipe to finish'
+              : autoReveal ? 'Auto reveal' : 'Swipe or click to reveal'}
+          </div>
           <div className="po-actions">
             <button className="small" onClick={(e) => { e.stopPropagation(); setFast(true) }}>Skip animation</button>
             <button className="small ghost" onClick={(e) => { e.stopPropagation(); revealAll() }}>Reveal all</button>
@@ -685,11 +910,23 @@ export function PackOpeningView() {
       {phase === 'summary' && session && (
         <div className="po-stage po-stage-summary">
           <div className="po-banner" style={{ fontSize: 20 }}>
-            {box ? `PACK ${box.packIndex} OF ${box.packsTotal} OPEN` : 'SESSION COMPLETE'}
+            {box
+              ? box.packsLeft === 0
+                ? `BOX COMPLETE — ${box.packsTotal} PACKS OPEN`
+                : `PACK ${box.packIndex} OF ${box.packsTotal} OPEN`
+              : 'SESSION COMPLETE'}
           </div>
           {box && boxTotals && (
             <div className="faint small" style={{ marginBottom: 8 }}>
               {box.productName} · {boxTotals.cards} cards so far · {fmtUsd(boxTotals.value)} out of {fmtUsd(boxTotals.spent)}
+            </div>
+          )}
+          {box && bestBoxHit && (
+            <div className="po-best-hit">
+              <span className="po-best-hit-label">🏆 BEST HIT</span>
+              <b>{bestBoxHit.name ?? bestBoxHit.cardId}</b>
+              {bestBoxHit.setName && <span className="po-best-hit-set">{bestBoxHit.setName}</span>}
+              <em>{fmtUsd(bestBoxHit.value)}</em>
             </div>
           )}
           {beatPackRecord && (
@@ -697,6 +934,24 @@ export function PackOpeningView() {
           )}
           <div className="row mt8" style={{ gap: 26, flexWrap: 'wrap', justifyContent: 'center' }}>
             <div className="right"><div className="faint small">CARDS PULLED</div><div className="po-value">{session.cards.length}</div></div>
+            {box && (
+              <>
+                <div className="right">
+                  <div className="faint small">BOX HITS</div>
+                  <div className="po-value" style={{ color: boxHits > 0 ? 'var(--magenta)' : undefined }}>⚡ {boxHits}</div>
+                </div>
+                <div className="right" title="Average market value of every HIT card in the box so far">
+                  <div className="faint small">AVG PER HIT</div>
+                  <div className="po-value" style={{ color: boxAvgHit != null ? 'var(--yellow)' : undefined }}>
+                    {boxAvgHit == null ? '—' : fmtUsd(boxAvgHit)}
+                  </div>
+                </div>
+                <div className="right" title="Highest-value single wrapper opened in this box so far">
+                  <div className="faint small">BEST PACK</div>
+                  <div className="po-value" style={{ color: 'var(--yellow)' }}>{fmtUsd(bestBoxPack)}</div>
+                </div>
+              </>
+            )}
             {newCount > 0 && (
               <div className="right"><div className="faint small">NEW TO BINDER</div><div className="po-value" style={{ color: 'var(--green)' }}>✨ {newCount}</div></div>
             )}
@@ -721,35 +976,106 @@ export function PackOpeningView() {
           {/* The pulls come off the table and into sleeves: the summary is the
               page you just filled, not a spreadsheet of the rip. */}
           <div className="po-binder">
-            <div className="po-summary-grid">
-            {session.cards.slice(page * 40, page * 40 + 40).map((c, i) => (
-              <SummaryCell
-                key={page * 40 + i}
-                card={c}
-                index={i}
-                fast={fast || reduced}
-                record={beatRecord && sessionBest != null && c.cardId === sessionBest.cardId && c.value === sessionBest.value}
-              />
-            ))}
+            {summaryPacks.length > 0 && (
+              <div className="po-binder-tools">
+                <span className="faint small">Packs on this page</span>
+                <button
+                  type="button"
+                  className="ghost small"
+                  disabled={allPacksOpen}
+                  onClick={() => setOpenPacksByPage((pages) => ({
+                    ...pages,
+                    [pageIndex]: pagePacks.map((pack) => pack.packIndex),
+                  }))}
+                >Expand all</button>
+                <button
+                  type="button"
+                  className="ghost small"
+                  disabled={openPacks.length === 0}
+                  onClick={() => setOpenPacksByPage((pages) => ({ ...pages, [pageIndex]: [] }))}
+                >Collapse all</button>
+              </div>
+            )}
+            <div className={`po-pack-groups${allPacksOpen ? ' all-open' : ''}`}>
+            {summaryPacks.length > 0 ? (
+              pagePacks.map((pack) => {
+                const open = openPacks.includes(pack.packIndex)
+                const value = pack.cards.reduce((sum, c) => sum + c.value, 0)
+                const hits = pack.cards.filter((c) => c.isHit).length
+                const cardsId = `po-pack-cards-${pack.packIndex}`
+                return (
+                  <section className={`po-pack-group ${open ? 'open' : ''}`} key={pack.packIndex} aria-label={`Pack ${pack.packIndex}`}>
+                    <button
+                      type="button"
+                      className="po-pack-group-label"
+                      aria-expanded={open}
+                      aria-controls={cardsId}
+                      onClick={() => togglePack(pack.packIndex)}
+                    >
+                      PACK {pack.packIndex}
+                      <span>
+                        · {pack.cards.length} cards ·{' '}
+                        <b className={hits > 0 ? 'po-pack-hits' : undefined}>{hits} hit{hits === 1 ? '' : 's'}</b>
+                        {' '}· {fmtUsd(value)}
+                      </span>
+                      <span className="po-pack-group-chevron" aria-hidden>{open ? '▾' : '▸'}</span>
+                    </button>
+                    {open && (
+                      <div className="po-summary-grid" id={cardsId}>
+                        {pack.cards.map((c, i) => (
+                          <SummaryCell
+                            key={`${pack.packIndex}-${i}`}
+                            card={c}
+                            index={i}
+                            fast={fast || reduced}
+                            record={beatRecord && sessionBest != null && c.cardId === sessionBest.cardId && c.value === sessionBest.value}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )
+              })
+            ) : (
+              <div className="po-summary-grid">
+                {session.cards.slice(pageIndex * 40, pageIndex * 40 + 40).map((c, i) => (
+                  <SummaryCell
+                    key={pageIndex * 40 + i}
+                    card={c}
+                    index={i}
+                    fast={fast || reduced}
+                    record={beatRecord && sessionBest != null && c.cardId === sessionBest.cardId && c.value === sessionBest.value}
+                  />
+                ))}
+              </div>
+            )}
             </div>
             <div className="po-binder-foot">
-              Pulls · page {page + 1} of {Math.max(1, Math.ceil(session.cards.length / 40))} · {session.cards.length} cards
+              Pulls · page {pageIndex + 1} of {pageCount}
+              {summaryPacks.length > 0
+                ? ` · ${summaryPacks.length} pack${summaryPacks.length === 1 ? '' : 's'} · ${session.cards.length} cards`
+                : ` · ${session.cards.length} cards`}
             </div>
-            {session.cards.length > 40 && (
+            {pageCount > 1 && (
               <div className="po-binder-nav">
-                <button className="ghost small" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>← Prev page</button>
-                <button className="ghost small" disabled={(page + 1) * 40 >= session.cards.length} onClick={() => setPage((p) => p + 1)}>Next page →</button>
+                <button className="ghost small" disabled={pageIndex === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>← Prev page</button>
+                <button className="ghost small" disabled={pageIndex + 1 >= pageCount} onClick={() => setPage((p) => p + 1)}>Next page →</button>
               </div>
             )}
           </div>
           <div className="po-actions">
             {box && box.packsLeft === 0 && <button className="ghost" onClick={loadBoxes}>Refresh boxes</button>}
             {box && box.packsLeft > 0 ? (
-              <button className="primary" disabled={busy === 'next'} onClick={openNextPack}>
-                {busy === 'next' ? 'TEARING…' : `OPEN PACK ${box.packIndex + 1} OF ${box.packsTotal}`}
-              </button>
+              <>
+                <button className="primary" disabled={busy === 'next' || busy === 'skip'} onClick={openNextPack}>
+                  {busy === 'next' ? 'TEARING…' : `OPEN PACK ${box.packIndex + 1} OF ${box.packsTotal}`}
+                </button>
+                <button className="ghost" disabled={busy === 'skip' || busy === 'next'} onClick={skipRemainingPacks}>
+                  {busy === 'skip' ? 'OPENING ALL…' : `SKIP TO END · OPEN ${box.packsLeft} PACKS`}
+                </button>
+              </>
             ) : (
-              <button className="primary" onClick={() => { setPhase('idle'); setSession(null); setBox(null); setPromo(null); setBoxTotals(null) }}>OPEN MORE</button>
+              <button className="primary" onClick={() => (window.location.hash = '#/packs')}>OPEN MORE</button>
             )}
             <button className="btn-blue" onClick={() => (window.location.hash = '#/pulls-history')}>View pull history</button>
             <button className="ghost" onClick={() => (window.location.hash = '#/collection')}>See it in your collection</button>

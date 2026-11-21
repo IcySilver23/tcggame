@@ -1,45 +1,58 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useStore } from './store'
 import { gameDayMsFor } from './lib/gameday'
-import { fmtUsd } from './components'
-import { api, type TodayResponse, type TodayRoll } from './api'
-import { HomePage } from './views/Home'
-import { CollectionHubView, collectionModeLabel } from './views/CollectionHub'
-import { PortfolioView } from './views/Portfolio'
-import { SetDetailView } from './views/SetDetail'
-import { MarketHubView, marketModeLabel } from './views/MarketHub'
-import { PacksView } from './views/Packs'
-import { PackOpeningView } from './views/PackOpening'
-import { InventoryView } from './views/Inventory'
-import { SettingsView } from './views/Settings'
-import { AchievementsView } from './views/Achievements'
-import { PullHistoryView } from './views/PullHistory'
-import { GradingView } from './views/Grading'
-import { TradeView } from './views/Trade'
-import { ForumView } from './views/Forum'
-import { StorageUnitsView } from './views/StorageUnits'
-import { DealsView, DEAL_VENUES, DEALS_GATE, dealVenueLabel } from './views/Deals'
-// Calendar, Conventions and Card Shows are modes of the Events hub (roadmap
-// 10.0) — one door for what's on and whether you're going.
-import { EventsHubView, eventsModeLabel, LEGACY_EVENT_ROUTES } from './views/EventsHub'
-import { PackBattlesView } from './views/PackBattles'
-import { StreamView } from './views/Stream'
-import { ResaleView } from './views/Resale'
-import { ShopView } from './views/Shop'
-import { CardDetailModal } from './views/CardDetail'
-import { StartingTutorial } from './views/Tutorial'
-import { ChangelogModal, useWhatsNewBadge } from './views/WhatsNew'
+import { fmtUsd } from './format'
+import { api, type TodayResponse, type TodayRoll, type UpdateStatus } from './api'
+// Route metadata (labels, gates, legacy hashes) lives in its own module so the
+// shell never imports a screen just to name it in the breadcrumb.
+import { collectionModeLabel, dealVenueLabel, DEALS_GATE, DEAL_VENUE_IDS, eventsModeLabel, inventoryModeLabel, LEGACY_EVENT_ROUTES, marketModeLabel } from './route-meta'
+import { useWhatsNewBadge } from './changelog-badge'
 import { NotificationBell } from './views/Notifications'
-import { HoloDebugLauncher } from './foil/HoloDebug'
 
-/** Dev-only surfaces. A packaged build has no inspector and no way to open one. */
-const DEV_BUILD = Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV)
+// Route-level code splitting (roadmap 16.0): each screen is its own chunk, so
+// the shell, sidebar and day clock paint without waiting on the market, the
+// shop, the foil inspector or the pack ceremony. Opening a screen fetches its
+// chunk once; revisits are served from the browser cache.
+const HomePage = lazy(() => import('./views/Home').then((m) => ({ default: m.HomePage })))
+const CollectionHubView = lazy(() => import('./views/CollectionHub').then((m) => ({ default: m.CollectionHubView })))
+const PortfolioView = lazy(() => import('./views/Portfolio').then((m) => ({ default: m.PortfolioView })))
+const SetDetailView = lazy(() => import('./views/SetDetail').then((m) => ({ default: m.SetDetailView })))
+const MarketHubView = lazy(() => import('./views/MarketHub').then((m) => ({ default: m.MarketHubView })))
+const PacksView = lazy(() => import('./views/Packs').then((m) => ({ default: m.PacksView })))
+const PackOpeningView = lazy(() => import('./views/PackOpening').then((m) => ({ default: m.PackOpeningView })))
+const InventoryHubView = lazy(() => import('./views/InventoryHub').then((m) => ({ default: m.InventoryHubView })))
+const SettingsView = lazy(() => import('./views/Settings').then((m) => ({ default: m.SettingsView })))
+const AchievementsView = lazy(() => import('./views/Achievements').then((m) => ({ default: m.AchievementsView })))
+const PullHistoryView = lazy(() => import('./views/PullHistory').then((m) => ({ default: m.PullHistoryView })))
+const GradingView = lazy(() => import('./views/Grading').then((m) => ({ default: m.GradingView })))
+const TradeView = lazy(() => import('./views/Trade').then((m) => ({ default: m.TradeView })))
+const ForumView = lazy(() => import('./views/Forum').then((m) => ({ default: m.ForumView })))
+const DealsView = lazy(() => import('./views/Deals').then((m) => ({ default: m.DealsView })))
+const EventsHubView = lazy(() => import('./views/EventsHub').then((m) => ({ default: m.EventsHubView })))
+const PackBattlesView = lazy(() => import('./views/PackBattles').then((m) => ({ default: m.PackBattlesView })))
+const StreamView = lazy(() => import('./views/Stream').then((m) => ({ default: m.StreamView })))
+const ResaleView = lazy(() => import('./views/Resale').then((m) => ({ default: m.ResaleView })))
+const ShopView = lazy(() => import('./views/Shop').then((m) => ({ default: m.ShopView })))
+const CardDetailModal = lazy(() => import('./views/CardDetail').then((m) => ({ default: m.CardDetailModal })))
+const StartingTutorial = lazy(() => import('./views/Tutorial').then((m) => ({ default: m.StartingTutorial })))
+const ChangelogModal = lazy(() => import('./views/WhatsNew').then((m) => ({ default: m.ChangelogModal })))
+
+/** What the content pane shows while a screen's chunk is in flight. */
+function ScreenFallback() {
+  return <div className="empty" style={{ minHeight: 240 }}><span className="spinner" /> Loading…</div>
+}
+
+/** Dev-only inspector. The ternary is folded at build time, so a packaged build
+ *  carries no launcher and no inspector chunk. */
+const HoloDebugLauncher = import.meta.env.DEV
+  ? lazy(() => import('./foil/HoloDebug').then((m) => ({ default: m.HoloDebugLauncher })))
+  : null
 
 export type ViewId =
-  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'storage' | 'settings' | 'pulls-history' | 'achievements'
+  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'settings' | 'pulls-history' | 'achievements'
 
 type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean } }
-type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
+type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** One sentence of the locked screen's own guidance, shown on the lock row. */ note?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
 
 const NAV: NavEntry[] = [
   { id: 'home', label: 'Home', icon: '◉', section: '' },
@@ -65,17 +78,29 @@ const NAV: NavEntry[] = [
   // weekends and show windows — and the other two are what you attend. The old
   // #/calendar, #/convention and #/shows hashes normalize into it below.
   { id: 'events', label: 'Events', icon: '🎪', section: 'EVENTS' },
+  // Storage & Auctions is a mode of Inventory now (roadmap 11.0) — one door
+  // for the cards and the roof over them. The capacity strip and every saved
+  // #/storage link still open that mode.
   { id: 'inventory', label: 'Inventory', icon: '🗃', section: 'BUSINESS' },
-  // Storage is always visible — it's the answer to "where do I put more cards?"
-  // and hiding it behind a sales count left players hunting for it. The
-  // delinquent-unit auctions inside stay as the flavor of the page.
-  { id: 'storage', label: 'Storage & Auctions', icon: '🗝️', section: '' },
-  { id: 'shop', label: 'Card Shop', icon: '🏪', section: '', locked: (s) => s.cash >= 500, hint: 'Save $500', goal: 500 },
-  { id: 'resale', label: 'Resale Desk', icon: '💼', section: '', locked: (s) => s.cash >= 400, hint: 'Save $400', goal: 400 },
+  { id: 'shop', label: 'Card Shop', icon: '🏪', section: '', locked: (s) => s.cash >= 500, hint: 'Save $500 · lease $250', note: '$6/day while stocked — fill a case and walk-ins buy.', goal: 500 },
+  { id: 'resale', label: 'Resale Desk', icon: '💼', section: '', locked: (s) => s.cash >= 400, hint: 'Save $400', note: 'Sellers leave lots priced under market — buy, then flip the cards.', goal: 400 },
   { id: 'battles', label: 'Pack Battles', icon: '⚔️', section: 'PLAY' },
-  { id: 'stream', label: 'Stream', icon: '📡', section: '', locked: (s) => s.progress.followers >= 5, hint: 'Gather 5 followers', goal: 5 },
+  // Streaming EARNS the followers, so gating Stream behind five of them was a
+  // deadlock on a fresh save: the one screen that grows the channel was the one
+  // the channel count kept shut. It opens from the start; the default following
+  // is what you build on.
+  { id: 'stream', label: 'Stream', icon: '📡', section: '' },
   { id: 'settings', label: 'Settings', icon: '⚙', section: 'SYSTEM' },
 ]
+
+/**
+ * Locked views that carry their own explanation screen. Deals is the one that
+ * does: its hub lists every venue and, while the gate is still shut, says what
+ * actually counts as a sale — the Market, the Buylist, the Trading Post and
+ * shop cases. Bouncing that page home hid the answer behind the very lock that
+ * asked the question, so the door opens onto its own explanation instead.
+ */
+const SELF_GATED_VIEWS: ViewId[] = ['deals']
 
 /**
  * The in-game day clock (top right): DAY n with a progress bar filling toward
@@ -206,6 +231,9 @@ export default function App() {
   const { state, refreshState, toasts, dismissToast, detailCardId, toast } = useStore()
   const [whatsNewCount, refreshWhatsNew] = useWhatsNewBadge()
   const [showChangelog, setShowChangelog] = useState(false)
+  const [update, setUpdate] = useState<UpdateStatus | null>(null)
+  const [updateBusy, setUpdateBusy] = useState(false)
+  const [updateDismissed, setUpdateDismissed] = useState(false)
 
   // Routing: hash-first (#/view), with path-fallback for packaged mode where
   // the server SPA-serves deep links like /buylist. Path mode re-render comes
@@ -217,7 +245,7 @@ export default function App() {
   // carries hrefs pointing at them — 200 rows in an existing save say #/live
   // alone. Old links normalize into the hub rather than falling through to
   // "page not found — headed home".
-  const legacyVenue = DEAL_VENUES.some((v) => v.id === rawRoute)
+  const legacyVenue = DEAL_VENUE_IDS.includes(rawRoute)
   // The same treatment for the four COLLECT screens: Binders, Set Completion
   // and Wishlist are modes of the Collection hub now (roadmap 8.0), and the
   // Home dashboard plus the set browser still write those old hashes.
@@ -228,8 +256,12 @@ export default function App() {
   // dashboard and server-written feed items still link #/convention, #/shows
   // and #/calendar, so those map onto hub modes rather than bouncing home.
   const legacyEvents = LEGACY_EVENT_ROUTES[rawRoute]
-  const route = legacyVenue ? 'deals' : legacyCollect ? 'collection' : legacyMarket ? 'market' : legacyEvents ? 'events' : rawRoute
-  const routeParam = legacyVenue || legacyCollect || legacyMarket ? rawRoute : legacyEvents ?? rawParam
+  // Storage & Auctions was its own door before roadmap 11.0. The capacity
+  // strip and old bookmarks still write #/storage, so it lands on the
+  // Inventory hub's storage mode instead of bouncing home.
+  const legacyStorage = rawRoute === 'storage'
+  const route = legacyVenue ? 'deals' : legacyCollect ? 'collection' : legacyMarket ? 'market' : legacyEvents ? 'events' : legacyStorage ? 'inventory' : rawRoute
+  const routeParam = legacyVenue || legacyCollect || legacyMarket ? rawRoute : legacyEvents ?? (legacyStorage ? 'storage' : rawParam)
   const view = (route || 'home') as ViewId
 
   useEffect(() => {
@@ -237,6 +269,37 @@ export default function App() {
     const t = setInterval(refreshState, 15000)
     return () => clearInterval(t)
   }, [])
+
+  // One update check per launch. A just-installed version opens What's New
+  // straight away; otherwise a newer setup in Downloads gets an offer. The
+  // marker is cleared only after we have acted on it, so a failed hand-off
+  // cannot make the changelog pop up on every reload.
+  useEffect(() => {
+    let alive = true
+    api.updateCheck().then((u) => {
+      if (!alive) return
+      if (u.justUpdated) {
+        setShowChangelog(true)
+        api.updateSeen().catch(() => {})
+      } else if (u.available) {
+        setUpdate(u)
+      }
+    }).catch(() => {})
+    return () => { alive = false }
+  }, [])
+
+  const applyUpdate = async () => {
+    if (!update?.version || updateBusy) return
+    setUpdateBusy(true)
+    try {
+      const r = await api.updateApply(update.version)
+      if (!r.ok) throw new Error(r.error || 'Update failed')
+      toast(`Installing v${r.version ?? update.version} — the game will reopen when it is ready.`, 'good')
+    } catch (err) {
+      setUpdateBusy(false)
+      toast(`Update failed: ${err instanceof Error ? err.message : 'unknown error'}`, 'bad')
+    }
+  }
 
   useEffect(() => {
     const onNav = () => useStore.setState((s) => ({ ...s }))
@@ -273,8 +336,10 @@ export default function App() {
   const nav = (id: ViewId) => {
     // Locked views stay locked: state polls every 15s, so a stale hash from an
     // unlock that just lapsed (or a hand-typed URL) bounces home with a hint.
+    // Views with their own gate screen are the exception — Deals explains how
+    // to earn the sales it wants, and that explanation is the whole point.
     const entry = NAV.find((n) => n.id === id)
-    if (entry?.locked && state?.progress) {
+    if (entry?.locked && state?.progress && !SELF_GATED_VIEWS.includes(id)) {
       const snap = { cash: state.cash, collectionValue: state.collectionValue, inventoryValue: state.inventoryValue, netWorth: state.netWorth, progress: state.progress }
       if (!entry.locked(snap)) { toast(`🔒 Locked — ${entry.hint ?? 'keep playing'}`, 'bad'); window.location.hash = '#/home'; return }
     }
@@ -289,7 +354,7 @@ export default function App() {
   // 'opening' and 'pulls-history' are hidden ceremony-adjacent views (deep-linked
   // from the Pack Shop and the ceremony summary) — known without a nav entry.
   const knownView = !!activeEntry || view === 'home' || view === 'opening' || view === 'pulls-history' || ((view === 'set' || view === 'binder') && !!routeParam)
-  const viewLocked = (!!activeEntry?.locked && !!state?.progress && !activeEntry.locked({ cash: state.cash, collectionValue: state.collectionValue, inventoryValue: state.inventoryValue, netWorth: state.netWorth, progress: state.progress }))
+  const viewLocked = (!!activeEntry?.locked && !SELF_GATED_VIEWS.includes(view) && !!state?.progress && !activeEntry.locked({ cash: state.cash, collectionValue: state.collectionValue, inventoryValue: state.inventoryValue, netWorth: state.netWorth, progress: state.progress }))
   const needsParam = (view === 'set' || view === 'binder') && !routeParam
   const unknownView = !knownView && !viewLocked
   useEffect(() => {
@@ -302,6 +367,7 @@ export default function App() {
     : view === 'pulls-history' ? 'Pull History'
     : view === 'opening' ? 'Pack Opening'
     : viewLocked ? 'Home'
+    : view === 'inventory' ? inventoryModeLabel(routeParam) ?? 'Inventory'
     : view === 'deals' ? dealVenueLabel(routeParam) ?? 'Deals'
     : view === 'collection' ? collectionModeLabel(routeParam) ?? 'Collection'
     : view === 'market' ? marketModeLabel(routeParam) ?? 'Market'
@@ -310,7 +376,7 @@ export default function App() {
 
   return (
     <div className="app">
-      {DEV_BUILD && <HoloDebugLauncher />}
+      {HoloDebugLauncher && <Suspense fallback={null}><HoloDebugLauncher /></Suspense>}
       <aside className="sidebar">
         <div className="brand">
           <span className="pokeball" aria-hidden />
@@ -325,8 +391,9 @@ export default function App() {
             ? { cash: state.cash, collectionValue: state.collectionValue, inventoryValue: state.inventoryValue, netWorth: state.netWorth, progress: state.progress }
             : null
           // Every tab is always visible: locked ones render as their own 🔒 row
-          // carrying the exact unlock requirement (hover = full sentence, click =
-          // the same bounce-home guard as a deep link). Section membership is
+          // carrying the exact unlock requirement (hover = full sentence; click
+          // = the same guard as a deep link, except a view with its own gate
+          // screen, which opens that screen). Section membership is
           // positional: continuation items carry section '', so resolve each
           // entry to the last header actually printed above it.
           const effective: string[] = []
@@ -342,11 +409,12 @@ export default function App() {
               <div key={n.id} style={{ display: 'contents' }}>
                 {sectionChanged && <div className="nav-section">{sec}</div>}
                 {isLocked ? (
-                  <div className="nav-item locked" title={`${n.label} — ${n.hint ?? 'keep playing'}`} onClick={() => nav(n.id)}>
+                  <div className="nav-item locked" title={`${n.label} — ${n.hint ?? 'keep playing'}${n.note ? `. ${n.note}` : ''}`} onClick={() => nav(n.id)}>
                     <span className="ico">🔒</span>
                     <span className="lock-label">
                       {n.label}
                       <span className="nav-req">{n.hint}</span>
+                      {n.note && <span className="nav-note">{n.note}</span>}
                     </span>
                     {snap && (() => { const p = goalProgress(n, snap); return <span className="lock-progress">{p.cur}/{p.goal}</span> })()}
                   </div>
@@ -406,6 +474,7 @@ export default function App() {
         <main className="content">
           {/* Keyed screen: each route fades in as its own scene. */}
           <div className="screen" key={`${view}:${routeParam ?? ''}`}>
+          <Suspense fallback={<ScreenFallback />}>
           {viewLocked || unknownView ? <HomePage /> : (
             <>
               {view === 'home' && <HomePage />}
@@ -416,11 +485,10 @@ export default function App() {
               {view === 'market' && <MarketHubView mode={routeParam} />}
               {view === 'packs' && <PacksView />}
               {view === 'opening' && <PackOpeningView />}
-              {view === 'inventory' && <InventoryView />}
+              {view === 'inventory' && <InventoryHubView mode={routeParam} />}
               {view === 'grading' && <GradingView />}
               {view === 'trade' && <TradeView />}
               {view === 'forum' && <ForumView />}
-              {view === 'storage' && <StorageUnitsView />}
               {view === 'deals' && <DealsView venue={routeParam} />}
               {view === 'events' && <EventsHubView mode={routeParam} />}
               {view === 'battles' && <PackBattlesView />}
@@ -431,13 +499,38 @@ export default function App() {
               {view === 'pulls-history' && <PullHistoryView />}
             </>
           )}
+          </Suspense>
           </div>
         </main>
       </div>
 
-      {detailCardId && <CardDetailModal />}
-      {showChangelog && <ChangelogModal onClose={() => { setShowChangelog(false); refreshWhatsNew() }} />}
-      <StartingTutorial />
+      <Suspense fallback={null}>
+        {detailCardId && <CardDetailModal />}
+        {showChangelog && <ChangelogModal onClose={() => { setShowChangelog(false); refreshWhatsNew() }} />}
+        {update?.available && !updateDismissed && !showChangelog && (
+          <div className="modal-backdrop">
+            <div className="modal" style={{ width: 'min(470px, 94vw)' }}>
+              <div className="modal-head">
+                <div>
+                  <h2 style={{ margin: 0 }}>Update available</h2>
+                  <div className="faint small">TCG Life v{update.version} is ready — you're on v{update.currentVersion}.</div>
+                </div>
+              </div>
+              <p className="small" style={{ lineHeight: 1.6, marginTop: 0 }}>
+                {updateBusy
+                  ? 'Installing now. The game will close and reopen — your save, collection and settings stay exactly as they are.'
+                  : 'Update now closes the game, installs the new version, and opens it again. Your save, collection and settings stay exactly as they are.'}
+              </p>
+              {update.installerName && <div className="faint small" style={{ marginBottom: 14 }}>Found {update.installerName}.</div>}
+              <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
+                {!updateBusy && <button className="ghost" onClick={() => setUpdateDismissed(true)}>Later</button>}
+                <button className="primary" disabled={updateBusy} onClick={applyUpdate}>{updateBusy ? 'Updating…' : 'Update now'}</button>
+              </div>
+            </div>
+          </div>
+        )}
+        <StartingTutorial />
+      </Suspense>
       <div className="toasts">
         {toasts.map((t) => (
           <div key={t.id} className={`toast ${t.kind}`} onClick={() => dismissToast(t.id)}>{t.text}</div>

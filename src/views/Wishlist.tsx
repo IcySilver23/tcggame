@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
-import { byNum, byStr, CardImg, EmptyState, fmtUsd, matchesQuery, PriceTag, SearchInput, SortSelect, SourceBadge } from '../components'
+import { byNum, byStr, CardImg, EmptyState, fmtUsd, LoadFailure, matchesQuery, PriceTag, SearchInput, SortSelect, SourceBadge } from '../components'
 import type { WishlistRow, AgentsSection } from '../api'
 
 // ---------------------------------------------------------------------------
@@ -35,6 +35,9 @@ export function WishlistView() {
   const [sort, setSort] = useState('added_desc')
   const [filter, setFilter] = useState<HuntFilter>('all')
   const [agents, setAgents] = useState<AgentsSection | null>(null)
+  // Loading / ready / failed, said out loud: an empty board and a board that
+  // never answered used to look identical.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   // Which row has an open editor, and what's typed in it.
   const [targetFor, setTargetFor] = useState<string | null>(null)
@@ -45,8 +48,12 @@ export function WishlistView() {
   const [capDraft, setCapDraft] = useState('')
   const [busy, setBusy] = useState(false)
 
+  // A failed refresh keeps the last good board on screen; only a failure with
+  // nothing to show becomes the error state.
   const load = () => {
-    api.wishlist().then(setRows).catch(() => {})
+    api.wishlist()
+      .then((r) => { setRows(r); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
     api.agents().then((a) => { setAgents(a); setCapDraft(a.orderCap.toFixed(2)) }).catch(() => {})
   }
   useEffect(() => { load() }, [])
@@ -156,7 +163,15 @@ export function WishlistView() {
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {status === 'error' ? (
+        <div className="panel">
+          <LoadFailure what="the hunt board" sub="The local server did not answer. Nothing on your list was changed." onRetry={load} />
+        </div>
+      ) : status === 'loading' ? (
+        <div className="panel">
+          <EmptyState icon="★" text="Opening the hunt board…" sub="Pricing every wish and checking which agents are on duty." />
+        </div>
+      ) : rows.length === 0 ? (
         <div className="panel">
           <EmptyState
             icon="★"

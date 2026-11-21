@@ -1,8 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, type BagRevealResult, type BagRow, type BulkBoxRow, type ConsignmentStatus, type FinanceStatus, type FranchiseDm, type FranchiseInternalCandidate, type FranchiseManagerCandidate, type FranchiseShelfRow, type FranchiseSlot, type FranchiseStore, type IntelCard, type IntelStatus, type LoyaltyView, type PnlStatement, type ProtectionCosts, type RivalStatus, type PnlWeekRow, type ShopCaseRow, type ShopProperty, type ShopStatus, type StockableRow, type StaffCandidate, type StaffMember } from '../api'
+import { api, type BagRevealResult, type BagRow, type BulkBoxRow, type ConsignmentStatus, type FinanceStatus, type FranchiseDm, type FranchiseInternalCandidate, type FranchiseManagerCandidate, type FranchiseShelfRow, type FranchiseSlot, type FranchiseStore, type IntelCard, type IntelStatus, type LoyaltyView, type PnlStatement, type ProtectionCosts, type RivalStatus, type PnlWeekRow, type ShopBagRow, type ShopBulkRow, type ShopCaseRow, type ShopProperty, type ShopStatus, type ShopStockRow, type StockableRow, type StaffCandidate, type StaffMember } from '../api'
 import { useStore } from '../store'
 import { gameDayMsFor } from '../lib/gameday'
-import { fmtUsd, matchesQuery, OverflowMenu } from '../components'
+import { fmtUsd, LoadFailure, matchesQuery, OverflowMenu, TipList } from '../components'
+
+/** A subpanel says why it is blank: still reading, or the fetch failed. Used by
+ *  the panels that used to `return null` and vanish without a word. */
+function PanelState({ status, what, onRetry }: { status: 'loading' | 'ready' | 'error'; what: string; onRetry: () => void }) {
+  return (
+    <div className="panel" style={{ margin: 0 }}>
+      <div className="faint small">
+        {status === 'error' ? (
+          <>Couldn't load {what} — the local server did not answer. Nothing was changed. <button className="small ghost" onClick={onRetry}>Try again</button></>
+        ) : (
+          <><span className="spinner" /> Reading {what}…</>
+        )}
+      </div>
+    </div>
+  )
+}
 
 // ---------------------------------------------------------------------------
 // 🏪 The Card Shop — your permanent storefront (Phase 4)
@@ -159,7 +175,7 @@ function CaseCard({ shopCase, onUnstock, onStockInto }: {
 
 function StockPicker({ targetCase, onClose, onStocked }: { targetCase: ShopCaseRow; onClose: () => void; onStocked: () => void }) {
   const { toast, refreshState } = useStore()
-  const [rows, setRows] = useState<StockableRow[] | null>(null)
+  const [rows, setRows] = useState<ShopStockRow[] | null>(null)
   const [q, setQ] = useState('')
   const [ask, setAsk] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState(false)
@@ -173,7 +189,7 @@ function StockPicker({ targetCase, onClose, onStocked }: { targetCase: ShopCaseR
     [rows, q],
   )
 
-  const put = async (r: StockableRow) => {
+  const put = async (r: ShopStockRow) => {
     const raw = ask[r.id] ?? r.suggestedAsk.toFixed(2)
     const num = Number(raw)
     if (!(num > 0)) { toast('Set a real price', 'bad'); return }
@@ -236,9 +252,13 @@ function TaxPanel() {
   const { toast, refreshState } = useStore()
   const [data, setData] = useState<import('../api').TaxStatus | null>(null)
 
-  const load = () => api.taxStatus().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.taxStatus()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="the tax desk" onRetry={load} />
 
   const switchStrategy = async (s: import('../api').TaxStrategy) => {
     const r = await api.setTaxStrategy(s).catch(() => null)
@@ -544,14 +564,24 @@ function TaxPanel() {
 function SalesTaxPanel() {
   const { toast, refreshState } = useStore()
   const [st, setSt] = useState<import('../api').SalesTaxStatus | null>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
+  const load = () =>
+    api.shop()
+      .then((d) => {
+        if (d.open) setSt(d.salesTax)
+        setStatus('ready')
+      })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => {
-    const load = () => api.shop().then((d) => { if (d.open) setSt(d.salesTax) }).catch(() => {})
     load()
     const t = setInterval(load, 30000)
     return () => clearInterval(t)
   }, [])
-  if (!st) return null
+  if (!st) {
+    if (status === 'ready') return null // the shop is shut — nothing to remit
+    return <PanelState status={status} what="the sales-tax desk" onRetry={load} />
+  }
 
   const remitNow = async () => {
     const r = await api.salesTaxRemit().catch(() => null)
@@ -714,8 +744,14 @@ function PropertyPanel({ prop, onChanged }: { prop: ShopProperty; onChanged: () 
         </div>
 
         <div className="row mt8" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-          <div className="faint small" style={{ maxWidth: 560 }}>
-            Rent never stops and the landlord reads your books every {prop.reviewEveryDays} game-days. The mortgage does stop: {fmtUsd(prop.daily)} drafts a day until the {fmtUsd(prop.principal)} clears, then this location costs nothing — forever. The down payment is principal (not deductible); each daily draft is.
+          <div className="small faint" style={{ maxWidth: 560 }}>
+            <TipList
+              items={[
+                { icon: '🏠', label: 'Rent', text: <>never stops; the landlord reads your books every {prop.reviewEveryDays} game-days</> },
+                { icon: '🏦', label: 'Mortgage', text: <>{fmtUsd(prop.daily)} a day until the {fmtUsd(prop.principal)} clears, then this location costs nothing</> },
+                { icon: '🧾', label: 'Tax', text: <>the down payment is principal, not deductible; each daily draft is</> },
+              ]}
+            />
           </div>
           <button className="primary small" disabled={busy} onClick={buy}>Buy the building — {fmtUsd(prop.price)}</button>
         </div>
@@ -780,10 +816,14 @@ function FinancePanel() {
   const [amount, setAmount] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const load = () => api.finance().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.finance()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
 
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="the books" onRetry={load} />
   const scoreLabel = data.creditScore >= 720 ? 'Excellent' : data.creditScore >= 640 ? 'Fair' : 'Risky'
   const scoreCls = data.creditScore >= 720 ? 'good' : data.creditScore >= 640 ? '' : 'bad'
   const utilization = data.creditLimit > 0 ? data.outstanding / data.creditLimit : 0
@@ -894,7 +934,7 @@ const BOX_PRESETS = [
 
 function FillPicker({ box, onClose, onFilled }: { box: BulkBoxRow; onClose: () => void; onFilled: () => void }) {
   const { toast, refreshState } = useStore()
-  const [rows, setRows] = useState<StockableRow[] | null>(null)
+  const [rows, setRows] = useState<ShopBulkRow[] | null>(null)
   const [q, setQ] = useState('')
   const [picked, setPicked] = useState<Set<number>>(new Set())
 
@@ -1092,7 +1132,7 @@ function BagRevealModal({ result, onClose }: { result: BagRevealResult; onClose:
 
 function BagAssembler({ price, onClose, onAssembled }: { price: number; onClose: () => void; onAssembled: () => void }) {
   const { toast, refreshState } = useStore()
-  const [rows, setRows] = useState<(StockableRow & { isHitTier: boolean; isJunkTier: boolean })[] | null>(null)
+  const [rows, setRows] = useState<ShopBagRow[] | null>(null)
   const [q, setQ] = useState('')
   const [junk, setJunk] = useState<Set<number>>(new Set())
   const [hit, setHit] = useState<number | null>(null)
@@ -1107,7 +1147,7 @@ function BagAssembler({ price, onClose, onAssembled }: { price: number; onClose:
     [rows, q],
   )
 
-  const toggle = (r: StockableRow & { isHitTier: boolean }) => {
+  const toggle = (r: ShopBagRow) => {
     if (junk.has(r.id)) { setJunk((p) => { const n = new Set(p); n.delete(r.id); return n }); return }
     if (hit === r.id) { setHit(null); return }
     if (r.isHitTier && hit === null) { setHit(r.id); return }
@@ -1257,15 +1297,19 @@ function GrabBagsPanel({ bags = [], history = [], prices = [], onChange }: {
 
 function PnlPanel() {
   const [data, setData] = useState<{ current: PnlStatement; history: PnlWeekRow[]; protection: ProtectionCosts } | null>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
+  const load = () =>
+    api.pnl()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => {
-    const load = () => api.pnl().then(setData).catch(() => {})
     load()
     const t = setInterval(load, 30000)
     return () => clearInterval(t)
   }, [])
 
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="your books" onRetry={load} />
   const s = data.current
   const net = s.net
   const lines = [
@@ -1400,10 +1444,14 @@ function StaffPanel() {
   const [data, setData] = useState<{ candidates: StaffCandidate[]; roster: StaffMember[]; payroll: number; counterBoost: number; limits: Record<string, number> } | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const load = () => api.staff().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.staff()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
 
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="the staff roster" onRetry={load} />
 
   const hire = async (c: StaffCandidate) => {
     setBusy(true)
@@ -1603,14 +1651,18 @@ function ConsignmentPanel() {
   const [asks, setAsks] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState(false)
 
-  const load = () => api.consignment().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.consignment()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
   useEffect(() => {
     const t = setInterval(load, 15000)
     return () => clearInterval(t)
   }, [])
 
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="the consignment counter" onRetry={load} />
   const daysLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / gameDayMsFor(state?.day?.lengthHours ?? 12)))
 
   return (
@@ -1735,14 +1787,18 @@ function FranchisePanel() {
   const [busy, setBusy] = useState(false)
   const [dmOpen, setDmOpen] = useState(false)
 
-  const load = () => api.franchise().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.franchise()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
   useEffect(() => {
     const t = setInterval(load, 15000)
     return () => clearInterval(t)
   }, [])
 
-  if (!data) return <div className="faint small">Checking the chain…</div>
+  if (!data) return <PanelState status={status} what="the chain" onRetry={load} />
 
   if (!data.canOpen) {
     return (
@@ -2127,14 +2183,22 @@ function IntelPanel(props: { reload: () => void; toast: (msg: string, kind?: 'go
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const load = () => api.franchiseIntel().then((d) => { if (d.ok) setData(d) }).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.franchiseIntel()
+      .then((d) => { if (d.ok) setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
   useEffect(() => {
     const t = setInterval(load, 30000)
     return () => clearInterval(t)
   }, [])
 
-  if (!data || data.cards.length === 0) return null // nothing listed anywhere — no advice to give
+  if (!data) {
+    if (status === 'ready') return null // nothing listed anywhere — no advice to give
+    return <PanelState status={status} what="chain pricing" onRetry={load} />
+  }
+  if (data.cards.length === 0) return null
 
   const moveCount = data.cards.filter((c) => c.verdict === 'move').length
 
@@ -2199,8 +2263,14 @@ function IntelPanel(props: { reload: () => void; toast: (msg: string, kind?: 'go
               })}
             </tbody>
           </table>
-          <div className="faint small" style={{ marginTop: 6 }}>
-            Speeds model each floor's walk-in traffic — reputation, manager, counter staff — against your ask vs market. Cross-store moves ride the truck for a day and cheap managers lose crates.
+          <div className="small faint" style={{ marginTop: 8 }}>
+            <TipList
+              items={[
+                { icon: '🚶', label: 'Walk-ins', text: <>reputation, manager and counter staff set the traffic</> },
+                { icon: '💰', label: 'Ask vs market', text: <>the price on the card decides whether the traffic converts</> },
+                { icon: '🚚', label: 'Moves', text: <>a cross-store transfer takes a day; cheap managers lose crates</> },
+              ]}
+            />
           </div>
         </div>
       )}
@@ -2216,9 +2286,13 @@ function AccountantPanel() {
   const { toast, refreshState } = useStore()
   const [data, setData] = useState<import('../api').AccountantStatus | null>(null)
 
-  const load = () => api.accountant().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.accountant()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="the accountant's books" onRetry={load} />
 
   if (!data.hired) {
     return (
@@ -2279,8 +2353,14 @@ function AccountantPanel() {
         </div>
       )}
 
-      <div className="faint small mt10">
-        Auto-pays suggested quarterly estimates when cash allows · files honest books even if you switch strategies · every report lands in the feed on Monday.
+      <div className="small faint mt10">
+        <TipList
+          items={[
+            { icon: '📅', label: 'Estimates', text: <>auto-pays the suggested quarterly when cash allows</> },
+            { icon: '📚', label: 'Books', text: <>files honest books even if you switch strategies</> },
+            { icon: '📰', label: 'Report', text: <>lands in the feed every Monday</> },
+          ]}
+        />
       </div>
     </div>
   )
@@ -2368,10 +2448,14 @@ function RivalPanel() {
   const [offer, setOffer] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const load = () => api.rival().then(setData).catch(() => {})
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.rival()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
 
-  if (!data) return null
+  if (!data) return <PanelState status={status} what="the rival across the street" onRetry={load} />
   if (!data.exists && !data.closed) return null // no rival yet — the block is quiet
 
   const buyout = async () => {
@@ -2627,7 +2711,13 @@ export function ShopView() {
   const [stockInto, setStockInto] = useState<ShopCaseRow | null>(null)
   const [tab, setTab] = useState('floor')
 
-  const load = () => api.shop().then(setData).catch(() => {})
+  // The storefront spinner never became an error: a failed fetch left the
+  // shop on "Checking the storefront…" forever.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.shop()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
   useEffect(() => {
     const t = setInterval(load, 15000)
@@ -2661,6 +2751,9 @@ export function ShopView() {
     } else toast(res.error ?? 'Failed', 'bad')
   }
 
+  if (!data && status === 'error') {
+    return <LoadFailure what="your shop" sub="The local server did not answer. No stock, case or sale was changed." onRetry={() => { setStatus('loading'); load() }} />
+  }
   if (!data) return <div className="empty"><span className="spinner" /> Checking the storefront…</div>
 
   if (!data.open) return <LeasePanel onLeased={load} />

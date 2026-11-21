@@ -32,10 +32,18 @@ function ago(iso: string): string {
 export function NotificationBell() {
   const [rows, setRows] = useState<Notify[]>([])
   const [open, setOpen] = useState(false)
+  // "Nothing yet" and "the server never answered" are different sentences, so
+  // the panel says which one it means.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const wrap = useRef<HTMLDivElement | null>(null)
 
   const load = useCallback(() => {
-    fetch('/api/notifications').then((r) => r.json()).then(setRows).catch(() => {})
+    fetch('/api/notifications')
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+      .then((r) => { setRows(r); setStatus('ready') })
+      // A failed poll keeps the last list; only a failure with nothing to show
+      // is an error — the 20s poll must not blank the bell.
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   }, [])
 
   useEffect(() => {
@@ -89,7 +97,14 @@ export function NotificationBell() {
             <b>Notifications</b>
             {unread > 0 && <button className="notif-all" onClick={markAll}>Mark all read</button>}
           </div>
-          {rows.length === 0 ? (
+          {status === 'error' && rows.length === 0 ? (
+            <div className="notif-empty">
+              Couldn't load notifications — the server did not answer. Nothing was changed.{' '}
+              <button className="notif-all" onClick={load}>Try again</button>
+            </div>
+          ) : status === 'loading' && rows.length === 0 ? (
+            <div className="notif-empty">Checking for new notifications…</div>
+          ) : rows.length === 0 ? (
             <div className="notif-empty">Nothing yet — deliveries, trade offers and sales land here.</div>
           ) : (
             <div className="notif-list">

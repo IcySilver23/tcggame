@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, type LocalFeedRow, type LocalKind, type LocalMessage, type LocalReveal, type MyLocalListing, type MyLocalSale, type SealedStockRow } from '../api'
 import { crinkle, flipSwish, hitStinger, ripChime } from '../audio'
 import { useStore } from '../store'
-import { CardImg, EmptyState, FirstUseTip, fmtUsd, SlabCard, TipList } from '../components'
+import { CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, SlabCard, TipList } from '../components'
 import cardBack from '../assets/card-back.png'
 
 // ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ function Chrome({
           Local<span>Deals</span>
         </div>
         <form className="ld-search" onSubmit={(e) => { e.preventDefault(); onSearch() }}>
-          <input type="search" placeholder="Search Marketplace" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search listings" />
+          <input type="search" placeholder="Search sellers and listings" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search listings" />
           <button type="submit" className="ld-go" aria-label="Search">🔍</button>
         </form>
         {/* Marketplace keeps "Create new listing" in the left rail only — a
@@ -85,12 +85,12 @@ function Chrome({
 
       <div className="ld-tabs" role="tablist">
         <button className={`ld-tab ${tab === 'browse' ? 'on' : ''}`} role="tab" aria-selected={tab === 'browse'} onClick={() => setTab('browse')}>
-          Browse all
+          Nearby chats
         </button>
         <button className={`ld-tab ${tab === 'mine' ? 'on' : ''}`} role="tab" aria-selected={tab === 'mine'} onClick={() => setTab('mine')}>
-          Your listings{mineCount > 0 && <span className="ld-badge">{mineCount}</span>}
+          Your posts{mineCount > 0 && <span className="ld-badge">{mineCount}</span>}
         </button>
-        <span className="ld-tabs-note">Cash only · no fees · no buyer protection</span>
+        <span className="ld-tabs-note">Person to person · cash only · no buyer protection</span>
       </div>
     </div>
   )
@@ -175,7 +175,7 @@ function Rail({
       </div>
 
       <div className="ld-fcount">
-        {hits} of {total} listing{total === 1 ? '' : 's'}
+        {hits} of {total} conversation{total === 1 ? '' : 's'}
         {any && (
           <button
             className="ld-clear"
@@ -219,35 +219,51 @@ const KIND_ICON: Record<LocalKind, string> = {
   mystery_box: '🎁',
 }
 
-// --- listing tile -----------------------------------------------------------
+// --- a seller's thread ------------------------------------------------------
 
-function Tile({
+/**
+ * The last line in a conversation. It is derived from the listing, not a
+ * stored message: the point is to make the seller and the risk the first
+ * thing the player reads, not a photo grid.
+ */
+function sellerNote(r: LocalFeedRow): string {
+  if (r.ghosted) return 'You have dealt with this seller before — they ghosted. Bring a backup plan.'
+  if (r.counterOffer != null) return `They countered at ${fmtUsd(r.counterOffer)}. Say yes and agree a lot.`
+  if (r.tell === '🐟') return 'Far under market. Either the find of the week or a counterfeit — check the corners.'
+  if (r.delta <= -0.15) return 'Priced under market. Cash only, first come, first served.'
+  return r.kind === 'card'
+    ? `Still available — ${r.condition}${r.setName ? ` · ${r.setName}` : ''}, cash in a public lot.`
+    : `Still available — ${r.detail ?? r.kindLabel}, cash in a public lot.`
+}
+
+function ThreadRow({
   r,
   onOpen,
 }: {
   r: LocalFeedRow
   onOpen: () => void
-  mine?: boolean
 }) {
-  const line =
-    r.kind === 'card'
-      ? `${r.condition}${r.setName ? ` · ${r.setName}` : ''}`
-      : (r.detail ?? r.kindLabel)
   return (
-    <article className="ld-tile" onClick={onOpen} role="button" tabIndex={0}
+    <article className={`ld-thread-row ${r.ghosted ? 'ghosted' : ''}`} onClick={onOpen} role="button" tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') onOpen() }}>
-      <div className="ld-photo">
-        <ItemArt r={r} cls="ld-img" />
-      </div>
-      <div className="ld-body">
-        <div className="ld-price">{fmtUsd(r.ask)}</div>
-        <div className="ld-name">{r.name}</div>
-        {/* Marketplace puts the supporting line under the title, not as an
-            overlay on the photo — source stays in the rail filter. */}
-        <div className="ld-sub">
-          {line} · {ago(r.postedAt)}
+      <div className="ld-thread-ava" aria-hidden>{r.seller.slice(0, 1).toUpperCase()}</div>
+
+      <div className="ld-thread-main">
+        <div className="ld-thread-top">
+          <b>{r.seller}</b>
+          <span>{srcIcon(r.source)} {srcLabel(r.source)}</span>
+          <span>·</span>
+          <span>{ago(r.postedAt)}</span>
         </div>
-        <div className="ld-meta">
+
+        <div className="ld-thread-item">
+          <span>{r.name}</span>
+          <b>{fmtUsd(r.ask)}</b>
+        </div>
+
+        <p className="ld-thread-line">{sellerNote(r)}</p>
+
+        <div className="ld-thread-tags">
           <span className="ld-kind" title={`Listing type: ${r.kindLabel}`}>
             {KIND_ICON[r.kind]} {r.kindLabel}
           </span>
@@ -255,15 +271,17 @@ function Tile({
           {r.ghosted && <span className="ld-ghost" title="This seller has ghosted you before">👻 ghosted</span>}
           {r.counterOffer != null && <span className="ld-countered" title="They countered your offer">💬 countered {fmtUsd(r.counterOffer)}</span>}
         </div>
-        <div className="ld-market" title={r.anchorLabel === 'est' ? 'Estimated total value — the contents are undisclosed' : 'Market value at posting'}>
-          {r.anchorLabel} {fmtUsd(r.anchor)}
-        </div>
       </div>
+
+      <div className="ld-thread-art">
+        <ItemArt r={r} cls="ld-thread-img" />
+      </div>
+      <span className="ld-thread-open" aria-hidden>→</span>
     </article>
   )
 }
 
-// --- listing detail ---------------------------------------------------------
+// --- the conversation -------------------------------------------------------
 
 function Detail({
   r,
@@ -282,27 +300,48 @@ function Detail({
   const pct = Math.round(r.delta * 100)
   return (
     <div className="ld-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="ld-sheet" role="dialog" aria-label={r.name}>
-        <button className="ld-close" onClick={onClose} aria-label="Close">✕</button>
-        <div className="ld-sheet-grid">
-          <div className="ld-hero">
-            <ItemArt r={r} cls="ld-hero-img" />
+      <div className="ld-sheet ld-chat-sheet" role="dialog" aria-label={`Conversation with ${r.seller}`}>
+        <header className="ld-chat-head">
+          <div className="ld-avatar lg" aria-hidden>{r.seller.slice(0, 1).toUpperCase()}</div>
+          <div className="ld-chat-who">
+            <b>{r.seller}</b>
+            <span>{srcIcon(r.source)} {srcLabel(r.source)} · no rating · cash only</span>
+          </div>
+          <span className={`ld-chat-status ${r.ghosted ? 'bad' : ''}`}>
+            {r.ghosted ? '👻 ghosted before' : '● active'}
+          </span>
+          <button className="ld-close ld-chat-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+
+        <div className="ld-chat-body">
+          <div className="ld-chat-listing">
+            <div className="ld-chat-art"><ItemArt r={r} cls="ld-chat-img" /></div>
+            <div className="ld-chat-listing-main">
+              <div className="ld-facts">
+                <span className="ld-kind" title={`Listing type: ${r.kindLabel}`}>{KIND_ICON[r.kind]} {r.kindLabel}</span>
+                {r.kind === 'card' && <span className="ld-cond">{r.condition}</span>}
+                {r.kind !== 'card' && r.detail && <span>{r.detail}</span>}
+                <span>·</span>
+                <span>Listed {ago(r.postedAt)}</span>
+              </div>
+              <h2 className="ld-title">{r.name}</h2>
+              {r.setName && <span className="ld-chat-listing-sub">{r.setName}</span>}
+            </div>
+            <div className="ld-chat-ask">
+              <span>asking</span>
+              <b>{fmtUsd(r.ask)}</b>
+            </div>
           </div>
 
-          <div className="ld-info">
-            <div className="ld-price lg">{fmtUsd(r.ask)}</div>
-            <h2 className="ld-title">{r.name}</h2>
-            <div className="ld-facts">
-              <span className="ld-kind lg" title={`Listing type: ${r.kindLabel}`}>{KIND_ICON[r.kind]} {r.kindLabel}</span>
-              {r.kind === 'card' && <span className="ld-cond">{r.condition}</span>}
-              {r.kind !== 'card' && r.detail && <span>{r.detail}</span>}
-              <span>·</span>
-              <span>Listed {ago(r.postedAt)}</span>
-              <span>·</span>
-              <span title={srcLabel(r.source)}>{srcIcon(r.source)} {srcLabel(r.source)}</span>
-            </div>
+          <DealTag delta={r.delta} tell={r.tell} />
 
-            <DealTag delta={r.delta} tell={r.tell} />
+          <div className="ld-chat-log">
+            <div className="ld-chat-label">Seller's post</div>
+            <div className="ld-chat-bubble seller">
+              <span className="ld-chat-bubble-who">{r.seller}</span>
+              <p>{sellerNote(r)}</p>
+              <em>{ago(r.postedAt)} · {srcLabel(r.source)}</em>
+            </div>
 
             {/* A lot is disclosed — that is the whole point of a lot. A
                 mystery is not, and says so rather than showing nothing. */}
@@ -331,23 +370,27 @@ function Detail({
               </div>
             )}
 
-            <div className="ld-actions">
-              {r.counterOffer != null ? (
-                <button className="ld-primary" disabled={busy} onClick={onMeet}>
-                  Meet & pay {fmtUsd(r.counterOffer)}
-                </button>
-              ) : (
-                <>
-                  <button className="ld-primary" disabled={busy} onClick={onMeet}>
-                    {busy ? 'On the way…' : 'Message & meet'}
-                  </button>
-                  <button className="ld-secondary" disabled={busy} onClick={onOffer}>
-                    Make an offer
-                  </button>
-                </>
-              )}
-            </div>
+            <div className="ld-chat-system">Cash in a public lot. No fees, no protection.</div>
+          </div>
 
+          <div className="ld-chat-compose">
+            {r.counterOffer != null ? (
+              <button className="ld-primary" disabled={busy} onClick={onMeet}>
+                Meet & pay {fmtUsd(r.counterOffer)}
+              </button>
+            ) : (
+              <>
+                <button className="ld-primary" disabled={busy} onClick={onMeet}>
+                  {busy ? 'On the way…' : 'Arrange the meetup'}
+                </button>
+                <button className="ld-secondary" disabled={busy} onClick={onOffer}>
+                  Send an offer
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="ld-chat-foot">
             <div className="ld-card-facts">
               <div className="ld-fact">
                 <span>{r.anchorLabel === 'est' ? 'Est. contents' : 'Market value'}</span>
@@ -363,18 +406,6 @@ function Detail({
                 View full card details →
               </button>
             )}
-
-            <div className="ld-seller">
-              <div className="ld-avatar" aria-hidden>{r.seller.slice(0, 1).toUpperCase()}</div>
-              <div>
-                <div className="ld-seller-name">{r.seller}</div>
-                <div className="ld-seller-note">
-                  {r.ghosted
-                    ? '👻 Ghosted you on an earlier deal — bring a backup plan.'
-                    : `Seller on ${srcLabel(r.source)} · no rating, no history, no recourse`}
-                </div>
-              </div>
-            </div>
 
             <div className="ld-safety lg">
               <b>Where you meet is agreed in the message.</b> Public lots only — the seller picks one when you
@@ -485,7 +516,7 @@ function Lister({ onPosted, open }: { onPosted: () => void; open: boolean }) {
   // Binder rows back both card mode and lot mode.
   useEffect(() => {
     if (!pick) return
-    fetch('/api/inventory').then((r) => r.json()).then((rs) => {
+    fetch('/api/inventory/light').then((r) => r.json()).then((rs) => {
       setRows(rs.filter((r: any) => r.status === 'collection' && !r.graded_grade && !r.is_fake && !r.fake_revealed))
     }).catch(() => setRows([]))
   }, [pick])
@@ -641,6 +672,7 @@ export function LocalDealsView() {
   const seenSales = useRef<Set<number>>(new Set())
   const primedSales = useRef(false)
   const [tab, setTab] = useState<Tab>('browse')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [busy, setBusy] = useState<number | null>(null)
   const [result, setResult] = useState<any>(null)
   // The listing behind the last meetup, so the scene can put a face and a car
@@ -656,25 +688,28 @@ export function LocalDealsView() {
   const [f, setFstate] = useState<Filters>({ min: '', max: '', conds: [], source: 'all', hideFish: false })
   const setF = (patch: Partial<Filters>) => setFstate((s) => ({ ...s, ...patch }))
 
-  const load = () => {
-    api.local().then(setFeed).catch(() => {})
-    api.localMine().then((r) => {
-      // Announce sales that landed while we were watching — the backlog on the
-      // first load is history, not news.
-      const fresh = primedSales.current ? r.sold.filter((s) => !seenSales.current.has(s.id)) : []
-      for (const s of r.sold) seenSales.current.add(s.id)
-      primedSales.current = true
-      setMine(r.listings)
-      setSold(r.sold)
-      if (fresh.length > 0) {
-        const s = fresh[0]
-        toast(`💵 ${s.name} sold to ${s.buyer} for ${fmtUsd(s.paid)}`, 'good')
-        refreshState()
-      }
-    }).catch(() => {})
+  const load = (initial = false) => {
+    if (initial) setStatus('loading')
+    Promise.all([
+      api.local().then(setFeed),
+      api.localMine().then((r) => {
+        // Announce sales that landed while we were watching — the backlog on the
+        // first load is history, not news.
+        const fresh = primedSales.current ? r.sold.filter((s) => !seenSales.current.has(s.id)) : []
+        for (const s of r.sold) seenSales.current.add(s.id)
+        primedSales.current = true
+        setMine(r.listings)
+        setSold(r.sold)
+        if (fresh.length > 0) {
+          const s = fresh[0]
+          toast(`💵 ${s.name} sold to ${s.buyer} for ${fmtUsd(s.paid)}`, 'good')
+          refreshState()
+        }
+      }),
+    ]).then(() => setStatus('ready')).catch(() => { if (initial) setStatus('error') })
   }
   useEffect(() => {
-    load()
+    load(true)
     // NPC buyers act on the server clock (one tick every ~20s) — keep the
     // board honest while the player is watching it.
     const t = window.setInterval(load, 12_000)
@@ -733,6 +768,8 @@ export function LocalDealsView() {
   const total = feed?.length ?? 0
   const goCreate = () => { setTab('mine'); setCreateOpen(true) }
 
+  if (status === 'error') return <LoadFailure what="Local Deals" onRetry={() => load(true)} />
+
   return (
     <div className="ld">
       <Chrome
@@ -763,7 +800,7 @@ export function LocalDealsView() {
           {tab === 'browse' && (
             <>
               <div className="ld-toolbar">
-                <div className="ld-count"><b>{shown.length}</b> listing{shown.length === 1 ? '' : 's'}{appliedQ && <> for “{appliedQ}”</>}</div>
+                <div className="ld-count"><b>{shown.length}</b> conversation{shown.length === 1 ? '' : 's'}{appliedQ && <> for “{appliedQ}”</>}</div>
                 <label className="ld-sort">
                   <span className="faint small">Sort by</span>
                   <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
@@ -777,13 +814,13 @@ export function LocalDealsView() {
               ) : shown.length === 0 ? (
                 <EmptyState
                   icon="🪧"
-                  text={total === 0 ? 'Nothing local right now' : 'No listings match'}
-                  sub={total === 0 ? 'New posts land as the day goes on.' : 'Try fewer filters — the feed is small and it turns over fast.'}
+                  text={total === 0 ? 'No sellers in the neighborhood' : 'No conversations match'}
+                  sub={total === 0 ? 'New posts land as the day goes on.' : 'Try fewer filters — the neighborhood is small and it turns over fast.'}
                   action={total > 0 ? { label: 'Clear search & filters', onClick: () => { setAppliedQ(''); setQ(''); setF({ min: '', max: '', conds: [], source: 'all', hideFish: false }) } } : undefined}
                 />
               ) : (
-                <div className="ld-grid">
-                  {shown.map((r) => <Tile key={r.id} r={r} onOpen={() => setOpen(r)} />)}
+                <div className="ld-thread-list">
+                  {shown.map((r) => <ThreadRow key={r.id} r={r} onOpen={() => setOpen(r)} />)}
                 </div>
               )}
             </>
@@ -883,6 +920,8 @@ function tierOf(value: number, total: number): Tier {
 
 /** "PSA10" → "PSA 10" — the badge reads like a label, not a code. */
 function gradeLabel(grade: string): string {
+  if (grade === 'BGS10BL') return 'BGS BLACK LABEL 10'
+  if (grade === 'CGC10P') return 'CGC PRISTINE 10'
   const m = grade.match(/^([A-Z]+)(\d+)$/)
   return m ? `${m[1]} ${m[2]}` : grade
 }

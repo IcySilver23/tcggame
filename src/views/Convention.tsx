@@ -19,7 +19,7 @@ import {
   type VendorStatus,
 } from '../api'
 import { useStore } from '../store'
-import { DensityToggle, FirstUseTip, fmtUsd, SlabCard } from '../components'
+import { DensityToggle, EmptyState, FirstUseTip, fmtUsd, LoadFailure, SlabCard } from '../components'
 
 const SPECIALTY_LABEL: Record<string, string> = {
   deals: 'Deal Bins',
@@ -51,14 +51,26 @@ function FloorSection({ entered, onBought }: { entered: boolean; onBought: () =>
   const [tableId, setTableId] = useState<number | null>(null)
   const [sellFor, setSellFor] = useState<number | null>(null)
 
-  const load = () => api.floor().then(setFloor).catch(() => {})
+  // The floor used to `return null` when its fetch failed, so a show that was
+  // actually open looked like it had no floor at all.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const load = () =>
+    api.floor()
+      .then((f) => { setFloor(f); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   useEffect(() => { load() }, [])
   useEffect(() => {
     const t = setInterval(load, 20000)
     return () => clearInterval(t)
   }, [])
 
-  if (!floor || !floor.open) return null
+  if (status === 'error') {
+    return <div className="panel mt14"><LoadFailure what="the convention floor" onRetry={() => { setStatus('loading'); load() }} /></div>
+  }
+  if (!floor) {
+    return <div className="panel mt14"><EmptyState icon="🎪" text="Walking the floor…" sub="Reading every dealer's table, mood and stock." /></div>
+  }
+  if (!floor.open) return null
 
   if (tableId !== null) {
     return (
@@ -113,8 +125,13 @@ function FloorTableView({ boothId, onBack, onBought, onSell }: { boothId: number
   const [offerFor, setOfferFor] = useState<FloorItem | null>(null)
   const [credit, setCredit] = useState(0)
 
+  // "Walking over…" forever was the only failure state: a dead fetch never
+  // resolved into an error, so the spinner ran indefinitely.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const load = () => {
-    api.floorTable(boothId).then(setData).catch(() => {})
+    api.floorTable(boothId)
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
     api.floorOffers(boothId).then((r) => { if (r.ok) setCredit(r.credit ?? 0) }).catch(() => {})
   }
   useEffect(() => { load() }, [boothId])
@@ -143,6 +160,17 @@ function FloorTableView({ boothId, onBack, onBought, onSell }: { boothId: number
     } finally { setBusy(null) }
   }
 
+  if (!data && status === 'error') {
+    return (
+      <div>
+        <div className="trade-bubble" style={{ marginBottom: 10 }}>
+          Couldn't load this table — the local server did not answer. Nothing was bought or offered.{' '}
+          <button className="small" onClick={() => { setStatus('loading'); load() }}>Try again</button>
+        </div>
+        <button onClick={onBack}>← Back to the floor</button>
+      </div>
+    )
+  }
   if (!data) return <div className="empty"><span className="spinner" /> Walking over…</div>
   if (!data.ok) {
     return (
@@ -1090,9 +1118,15 @@ export function ConventionView() {
   const [status, setStatus] = useState<ConventionStatus | null>(null)
   const [entering, setEntering] = useState(false)
   const [section, setSection] = useState<ShowSection>('floor')
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const load = () => api.convention().then(setStatus).catch(() => {})
-  useEffect(() => { load() }, [])
+  const load = (initial = false) => {
+    if (initial) setLoadState('loading')
+    api.convention()
+      .then((d) => { setStatus(d); setLoadState('ready') })
+      .catch(() => { if (initial) setLoadState('error') })
+  }
+  useEffect(() => { load(true) }, [])
   useEffect(() => {
     const t = setInterval(load, 15000)
     return () => clearInterval(t)
@@ -1114,7 +1148,8 @@ export function ConventionView() {
     }
   }
 
-  if (!status) return <div className="empty"><span className="spinner" /> Checking the calendar…</div>
+  if (loadState === 'error') return <LoadFailure what="the convention calendar" onRetry={() => load(true)} />
+  if (!status) return <EmptyState icon="🎪" text="Checking the calendar…" sub="Looking for the next open convention floor." />
 
   if (!status.open) return <HallClosed status={status} />
 

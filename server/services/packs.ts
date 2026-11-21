@@ -1,9 +1,12 @@
 import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
+import { markCatalogChanged, onDerivedDataChanged } from '../lib/derived-cache'
 import { valueOf, firstEditionValueOf, round2 } from './market'
 import * as sealed from './sealed'
+import { mixedPackSetId, sealedEvidenceFor } from '../catalog/sealed-evidence'
+import * as dailydeals from './dailydeals'
 import * as vault from './vault'
 import { rollMiniPack } from './gmpacks'
-import { planFor, profileFor, eraOf, upgradeOdds, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, HOST_SUBSETS, type SecondSlotOutcome } from './packodds'
+import { planFor, profileFor, eraOf, upgradeOdds, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, SUBSET_TIER_ODDS, HOST_SUBSETS, type SecondSlotOutcome } from './packodds'
 import { rareVariantFor } from './finish-odds'
 import { ascendedVariantFor } from '../../src/foil/ball-stamps'
 import {
@@ -138,7 +141,6 @@ export const PRODUCTS: ProductDef[] = [
   { setId: 'sv3pt5', kind: 'booster', name: 'Scarlet & Violet—151 Booster Pack', msrp: 4.49, packs: 1, cardsPerPack: 10 },
   { setId: 'sv3pt5', kind: 'bundle', name: 'Scarlet & Violet—151 Booster Bundle', msrp: 26.99, packs: 6, cardsPerPack: 10 },
   { setId: 'sv3pt5', kind: 'etb', name: 'Scarlet & Violet—151 Elite Trainer Box', msrp: 54.99, packs: 9, cardsPerPack: 10 },
-  { setId: 'sv3pt5', kind: 'display', name: 'Scarlet & Violet—151 Booster Display (36 packs)', msrp: 161.64, packs: 36, cardsPerPack: 10 },
   { setId: 'sv8', kind: 'booster', name: 'Surging Sparks Booster Pack', msrp: 4.49, packs: 1, cardsPerPack: 10 },
   { setId: 'sv8', kind: 'etb', name: 'Surging Sparks Elite Trainer Box', msrp: 54.99, packs: 9, cardsPerPack: 10 },
   { setId: 'sv8', kind: 'display', name: 'Surging Sparks Booster Display (36 packs)', msrp: 161.64, packs: 36, cardsPerPack: 10 },
@@ -188,7 +190,7 @@ const SUBSET_RARITIES = new Set(['Pikachu Rare', 'Classic Collection'])
  * TCGplayer's 3,000-pack study (Double Rare 21%, Illustration Rare 19.7%,
  * SIR 4.9%, Futuristic Rare 0.83%); the rest are era-typical estimates.
  */
-const TIER_ODDS: Record<string, number> = {
+export const TIER_ODDS: Record<string, number> = {
   'Double Rare': 0.20, 'Illustration Rare': 0.19, 'Special Illustration Rare': 0.049,
   'Ultra Rare': 0.06, 'Rare Ultra': 0.05, 'Rare SECRET': 0.02, 'Rare Secret': 0.02,
   'Rare Rainbow': 0.015, 'Hyper Rare': 0.02, 'Mega Hyper Rare': 0.02, 'MEGA_ATTACK_RARE': 0.02,
@@ -337,11 +339,28 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
     // Bulk-weighted like a common: basic Energy is set completion, not chase.
     const wEnergy = energies.length ? 1 / Math.max(1, commons.length + uncommons.length + energies.length) : 0
     for (const c of energies) insert.run(pid, c.id, 'energy', wEnergy)
-    const wSubset = subsets.length ? 1 / subsets.length : 0
-    for (const c of subsets) insert.run(pid, c.id, 'subset', wSubset)
+    // The bonus subset's own tier structure. A named rarity keeps its researched
+    // per-pack odds and the rest of the subset shares what remains, because the
+    // flat pool handed a gallery's four secrets the same chance as its cheapest
+    // card: a $290 Giratina pulled as often as a $2 Thievul.
+    const subsetTiers = SUBSET_TIER_ODDS[setId]
+    if (subsetTiers && subsets.length > 0) {
+      const named = subsets.filter((c) => subsetTiers[c.rarity ?? ''] !== undefined)
+      const rest = subsets.filter((c) => subsetTiers[c.rarity ?? ''] === undefined)
+      const namedTotal = Object.values(subsetTiers).reduce((a, n) => a + n, 0)
+      const restTotal = Math.max(0, subsetChanceFor(setId) - namedTotal)
+      const namedCount = new Map<string, number>()
+      for (const c of named) namedCount.set(c.rarity ?? '', (namedCount.get(c.rarity ?? '') ?? 0) + 1)
+      for (const c of named) insert.run(pid, c.id, 'subset', subsetTiers[c.rarity ?? ''] / (namedCount.get(c.rarity ?? '') ?? 1))
+      if (rest.length > 0) for (const c of rest) insert.run(pid, c.id, 'subset', restTotal / rest.length)
+    } else {
+      const wSubset = subsets.length ? 1 / subsets.length : 0
+      for (const c of subsets) insert.run(pid, c.id, 'subset', wSubset)
+    }
     const wPhantom = phantoms.length ? 1 / phantoms.length : 0
     for (const c of phantoms) insert.run(pid, c.id, 'phantom', wPhantom)
   })()
+  markCatalogChanged()
 }
 
 function productId(p: ProductDef): string {
@@ -484,6 +503,11 @@ export function estimatePackValue(setId: string): PackEstimate {
     if (slot === 'reverse2') return slotValue('second')
     // The rare slot upgrades at the set's odds, else it is the plain/holo rare.
     if (slot === 'hit') return chance * weightedAvg(hitPool) + (1 - chance) * weightedAvg(loadPool('holo'))
+    // A subset card occupies the reverse-holo position at the set's own rate.
+    if (slot === 'subset') {
+      const p = subsetChanceFor(setId)
+      return p * weightedAvg(loadPool('subset')) + (1 - p) * reverseValue
+    }
     return weightedAvg(loadPool(slot))
   }
   const expected = slots.reduce((acc, s) => acc + s.count * slotEv(s.slot), 0)
@@ -511,6 +535,8 @@ export function estimatePackValue(setId: string): PackEstimate {
           v += Math.random() < chance && hitPool.length > 0 ? draw(hitPool) : rares.length > 0 ? draw(rares) : draw(reverse)
         } else if (s.slot === 'reverse' || s.slot === 'reverse2') {
           v += drawSlot(s.slot === 'reverse2' ? 'second' : 'first')
+        } else if (s.slot === 'subset') {
+          v += Math.random() < subsetChanceFor(setId) ? draw(simPool('subset')) : draw(reverse)
         } else {
           const rows = simPool(s.slot)
           if (rows.length > 0) v += draw(rows)
@@ -556,6 +582,13 @@ export function invalidatePackEstimate(setId: string) {
 
 
 const cardMetaCache = new Map<string, { rarity: string | null; supertype: string; subtypes: string }>()
+
+// A price or catalogue change invalidates both the estimate and the card facts
+// (rarity decides the finish a rare slot is priced as).
+onDerivedDataChanged(() => {
+  estimateCache.clear()
+  cardMetaCache.clear()
+})
 
 /** Rarity, supertype + subtypes for a card, cached — the roller asks once per card.
  * Subtypes decide ball eligibility: 'ex' and 'ACE SPEC' are excluded by name. */
@@ -720,8 +753,12 @@ export function rollPack(setId: string, sessionId: string, productKind = 'booste
       }
       continue
     }
-    const from = slot === 'reverse' || slot === 'reverse2' ? reversePool : pool(slot)
-    for (let i = 0; i < count; i++) take(from, slot, slot === 'subset')
+    // A subset card fills its slot only when the pack prints one: Crown Zenith's
+    // Galarian Gallery lands in 35.2% of packs, so a miss deals the ordinary
+    // reverse holo rather than a second gallery card.
+    const subsetMiss = slot === 'subset' && Math.random() >= subsetChanceFor(setId)
+    const from = subsetMiss || slot === 'reverse' || slot === 'reverse2' ? reversePool : pool(slot)
+    for (let i = 0; i < count; i++) take(from, subsetMiss ? 'reverse' : slot, slot === 'subset' && !subsetMiss)
   }
 
   // Never hand back an empty rip: a gallery-only set has no commons to pad
@@ -831,19 +868,50 @@ export function buySealed(productId: string, qty: number) {
   if (!product) throw new Error('Unknown product')
   // A subset-only set has no wrapper to sell (its cards came inside another
   // set's packs); its shelf rows survive only so owned stock still resolves.
-  if (!sealed.sellsOwnPacks(product.set_id)) throw new Error('That product is not sold')
+  if (!sealed.sellsProduct(product.id, product.set_id)) throw new Error('That product is not sold')
   // Buy at what the shop actually charges — the market price (appreciation
-  // included), falling back to MSRP only for brand-new catalog rows.
-  const unit = round2(sealed.priceOf(productId).market || product.msrp)
+  // included), falling back to MSRP only for brand-new catalog rows. Today's
+  // daily deal is applied on the server, not trusted from the shelf response.
+  const base = sealed.priceOf(productId).market || product.msrp
+  const deal = dailydeals.dealForToday(productId)
+  // A daily deal is one unit, once per game day: bulk lots cannot be used to
+  // turn a single discounted offer into ten discounted packs.
+  if (deal && qty > 1) throw new Error('Daily deals are limited to one per game day')
+  const unit = round2(deal && base > 0 ? dailydeals.discountedPrice(base, deal.discountPct) : base)
   const cost = round2(unit * qty)
-  const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
-  if (state.cash < cost) throw new Error('Not enough cash')
-  db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
-  // Fresh off the distributor's truck — futures desk stamps case-fresh.
-  db.prepare('INSERT INTO sealed_inventory (product_id, quantity, cost, condition, acquired_at) VALUES (?, ?, ?, ?, ?)')
-    .run(productId, qty, unit, 'fresh', nowIso())
-  logActivity('buy', `Bought ${qty}× ${product.name} for $${cost.toFixed(2)}`, -cost)
-  return { cost }
+  const purchase = db.transaction(() => {
+    // The claim and the charge commit together: if the claim is already taken,
+    // no cash moves and no stock is added. A restart cannot clear it, and the
+    // product cannot be bought again at full price until the next game day.
+    if (deal && !dailydeals.claimDealToday(productId)) {
+      throw new Error('That daily deal is already claimed for this game day')
+    }
+    const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
+    if (state.cash < cost) throw new Error('Not enough cash')
+    db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
+    // Fresh off the distributor's truck — futures desk stamps case-fresh.
+    db.prepare('INSERT INTO sealed_inventory (product_id, quantity, cost, condition, acquired_at) VALUES (?, ?, ?, ?, ?)')
+      .run(productId, qty, unit, 'fresh', nowIso())
+    logActivity('buy', `Bought ${qty}× ${product.name} for $${cost.toFixed(2)} — kept sealed`, -cost)
+    return { cost }
+  })
+  return purchase()
+}
+
+/**
+ * Roll one wrapper of a product, honoring a box that mixes expansions. A box
+ * whose packs are all from one set resolves to that set unchanged; a mixed box
+ * such as the ETB Plus or a multi-set UPC walks its recorded segments instead.
+ */
+export function rollProductPack(
+  product: { id: string; set_id: string },
+  index: number,
+  sessionId: string,
+  cardsPerPack: number,
+  owner: 'player' | 'other' = 'player',
+) {
+  const setId = mixedPackSetId(product.id, index) ?? product.set_id
+  return rollPack(setId, sessionId, 'booster', cardsPerPack, owner)
 }
 
 export function openSealed(productId: string) {
@@ -854,7 +922,7 @@ export function openSealed(productId: string) {
     const anyLeft = db.prepare('SELECT COUNT(*) AS n FROM sealed_inventory WHERE product_id = ? AND quantity > 0').get(productId) as { n: number }
     throw new Error(anyLeft.n > 0 ? 'That stock is posted as loan collateral — redeem it from the futures desk first' : 'No sealed product in inventory')
   }
-  const product = db.prepare('SELECT * FROM pack_products WHERE id = ?').get(row.product_id) as { id: string; set_id: string; cards_per_pack: number; name: string; kind: string; packs: number | null } | undefined
+  const product = db.prepare('SELECT * FROM pack_products WHERE id = ?').get(row.product_id) as { id: string; set_id: string; cards_per_pack: number; name: string; kind: string; packs: number | null; release_date: string | null } | undefined
   if (!product) throw new Error('Product missing')
 
   // A bundle/ETB/display is a BOX of packs — ripping it opens every pack
@@ -871,6 +939,10 @@ export function openSealed(productId: string) {
     db.prepare('DELETE FROM sealed_inventory WHERE id = ?').run(row.id)
   }
 
+  // The promo sealed beside the packs goes into the binder before the rip, the
+  // same as the box ceremony: a box opened whole must not lose its promo.
+  const promos = grantPromo(product)
+
   // Rip every pack in the box. A missing pull table aborts the box — the
   // caller's catch leaves the box in inventory (nothing was inserted yet).
   type OpenedCard = { cardId: string; isHit: boolean; value: number; variant?: string; setName?: string; rarity?: string | null; image?: string | null; isNew?: boolean }
@@ -881,7 +953,7 @@ export function openSealed(productId: string) {
     const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
     // A General Mills mini pack rolls its own researched composition (one
     // Sequin card + reprints); everything else rolls the set's booster table.
-    const packCards = rollMiniPack(product.id, sessionId) ?? rollPack(product.set_id, sessionId, 'booster', product.cards_per_pack)
+    const packCards = rollMiniPack(product.id, sessionId) ?? rollProductPack(product, i, sessionId, product.cards_per_pack)
     if (!packCards) {
       if (sessions.length === 0) throw new Error('Pull table missing — sync this set first')
       break
@@ -926,6 +998,8 @@ export function openSealed(productId: string) {
     packsInBox,
     packsOpened: sessions.length,
     perPack: sessions,
+    promo: promos[0] ?? null,
+    promos,
   }
 }
 
@@ -976,8 +1050,15 @@ function promoSetForYear(year: number): string | null {
  * the same card — and only cards with a live price qualify, so it is never a
  * $0 phantom.
  */
-function promoForProduct(product: { id: string; set_id: string; kind: string; release_date: string | null }): BoxPromo | null {
-  if (product.kind !== 'etb') return null
+function promoForProduct(product: { id: string; set_id: string; kind: string; release_date: string | null }): BoxPromo[] | null {
+  // ETBs and the special collections both seal a promo beside the packs. A
+  // special product's promo list is sourced product by product, so it gets no
+  // era-synthetic fallback: a named promo the catalogue does not hold grants
+  // nothing rather than an unrelated card.
+  if (product.kind !== 'etb' && product.kind !== 'special') return null
+  const named = namedPromoFor(product.id)
+  if (named !== undefined) return named
+  if (product.kind === 'special') return null
   type Cand = { id: string; name: string; image_small: string | null }
   let pool = db
     .prepare("SELECT id, name, image_small FROM cards WHERE set_id = ? AND rarity LIKE '%romo%'")
@@ -1000,26 +1081,73 @@ function promoForProduct(product: { id: string; set_id: string; kind: string; re
   const band = priced.filter((c) => c.value >= 0.75 && c.value <= 25)
   const candidates = band.length > 0 ? band : [...priced].sort((a, b) => a.value - b.value)
   if (candidates.length === 0) return null
-  return candidates[hashStr(product.id) % candidates.length]
+  return [candidates[hashStr(product.id) % candidates.length]]
+}
+
+/**
+ * Resolve a named ETB promo from the product evidence. A named promo that the
+ * catalogue does not hold returns null rather than falling back to an unrelated
+ * card from the era's promo set: a wrong promo is worse than no promo.
+ */
+function namedPromoFor(productId: string): BoxPromo[] | null | undefined {
+  const evidence = sealedEvidenceFor(productId)
+  if (!evidence) return undefined
+  if (evidence.promos.length === 0) return null
+  type Cand = { id: string; name: string; image_small: string | null }
+  const candidates: BoxPromo[] = []
+  if (evidence.promoIds?.length) {
+    for (const id of evidence.promoIds) {
+      const hit = db
+        .prepare('SELECT id, name, image_small FROM cards WHERE id = ?')
+        .get(id) as Cand | undefined
+      if (!hit) continue
+      const value = round2(Number(valueOf(hit.id)) || 0)
+      if (value > 0) candidates.push({ cardId: hit.id, name: hit.name, image: hit.image_small, value })
+    }
+  } else if (evidence.promoSet) {
+    for (const name of evidence.promos) {
+      const hit = db
+        .prepare('SELECT id, name, image_small FROM cards WHERE set_id = ? AND name = ? ORDER BY id LIMIT 1')
+        .get(evidence.promoSet, name) as Cand | undefined
+      if (!hit) continue
+      const value = round2(Number(valueOf(hit.id)) || 0)
+      if (value > 0) candidates.push({ cardId: hit.id, name: hit.name, image: hit.image_small, value })
+    }
+  }
+  if (candidates.length === 0) return null
+  // A box documented to hold every named promo hands over all of them; the
+  // ordinary case is one of them, picked deterministically per product.
+  if (evidence.promoPolicy === 'all') return candidates
+  return [candidates[hashStr(productId) % candidates.length]]
 }
 
 /** Bank the promo before a single wrapper opens. */
-function grantPromo(product: { id: string; set_id: string; kind: string; release_date: string | null; name: string }): BoxPromo | null {
-  const promo = promoForProduct(product)
-  if (!promo) return null
-  db.prepare(
+function grantPromo(product: { id: string; set_id: string; kind: string; release_date: string | null; name: string }): BoxPromo[] {
+  const promos = promoForProduct(product) ?? []
+  if (promos.length === 0) return []
+  const add = db.prepare(
     `INSERT INTO inventory (card_id, variant, condition, quantity, status, acquired_via, cost_basis, acquired_at)
      VALUES (?, 'normal', 'NM', 1, 'collection', 'promo', 0, ?)`,
-  ).run(promo.cardId, nowIso())
-  logActivity('pack', `${product.name} promo: ${promo.name} — it was in the box before you tore a wrapper`, 0)
-  return promo
+  )
+  for (const promo of promos) {
+    add.run(promo.cardId, nowIso())
+    logActivity('pack', `${product.name} promo: ${promo.name} — it was in the box before you tore a wrapper`, 0)
+  }
+  return promos
 }
 
 /** Roll one pack out of a box and count it down. */
 function ripNextPack(box: BoxRow) {
   const product = db.prepare('SELECT id, name FROM pack_products WHERE id = ?').get(box.product_id) as { id: string; name: string } | undefined
   const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-  const packCards = rollMiniPack(box.product_id, sessionId) ?? rollPack(box.set_id, sessionId, 'booster', box.cards_per_pack)
+  const packCards =
+    rollMiniPack(box.product_id, sessionId) ??
+    rollProductPack(
+      { id: box.product_id, set_id: box.set_id },
+      box.packs_total - box.packs_left,
+      sessionId,
+      box.cards_per_pack,
+    )
   if (!packCards) throw new Error('Pull table missing — sync this set first')
 
   type OpenedCard = { cardId: string; isHit: boolean; value: number; variant?: string; setName?: string; rarity?: string | null; image?: string | null; isNew?: boolean }
@@ -1084,7 +1212,7 @@ export function beginBox(productId: string) {
   if (row.quantity > 1) db.prepare('UPDATE sealed_inventory SET quantity = quantity - 1 WHERE id = ?').run(row.id)
   else db.prepare('DELETE FROM sealed_inventory WHERE id = ?').run(row.id)
 
-  const promo = grantPromo(product)
+  const promos = grantPromo(product)
 
   const info = db
     .prepare(
@@ -1093,7 +1221,7 @@ export function beginBox(productId: string) {
     )
     .run(product.id, product.set_id, product.cards_per_pack, packsInBox, packsInBox, perPackCost, row.cost, nowIso())
   const box = db.prepare('SELECT * FROM sealed_box_open WHERE id = ?').get(Number(info.lastInsertRowid)) as BoxRow
-  return { ...ripNextPack(box), promo }
+  return { ...ripNextPack(box), promo: promos[0] ?? null, promos }
 }
 
 /** The next wrapper out of a box that is already open. */
@@ -1101,6 +1229,43 @@ export function openBoxNext(boxId: number) {
   const box = db.prepare('SELECT * FROM sealed_box_open WHERE id = ?').get(boxId) as BoxRow | undefined
   if (!box) throw new Error('That box is already empty')
   return ripNextPack(box)
+}
+
+/**
+ * The skip button: rip every wrapper still in the box in one request and
+ * return the combined pulls. The box is deleted by its final pack through the
+ * same ripNextPack path, so inventory, vault space, records and the box-open
+ * row stay consistent with packing one at a time.
+ */
+export function openBoxRest(boxId: number) {
+  let box = db.prepare('SELECT * FROM sealed_box_open WHERE id = ?').get(boxId) as BoxRow | undefined
+  if (!box) throw new Error('That box is already empty')
+  const packs: ReturnType<typeof ripNextPack>[] = []
+  let guard = box.packs_total + 1
+  while (box && box.packs_left > 0 && guard-- > 0) {
+    packs.push(ripNextPack(box))
+    if (packs[packs.length - 1].packsLeft <= 0) break
+    box = db.prepare('SELECT * FROM sealed_box_open WHERE id = ?').get(boxId) as BoxRow | undefined
+  }
+  if (packs.length === 0) throw new Error('That box is already empty')
+  const last = packs[packs.length - 1]
+  const cards = packs.flatMap((p) => p.cards)
+  return {
+    sessionId: packs[0].sessionId,
+    sessionIds: packs.map((p) => p.sessionId),
+    cards,
+    totalValue: round2(packs.reduce((a, p) => a + p.totalValue, 0)),
+    spent: round2(packs.reduce((a, p) => a + p.spent, 0)),
+    boxId: last.boxId,
+    productId: last.productId,
+    productName: last.productName,
+    packIndex: last.packIndex,
+    packsTotal: last.packsTotal,
+    packsLeft: last.packsLeft,
+    done: last.packsLeft <= 0,
+    packsOpened: packs.length,
+    perPack: packs.map((p) => ({ sessionId: p.sessionId, cards: p.cards, totalValue: p.totalValue, spent: p.spent })),
+  }
 }
 
 /** Boxes with wrappers still in them, for the ceremony's resume row. */

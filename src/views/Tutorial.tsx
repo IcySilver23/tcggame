@@ -27,7 +27,7 @@ const STEPS: Step[] = [
           You've got <b>$1,000</b> and a hobby. This town runs on <b>real card prices</b> — every
           dollar in the game, from a junk common to a grail slab, anchors to live market data.
         </p>
-        <p className="faint">60-second tour. Five stops. Then it's your collection.</p>
+        <p className="faint">60-second tour. Six stops. Then it's your collection.</p>
       </>
     ),
   },
@@ -97,8 +97,9 @@ const STEPS: Step[] = [
       <>
         <p>Suggested opening:</p>
         <p>
-          📦 Rip a pack from the Pack Shop · ⇄ scan the Market for a deal · ★ wishlist a grail and
-          let the 🔔 watch it for you · 📅 check what's happening this week
+          📦 Rip a pack from the Pack Shop · 🧾 take the dupes to the Buylist — the first three
+          sales unlock Deals · ⇄ scan the Market for a deal · ★ wishlist a grail and let the 🔔
+          watch it for you · 📅 check what's happening this week
         </p>
         <p className="faint">Everything else waits for you. Welcome to the hobby.</p>
       </>
@@ -119,11 +120,16 @@ export function StartingTutorial() {
     localStorage.setItem(STEP_KEY, String(step))
   }, [step])
 
-  const finish = async () => {
+  const finish = async (completed: boolean) => {
     localStorage.removeItem(STEP_KEY)
     await api.tutorialDone()
     await refreshState()
-    toast('Tutorial skipped — the 🏪 Settings panel can replay it any time', 'info')
+    toast(
+      completed
+        ? "Welcome in — rip a pack, then take what you don't keep to the 🧾 Buylist."
+        : 'Tutorial skipped — ⚙ Settings can replay it any time',
+      completed ? 'good' : 'info',
+    )
   }
 
   if (!state || state.tutorials.start || !state.tutorialEligible) return null
@@ -148,13 +154,13 @@ export function StartingTutorial() {
           ))}
         </div>
         <div className="tut-actions">
-          <button className="ghost" onClick={finish}>Skip</button>
+          <button className="ghost" onClick={() => finish(false)}>Skip</button>
           <div className="row" style={{ gap: 8 }}>
             {step > 0 && (
               <button className="ghost" onClick={() => setStep(step - 1)}>← Back</button>
             )}
             {last ? (
-              <button className="primary" onClick={finish}>Let's go 🚀</button>
+              <button className="primary" onClick={() => finish(true)}>Let's go 🚀</button>
             ) : (
               <button className="primary" onClick={() => setStep(step + 1)}>Next →</button>
             )}

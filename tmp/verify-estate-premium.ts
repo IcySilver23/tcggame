@@ -49,7 +49,9 @@ const rows = db
   .get(String(conventionId)) as { n: number; basis: number }
 const admitted = rows.n
 const perCard = round2(fullCharge / total)
-const expected = round2(perCard * admitted)
+// Mirror the rule the service follows: a lot the shelf takes in full costs the
+// quoted price exactly; only a partial lot is charged the rounded per-card share.
+const expected = admitted === total ? fullCharge : round2(perCard * admitted)
 
 check('premium constant', estate.ESTATE_PREMIUM === 0.12, `ESTATE_PREMIUM = ${estate.ESTATE_PREMIUM}`)
 check('hammer quoted separately', (r as { hammer?: number }).hammer === lot.ask, `hammer ${(r as { hammer?: number }).hammer} vs lot ask ${lot.ask}`)
@@ -62,7 +64,7 @@ if (admitted < total) {
   check('partial lot is prorated, not billed in full', r.paid < fullCharge - 0.01, `${admitted} of ${total} fit — paid $${r.paid.toFixed(2)}, kept $${round2(fullCharge - r.paid).toFixed(2)}`)
   check('profit scored on the cards received, not the box', r.realized <= r.paid * 8, `realized $${r.realized.toFixed(2)} on paid $${r.paid.toFixed(2)}`)
 } else {
-  check('whole lot fits — charged in full', Math.abs(r.paid - fullCharge) <= 0.02, `paid $${r.paid.toFixed(2)} of $${fullCharge.toFixed(2)}`)
+  check('whole lot fits — charged in full', Math.abs(r.paid - fullCharge) <= 0.005, `paid $${r.paid.toFixed(2)} of $${fullCharge.toFixed(2)}`)
 }
 
 console.log(failures.length === 0 ? '\nRESULT: all checks passed' : `\nRESULT: ${failures.length} failed — ${failures.join(', ')}`)

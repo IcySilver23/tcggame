@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { Portfolio, PortfolioSetRow, PortfolioPosition } from '../api'
-import { CardImg, Delta, EmptyState, fmtUsd, fmtDate } from '../components'
+import { CardImg, Delta, EmptyState, fmtUsd, fmtDate, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
 // Portfolio — the collection as an investment.
@@ -106,11 +106,17 @@ function BreakdownRow({ name, meta, gain, gainPct, value }: { name: string; meta
 export function PortfolioView() {
   const [pf, setPf] = useState<Portfolio | null>(null)
   const [setSort, setSetSort] = useState<'roi' | 'gain' | 'value'>('roi')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  useEffect(() => {
-    api.portfolio().then(setPf).catch(() => {})
-  }, [])
+  const load = () => {
+    setStatus('loading')
+    api.portfolio()
+      .then((d) => { setPf(d); setStatus('ready') })
+      .catch(() => setStatus('error'))
+  }
+  useEffect(() => { load() }, [])
 
+  if (status === 'error') return <LoadFailure what="your portfolio" onRetry={load} />
   if (!pf) return <EmptyState icon="📈" text="Crunching the books…" sub="Cost bases, sale history, and snapshots." />
 
   const empty = pf.deployedTotal === 0 && pf.salesCount === 0

@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { DEAL_VENUE_META, DEALS_GATE, dealVenueLabel, isDealVenue, type DealVenueId } from '../route-meta'
 import { useStore } from '../store'
 import { EmptyState } from '../components'
 import { PawnShopView } from './PawnShop'
@@ -21,7 +22,8 @@ import { LiveShoppingView } from './LiveShopping'
  * 200, or muscle memory is worthless. Gate order happens to read as a ladder,
  * and the "next goal" line always points at the first locked rung.
  */
-export type DealVenueId = 'pawn' | 'yard' | 'local' | 'flea' | 'bidbay' | 'estate' | 'live'
+export type { DealVenueId }
+export { DEALS_GATE, dealVenueLabel, isDealVenue }
 
 export type DealVenue = {
   id: DealVenueId
@@ -35,26 +37,17 @@ export type DealVenue = {
   Component: ComponentType
 }
 
-export const DEAL_VENUES: DealVenue[] = [
-  { id: 'pawn', label: 'Pawn Shop', icon: '💠', gate: 3, hint: 'Make 3 sales', verb: 'Hock a card for cash now, or take a 30-day loan you have to service', Component: PawnShopView },
-  { id: 'yard', label: 'Yard Sales', icon: '🛗', gate: 3, hint: 'Make 3 sales', verb: 'Read a driveway table from one-line peeks and haggle across the hood', Component: YardSalesView },
-  { id: 'local', label: 'Local Deals', icon: '🪧', gate: 5, hint: 'Make 5 sales', verb: 'Meet a stranger in a parking lot — cheap and risky, or inspected and clean', Component: LocalDealsView },
-  { id: 'flea', label: 'Flea Markets', icon: '🛒', gate: 6, hint: 'Make 6 sales', verb: 'Dig flat-price bins while NPC pickers drain the same bins beside you', Component: FleaMarketView },
-  { id: 'bidbay', label: 'BidBay', icon: '🌐', gate: 8, hint: 'Make 8 sales', verb: 'Undercut the room — price against snipers who scan the feed twice a tick', Component: BidBayView },
-  { id: 'estate', label: 'Estate Buyouts', icon: '📑', gate: 10, hint: 'Make 10 sales', verb: 'Buy a whole collection sight unseen and find out what you actually got', Component: EstateSalesView },
-  { id: 'live', label: 'Live Shopping', icon: '📺', gate: 12, hint: 'Make 12 sales', verb: 'Pounce in a live room — six formats, a clock that does not wait', Component: LiveShoppingView },
-]
-
-/** Earliest venue gate — also the hub's own gate in the sidebar. */
-export const DEALS_GATE = Math.min(...DEAL_VENUES.map((v) => v.gate))
-
-export function dealVenueLabel(id?: string): string | undefined {
-  return DEAL_VENUES.find((v) => v.id === id)?.label
+const DEAL_COMPONENTS: Record<DealVenueId, ComponentType> = {
+  pawn: PawnShopView,
+  yard: YardSalesView,
+  local: LocalDealsView,
+  flea: FleaMarketView,
+  bidbay: BidBayView,
+  estate: EstateSalesView,
+  live: LiveShoppingView,
 }
 
-export function isDealVenue(id?: string): id is DealVenueId {
-  return !!id && DEAL_VENUES.some((v) => v.id === id)
-}
+export const DEAL_VENUES: DealVenue[] = DEAL_VENUE_META.map((v) => ({ ...v, Component: DEAL_COMPONENTS[v.id] }))
 
 const go = (id: DealVenueId) => {
   window.location.hash = `#/deals/${id}`

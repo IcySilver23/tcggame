@@ -6,18 +6,15 @@ import { useStore } from './store'
 import { api } from './api'
 import type { GradingReveal } from './api'
 import { crinkle, ripChime } from './audio'
+import { fmtUsd } from './format'
+
+// Re-exported for the dozens of screens that already import it from here; the
+// shell imports ./format directly so it never pulls this renderer (16.0).
+export { fmtUsd }
 
 // ---------------------------------------------------------------------------
 // Formatting
 // ---------------------------------------------------------------------------
-
-export function fmtUsd(n: number | null | undefined, opts: { compact?: boolean } = {}): string {
-  if (n == null) return '—'
-  if (opts.compact && Math.abs(n) >= 10000) {
-    return `$${(n / 1000).toFixed(1)}k`
-  }
-  return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
 
 export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—'
@@ -165,7 +162,7 @@ export function CardImg({ src, alt, className, wrapProps, cardId, rarity, varian
   const [stage, setStage] = useState(0)
   const url = chain[stage] ?? null
   const [state, setState] = useState<'loading' | 'ok' | 'error'>(chain.length ? 'loading' : 'error')
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const [pos, setPos] = useState<{ x: number; y: number; width: number } | null>(null)
   const openCard = useStore((s) => s.openCard)
   const imgRef = useRef<HTMLImageElement | null>(null)
   useEffect(() => {
@@ -181,12 +178,35 @@ export function CardImg({ src, alt, className, wrapProps, cardId, rarity, varian
   // follows the cursor) and opens the full card detail modal on click. Views
   // opt in per-site by passing cardId; wrapProps still win if a view needs
   // its own handlers (draggable rows, selection toggles…).
+  // The preview hangs BESIDE the card, not under the cursor. Drawn at the
+  // pointer it sat on top of the very card it was enlarging, which read as a
+  // duplicated card rather than a zoom; it also had no foil, so the one place
+  // you go to look closely was the one place the holo vanished.
+  const PREVIEW_W = 300
+  const anchor = (el: HTMLElement) => {
+    // Inside the card detail modal the card is already large, so a hovering copy
+    // of it is pure duplication — and it landed a size SMALLER than the card it
+    // sat on, which is what "it still duplicates the card" was looking at.
+    if (el.closest('.modal')) return null
+    const r = el.getBoundingClientRect()
+    const gap = 14
+    const roomRight = window.innerWidth - 8 - (r.right + gap)
+    const roomLeft = r.left - gap - 8
+    const room = Math.max(roomLeft, roomRight)
+    // No room beside the card means no preview at all. Squeezing one onto the
+    // card is never worth it: at that point it reads as a second card, not a
+    // closer look at this one, and the click-through detail view is right there.
+    if (room < 200) return null
+    const width = Math.min(PREVIEW_W, room)
+    const x = roomRight >= roomLeft ? r.right + gap : Math.max(8, r.left - gap - width)
+    return { x, y: Math.max(8, Math.min(r.top, window.innerHeight - width * 1.4 - 34)), width }
+  }
   const zoom = !!(cardId && url)
   const zoomHandlers: React.HTMLAttributes<HTMLDivElement> = zoom
     ? {
         title: 'Click to open the card',
-        onMouseEnter: (e) => setPos({ x: e.clientX, y: e.clientY }),
-        onMouseMove: (e) => setPos({ x: e.clientX, y: e.clientY }),
+        onMouseEnter: (e) => setPos(anchor(e.currentTarget)),
+        onMouseMove: (e) => setPos(anchor(e.currentTarget)),
         onMouseLeave: () => setPos(null),
         onClick: (e) => { e.stopPropagation(); setPos(null); void openCard(cardId!) },
       }
@@ -213,15 +233,17 @@ export function CardImg({ src, alt, className, wrapProps, cardId, rarity, varian
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: state === 'ok' ? 1 : 0, transition: 'opacity 0.25s' }}
           />
         )}
-        {/* Foil sits ABOVE the scan and stays invisible until the pointer is over
-            the card, so a card at rest is the artwork exactly. */}
+        {/* Foil sits ABOVE the scan. The card's paper renders at rest; the
+            advanced treatment takes over on hover when that switch is on. */}
         {url && state === 'ok' && (
           <FoilOverlay wrapRef={wrapRef} src={url} cardId={cardId} rarity={rarity} variant={variant} />
         )}
       </div>
       {pos && zoom && createPortal(
-        <div className="zoom-preview" style={{ left: pos.x + 18, top: Math.max(8, pos.y - 90) }}>
-          <div className="zoom-preview-art"><img src={url!} alt={alt} /></div>
+        <div className="zoom-preview" style={{ left: pos.x, top: pos.y, width: pos.width }}>
+          {/* The same CardImg as everywhere else, so the zoom carries the
+              printing's paper and the shine instead of a flat second copy. */}
+          <CardImg src={url} alt={alt} cardId={cardId} rarity={rarity} variant={variant} />
           <div className="small" style={{ padding: '6px 8px' }}><b>{alt}</b></div>
         </div>,
         document.body,
@@ -240,16 +262,23 @@ export function CardImg({ src, alt, className, wrapProps, cardId, rarity, varian
 const SLAB_SERVICE: Record<string, { frame: string; ink: string; abbr: string }> = {
   PSA: { frame: '#d1292f', ink: '#d1292f', abbr: 'PSA' },
   BGS: { frame: '#15161a', ink: '#15161a', abbr: 'BGS' },
-  CGC: { frame: '#c79a1e', ink: '#8a6a10', abbr: 'CGC' },
+  CGC: { frame: '#15161a', ink: '#15161a', abbr: 'CGC' },
   SGC: { frame: '#a87d2a', ink: '#8a6722', abbr: 'SGC' },
 }
 const SLAB_WORD: Record<string, string> = { '10': 'GEM MT', '9': 'MINT', '8': 'NM-MT', '7': 'NM' }
 
 function gradeParts(grade: string | null | undefined) {
-  const m = grade ? grade.match(/^([A-Z]+)(\d+)$/) : null
+  const m = grade ? grade.match(/^([A-Z]+)(\d+)(BL|P)?$/) : null
   if (!m) return null
-  const s = SLAB_SERVICE[m[1]] ?? { frame: '#3a4256', ink: '#3a4256', abbr: m[1] }
-  return { ...s, num: m[2], word: SLAB_WORD[m[2]] ?? '' }
+  const blackLabel = m[3] === 'BL'
+  const pristine = m[3] === 'P'
+  const s = blackLabel
+    ? { frame: '#c9a227', ink: '#d4af37', abbr: 'BGS' }
+    : pristine
+      ? { frame: '#c79a1e', ink: '#6f5510', abbr: 'CGC' }
+      : SLAB_SERVICE[m[1]] ?? { frame: '#3a4256', ink: '#3a4256', abbr: m[1] }
+  const word = blackLabel ? 'BLACK LABEL' : pristine || (m[1] === 'BGS' && m[2] === '10') ? 'PRISTINE' : SLAB_WORD[m[2]] ?? ''
+  return { ...s, num: m[2], word, code: grade as string, blackLabel, pristine }
 }
 
 // Deterministic cert-style serial from the card + grade — pure flavor, but
@@ -303,7 +332,7 @@ export function SlabCard({ src, alt, grade, setName, cardNo, className, cardId, 
   const cert = slabCert(alt ?? '', grade ?? '')
   const no = cardNo && /^\d+$/.test(cardNo) ? String(Number(cardNo)) : cardNo
   return (
-    <div className={`psa-slab ${className ?? ''}`}>
+    <div className={`psa-slab ${g.blackLabel ? 'black-label' : ''} ${g.pristine ? 'pristine-label' : ''} ${className ?? ''}`}>
       <div className="psa-label" style={{ borderColor: g.frame }}>
         <div className="psa-main">
           <div className="psa-setlines">
@@ -353,7 +382,7 @@ export function Modal({ onClose, children, wide }: { onClose: () => void; childr
 
 export const GRADE_BADGE: Record<string, string> = {
   PSA10: 'GEM MNT 10', PSA9: 'MINT 9', PSA8: 'NM-MT 8', PSA7: 'NM 7',
-  BGS10: 'BGS 10', BGS9: 'BGS 9', CGC10: 'CGC 10', CGC9: 'CGC 9', SGC10: 'SGC 10', SGC9: 'SGC 9',
+  BGS10BL: 'BGS BLACK LABEL 10', BGS10: 'BGS 10', BGS9: 'BGS 9', BGS8: 'BGS 8', CGC10P: 'CGC PRISTINE 10', CGC10: 'CGC GEM MINT 10', CGC9: 'CGC 9', CGC8: 'CGC 8', SGC10: 'SGC 10', SGC9: 'SGC 9',
 }
 
 export function GradeRevealModal({
@@ -369,6 +398,11 @@ export function GradeRevealModal({
   onSeeCollection?: () => void
 }) {
   const pl = reveal.value * 0.9 - reveal.costBasis
+  const valueBadge = reveal.valueBasis === 'asking'
+    ? `ASKING · ${reveal.valueKind === 'ebay-graded' ? 'eBay' : 'Market'}`
+    : reveal.valueBasis === 'estimated'
+      ? (reveal.valueKind === 'pc-graded' ? 'PRICECHARTING ESTIMATE' : 'GAME ESTIMATE')
+      : `SOLD-BASED · ${reveal.valueKind === 'ebay-graded' ? 'eBay' : 'PriceCharting'}`
   return (
     <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) (onBackdropClose ?? onClose)() }}>
       <div className="modal" style={{ width: 'min(620px, 95vw)', textAlign: 'center' }}>
@@ -377,15 +411,14 @@ export function GradeRevealModal({
         <div className="sub muted">{reveal.name}</div>
         <div style={{ fontSize: 34, fontWeight: 800, margin: '14px 0 4px', fontVariantNumeric: 'tabular-nums' }}>
           {fmtUsd(reveal.value)}
-          {reveal.valueSource === 'live' && <span className="badge live" style={{ marginLeft: 10 }}>LIVE · PriceCharting</span>}
-          {reveal.valueSource === 'estimated' && <span className="badge est" style={{ marginLeft: 10 }}>ESTIMATED</span>}
+          <span className={`badge ${reveal.valueBasis === 'sold' ? 'live' : 'est'}`} style={{ marginLeft: 10 }}>{valueBadge}</span>
         </div>
         <div className={`small ${pl >= 0 ? 'delta-up' : 'delta-down'}`}>
           Profit if sold now: {pl >= 0 ? '+' : ''}{fmtUsd(Math.round(pl * 100) / 100)} (after 10% fee)
         </div>
         {reveal.allGrades.length > 1 && (
           <div className="mt14" style={{ textAlign: 'left' }}>
-            <div className="faint small mb8">REAL GRADED PRICES</div>
+            <div className="faint small mb8">GRADED PRICE LADDER</div>
             <table className="table">
               <thead><tr><th>Grade</th><th className="right">Value</th><th>Source</th></tr></thead>
               <tbody>
@@ -393,7 +426,13 @@ export function GradeRevealModal({
                   <tr key={g.grade} style={g.grade === reveal.grade ? { color: 'var(--accent, #ffd54a)', fontWeight: 700 } : undefined}>
                     <td>{GRADE_BADGE[g.grade] ?? g.grade}</td>
                     <td className="num">{fmtUsd(g.usd)}</td>
-                    <td className="small muted">{g.source === 'pc-graded' ? 'PriceCharting' : 'eBay comps'}</td>
+                    <td className="small muted">
+                      {g.basis === 'asking'
+                        ? 'eBay active asks'
+                        : g.basis === 'estimated'
+                          ? `${g.source === 'pc-graded' ? 'PriceCharting' : 'eBay'} estimate`
+                          : `${g.source === 'pc-graded' ? 'PriceCharting' : 'eBay'} sold-based`}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -736,6 +775,18 @@ export function EmptyState({ icon, text, sub, action }: { icon: string; text: st
   )
 }
 
+/** The same dead-end everywhere: say what could not load, and offer the reload. */
+export function LoadFailure({ what, sub, onRetry }: { what: string; sub?: string; onRetry: () => void }) {
+  return (
+    <EmptyState
+      icon="⚠️"
+      text={`Couldn't load ${what}`}
+      sub={sub ?? 'The local server did not answer. Nothing was changed.'}
+      action={{ label: 'Try again', onClick: onRetry }}
+    />
+  )
+}
+
 // ---------------------------------------------------------------------------
 // OverflowMenu — one “⋯” button instead of a wall of per-row actions.
 //
@@ -1011,7 +1062,7 @@ export function CapacityStrip() {
         {' '}{full ? 'New cards get refused at the door until you make room.' : 'A full rack refuses every delivery — rent before the next haul.'}
       </span>
       {slabsFull && <span>🏆 Slab rack full ({cap.slabOwned}/{cap.slabCapacity}).</span>}
-      <button className="ghost small" style={{ marginLeft: 'auto' }} onClick={() => { window.location.hash = '#/storage' }}>
+      <button className="ghost small" style={{ marginLeft: 'auto' }} onClick={() => { window.location.hash = '#/inventory/storage' }}>
         🗄 Rent a locker →
       </button>
     </div>

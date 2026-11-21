@@ -21,11 +21,14 @@ export function CardTradePanel({ inventoryId, cardName, cardValue, onDone }: {
   const [busy, setBusy] = useState(false)
   const [reply, setReply] = useState<TradeReply | null>(null)
   const [afford, setAfford] = useState(true)
+  const [failed, setFailed] = useState(false)
 
-  useEffect(() => {
-    api.traders().then(setTraders).catch(() => {})
+  const load = () => {
+    setFailed(false)
+    api.traders().then(setTraders).catch(() => setFailed(true))
     api.state().then((s) => setAfford(s.cash >= 0)).catch(() => {})
-  }, [])
+  }
+  useEffect(() => { load() }, [])
 
   const trader = traders.find((t) => t.id === traderId) ?? null
 
@@ -48,6 +51,13 @@ export function CardTradePanel({ inventoryId, cardName, cardValue, onDone }: {
     }
   }
 
+  if (failed && traders.length === 0) {
+    return (
+      <div className="faint small" style={{ padding: '8px 0' }}>
+        Couldn't load the traders — nothing was traded. <button className="small ghost" onClick={load}>Try again</button>
+      </div>
+    )
+  }
   if (traders.length === 0) {
     return <div className="faint small" style={{ padding: '8px 0' }}>Loading traders…</div>
   }

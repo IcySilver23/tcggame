@@ -1,9 +1,9 @@
 {
   "generated": "scripts/unpainted-report.ts",
   "catalogue": {
-    "cards": 20782,
+    "cards": 20894,
     "foilCards": 7008,
-    "noFoil": 13774
+    "noFoil": 13886
   },
   "roadmapLine": {
     "text": "none",

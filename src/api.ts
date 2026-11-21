@@ -45,6 +45,8 @@ export const api = {
     post<{ ok: boolean; total: number; message: string }>('/api/market/buy-direct', { cardId }),
 
   inventory: () => req<import('./types').InventoryRow[]>('/api/inventory'),
+  /** Card pickers only need name/image/value — not the full priced collection. */
+  inventoryLight: () => req<import('./types').InventoryPickRow[]>('/api/inventory/light'),
   supplies: () => req<SuppliesStatus>('/api/supplies'),
 
   insurance: () => req<InsuranceStatus>('/api/insurance'),
@@ -84,13 +86,21 @@ export const api = {
   sales: () => req<SaleRow[]>('/api/sales'),
 
   products: () => req<import('./types').ProductRow[]>('/api/shop/products'),
-  buyProduct: (productId: string, qty: number, openNow: boolean) =>
-    post<{ ok: boolean; cost: number; opened?: import('./types').OpenSession[] }>(`/api/shop/buy/${encodeURIComponent(productId)}`, { qty, openNow }),
+  productDetail: (productId: string) =>
+    req<import('./types').ProductDetail>(`/api/shop/products/${encodeURIComponent(productId)}/detail`),
+  productDetails: (ids: string[]) =>
+    post<import('./types').ProductDetail[]>('/api/shop/products/details', { ids }),
+  dailyDealsHistory: () => req<import('./types').DailyDealHistoryDay[]>('/api/shop/daily-deals/history'),
+  /** Every purchase lands sealed; opening is a separate choice in Inventory. */
+  buyProduct: (productId: string, qty: number) =>
+    post<{ ok: boolean; cost: number }>(`/api/shop/buy/${encodeURIComponent(productId)}`, { qty }),
   openPack: (productId: string) => post<import('./types').OpenSession & { packsInBox?: number; packsOpened?: number; perPack?: { sessionId: string; totalValue: number; spent: number }[] }>('/api/packs/open', { productId }),
   /** Start a box: one pack comes out, the promo (if any) is already banked. */
   openBox: (productId: string) => post<import('./types').BoxOpen>('/api/packs/box', { productId }),
   /** The next wrapper out of a box that is already open. */
   openBoxNext: (boxId: number) => post<import('./types').BoxOpen>('/api/packs/box/next', { boxId }),
+  /** Skip to the end: open every remaining wrapper and return the whole box. */
+  openBoxRest: (boxId: number) => post<import('./types').BoxOpen>('/api/packs/box/rest', { boxId }),
   /** Boxes that still have wrappers inside — a reload mid-box must not lose them. */
   openBoxes: () => req<{ id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }[]>('/api/packs/boxes'),
   sellSealed: (productId: string, qty: number) =>
@@ -226,7 +236,7 @@ export const api = {
   shopBuyCase: (caseId: number) => post<{ ok: boolean; label?: string; error?: string }>('/api/shop/cases/buy', { caseId }),
   shopBuyBuilding: () =>
     post<{ ok: boolean; price?: number; down?: number; principal?: number; daily?: number; rate?: number; error?: string }>('/api/shop/buy'),
-  shopStockable: () => req<StockableResponse>('/api/shop/stockable'),
+  shopStockable: () => req<{ ok: true; rows: ShopStockRow[] } | { ok: false; error: string }>('/api/shop/stockable'),
   shopStock: (caseId: number, inventoryId: number, ask: number) => post<{ ok: boolean; error?: string }>('/api/shop/stock', { caseId, inventoryId, ask }),
   shopUnstock: (inventoryId: number) => post<{ ok: boolean; error?: string }>('/api/shop/unstock', { inventoryId }),
   consignmentAccept: (id: number, ask: number) => post<{ ok: boolean; error?: string }>('/api/shop/consignment/accept', { id, ask }),
@@ -239,7 +249,7 @@ export const api = {
   staffDayOff: (id: number, action: 'grant' | 'refuse') => post<{ ok: boolean; error?: string; dayOff?: string; label?: string; refused?: boolean }>('/api/shop/staff/dayoff', { id, action }),
   staffPoach: (id: number, action: 'match' | 'letgo') => post<{ ok: boolean; error?: string; wage?: number; left?: boolean }>('/api/shop/staff/poach', { id, action }),
   staffHuff: (id: number, action: 'grant' | 'refuse') => post<{ ok: boolean; error?: string; wage?: number; dayOff?: string; label?: string; left?: boolean }>('/api/shop/staff/huff', { id, action }),
-  bulkStockable: (pricePerCard: number) => req<StockableResponse>(`/api/shop/bulk/stockable?price=${pricePerCard}`),
+  bulkStockable: (pricePerCard: number) => req<{ ok: true; rows: ShopBulkRow[] } | { ok: false; error: string }>(`/api/shop/bulk/stockable?price=${pricePerCard}`),
   bulkBuy: (label: string, pricePerCard: number, capacity: number) => post<{ ok: boolean; label?: string; error?: string }>('/api/shop/bulk/buy', { label, pricePerCard, capacity }),
   bulkFill: (boxId: number, inventoryIds: number[]) => post<{ ok: boolean; added?: number; error?: string }>('/api/shop/bulk/fill', { boxId, inventoryIds }),
   bulkRemove: (inventoryId: number) => post<{ ok: boolean; error?: string }>('/api/shop/bulk/remove', { inventoryId }),
@@ -276,7 +286,7 @@ export const api = {
   tournamentPlay: () => post<TournamentPlayResult>('/api/tournaments/play'),
   tournamentAbandon: () => post<{ ok: boolean }>('/api/tournaments/abandon'),
   streamChannel: () => req<StreamChannel>('/api/stream/channel'),
-  streamProducts: () => req<BattleProduct[]>('/api/stream/products'),
+  streamProducts: () => req<StreamProduct[]>('/api/stream/products'),
   streamGoLive: (productId: string, packs: number) => post<StreamGoLive>('/api/stream/live', { productId, packs }),
   streamRip: () => post<StreamRipResult>('/api/stream/rip'),
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
@@ -342,6 +352,11 @@ export const api = {
   // ------------------------------------------------------------- pawn shop
   pawn: () => req<PawnSection>('/api/pawn'),
   pawnSell: (inventoryId: number) => post<{ ok: boolean; paid?: number; error?: string }>(`/api/pawn/sell/${inventoryId}`),
+
+  // One door from the "Which door pays most?" panel. The server re-checks the
+  // route's gate and performs that route's own sale (list, buylist, dealer, pawn).
+  sellRoute: (inventoryId: number, routeId: string) =>
+    post<{ ok: boolean; paid?: number; listed?: number; message?: string; error?: string }>(`/api/sell-routes/${inventoryId}/${routeId}`, {}),
   pawnHock: (inventoryId: number, amount?: number) =>
     post<{ ok: boolean; principal?: number; dueAt?: string; error?: string }>(`/api/pawn/hock/${inventoryId}`, { amount }),
   pawnPayoff: (loanId: number) => post<{ ok: boolean; paid?: number; error?: string }>(`/api/pawn/payoff/${loanId}`),
@@ -474,8 +489,14 @@ export const api = {
   syncProgress: () => req<import('./types').GameStateResponse['sync']>('/api/sync/progress'),
 
   changelog: () => req<ChangelogResponse>('/api/changelog'),
+  /** Sidebar badge only needs versions; the panel still reads the full log. */
+  changelogSummary: () => req<{ current: string; versions: string[] }>('/api/changelog/summary'),
   changelogSeen: () => req<{ seen: string | null; current: string; veteran: boolean }>('/api/changelog/seen'),
   changelogMarkSeen: (version: string) => post<{ ok: boolean; seen: string }>('/api/changelog/seen', { version }),
+
+  updateCheck: () => req<UpdateStatus>('/api/update'),
+  updateApply: (version: string) => post<{ ok: boolean; version?: string; installerName?: string; error?: string }>('/api/update/apply', { version }),
+  updateSeen: () => post<{ ok: boolean }>('/api/update/seen'),
 
   shipments: () => req<ShipmentsSection>('/api/shipments'),
   shipOrder: (kind: string, id: number, method: string, pack: string, photos: boolean) =>
@@ -486,6 +507,14 @@ export const api = {
 
 export type ChangelogEntry = { version: string; date: string; title: string; features: string[] }
 export type ChangelogResponse = { current: string; entries: ChangelogEntry[] }
+export type UpdateStatus = {
+  currentVersion: string
+  available: boolean
+  version?: string
+  installerName?: string
+  size?: number
+  justUpdated: { from: string; to: string; at: string } | null
+}
 
 // ------------------------------------------------------------- Quota / simulated market
 
@@ -723,7 +752,7 @@ export type SealedStockRow = {
   quantity: number
   cost: number
   market_price: number
-  source: 'pricecharting' | 'estimated'
+  source: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
   oop: boolean
   oop_months: number
   status: 'in print' | 'out of print'
@@ -951,8 +980,10 @@ export type GradingReveal = {
   gradeLabel: string
   value: number
   valueSource: 'live' | 'estimated'
+  valueKind: 'pc-graded' | 'ebay-graded' | null
+  valueBasis: 'sold' | 'asking' | 'estimated'
   costBasis: number
-  allGrades: { grade: string; usd: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded' }[]
+  allGrades: { grade: string; usd: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded'; basis: 'sold' | 'asking' | 'estimated' }[]
   profitIfSoldNow: number
 }
 
@@ -1065,6 +1096,7 @@ export type GradingHint = {
   upside: number
   edge: number
   gemChance: number
+  pristineChance: number | null
   recommended: boolean
   taxSavings: { honest: number; aggressive: number; bracketRate: number; deductible: boolean }
 }
@@ -1116,6 +1148,10 @@ export type GradingStats = {
   }[]
   distribution: { grade: string; n: number }[]
   candidates: (GradingHint & { inventoryId: number; cardId: string; name: string; image: string | null; set: string; condition: string; rawValue: number })[]
+  /** Raw single copies in the binder — the pool the candidates list scans. */
+  ownedRaw: number
+  /** The cheapest open grading door, so an empty list can name its fee and floor. */
+  floor: { name: string; cost: number; minRawValue: number }
   history: {
     id: number
     inventory_id: number
@@ -1527,6 +1563,11 @@ export type StockableRow = {
 
 export type StockableResponse = { ok: true; rows: StockableRow[] } | { ok: false; error: string }
 
+/** The shop's card pickers never render art — only these fields leave the server. */
+export type ShopStockRow = Pick<StockableRow, 'id' | 'name' | 'set_name' | 'condition' | 'rarity' | 'quantity' | 'anchor' | 'suggestedAsk'>
+export type ShopBulkRow = Pick<StockableRow, 'id' | 'name' | 'set_name' | 'condition' | 'rarity' | 'anchor' | 'cost_basis'>
+export type ShopBagRow = Pick<StockableRow, 'id' | 'name' | 'set_name' | 'condition' | 'rarity' | 'anchor'> & { isHitTier: boolean; isJunkTier: boolean }
+
 // --------------------------------------------------------------- card shop
 
 export type ShopTierOption = { id: string; label: string; blurb: string; deposit: number; rent: number }
@@ -1698,7 +1739,7 @@ export type BagsStatus = {
 
 export type BagStockableResponse = {
   ok: true
-  rows: (StockableRow & { isHitTier: boolean; isJunkTier: boolean })[]
+  rows: ShopBagRow[]
   price: number
 }
 
@@ -2265,6 +2306,9 @@ export type BattleProduct = {
   /** What one side stakes: the whole box — every pack that gets ripped. */
   stake?: number
 }
+
+/** The stream setup picker only needs the label and shelf price. */
+export type StreamProduct = Pick<BattleProduct, 'id' | 'name' | 'market_price' | 'msrp'>
 
 export type BattleCard = { cardId: string; name: string; value: number; isHit: boolean }
 

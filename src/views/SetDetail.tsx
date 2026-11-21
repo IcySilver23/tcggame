@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
-import { byNum, byStr, CardImg, Chip, DensityToggle, EmptyState, fmtUsd, matchesQuery, PriceTag, RarityBadge, SearchInput, SortSelect, VirtualGrid } from '../components'
+import { byNum, byStr, CardImg, Chip, DensityToggle, EmptyState, fmtUsd, LoadFailure, matchesQuery, PriceTag, RarityBadge, SearchInput, SortSelect, VirtualGrid } from '../components'
 import type { SetDetailResponse, SetRow } from '../types'
 
 /**
@@ -34,7 +34,15 @@ export function SetsGalleryView() {
   const [q, setQ] = useState('')
   const [series, setSeries] = useState('all')
   const [sort, setSort] = useState('release_desc')
-  useEffect(() => { api.sets().then(setSets).catch(() => {}) }, [])
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
+  const load = () => {
+    setStatus('loading')
+    api.sets()
+      .then((d) => { setSets(d); setStatus('ready') })
+      .catch(() => setStatus('error'))
+  }
+  useEffect(() => { load() }, [])
 
   const seriesList = useMemo(() => [...new Set(sets.map((s) => s.series))], [sets])
   const shown = useMemo(() => {
@@ -62,6 +70,9 @@ export function SetsGalleryView() {
     }
     return [...out].sort(sorters[sort] ?? sorters.release_desc)
   }, [sets, q, series, sort])
+
+  if (status === 'error') return <LoadFailure what="the set gallery" onRetry={load} />
+  if (status === 'loading' && sets.length === 0) return <EmptyState icon="🎴" text="Loading the sets…" sub="Opening the expansion index." />
 
   return (
     <div>
@@ -98,7 +109,12 @@ export function SetsGalleryView() {
         </div>
       </div>
       {shown.length === 0 ? (
-        <EmptyState icon="🎴" text="No sets match" sub="Try a different name or clear the filters." />
+        <EmptyState
+          icon="🎴"
+          text={sets.length === 0 ? 'No sets on file yet' : 'No sets match'}
+          sub={sets.length === 0 ? 'The catalog is still syncing expansions — try again in a moment.' : 'Try a different name or clear the filters.'}
+          action={sets.length === 0 ? { label: 'Try again', onClick: load } : undefined}
+        />
       ) : (
       <div className="card-grid">
         {shown.map((s) => {
@@ -147,11 +163,15 @@ export function SetDetailView({ setId }: { setId: string }) {
   const [q, setQ] = useState('')
   const [sort, setSort] = useState('number_asc')
   const [rarity, setRarity] = useState('all')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  useEffect(() => {
-    setData(null)
-    api.setDetail(setId).then(setData).catch(() => {})
-  }, [setId])
+  const load = () => {
+    setStatus('loading')
+    api.setDetail(setId)
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus('error'))
+  }
+  useEffect(() => { setData(null); load() }, [setId])
 
   const cards = data?.cards ?? []
 
@@ -178,7 +198,9 @@ export function SetDetailView({ setId }: { setId: string }) {
     return [...out].sort(sorters[sort] ?? sorters.number_asc)
   }, [cards, hideOwned, q, rarity, sort])
 
-  if (!data) return <EmptyState icon="⏳" text="Loading set…" />
+  if (status === 'error') return <LoadFailure what="that set" sub="The catalog did not answer. Your collection is safe — this was only the set page." onRetry={load} />
+  if (!data) return <EmptyState icon="⏳" text="Loading set…" sub="Pulling every card, price and owned count for this expansion." />
+  if (cards.length === 0) return <EmptyState icon="🃏" text="This set has no cards yet" sub="The catalog is still filling it — try again in a moment." action={{ label: 'Try again', onClick: load }} />
 
   const missing = cards.filter((c) => (c.ownedQty ?? 0) === 0)
 

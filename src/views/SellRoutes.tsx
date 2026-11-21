@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react'
+import { api } from '../api'
+import { useStore } from '../store'
 import { fmtUsd } from '../components'
 
 // ---------------------------------------------------------------------------
-// Which door pays most — the four ways to sell one card, side by side.
-// Figures come from the server so this can never disagree with what the desk,
-// the buylist, the pawn counter or a listing will actually pay.
+// Which door pays most — the four ways to sell one card, side by side, and the
+// buttons that walk through them. Figures come from the server so this can
+// never disagree with what the desk, the buylist, the pawn counter or a listing
+// will actually pay; the sale itself is performed by the server, which checks
+// the door's gate again before it pays.
+//
+// Two doors are gated on a young save (the Resale Desk at $400 cash and the
+// Pawn Shop at 3 sales). They still show what they would pay, but they are
+// dimmed with the requirement on the row, cannot win "best", and are not
+// clickable.
 // ---------------------------------------------------------------------------
 
 type Route = {
@@ -14,6 +23,8 @@ type Route = {
   pct: number
   wait: string
   note: string
+  /** A nav gate, not a market condition: why this door is not open yet. */
+  locked?: string
 }
 
 type Answer = {
@@ -25,9 +36,11 @@ type Answer = {
   error?: string
 }
 
-export function SellRoutes({ inventoryId, compact }: { inventoryId: number; compact?: boolean }) {
+export function SellRoutes({ inventoryId, compact, onSold }: { inventoryId: number; compact?: boolean; onSold?: () => void }) {
+  const toast = useStore((s) => s.toast)
   const [data, setData] = useState<Answer | null>(null)
   const [failed, setFailed] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
 
   useEffect(() => {
     let live = true
@@ -43,7 +56,26 @@ export function SellRoutes({ inventoryId, compact }: { inventoryId: number; comp
   if (!data.ok) return null
 
   const sorted = [...data.routes].sort((a, b) => b.net - a.net)
-  const best = sorted[0]
+  const best = sorted.find((r) => !r.locked) ?? sorted[0]
+  const lockedCount = sorted.filter((r) => r.locked).length
+
+  async function act(r: Route) {
+    if (r.locked || busy) return
+    setBusy(r.id)
+    try {
+      const res = await api.sellRoute(inventoryId, r.id)
+      if (res.ok) {
+        toast(res.message ?? 'Sold.', 'good')
+        onSold?.()
+      } else {
+        toast(res.error ?? 'That door is closed.', 'bad')
+      }
+    } catch {
+      toast('The sale did not go through.', 'bad')
+    } finally {
+      setBusy(null)
+    }
+  }
 
   return (
     <div className={`sr ${compact ? 'sr-compact' : ''}`}>
@@ -53,13 +85,20 @@ export function SellRoutes({ inventoryId, compact }: { inventoryId: number; comp
       </div>
       <div className="sr-rows">
         {sorted.map((r) => {
-          const isBest = r.id === best.id
+          const isBest = r.id === best.id && !r.locked
           return (
-            <div key={r.id} className={`sr-row ${isBest ? 'best' : ''}`}>
+            <button
+              type="button"
+              key={r.id}
+              className={`sr-row ${isBest ? 'best' : ''} ${r.locked ? 'locked' : ''}`}
+              disabled={Boolean(r.locked) || busy !== null}
+              title={r.locked ?? r.note}
+              onClick={() => act(r)}
+            >
               <div className="sr-label">
                 {isBest && <span className="sr-tick" aria-hidden>✓</span>}
-                {r.label}
-                <em>{r.wait}</em>
+                {r.locked ? '🔒 ' : ''}{r.label}
+                <em>{r.locked ?? r.wait}</em>
               </div>
               <div className="sr-bar" aria-hidden>
                 <i style={{ width: `${Math.max(4, Math.round(r.pct * 100))}%` }} />
@@ -68,12 +107,17 @@ export function SellRoutes({ inventoryId, compact }: { inventoryId: number; comp
                 <b>{fmtUsd(r.net)}</b>
                 <em>{Math.round(r.pct * 100)}%</em>
               </div>
-            </div>
+              <span className="sr-go">
+                {r.locked ? 'Locked' : busy === r.id ? '…' : r.id === 'market' ? 'List' : 'Sell'}
+              </span>
+            </button>
           )
         })}
       </div>
       <div className="sr-foot">
-        Best here is <b>{best.label}</b> at {fmtUsd(best.net)} — {fmtUsd(data.spread)} more than the worst door.
+        Best open door is <b>{best.label}</b> at {fmtUsd(best.net)}
+        {' — '}{fmtUsd(data.spread)} more than the worst door
+        {lockedCount > 0 ? ` (${lockedCount} door${lockedCount === 1 ? '' : 's'} still locked).` : '.'}
       </div>
     </div>
   )

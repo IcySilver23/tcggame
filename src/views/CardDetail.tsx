@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
-import { CardImg, ConditionBadge, EyeSkill, fmtDate, fmtUsd, Modal, OverflowMenu, PriceChart, PriceTag, RarityBadge, slabLabel, SlabCard, SourceBadge, SubStatBars } from '../components'
+import { CardImg, ConditionBadge, EyeSkill, fmtDate, fmtUsd, LoadFailure, Modal, OverflowMenu, PriceChart, PriceTag, RarityBadge, slabLabel, SlabCard, SourceBadge, SubStatBars } from '../components'
 import type { Condition } from '../types'
 import { variantTag } from '../variant-label'
 import { CardTradePanel } from './CardTradePanel'
@@ -12,8 +12,12 @@ const CONDITION_LABEL: Record<Condition, string> = {
   NM: 'Near Mint', LP: 'Lightly Played', MP: 'Moderately Played', HP: 'Heavily Played', DM: 'Damaged',
 }
 
+// Same order the server uses for its real comp ladder, so an estimated rung a
+// slab needs (CGC Pristine with no published comp) still lands beside CGC 10.
+const GRADE_SORT = ['PSA10', 'BGS10BL', 'BGS10', 'CGC10P', 'CGC10', 'SGC10', 'PSA9', 'BGS9', 'CGC9', 'SGC9', 'PSA8', 'BGS8', 'PSA7']
+
 export function CardDetailModal() {
-  const { detail, detailLoading, closeCard, toast, refreshState, refreshDetail, openCard } = useStore()
+  const { detail, detailCardId, detailLoading, closeCard, toast, refreshState, refreshDetail, openCard } = useStore()
   const [buying, setBuying] = useState(false)
   const [histRange, setHistRange] = useState<number | null>(null)
   const [tradeInvId, setTradeInvId] = useState<number | null>(null)
@@ -135,10 +139,22 @@ export function CardDetailModal() {
     await refresh()
   }
 
-  if (detailLoading || !detail) {
+  if (detailLoading) {
     return (
       <Modal onClose={closeCard} wide>
         <div className="empty"><span className="spinner" /> Loading card…</div>
+      </Modal>
+    )
+  }
+  // The store drops detailLoading on a failed read, so this used to spin forever.
+  if (!detail) {
+    return (
+      <Modal onClose={closeCard} wide>
+        <LoadFailure
+          what="this card"
+          sub="The card sheet did not load. Nothing was changed."
+          onRetry={() => { if (detailCardId) openCard(detailCardId) }}
+        />
       </Modal>
     )
   }
@@ -174,7 +190,7 @@ export function CardDetailModal() {
             {card.hp && <span className="badge">{card.hp} HP</span>}
           </div>
 
-          {compareRow && <SellRoutes inventoryId={compareRow.id} compact />}
+          {compareRow && <SellRoutes inventoryId={compareRow.id} compact onSold={() => { refreshState(); refreshDetail(); closeCard() }} />}
           {ownedSlabs.length > 0 && (
             <div className="panel" style={{ margin: '12px 0 0', padding: '10px 12px' }}>
               <div className="faint small" style={{ letterSpacing: 1, marginBottom: 8 }}>■ SLAB CERTIFIER</div>
@@ -183,16 +199,36 @@ export function CardDetailModal() {
                 if (!L) return null
                 // Real comps are published per service+grade (PSA10, BGS9…);
                 // fall back to the PSA rung of the same number when the exact
-                // service isn't quoted.
-                const comp = detail.gradedPrices?.find((gp) => gp.grade === `${L.abbr}${L.num}`)
+                // service isn't quoted. The server's slabValue is the value the
+                // rest of the game uses, so a CGC Pristine with no exact comp
+                // shows its real estimate rather than the CGC 10 fallback.
+                const exactCode = L.code
+                const comp = detail.gradedPrices?.find((gp) => gp.grade === exactCode)
+                  ?? (L.blackLabel ? detail.gradedPrices?.find((gp) => gp.grade === 'BGS10') : undefined)
+                  ?? (L.pristine ? detail.gradedPrices?.find((gp) => gp.grade === 'CGC10') : undefined)
                   ?? detail.gradedPrices?.find((gp) => gp.grade === `PSA${L.num}`)
-                const exact = comp && comp.grade === `${L.abbr}${L.num}`
+                const exact = comp?.grade === exactCode
+                const slabValue = s.slabValue ?? null
+                const displayed = slabValue?.usd ?? comp?.usd ?? null
+                const basis = slabValue?.basis ?? comp?.basis ?? null
+                const sourceKind = slabValue?.kind ?? comp?.source ?? null
                 const units = s.quantity ?? 1
                 const cost = s.cost_basis * units
-                const pl = comp?.usd != null ? Math.round((comp.usd - cost) * 100) / 100 : null
+                const pl = displayed != null ? Math.round((displayed - cost) * 100) / 100 : null
+                const sourceNote = basis === 'asking'
+                  ? 'eBay active asking prices — not sold'
+                  : basis === 'estimated'
+                    ? L.pristine
+                      ? 'CGC Pristine estimate — 1.45× the CGC 10 quote; no published Pristine comp'
+                      : L.blackLabel
+                        ? 'BGS Black Label estimate — 1.6× the BGS 10 quote; no published Black Label comp'
+                        : 'game estimate — no published comp for this grade'
+                    : basis === 'sold'
+                      ? sourceKind === 'ebay-graded' ? 'eBay sold-based value' : 'PriceCharting sold-based value'
+                      : null
                 return (
                   <div key={s.id} style={{ display: 'flex', gap: 12, alignItems: 'center', ...(idx > 0 ? { borderTop: '1px solid var(--border-soft)', paddingTop: 10, marginTop: 10 } : {}) }}>
-                    <div className="cert-mini" style={{ borderColor: L.frame }}>
+                    <div className={`cert-mini${L.blackLabel ? ' black-label' : ''}${L.pristine ? ' pristine-label' : ''}`} style={{ borderColor: L.frame }}>
                       <div className="cert-mini-lines">
                         <span>{(card.name || '').toUpperCase()}</span>
                         <span>{card.set_name?.toUpperCase()}</span>
@@ -214,7 +250,7 @@ export function CardDetailModal() {
                         <div>
                           <div className="faint small">EST. RESALE</div>
                           <div style={{ fontSize: 19, fontWeight: 800, fontVariantNumeric: 'tabular-nums', lineHeight: 1.15 }}>
-                            {comp?.usd != null ? fmtUsd(comp.usd) : '—'}
+                            {displayed != null ? fmtUsd(displayed) : '—'}
                           </div>
                         </div>
                         {pl != null && (
@@ -223,8 +259,9 @@ export function CardDetailModal() {
                           </div>
                         )}
                       </div>
-                      {comp?.usd == null && <div className="faint small">no comps published for this rung</div>}
-                      {comp && !exact && <div className="faint small" style={{ marginTop: 2 }}>priced off the PSA {L.num} comp — no {L.abbr} quote</div>}
+                      {displayed == null && <div className="faint small">no comps published for this rung</div>}
+                      {sourceNote && <div className="faint small" style={{ marginTop: 2 }}>{sourceNote}</div>}
+                      {slabValue == null && comp && !exact && <div className="faint small" style={{ marginTop: 2 }}>priced off the {comp.grade} comp — no {exactCode} quote</div>}
                     </div>
                   </div>
                 )
@@ -279,13 +316,43 @@ export function CardDetailModal() {
             />
           </div>
 
-          {detail.gradedPrices?.length > 0 && (() => {
-            // When you own a slab this becomes the COMP LADDER — every rung
-            // the game has a quote for, with each row's P/L measured against
-            // your slab's cost. No slab → plain REAL GRADED PRICES.
+          {(detail.gradedPrices?.length > 0 || ownedSlabs.length > 0) && (() => {
+            // When you own a slab this becomes the COMP LADDER — every real
+            // rung the game has a quote for, plus the slab's own value when it
+            // is an estimate (CGC Pristine with no exact comp), with each row's
+            // P/L measured against your slab's cost. No slab → plain REAL
+            // GRADED PRICES.
             const ref = ownedSlabs[0]
             const refL = ref ? slabLabel(card.name, ref.graded_grade) : null
             const refCost = (ref?.cost_basis ?? 0) * (ref?.quantity ?? 1)
+            const slabQuote = ref?.slabValue ?? null
+            const rows: { grade: string; usd: number; source: 'pc-graded' | 'ebay-graded' | null; basis: 'sold' | 'asking' | 'estimated'; estimated: boolean }[] =
+              (detail.gradedPrices ?? []).map((g) => {
+                const mine = refL != null && g.grade === refL.code && slabQuote != null
+                return {
+                  grade: g.grade,
+                  usd: mine ? slabQuote!.usd : g.value ?? g.usd,
+                  source: g.source,
+                  basis: mine ? slabQuote!.basis : g.basis,
+                  estimated: mine && slabQuote!.basis === 'estimated',
+                }
+              })
+            if (refL && slabQuote && !rows.some((g) => g.grade === refL.code)) {
+              rows.push({
+                grade: refL.code,
+                usd: slabQuote.usd,
+                source: slabQuote.kind,
+                basis: slabQuote.basis,
+                estimated: slabQuote.basis === 'estimated',
+              })
+            }
+            rows.sort((a, b) => {
+              const ia = GRADE_SORT.indexOf(a.grade)
+              const ib = GRADE_SORT.indexOf(b.grade)
+              if (ia !== ib) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib)
+              return b.usd - a.usd
+            })
+            if (rows.length === 0) return null
             // Best chase: which service is worth submitting a raw copy to,
             // given real fees × the copy's grade odds, net of sale fees.
             // Prefer services that actually beat selling raw; fall back to the
@@ -293,11 +360,12 @@ export function CardDetailModal() {
             const runs = detail.bestRoi ?? null
             const cands = (runs?.filter((r) => r.recommended).length ? runs!.filter((r) => r.recommended) : runs) ?? []
             const best = cands.length ? cands.reduce((a, b) => (b.roi > a.roi ? b : a)) : null
+            const bestCode = best?.serviceId === 'beckett' ? 'BGS10' : best?.serviceId === 'cgc' ? 'CGC10P' : 'PSA10'
             return (
               <div>
                 <div className="faint small" style={{ letterSpacing: 1, marginBottom: 6 }}>
                   {refL ? (
-                    <>COMP LADDER <span className="badge est">every quoted rung · vs {fmtUsd(refCost)} slab cost</span></>
+                    <>COMP LADDER <span className="badge est">quoted rungs + your slab · vs {fmtUsd(refCost)} cost</span></>
                   ) : (
                     <>REAL GRADED PRICES <span className="badge live">PriceCharting</span></>
                   )}
@@ -305,25 +373,31 @@ export function CardDetailModal() {
                 <table className="table">
                   <thead><tr><th>Grade</th><th className="right">Est. resale</th><th>Source</th>{refL && <th className="right">vs cost</th>}</tr></thead>
                   <tbody>
-                    {detail.gradedPrices.map((g) => {
-                      const mine = refL != null && g.grade === `${refL.abbr}${refL.num}`
+                    {rows.map((g) => {
+                      const mine = refL != null && g.grade === refL.code
                       const pl = Math.round((g.usd - refCost) * 100) / 100
                       return (
-                        <tr key={g.grade} style={mine || (best?.recommended && g.grade === 'PSA10') ? { background: 'rgba(255,203,5,.07)' } : undefined}>
+                        <tr key={g.grade} style={mine || (best?.recommended && g.grade === bestCode) ? { background: 'rgba(255,203,5,.07)' } : undefined}>
                           <td>{
                             {
                               PSA10: 'PSA 10 (Gem Mint)', PSA9: 'PSA 9 (Mint)', PSA8: 'PSA 8 (NM-MT)', PSA7: 'PSA 7 (NM)',
-                              BGS10: 'BGS 10 (Pristine)', BGS9: 'BGS 9 (Gem Mint)', CGC10: 'CGC 10', SGC10: 'SGC 10',
+                              BGS10BL: 'BGS 10 (Black Label)', BGS10: 'BGS 10 (Pristine)', BGS9: 'BGS 9 (Mint)', BGS8: 'BGS 8 (NM-MT)',
+                              CGC10P: 'CGC 10 (Pristine)', CGC10: 'CGC 10 (Gem Mint)', CGC9: 'CGC 9 (Mint)', CGC8: 'CGC 8 (NM-MT)',
+                              SGC10: 'SGC 10', SGC9: 'SGC 9',
                             }[g.grade]
-                            ?? g.grade.replace(/^(PSA|BGS|CGC|SGC)(\d+)$/, '$1 $2')
+                            ?? g.grade.replace(/^(PSA|BGS|CGC|SGC)(\d+)(BL|P)?$/, '$1 $2')
                           }
                             {mine && <span className="badge hit" style={{ marginLeft: 6 }}>◂ your slab</span>}
-                            {best?.recommended && g.grade === 'PSA10' && (
+                            {best?.recommended && g.grade === bestCode && (
                               <span className="badge hit" style={{ marginLeft: 6 }} title={`Best ROI route to this rung: ${best.serviceName} at ${fmtUsd(best.cost)}`}>🎯 best chase</span>
                             )}
                           </td>
                           <td className="num">{fmtUsd(g.usd)}</td>
-                          <td>{g.source === 'pc-graded' ? <span className="badge live">PriceCharting</span> : <span className="badge live" title="Median of active eBay fixed-price listings for this grade">eBay comps</span>}</td>
+                          <td>{g.estimated
+                            ? <span className="badge est" title={g.grade === 'CGC10P' ? 'CGC Pristine estimate — 1.45× the CGC 10 quote; no published Pristine comp' : 'Game estimate — no published comp for this rung'}>game estimate</span>
+                            : g.source === 'pc-graded'
+                              ? <span className="badge live">PriceCharting</span>
+                              : <span className="badge live" title="Median of active eBay fixed-price listings for this grade">eBay comps</span>}</td>
                           {refL && (
                             <td className="num" style={{ color: pl >= 0 ? 'var(--green)' : 'var(--red)', fontWeight: 650 }}>
                               {pl >= 0 ? '+' : ''}{fmtUsd(pl)}
@@ -334,10 +408,18 @@ export function CardDetailModal() {
                     })}
                   </tbody>
                 </table>
+                {rows.some((g) => g.estimated) && (
+                  <div className="faint small" style={{ marginTop: 6 }}>
+                    Estimate rungs are this game's model, not a sold comp. CGC Pristine is 1.45× the CGC 10 quote because PriceCharting has no Pristine column.
+                  </div>
+                )}
                 {best != null && (
                   <div className="small" style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(255,203,5,.06)', border: '1px solid rgba(255,203,5,.22)', borderRadius: 8 }}>
                     🎯 <b>Best chase:</b> submit your raw copy with <b>{best.serviceName}</b> ({fmtUsd(best.cost)}) —
                     EV {fmtUsd(best.evNet)} net of fees, <b style={{ color: best.roi >= 0 ? 'var(--green)' : 'var(--red)' }}>{Math.round(best.roi * 100)}% on the fee</b>, {best.gemChance}% gem odds
+                    {best.pristineChance == null
+                      ? best.serviceId === 'cgc' ? ', inspect for Pristine odds' : ''
+                      : best.pristineChance > 0 ? `, ${best.pristineChance}% ${best.serviceId === 'cgc' ? 'Pristine' : 'Black Label'}` : ''}
                     {!best.recommended && ' · below just selling it raw'}
                   </div>
                 )}

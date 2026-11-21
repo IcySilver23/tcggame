@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import type { BuylistOfferRow, BuylistOffers, BuylistSection, BuylistShelf, BuylistShopOut } from '../api'
 import { useStore } from '../store'
-import { EmptyState, FirstUseTip, fmtUsd, TipList } from '../components'
+import { EmptyState, FirstUseTip, fmtUsd, LoadFailure, TipList } from '../components'
 
 // ---------------------------------------------------------------------------
 // 🧾 The Buylist — the counter (roadmap: one verb per venue).
@@ -62,8 +62,10 @@ export function BuylistView() {
   const [tab, setTab] = useState<'sell' | 'spend'>('sell')
   const [busy, setBusy] = useState(false)
   const [loadingSheets, setLoadingSheets] = useState(true)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const loadSheets = async () => {
+  const loadSheets = async (initial = false) => {
+    if (initial) { setStatus('loading'); setLoadingSheets(true) }
     try {
       const section = await api.buylist()
       setData(section)
@@ -74,11 +76,14 @@ export function BuylistView() {
       for (const p of pairs) if (p) next[p[0]] = p[1]
       setSheets(next)
       setShopId((cur) => cur ?? section.shops[0]?.id ?? null)
-    } catch { /* keep the last sheet on screen rather than blanking the counter */ }
-    finally { setLoadingSheets(false) }
+      setStatus('ready')
+    } catch {
+      /* keep the last sheet on screen rather than blanking the counter */
+      if (initial) setStatus('error')
+    } finally { setLoadingSheets(false) }
   }
 
-  useEffect(() => { loadSheets() }, [])
+  useEffect(() => { loadSheets(true) }, [])
 
   useEffect(() => {
     if (shopId == null) return
@@ -203,8 +208,17 @@ export function BuylistView() {
         />
       </FirstUseTip>
 
-      {!data || loadingSheets ? (
+      {status === 'error' ? (
+        <LoadFailure what="the buylist" onRetry={() => loadSheets(true)} />
+      ) : !data || loadingSheets ? (
         <EmptyState icon="🧾" text="Counting the tills…" sub="Every shop is quoting your collection." />
+      ) : data.shops.length === 0 ? (
+        <EmptyState
+          icon="🧾"
+          text="No shop is buying today"
+          sub="The counters rotate their sheets — try again in a moment."
+          action={{ label: 'Try again', onClick: () => loadSheets(true) }}
+        />
       ) : tab === 'sell' ? (
         <div className="counter">
           {/* BUYER RAIL — ranked by what they'd pay for the stack in hand. */}

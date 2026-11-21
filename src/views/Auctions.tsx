@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, type AuctionLot } from '../api'
 import { useStore } from '../store'
 import {
-  byNum, byStr, CardImg, EmptyState, FirstUseTip, fmtUsd, matchesQuery,
+  byNum, byStr, CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, matchesQuery,
   SearchInput, SlabCard, SortSelect, TipList,
 } from '../components'
 
@@ -139,9 +139,15 @@ export function AuctionView() {
   const [sort, setSort] = useState('closing')
   const [mineOnly, setMineOnly] = useState(false)
   const [focusId, setFocusId] = useState<number | null>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const load = () => api.auctions().then(setData).catch(() => {})
-  useEffect(() => { load() }, [])
+  const load = (initial = false) => {
+    if (initial) setStatus('loading')
+    api.auctions()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => { if (initial) setStatus('error') })
+  }
+  useEffect(() => { load(true) }, [])
   useEffect(() => {
     const t = setInterval(load, 10000)
     return () => clearInterval(t)
@@ -204,7 +210,7 @@ export function AuctionView() {
 
   const [collection, setCollection] = useState<{ id: number; label: string }[]>([])
   useEffect(() => {
-    api.inventory().then((rows) =>
+    api.inventoryLight().then((rows) =>
       setCollection(rows.filter((r) => r.status === 'collection').map((r) => ({ id: r.id as number, label: `${r.name} (${r.condition}${r.graded_grade ? ' · ' + r.graded_grade : ''})` }))),
     ).catch(() => {})
   }, [data])
@@ -217,8 +223,8 @@ export function AuctionView() {
           <div>
             <h1>Auction House</h1>
             <div className="sub">
-              One lot under the hammer at a time. Hidden maxes, proxy bidding, a 45-second snipe guard — and a
-              hammer price that settles against real market.
+              One lot under the hammer at a time — hidden maxes, proxy bidding and a 45-second snipe guard.
+              The hammer settles against real market.
             </div>
           </div>
         </div>
@@ -239,7 +245,9 @@ export function AuctionView() {
         />
       </FirstUseTip>
 
-      {!data ? (
+      {status === 'error' ? (
+        <LoadFailure what="the auction room" onRetry={() => load(true)} />
+      ) : !data ? (
         <EmptyState icon="🔨" text="Opening the doors…" sub="Fetching tonight's lots from the house." />
       ) : live.length === 0 ? (
         <EmptyState

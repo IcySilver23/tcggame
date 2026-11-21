@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type AchievementRow, type AchievementsStatus } from '../api'
-import { fmtDate } from '../components'
+import { EmptyState, fmtDate, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
 // Achievements — the trophy shelf.
@@ -97,8 +97,18 @@ function TrophyPlate({ row, onClose }: { row: AchievementRow; onClose: () => voi
 export function AchievementsView() {
   const [data, setData] = useState<AchievementsStatus | null>(null)
   const [picked, setPicked] = useState<AchievementRow | null>(null)
-  useEffect(() => { api.achievements().then(setData).catch(() => {}) }, [])
-  if (!data) return <div className="faint small mt14">Polishing the trophy case…</div>
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
+  const load = () => {
+    setStatus('loading')
+    api.achievements()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus('error'))
+  }
+  useEffect(() => { load() }, [])
+
+  if (status === 'error') return <LoadFailure what="the trophy case" onRetry={load} />
+  if (!data) return <EmptyState icon="🏆" text="Polishing the trophy case…" sub="Counting every shelf and every unlock." />
 
   const pct = Math.round((data.unlockedCount / data.total) * 100)
   const nextUp = data.rows.find((r) => r.isNext && !r.unlockedAt)

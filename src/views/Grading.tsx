@@ -22,9 +22,11 @@ import { byNum, byStr, CardImg, EmptyState, fmtUsd, GRADE_BADGE, GradeRevealModa
 // ---------------------------------------------------------------------------
 
 const SERVICE_NAME: Record<string, string> = {
-  standard: 'Standard Grading',
-  express: 'Express Grading',
-  premium: 'Premium Grading',
+  standard: 'PSA Standard Grading',
+  express: 'PSA Express Grading',
+  premium: 'PSA Premium Grading',
+  beckett: 'Beckett Grading (BGS)',
+  cgc: 'CGC Cards Grading',
   psa_special: '🏷️ PSA Special',
 }
 
@@ -200,7 +202,7 @@ export function GradingView() {
         </div>
       </div>
 
-      {(stats?.candidates ?? []).length > 0 && (
+      {(stats?.candidates ?? []).length > 0 ? (
         <div className="panel mt14">
           <div className="home-sec-head">
             <b className="small">⚖ Worth grading now</b>
@@ -255,7 +257,15 @@ export function GradingView() {
                       {/* Two deliberate lines instead of a dot-joined run: at
                           this width the separators wrapped to line starts. */}
                       <span>raw {fmtUsd(c.rawValue)} · {c.serviceName} ({fmtUsd(c.cost)})</span>
-                      <span>{c.gemChance}% gem · profit {fmtUsd(c.expectedProfit)} · if gem {fmtUsd(c.upside)}</span>
+                      <span>
+                        {c.gemChance}% gem
+                        {c.serviceId === 'cgc' && c.pristineChance == null
+                          ? ' · inspect for Pristine odds'
+                          : c.pristineChance != null && c.pristineChance > 0
+                            ? ` · ${c.pristineChance}% ${c.serviceId === 'cgc' ? 'Pristine' : 'Black Label'}`
+                            : ''}
+                        {' · profit '}{fmtUsd(c.expectedProfit)}{' · if top grade '}{fmtUsd(c.upside)}
+                      </span>
                     </div>
                     <div className="lab-foot">
                       <span className="faint small" title={`Grading fees are deductible: saves ~${fmtUsd(c.taxSavings.honest)} at your ${Math.round(c.taxSavings.bracketRate * 100)}% bracket`}>
@@ -271,7 +281,19 @@ export function GradingView() {
             </div>
           )}
         </div>
-      )}
+      ) : stats && (stats.ownedRaw ?? 0) > 0 ? (
+        <div className="panel mt14">
+          <div className="home-sec-head">
+            <b className="small">⚖ Worth grading now</b>
+            <span className="faint small">0 of {stats.ownedRaw} raw card{stats.ownedRaw === 1 ? '' : 's'} clear the bar</span>
+          </div>
+          <div className="home-mini">
+            {stats.floor
+              ? `${stats.floor.name} costs ${fmtUsd(stats.floor.cost)} and only takes cards worth ${fmtUsd(stats.floor.minRawValue)}+ raw. After that fee and the 10% sale fee, nothing in your binder is worth slabbing yet — sell those raw at the Buylist, and this list fills itself when a pack hands you a card that earns the plastic.`
+              : 'After the grading fee and the 10% sale fee, nothing in your binder is worth slabbing yet. Sell those raw at the Buylist, and this list fills itself when a pack hands you a card that earns the plastic.'}
+          </div>
+        </div>
+      ) : null}
 
       <div className="panel mt14">
         <div className="home-sec-head">
@@ -279,7 +301,7 @@ export function GradingView() {
           <span className="faint small">{pending.length === 0 ? 'nothing in transit' : 'verdicts pop when they land'}</span>
         </div>
         {pending.length === 0 ? (
-          <div className="home-mini">Nothing out for grading. Submit a card above and it waits here for {state?.day?.lengthHours ?? 12}h game-days to pass.</div>
+          <div className="home-mini">Nothing out for grading. A card has to clear the fee before it appears above as a candidate; once submitted, its verdict waits here for {state?.day?.lengthHours ?? 12}h game-days.</div>
         ) : (
           <div className="pf-rows">
             {pending.map((p) => {
@@ -289,7 +311,7 @@ export function GradingView() {
               return (
                 <div className="pf-row" key={p.id}>
                   <div className="row" style={{ gap: 9, minWidth: 0, flex: 1, cursor: 'pointer' }} onClick={() => openCard(p.card_id)}>
-                    <div style={{ width: 30, flex: 'none' }}><SlabCard src={p.image_small} alt={p.name} grade="PSA10" /></div>
+                    <div style={{ width: 30, flex: 'none' }}><SlabCard src={p.image_small} alt={p.name} grade={p.grading_service === 'beckett' ? 'BGS10' : p.grading_service === 'cgc' ? 'CGC10' : 'PSA10'} /></div>
                     <div className="pf-row-main">
                       <b className="pf-row-name">{p.name}</b>
                       <div className="faint small">{SERVICE_NAME[p.grading_service ?? ''] ?? p.grading_service ?? '—'}</div>

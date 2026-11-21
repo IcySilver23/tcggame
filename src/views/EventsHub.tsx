@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { LEGACY_EVENT_ROUTES, EVENTS_MODES_META, eventsModeLabel, isEventsMode, type EventsModeId } from '../route-meta'
 import { CalendarView } from './Calendar'
 import { ConventionView } from './Convention'
 import { CardShowsView } from './CardShows'
@@ -22,7 +23,8 @@ import { CardShowsView } from './CardShows'
  * Tab order is fixed. No gates here: the calendar is public information, the
  * convention floor and your own show hall have always been open.
  */
-export type EventsModeId = 'calendar' | 'conventions' | 'shows'
+export type { EventsModeId }
+export { LEGACY_EVENT_ROUTES, eventsModeLabel, isEventsMode }
 
 export type EventsMode = {
   id: EventsModeId
@@ -33,32 +35,13 @@ export type EventsMode = {
   Component: ComponentType
 }
 
-export const EVENTS_MODES: EventsMode[] = [
-  { id: 'calendar', label: 'Calendar', icon: '📅', verb: 'The whole scene on one clock — conventions, tournament nights, sponsor drops, show windows', Component: CalendarView },
-  { id: 'conventions', label: 'Conventions', icon: '🎪', verb: 'Walk the floor: vendor tables, deal bins, haggling across the aisle, the back-room buyouts', Component: ConventionView },
-  { id: 'shows', label: 'Card Shows', icon: '🏟', verb: 'Run your own: book a hall, price the gate, sell dealer tables, work a booth of your stock', Component: CardShowsView },
-]
-
-export function eventsModeLabel(id?: string): string | undefined {
-  return EVENTS_MODES.find((m) => m.id === id)?.label
+const EVENTS_COMPONENTS: Record<EventsModeId, ComponentType> = {
+  calendar: CalendarView,
+  conventions: ConventionView,
+  shows: CardShowsView,
 }
 
-export function isEventsMode(id?: string): id is EventsModeId {
-  return !!id && EVENTS_MODES.some((m) => m.id === id)
-}
-
-/**
- * Old hashes → hub modes. The three routes were their own views for a long
- * time and the game still writes them: `#/convention` from calendar rows,
- * `#/calendar` from the Home dashboard, `#/shows` from the hosted-show
- * calendar slot. One map instead of three special cases in App.
- */
-export const LEGACY_EVENT_ROUTES: Record<string, EventsModeId> = {
-  calendar: 'calendar',
-  convention: 'conventions',
-  conventions: 'conventions',
-  shows: 'shows',
-}
+export const EVENTS_MODES: EventsMode[] = EVENTS_MODES_META.map((m) => ({ ...m, Component: EVENTS_COMPONENTS[m.id] }))
 
 const go = (id: EventsModeId) => {
   window.location.hash = `#/events/${id}`

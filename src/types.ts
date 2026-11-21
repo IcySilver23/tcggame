@@ -95,11 +95,37 @@ export type InventoryRow = {
   set_name: string
   value: number
   source: ResolvedPrice
+  /** The actual sale value of a graded slab, as inventory/net worth use it. */
+  slabValue?: {
+    usd: number
+    source: 'live' | 'estimated'
+    kind: 'pc-graded' | 'ebay-graded' | null
+    basis: 'sold' | 'asking' | 'estimated'
+  } | null
   gradingHint?: import('./api').GradingHint | null
   substatNote?: string | null
   protection?: 'sleeve' | 'toploader' | 'one_touch' | null
   authBadge?: 'fake' | 'authenticated' | 'unvetted' | null
   deskReading?: 'vouched' | 'flagged' | 'partial' | null
+}
+
+// The light row behind card pickers (auctions, BidBay lots, forum trades, local
+// listings). It deliberately omits grading advice, copy drift and desk reads.
+export type InventoryPickRow = {
+  id: number
+  card_id: string
+  name: string
+  image_small: string | null
+  set_name: string
+  variant: string
+  condition: Condition
+  quantity: number
+  graded_grade: string | null
+  status: 'collection'
+  favorite: number
+  cost_basis: number
+  is_fake: number
+  value: number
 }
 
 export type ListingRow = {
@@ -132,7 +158,10 @@ export type ProductRow = {
   kind: string
   msrp: number
   market_price: number | null
-  price_source?: 'pricecharting' | 'estimated'
+  /** Today's Pack Shop discount; its price is computed from product detail. */
+  deal?: { discountPct: number; price?: number; endsAt: string; claimed: boolean }
+  /** Cheap source/print facts available without pricing the packs inside. */
+  price_source?: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
   oop?: boolean
   oop_months?: number
   oop_status?: 'in print' | 'out of print'
@@ -141,22 +170,53 @@ export type ProductRow = {
   release_date: string | null
   set_name: string
   set_symbol: string | null
+  /** The set's logo, used when this product has no wrapper photo. */
+  set_logo?: string | null
   /** Real wrapper art for this sealed product (TCGplayer CDN), when matched. */
   image_url: string | null
   /** Named promo cards sealed in this product, for the shelf badge. */
   promos?: string[]
   /** Whether the box held one of the named promos or all of them. */
   promoPolicy?: 'one-of' | 'all'
+}
+
+/** The expensive half of a shelf row, loaded when the product is needed. */
+export type ProductDetail = {
+  id: string
+  market: number
+  price_source: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
+  oopMonths: number
+  oop: boolean
+  status: 'in print' | 'out of print'
   est: {
     avg: number
     p50: number
     p90: number
     topChases: { id: string; name: string; rarity: string; value: number }[]
   }
-  /** A General Mills mini pack's Sequin contents and odds; absent on every other product. */
+  /** A General Mills mini pack's Sequin contents and odds; null otherwise. */
   mini?: MiniSequinOdds | null
-  /** The era's slot breakdown for one pack: which cards come from which slot. */
+  /** The era's slot breakdown for one pack; absent on mini packs. */
   slots?: PackSlotInfo[]
+}
+
+/** One product on a past Daily Deals board, snapshotted when the day ran. */
+export type PastDailyDeal = {
+  dayKey: string
+  productId: string
+  productName: string
+  setName: string
+  kind: string
+  discountPct: number
+  basePrice: number
+  dealPrice: number
+  /** Whether this save claimed it before the board rolled over. */
+  bought: boolean
+}
+
+export type DailyDealHistoryDay = {
+  dayKey: string
+  deals: PastDailyDeal[]
 }
 
 /** One slot in a pack, as the shelf prints it. */
@@ -197,20 +257,22 @@ export type BoxOpen = OpenSession & {
   packsTotal: number
   packsLeft: number
   done: boolean
+  /** Present on a skip-to-end response: how many wrappers were opened. */
+  packsOpened?: number
+  /** Per-wrapper values and, on a skip-to-end response, the cards inside each. */
+  perPack?: { sessionId: string; cards?: OpenedCard[]; totalValue: number; spent: number; packIndex?: number }[]
   promo?: BoxPromo | null
+  /** Every promo sealed in the box — more than one for a UPC or poster box. */
+  promos?: BoxPromo[]
 }
 
 export type PullRow = {
   id: number
-  session_id: string
-  pack_product_id: string
-  card_id: string
   value: number
   rarity: string | null
   is_hit: number
   opened_at: string
   name: string
-  image_small: string | null
   set_name: string
 }
 
@@ -253,8 +315,8 @@ export type CardDetailResponse = {
   card: CardRow & { price: ResolvedPrice }
   priceRows: PriceRow[]
   history: HistoryPoint[]
-  gradedPrices: { grade: string; usd: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded' }[]
-  bestRoi?: { serviceId: string; serviceName: string; cost: number; gemChance: number; evNet: number; roi: number; recommended: boolean }[] | undefined
+  gradedPrices: { grade: string; usd: number; value: number; retrievedAt: string; source: 'pc-graded' | 'ebay-graded'; basis: 'sold' | 'asking' | 'estimated' }[]
+  bestRoi?: { serviceId: string; serviceName: string; cost: number; gemChance: number; pristineChance: number | null; evNet: number; roi: number; recommended: boolean }[] | undefined
   owned: InventoryRow[]
   wishlisted: boolean
 }

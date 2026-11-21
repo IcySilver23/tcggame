@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, type BinderAvailableRow, type BinderDetail, type BinderSlot, type BinderSummary } from '../api'
 import { useStore } from '../store'
-import { CardImg, DensityToggle, EmptyState, fmtUsd } from '../components'
+import { CardImg, DensityToggle, EmptyState, fmtUsd, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
 // Binders — the physical-feeling half of the collection.
@@ -37,9 +37,15 @@ export function BindersView() {
   const [draftAccent, setDraftAccent] = useState('yellow')
   const [busy, setBusy] = useState(false)
 
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
   const load = useCallback(async () => {
-    const rows = await api.binders().catch(() => [] as BinderSummary[])
+    // A failed shelf read used to become an empty array, which rendered the
+    // "No binders yet" invitation over binders that still existed.
+    const rows = await api.binders().catch(() => null)
+    if (!rows) { setStatus((s) => (s === 'ready' ? s : 'error')); return }
     setBinders(rows)
+    setStatus('ready')
     const pairs = await Promise.all(
       rows.slice(0, 12).map(async (b) => {
         const d = await api.binderDetail(b.id).catch(() => null)
@@ -139,7 +145,11 @@ export function BindersView() {
         </div>
       )}
 
-      {binders.length === 0 ? (
+      {status === 'error' && binders.length === 0 ? (
+        <div className="panel mt14">
+          <LoadFailure what="your binders" sub="The binder shelf did not load. Nothing was changed." onRetry={load} />
+        </div>
+      ) : binders.length === 0 ? (
         <div className="panel mt14">
           <EmptyState
             icon="📔"

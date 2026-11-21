@@ -73,12 +73,14 @@ export function fieldFromPatternMap(map: PatternMap): MarkField {
 }
 
 /**
- * The field for a card, or null when it should use the generic tile.
+ * The field for a card, or null when it should render plain foil.
  *
  * Order matters only in that a card is at most one of these: Radiant Collection
  * printings own a motif per card, Cosmos printings share the sheet, and everything
  * else has no shipped texture: it renders plain foil (stages.ts), a state the
- * inspector names rather than dresses up as a pattern.
+ * inspector names rather than dresses up as a pattern. Era styles are fallbacks
+ * for rows that are less specific than a named printing, not a claim that every
+ * card in the era had that paper.
  */
 export async function loadMarkFieldFor(input: {
   cardId?: string | null
@@ -130,19 +132,28 @@ export async function loadMarkFieldFor(input: {
   if (cardId && art?.reverse && art.pattern && isSpecialReversePattern(art.pattern)) {
     return loadSpecialReverseField(cardId, art.pattern)
   }
-  // A reverse printing carries its own reverse paper, with its own mask and
-  // texture — the Cosmos sheet must never stand in for it.
+  // A reverse printing normally carries the set's reverse paper. But a named
+  // non-reverse paper can be applied as the reverse finish too — POP8's Cracked
+  // Ice, the BW Mirror promos, and Southern Islands / Best of Game Cosmos — so
+  // that paper's own field wins before the set's ordinary reverse sheet.
   if (cardId && art?.reverse) {
+    if (art.pattern === 'crackedice') return loadCrackedIceField(cardId)
+    if (art.pattern === 'mirror') return loadMirrorField(cardId)
+    if (isCosmosPattern(art.pattern) || art.style === 'cosmos') return loadCosmosField(cardId)
     return loadReverseField(cardId, { setId: setIdOf(cardId), rarity: input.rarity, variant: input.variant })
   }
   // Starlight printings sample the procedural starfield sheet. The printing
-  // identification is verified; the texture is not, and the field says so.
-  if (cardId && art?.pattern === 'starlight') return loadStarlightField(cardId)
+  // identification is verified; the texture is not, and the field says so. The
+  // style fallback covers a Base/Jungle/Fossil holo whose printing row is less
+  // specific, so the card still wears its era's starfield instead of plain foil.
+  if (cardId && (art?.pattern === 'starlight' || art?.style === 'starfoil')) return loadStarlightField(cardId)
   // Tinsel is the Generation V paper: horizontal stripes across the image. One
   // sheet for every set it covers; the cut is a phase, not a per-card motif.
-  if (cardId && art?.pattern === 'tinsel') return loadTinselField(cardId)
+  if (cardId && (art?.pattern === 'tinsel' || art?.style === 'tinsel')) return loadTinselField(cardId)
   // Mirror / Sheen prints no marks: uniform foil modulated along one diagonal.
-  if (cardId && art?.pattern === 'mirror') return loadMirrorField(cardId)
+  // The style fallback catches the XY-era Holo cards, whose era style is Sheen
+  // even when no printing row names the paper.
+  if (cardId && (art?.pattern === 'mirror' || art?.style === 'sheen')) return loadMirrorField(cardId)
   // Crosshatch is a diamond lattice on the card body.
   if (cardId && art?.pattern === 'crosshatch') return loadCrosshatchField(cardId)
   // Pixel / Confetti: blocky flakes across the image. Two routes reach it — the
@@ -157,8 +168,9 @@ export async function loadMarkFieldFor(input: {
   // Radiant Pokémon (2022): the etched silver lattice across the whole card. Its own
   // sheet and its own lookup; the Radiant Collection motifs above are a different paper.
   if (cardId && art?.pattern === 'radiant-etched') return loadRadiantEtchedField(cardId)
-  // Cracked Ice is a tiling fracture: one named printing, one sheet.
-  if (cardId && art?.pattern === 'crackedice') return loadCrackedIceField(cardId)
+  // Cracked Ice is a tiling fracture: one named printing, one sheet. The style
+  // fallback keeps the paper when only the era rule knows the finish.
+  if (cardId && (art?.pattern === 'crackedice' || art?.style === 'crackedice')) return loadCrackedIceField(cardId)
   // Line is the Sword & Shield era paper: thin vertical ridges. It has no printing
   // record, so it arrives as the era STYLE; the pattern check keeps the door open for
   // the day one is added. A reverse card never reaches here — its own paper answered above.
@@ -169,6 +181,9 @@ export async function loadMarkFieldFor(input: {
   // Mirage is the Scarlet & Violet era paper: a smooth horizontal sheen. Era style only,
   // for the same reason as Line and Water Web — no printing record claims one yet.
   if (cardId && (art?.pattern === 'mirage' || art?.style === 'mirage')) return loadMirageField(cardId)
-  if (cardId && art && isCosmosPattern(art.pattern)) return loadCosmosField(cardId)
+  // Cosmos is the long-running era paper. The style fallback is the important
+  // one for older expansion rows: `holoFor` can know the era without a per-card
+  // printing record, and the card should still get the Cosmos sheet.
+  if (cardId && art && (isCosmosPattern(art.pattern) || art.style === 'cosmos')) return loadCosmosField(cardId)
   return null
 }

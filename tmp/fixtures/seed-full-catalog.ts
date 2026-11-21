@@ -99,7 +99,11 @@ const counts = db
             (SELECT COUNT(*) FROM pack_product_cards) AS pool`,
   )
   .get() as { sets: number; cards: number; products: number; pool: number }
-if (counts.products !== 522 || counts.pool < 1000) {
+// Sanity floors, not an exact catalogue snapshot: products are added with every
+// release (570 at the last pass), so an exact count fails CI on a healthy seed
+// whenever a product ships. A seed that half-applies or loses its extras still
+// lands far below these.
+if (counts.sets < 150 || counts.cards < 15000 || counts.products < 500 || counts.pool < 1000) {
   console.error(
     `full catalog fixture incomplete: ${counts.sets} sets, ${counts.cards} cards, ${counts.products} products, ${counts.pool} pool rows`,
   )

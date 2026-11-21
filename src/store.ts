@@ -61,9 +61,9 @@ export function loadBrowseMode(): BrowseMode {
 }
 
 /**
- * Card foil effects. PARKED: off unless the player switches it on, so every card
- * shows its scan flat. This is a display gate only — the renderer, the printing
- * database and every paper stay in the tree, and one switch brings them back.
+ * Advanced card foil effects: pointer tilt, iridescence and embossed relief. The
+ * card's basic paper is always rendered by FoilOverlay; this switch only decides
+ * whether the advanced treatment joins it. Persisted per browser.
  */
 const FOIL_KEY = 'tcglife.foil'
 function loadFoil(): boolean {
@@ -89,6 +89,7 @@ type Store = {
   toasts: Toast[]
   theme: Theme
   setTheme: (t: Theme) => void
+  /** Advanced foil treatment. Basic paper rendering is independent of this. */
   foil: boolean
   setFoil: (v: boolean) => void
   density: Density

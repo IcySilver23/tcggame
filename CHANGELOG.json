@@ -1,11 +1,696 @@
 {
   "entries": [
+{
+  "version": "0.77.66",
+  "date": "2026-11-21",
+  "title": "The gold-label lab",
+  "features": [
+    "CGC Cards Grading joins PSA and Beckett BGS at the lab: $20 a card, a 6–10 game-day turnaround, and its own CGC 10 Gem Mint, Mint 9 and NM-MT 8 slabs. CGC costs more than PSA Standard and takes longer, but it buys a different grade scale and its own comps.",
+    "The top of that scale is the CGC Pristine 10. It is no longer a flat 2% of gems: Pristine needs near-50/50 centering, clean edges and sharp corners, so a gem-grade copy with a real flaw stays Gem Mint while a flawless copy has a real gold-label path. Inspect before submitting — the copy's hidden traits are the odds. Pristine renders with CGC's gold label and is a real rung in the price ladder and Best chase maths: an exact CGC Pristine eBay comp is used when one exists, otherwise the value is a disclosed 1.45× estimate off the CGC 10 quote because PriceCharting has no Pristine column.",
+    "Grading candidates and CardDetail's Best chase now show CGC's Pristine chance beside the gem chance after you inspect a copy; before that they say to inspect rather than leaking the hidden gate. A clean copy's gold-label edge is visible before you pay the fee, and an uninspected copy only promises Gem Mint.",
+    "CardDetail's Slab Certifier and comp ladder now show that actual Pristine value instead of quietly dropping to the CGC 10 price. When the rung is an estimate, the ladder marks it GAME ESTIMATE and says it is 1.45× the CGC 10 quote with no published Pristine comp."
+  ]
+},
+{
+  "version": "0.77.65",
+  "date": "2026-11-19",
+  "title": "The shelf first, the maths after",
+  "features": [
+    "The Pack Shop now paints its 532-product shelf first and loads each product's price, typical return, chase maths, Sequin odds and pack contents only when that product is selected or scrolls into view. The shelf opens in newest-set order; choosing an EV or price sort weighs the shown products on demand and says so while it works."
+  ]
+},
+{
+  "version": "0.77.64",
+  "date": "2026-11-19",
+  "title": "The shelf checks before it repeats",
+  "features": [
+    "The Pack Shop no longer reuses a shelf response just because it is less than 20 seconds old. It now reuses one only while card and sealed prices, the catalogue, today's daily-deal claims and the save itself are unchanged — so a sync, a purchase that claims a deal, a snapshot restore or a save reset appears the next time you open the Shop."
+  ]
+},
+{
+  "version": "0.77.63",
+  "date": "2026-11-19",
+  "title": "Fresh estimates after every price move",
+  "features": [
+    "Pack, sealed and General Mills mini-pack estimates now refresh whenever a card price or the catalogue changes. A sync, a simulated-market roll or a pull-table rebuild can no longer leave the Pack Shop showing an old expected value, and its cached shelf response is cleared on the same signal."
+  ]
+},
+{
+  "version": "0.77.62",
+  "date": "2026-11-18",
+  "title": "Ring up, not rip",
+  "features": [
+    "The Pack Shop till now says RING UP instead of promising a rip. The purchase has always delivered the product sealed, and it still does: after you pay, open it whenever you like from Inventory → Sealed."
+  ]
+},
+{
+  "version": "0.77.61",
+  "date": "2026-11-18",
+  "title": "Faster shelves, faster badges",
+  "features": [
+    "The Achievements screen now computes set completion in one catalogue pass instead of re-scanning every card for every set. The badge wall's progress checks share that pass and the held-card valuation, so it opens in a fraction of the time and no longer blocks the rest of the dashboard.",
+    "The Pack Shop's first load now reads every pack card's TCGplayer price in one batch, then reuses each card's value across the pack estimate, sealed estimate and shelf price. The first build is several times faster, and the shelf response is reused briefly so returning to the Shop is immediate."
+  ]
+},
+{
+  "version": "0.77.60",
+  "date": "2026-11-16",
+  "title": "Sold, asking, estimated",
+  "features": [
+    "BGS 10 Black Label prices no longer treat every source as a sold quote. PriceCharting can publish a BGS 10 Black value without any Black Label sales, so the reveal and certifier label that number a PriceCharting estimate. An exact eBay Black Label comp is labelled ASKING because it comes from active listings, not completed sales. Only a sale-backed quote is labelled sold.",
+    "The activity feed and the slab certifier now use the same three labels. The BGS 10 × 1.6 fallback is explicitly a game estimate, and the grade ladder shows each rung's source and basis, so a thin or asking-price comp is visible instead of looking like a completed sale."
+  ]
+},
+{
+  "version": "0.77.59",
+  "date": "2026-11-16",
+  "title": "Black labels, real quotes",
+  "features": [
+    "BGS 10 Black Label slabs now read PriceCharting's BGS 10 Black column. When that column has a value for the exact grade, the reveal and activity feed use it instead of a 1.6× multiplier; PriceCharting can publish it without a Black Label sale, so it is not treated as a sold quote.",
+    "If PriceCharting has no Black Label price, the game checks exact-title eBay Black Label listings, which are active asking prices rather than completed sales. Ordinary BGS 10 comps no longer include Black Label listings. The estimated fallback only appears when neither external value exists."
+  ]
+},
+{
+  "version": "0.77.58",
+  "date": "2026-11-16",
+  "title": "A premium, not a quote",
+  "features": [
+    "A BGS 10 Black Label reveal and its activity line now mark a derived value ESTIMATED. When the figure is 1.6× the BGS 10 quote, the game no longer presents that derived number as a live quote even when the BGS 10 base is live.",
+    "The slab certifier still falls back to the published BGS 10 comp and says when it is doing so."
+  ]
+},
+{
+  "version": "0.77.57",
+  "date": "2026-11-16",
+  "title": "Black labels, sealed boxes",
+  "features": [
+    "Beckett Grading (BGS) is now a fourth grading service. It costs $60 a card, accepts raw cards worth $50 or more, and returns a BGS slab in 2–4 game-days. It is the only route to a BGS 10 Black Label: a 10 with four perfect subgrades, far rarer than a gem mint and valued above a BGS 10.",
+    "The Pack Shop no longer has a buy-and-rip shortcut. Every purchase now lands sealed in Inventory → Sealed, and opening it is a separate choice you make there. The Pack Opening buy list buys sealed too, instead of ripping the product immediately.",
+    "The sealed desk itself is unchanged: fresh and worn condition, selling, re-wrapping and the loan desk all still work as before."
+  ]
+},
+{
+  "version": "0.77.56",
+  "date": "2026-11-15",
+  "title": "The handoff holds",
+  "features": [
+    "The in-place updater now hands the installer to a one-time Windows scheduled task instead of a child of the closing game. The helper survives the window shutting down and runs the setup reliably.",
+    "The helper script and its log now live in TCG Life's own app-data folder, so a shell with a non-Windows TEMP path can no longer break the handoff.",
+    "This is a maintenance build for the update path; no gameplay, card data or economy rules changed."
+  ]
+},
+{
+  "version": "0.77.55",
+  "date": "2026-11-15",
+  "title": "The loop closes",
+  "features": [
+    "This is a maintenance build for the in-place updater: it verifies that a newer setup downloaded to Downloads can replace an installed copy, leave the save untouched, reopen the game automatically and land on What's New.",
+    "No gameplay, card data or economy rules changed in this build."
+  ]
+},
+{
+  "version": "0.77.54",
+  "date": "2026-11-15",
+  "title": "Updates that install themselves",
+  "features": [
+    "Installed copies now look for a newer TCG Life setup file in Downloads, Desktop and OneDrive Desktop when the game opens. No rerunning the installer by hand.",
+    "When a newer setup is found, the game shows its version and an Update now button. The game closes, runs the setup silently in place, and opens again automatically; your save, collection and settings are untouched.",
+    "The first launch after an update opens What's New by itself, so the changes in that version are the first thing you see.",
+    "If the update cannot be installed, the game reopens the version you already have instead of leaving you with no game."
+  ]
+},
+{
+  "version": "0.77.53",
+  "date": "2026-11-13",
+  "title": "Both paces",
+  "features": [
+    "Pack reveals now have a Manual reveal / Auto reveal switch beside the speed controls. Manual, the default, waits after each card for a swipe or click; Auto schedules the next card after the usual beat.",
+    "The choice carries across the packs in a session, so a whole box can be read by hand or run hands-off. Skip animation and Reveal all still work in either mode."
+  ]
+},
+{
+  "version": "0.77.52",
+  "date": "2026-11-13",
+  "title": "At your own pace",
+  "features": [
+    "Cards no longer advance on a timer. Once a card lands, it waits for a sideways swipe (or a click) before the next card comes out, so a pack is read at the player's pace instead of presenting the whole stack.",
+    "The card flip itself still runs automatically, and Skip animation and Reveal all still work when you want them. Swipe anywhere on the reveal stage; the hint under the card tells you when the next one is waiting."
+  ]
+},
+{
+  "version": "0.77.51",
+  "date": "2026-11-13",
+  "title": "The best wrapper",
+  "features": [
+    "A box rip's summary header now carries a BEST PACK total: the highest market value of any single wrapper opened so far, beside box hits and average per hit.",
+    "It updates with each pack and after a skip to the end, and it measures one wrapper's total rather than the whole box."
+  ]
+},
+{
+  "version": "0.77.50",
+  "date": "2026-11-13",
+  "title": "The best of the box",
+  "features": [
+    "A box rip's summary header now names its best hit: the highest-value card marked HIT across the wrappers opened so far, with its set and market value.",
+    "The line follows the box as it continues, so a later chase can take it. A box with no hits simply leaves the line out."
+  ]
+},
+{
+  "version": "0.77.49",
+  "date": "2026-11-13",
+  "title": "What a hit is worth",
+  "features": [
+    "A box rip's summary now shows AVG PER HIT: the mean market value of every card marked HIT across the wrappers opened so far. A big chase raises the number; bulk cards do not dilute it because only hit cards are counted.",
+    "The tile updates with each pack and after a skip to the end. A box with no hits shows a dash rather than dividing by zero."
+  ]
+},
+{
+  "version": "0.77.48",
+  "date": "2026-11-13",
+  "title": "The box score",
+  "features": [
+    "A box rip's summary now carries a BOX HITS total beside cards pulled and value. It counts every card marked HIT across every wrapper opened so far in the box, not just the pack whose page is on screen.",
+    "The count stays visible at 0 on a quiet box and updates as the box continues, including after a skip to the end."
+  ]
+},
+{
+  "version": "0.77.47",
+  "date": "2026-11-13",
+  "title": "The whole page at once",
+  "features": [
+    "The combined box summary now has Expand all and Collapse all controls for the packs on the current page. Expand all opens every wrapper together so their card grids and hit counts can be compared without opening each one by one; Collapse all folds the page back to its pack tags.",
+    "Each page keeps its own state, and the controls only act on the page in front of you. Individual pack tags still toggle, and returning to a page restores whatever was open there."
+  ]
+},
+{
+  "version": "0.77.46",
+  "date": "2026-11-13",
+  "title": "The page remembers",
+  "features": [
+    "The box summary now remembers which wrapper you had expanded on each page. Paging forward and back returns to that pack instead of collapsing the page back to its first wrapper.",
+    "The memory clears when a new rip or skip begins, so a fresh summary still opens at its first pack."
+  ]
+},
+{
+  "version": "0.77.45",
+  "date": "2026-11-13",
+  "title": "Every wrapper's score",
+  "features": [
+    "The collapsed PACK tag in a box rip now carries that wrapper's hit count beside its card count and total value. A quiet pack reads 0 hits, so the summary does not make every wrapper look the same.",
+    "The count uses the same HIT flag as the cards in the expanded sleeve, so a pack tagged 2 hits holds exactly the two cards marked HIT beneath it."
+  ]
+},
+{
+  "version": "0.77.44",
+  "date": "2026-11-13",
+  "title": "The scorecard at the counter",
+  "features": [
+    "Earlier at the counter now carries a compact tally in its header: how many offers this save claimed and how many it missed. With three past days on screen that is the last nine offers; a newer save with less history only counts the days it actually has.",
+    "The tally uses the same CLAIMED and MISSED flags as the offer rows, so the summary cannot disagree with the history beneath it."
+  ]
+},
+{
+  "version": "0.77.43",
+  "date": "2026-11-13",
+  "title": "The other half of the shelf",
+  "features": [
+    "Booster bundles and 36-pack displays now quote their own TCGplayer listing instead of being priced only from the packs inside. Sixty-six rows gained a quote — twenty-six bundles and forty displays — including Paldea Evolved at $123.74 for the bundle and $464.86 for the display, Team Up at $12,389.94, Sword & Shield at $692.76 and Primal Clash at $4,066.66.",
+    "Each number is the market for that exact listing, read through the mirror on 13 November 2026, and the shelf and till name TCGplayer rather than a model. A six-pack bundle, a 36-pack display and a half display never share a quote: only the product with a published listing gets one.",
+    "The shop now quotes 78 of its 145 bundle and display rows. The remaining 67 are older displays whose TCGplayer listings publish no market at all; they stay modelled from their packs and labelled MODEL rather than borrowing a price to fill the gap."
+  ]
+},
+{
+  "version": "0.77.42",
+  "date": "2026-11-13",
+  "title": "The last unpriced boxes",
+  "features": [
+    "Six early Elite Trainer Boxes now carry a PriceCharting sold-price value: Plasma Storm $16,225.09, Plasma Blast $7,193.29, Furious Fists $4,750.00, Phantom Forces $5,873.07, Ancient Origins $3,751.45 and Fates Collide $1,149.24.",
+    "The two XY base-set arts are priced separately rather than sharing one quote: Xerneas $4,320.61 and Yveltal $4,558.22.",
+    "Every one of these is labelled PriceCharting and dated 13 November 2026 in the shop and product note. None is presented as a TCGplayer market, and the old pack-content model is no longer used for these boxes."
+  ]
+},
+    {
+      "version": "0.77.41",
+      "date": "2026-11-13",
+      "title": "Where the price came from",
+      "features": [
+        "Every sealed product on the Pack Shop shelves now carries a small QUOTE or MODEL tag. QUOTE means the price came from a published market listing — TCGplayer, PriceCharting or PokeInvest — while MODEL means it is estimated from the packs inside.",
+        "The till names the source for the selected product, and the shop header explains the two tags. Hovering a tag gives the same explanation, and daily discounts do not change the label."
+      ]
+    },
+    {
+      "version": "0.77.40",
+      "date": "2026-11-13",
+      "title": "One pack at a time",
+      "features": [
+        "The combined box summary now folds each pack into its own collapsible shelf tag. The tag keeps the pack number, card count and pack value visible; clicking it opens that pack and folds the one before it, so a long box can be scanned wrapper by wrapper.",
+        "The first pack on each summary page opens by default. Paging still keeps a pack whole rather than cutting its cards between pages, and a single pack or a summary without per-wrapper groups keeps its existing flat layout."
+      ]
+    },
+    {
+      "version": "0.77.39",
+      "date": "2026-11-13",
+      "title": "The deals you missed",
+      "features": [
+        "The Pack Shop now keeps a short record of the previous three game days' Daily Deals. Under today's board, each past day lists its three products with the discount and deal price, and marks each one CLAIMED or MISSED for this save.",
+        "The record is stored with the save, so it survives a restart. Each day's products, names and prices are snapshotted when the board is built, so a later catalogue or price change cannot rewrite what was on offer.",
+        "This is a new ledger, not a reconstruction: it begins with the first board the game records after this update. Daily Deals from before the update are not invented or backfilled."
+      ]
+    },
+    {
+      "version": "0.77.38",
+      "date": "2026-11-13",
+      "title": "One deal a day",
+      "features": [
+        "Each Daily Deal can now be bought only once per game day on a save. The claim is stored in the save beside the deal's day key and product, so restarting does not reset it, and the server refuses a second purchase even when the request is sent by hand.",
+        "The claim and the charge happen together: if the deal is already taken, no cash moves and no stock is added. Once claimed, that product stays off the till until the next game-day boundary, so the limit cannot be sidestepped at full price.",
+        "A deal purchase is one unit. The 10-pack lot option is removed for a booster on the board, and the board, shelf tag, till and Pack Opening's buy list mark it CLAIMED TODAY after the purchase instead of offering it again. Products not on today's board are unchanged."
+      ]
+    },
+    {
+      "version": "0.77.37",
+      "date": "2026-11-13",
+      "title": "Elite boxes at their real prices",
+      "features": [
+        "Elite Trainer Boxes no longer share a $32 model floor. Thirty-three standard boxes now carry the TCGplayer market for that exact listing, read from the mirror's 12 November update, including Paldea Evolved at $202.05, Silver Tempest at $155.92, Lost Origin at $193.31, Fusion Strike at $332.39 and 151 at $492.26.",
+        "The quote comes from the same TCGplayer listing as the box photo and is shown with the TCGplayer price source instead of an estimate. Pokémon Center exclusive boxes already carried their own quotes and are unchanged.",
+        "Eight older boxes — Plasma Storm, Plasma Blast and the six XY Elite Trainer Boxes — have no published TCGplayer market, so they still use the modelled price rather than borrowing another box's quote. Card prices are unchanged."
+      ]
+    },
+    {
+      "version": "0.77.36",
+      "date": "2026-11-13",
+      "title": "Every wrapper from the right set",
+      "features": [
+        "Multi-set Ultra-Premium Collections now open the packs they actually hold, set by set, instead of filling every wrapper from the product's anchor expansion.",
+        "The Zacian & Zamazenta box opens four each of Sword & Shield, Rebel Clash, Darkness Ablaze and Vivid Voltage; Charizard opens three each of Evolving Skies, Fusion Strike, Astral Radiance and Brilliant Stars, two Lost Origin, one Vivid Voltage and one Darkness Ablaze; Greninja opens four Paldea Evolved, two Paradox Rift, two Temporal Forces, four Twilight Masquerade and four Stellar Crown.",
+        "Mega Charizard X opens four each of Phantasmal Flames, Mega Evolution, Destined Rivals and Journey Together plus two Surging Sparks, and Moltres opens two each of Destined Rivals, Journey Together, Temporal Forces, Paradox Rift and Scarlet & Violet base plus four each of Obsidian Flames and Paldea Evolved.",
+        "Each listing's note and product manifest now state the real composition, and the notes mark the splits that come from observed openings rather than official product copy."
+      ]
+    },
+    {
+      "version": "0.77.35",
+      "date": "2026-11-13",
+      "title": "Straight past the promo",
+      "features": [
+        "The promo screen on a box now has a Skip to end button. It opens every remaining wrapper in one request and takes you straight to the combined summary, so a box with a promo can be ripped without watching pack 1 first.",
+        "The promo cards are still banked in your binder, and the first pack's cards are included in the summary even though they never appeared on stage.",
+        "The summary's best-pack and best-pull comparisons still use the record before the box, not the pack you skipped past."
+      ]
+    },
+    {
+      "version": "0.77.34",
+      "date": "2026-11-13",
+      "title": "The box summary, wrapper by wrapper",
+      "features": [
+        "Skipping to the end of a box now keeps the combined summary grouped by wrapper. Each pack gets a small PACK n label with its card count, so a 36-pack display reads as 36 pulls instead of one wall of cards.",
+        "Packs opened one at a time before the skip keep their own groups too, and paging moves whole packs to the next page rather than cutting a wrapper in half.",
+        "A single pack's summary is unchanged; it still shows the ordinary flat page."
+      ]
+    },
+    {
+      "version": "0.77.33",
+      "date": "2026-11-13",
+      "title": "Three deals before the day rolls",
+      "features": [
+        "The Pack Shop now has a Daily Deals board above the shelves: one booster, one box and one collection, each 10–30% off until the game-day clock rolls over. The board shows the old price, the deal price and the time left, and the shelf carries a matching discount tag.",
+        "The discount is real at the till. The board, the shelf label and the amount taken from the drawer all use the same server price; bags, single rips and the 10-pack lot are charged the deal price too. A daily deal cannot be shown without being charged.",
+        "The three picks are fixed for the game day, so restarting the game does not reroll them. On a day where a shelf lane has no product, the board fills from the other products rather than showing fewer than three deals."
+      ]
+    },
+    {
+      "version": "0.77.32",
+      "date": "2026-11-13",
+      "title": "Every Ultra-Premium box on the shelf",
+      "features": [
+        "The Pack Shop now carries the seven missing Ultra-Premium Collections: Sword & Shield—Zacian & Zamazenta, Sword & Shield—Charizard, Arceus VSTAR, Greninja ex, Terapagos ex, Mega Charizard X ex and Team Rocket's Moltres ex. Together with 151, Celebrations and the two 30th Celebration boxes, every UPC from 2020 through 2026 is now listed.",
+        "Each row uses the real pack count, release date, TCGplayer listing and market quote. The paper promos the catalogue actually holds are handed over: gold Zacian V and Zamazenta V, the three etched Charizard promos, Greninja ex, the three Terapagos-era gold promos, and Mega Charizard X ex with Oricorio ex. Metal-only cards and stamped variants are described rather than replaced with a different printing.",
+        "The boxes whose packs span several sets (Charizard, Greninja, Terapagos, Mega Charizard X and Moltres) open their packs from the set their listing belongs to, and the product note states that; their pack totals and prices are unchanged."
+      ]
+    },
+    {
+      "version": "0.77.31",
+      "date": "2026-11-13",
+      "title": "The buttons hold still",
+      "features": [
+        "The card value and hit banner now fade into a reserved slot under the card. Skip animation and Reveal all stay in the same place from the moment a pack opens, so a price appearing after the flip cannot move the controls out from under the pointer.",
+        "This applies to ordinary pulls and to massive, huge and 1st Edition banners, which share the same fixed slot."
+      ]
+    },
+    {
+      "version": "0.77.30",
+      "date": "2026-11-13",
+      "title": "Skip to the last wrapper",
+      "features": [
+        "Bundle, Elite Trainer Box and display summaries now have a Skip to end button. It opens every wrapper left in the box in one go and replaces the pack-by-pack pages with one binder holding every card pulled from the box.",
+        "The combined page keeps the box's total cards, value and spend, the best single pack, the new-to-binder count and the 40-card paging used by an ordinary rip. The button appears on the summary whenever the box still has wrappers.",
+        "The skip is one server request rather than a burst of 35, so a 36-pack display finishes without a long chain of requests.",
+        "A box resumed after a reload only knows the pack it resumes on; the combined page starts there and adds the rest. A box opened in one sitting includes every pack from the first wrapper onward."
+      ]
+    },
+    {
+      "version": "0.77.29",
+      "date": "2026-11-11",
+      "title": "The server picks its own door",
+      "features": [
+        "The desktop app no longer uses port 8787 at all. The game server asks Windows for a free port, then prints that port in its startup line; the window reads that line and loads only that address. A development server or any other program on 8787 cannot be mistaken for the game.",
+        "This closes the race left by 0.77.27 and 0.77.28. Their check could pass just before another program took 8787, and Windows could even report a port as free while a wildcard listener owned it; the game server then failed to bind and the window loaded the other program's 404.",
+        "The launch log records the port the server actually bound. If the server exits without announcing one, the splash reports a startup failure instead of opening somebody else's page."
+      ]
+    },
+    {
+      "version": "0.77.28",
+      "date": "2026-11-09",
+      "title": "The port check sees the whole machine",
+      "features": [
+        "The desktop app now tests port 8787 on every network interface, not only 127.0.0.1. A development server listening on 0.0.0.0 could pass the loopback-only test, so the window still loaded that server’s 404.",
+        "When 8787 is genuinely free it is still used. Otherwise the game picks a free port and gives it to its own server, which is the port the window loads.",
+        "This completes the 0.77.27 fix: the launch log records the fallback port whenever 8787 is unavailable, including when another program owns the wildcard address."
+      ]
+    },
+    {
+      "version": "0.77.27",
+      "date": "2026-11-09",
+      "title": "The game opens on its own port",
+      "features": [
+        "Opening the desktop app no longer shows a 404 when another program is already using port 8787. The window now chooses a free local port, gives that port to the game server, and waits for that server before loading the game.",
+        "Port 8787 is still preferred when it is available. If a development server or a leftover listener owns it, the packaged app uses the next free port instead of mistaking that listener for its own server and loading its page.",
+        "The launch log records the port the window chose, and a second copy of the app is still stopped by the single-instance guard."
+      ]
+    },
+    {
+      "version": "0.77.26",
+      "date": "2026-11-09",
+      "title": "Only what was printed",
+      "features": [
+        "The sealed catalogue no longer lists products that never existed. 182 phantom rows are deleted: every Booster Bundle before Lost Origin, Elite Trainer Boxes before the line began with Plasma Storm (and the expansions it skipped, like Flashfire), displays and bundles on special sets that never shipped one, and the invented wrappers around sets that only came inside another product.",
+        "That includes the subset-only sets (Shiny Vault, the Trainer Galleries, the Classic Collection, basic energy), the deck and promo sets (Southern Islands, the Trainer Kits, Detective Pikachu, Kalos Starter Set, McDonald’s 2011–19, Futsal, Pokémon Rumble) and the special-set displays for 151, Celebrations, 30th Celebration, Champion’s Path, Shining Fates, Shining Legends, Dragon Majesty and Hidden Fates. Those rows are deleted, not hidden, and the catalogue refuses to generate them again — the shop now lists only products it can stock; the three booster ids kept as pull-table hosts for the real Double Crisis, Dragon Vault and Generations boxes are never offered.",
+        "A save that already owns one of these boxes keeps that row so the stock still resolves; it stays out of the shop until it is opened or sold. Nothing is granted or refunded, and a fake marketplace listing for a Shiny Vault ETB went with the row.",
+        "The rule is sourced: the Booster Bundle line starts with Lost Origin in 2022, the Elite Trainer Box line with Plasma Storm in 2013, and a special set was sold through ETBs, tins and collections rather than a 36-pack display. Packs and displays that really shipped, including the Crown Zenith bundle and the Dragon Vault and Double Crisis blisters, are untouched.",
+        "One limitation is deliberate: `dc1-booster`, `dv1-booster` and `g1-booster` stay in the database as unsold pull-table hosts, because the real Double Crisis and Dragon Vault blisters and the Generations ETB read that table to open packs. Deleting those three rows would break three real products, so they stay behind the scenes and out of the shop."
+      ]
+    },
+    {
+      "version": "0.77.25",
+      "date": "2026-11-09",
+      "title": "The rest of the collections",
+      "features": [
+        "The Pack Shop now carries 31 collection products from the five special sets whose lineups it never modelled: 151, Paldean Fates, Shrouded Fable, Prismatic Evolutions and Celebrations. That includes the 151 Poster, Binder and Ultra-Premium Collections and both ex boxes, Paldean Fates’ three Tech Sticker and three Pokémon ex Premium Collections, all three Shrouded Fable illustration collections, the Prismatic Evolutions Binder, Poster, Tech Sticker, Surprise Box, Accessory Pouch, Super-Premium and Premium Figure Collections, and Celebrations’ Dragapult Prime, Deluxe Pin, V Memories, Pikachu V-UNION, Premium Figure and Ultra-Premium Collections.",
+        "Each row carries its researched contents rather than a template guess: 151’s Poster Collection is three packs plus the Bulbasaur, Charmander and Squirtle promos, the 151 Ultra-Premium Collection is sixteen packs with Mew ex and Mewtwo, and the Celebrations Ultra-Premium Collection is seventeen Celebrations packs plus eight Sword & Shield packs, the metal Pikachu and Charizard cards and the gold Pikachu V and Poké Ball.",
+        "Prices are TCGplayer market quotes for the exact product on 9 November 2026, so the 151 Ultra-Premium Collection is $843.07, the Celebrations Ultra-Premium Collection $1,206.87 and the Shrouded Fable Greninja ex collection $207.73. Every row is a real listing with its own photo, not a modelled shelf price.",
+        "Where a promo is not in this catalogue, the row names it but does not hand over a substitute: 151’s Kadabra, Abra, Electabuzz, Venusaur ex and Blastoise ex, the Shrouded Fable pre-evolutions, Prismatic Evolutions’ Espeon ex and Umbreon ex and the Surprise Box’s nine-card pool, and Celebrations’ Dragapult Prime, Pikachu V-UNION pieces and metal cards. Extra packs bundled alongside a special-set box, and accessories such as binders, posters, pins and figures, are described but not modelled."
+      ]
+    },
+    {
+      "version": "0.77.24",
+      "date": "2026-11-09",
+      "title": "Every box the league had",
+      "features": [
+        "The Pack Shop now sells the Build & Battle Box for every expansion that shipped one: 43 boxes from Fates Collide (2016) through Delta Reign, four packs and one of four prerelease promos in each. These were the prerelease product a league ran on, and the catalogue had no row for any of them.",
+        "The promos are real catalogue cards, not placeholders: Team Up holds Charizard, Zapdos, Nidoqueen or Jirachi; Evolving Skies holds the three Galarian birds or Flaaffy; Lost Thunder holds Suicune, Raikou, Giratina or Tapu Lele. Open a box and one of its four is dealt alongside the packs, and the shelf tag names all four.",
+        "Prices are the TCGplayer market where TCGplayer lists the box — Evolving Skies at $329.50, Lost Thunder at $204.94, Sword & Shield at $118.64 on 9 November 2026 — and 28 of the 43 carry such a quote. The other 15 are modelled at the $19.99 MSRP plus their promo, because no listing exists to quote; nothing is presented as a marketplace price that is not one.",
+        "Two honest limits. The 40-card evolution deck inside each box is not modelled, so opening one deals the four packs and the promo. And the 13 boxes TCGplayer does not carry have no box photo, so they show the set symbol rather than a picture of a product nobody photographed here."
+      ]
+    },
+    {
+      "version": "0.77.23",
+      "date": "2026-11-09",
+      "title": "Only what really shipped",
+      "features": [
+        "The Pack Shop has stopped offering sealed products that were never made. The Celebrations and Pokémon GO booster displays, both booster bundles, and the McDonald’s 2021 and 2022 bundles, displays and Elite Trainer Boxes were all generated by the era template rather than printed, so they are off the shelf.",
+        "Three more phantom boxes are gone with them: the Flashfire Elite Trainer Box, which the early ETB line skipped the way it skipped Plasma Freeze and Legendary Treasures, and the Call of Legends Elite Trainer Box and Booster Bundle, both of which predate the products entirely. Detective Pikachu’s bundle, display and ETB rows went too — that set only ever shipped Case Files and a Collector Chest.",
+        "Any copy you already own stays in your inventory and still opens; only the shop, pack battles and live shows stop selling them.",
+        "One deliberate exception: single packs for special sets such as Celebrations and Crown Zenith stay on the shelf even though those packs only ever came inside collections, because the card pool needs a wrapper the game can open. What is gone is the boxes those packs never came in."
+      ]
+    },
+    {
+      "version": "0.77.22",
+      "date": "2026-11-09",
+      "title": "Every product gets its face",
+      "features": [
+        "The Pack Shop now shows the real wrapper or box photo for every sealed product that has one. Both 30th Celebration UPCs, the 30th collection, tin and box lineup, the Delta Reign, Chaos Rising and Ascended Heroes blisters and boxes, the full Scarlet & Violet blister run, and the Double Crisis and Dragon Vault blisters were showing a set logo before because their product IDs were never wired into the art map.",
+        "Five older products whose TCGplayer listing has no usable photo — the Plasma Storm and Plasma Blast Elite Trainer Boxes, and the Aquapolis, Skyridge and Neo Discovery displays — now use a stored product photo instead of the set logo.",
+        "The McDonald's Collection 2022 pack now wears its TCGplayer wrapper photo instead of the set logo; it is listed there as the Match & Battle Pack.",
+        "The set logo is now only the fallback where no product photo exists: the catalogue rows whose wrapper never shipped and the Surging Sparks and Astral Radiance half displays, which TCGplayer lists without an image. No set logo is standing in for a photo that exists."
+      ]
+    },
+    {
+      "version": "0.77.21",
+      "date": "2026-11-09",
+      "title": "Every promo on the tag",
+      "features": [
+        "The Pack Shop shelf now names the promo on every product that has one, instead of only Elite Trainer Boxes and special collections. That puts the Journey Together Enhanced Booster Display's N's Reshiram topper on its shelf tag.",
+        "Selecting a product now lists its promos in the till too. A single-promo box names the card, a two-name blister lists both with a note that one is sealed inside, and a box that holds both lists both as included."
+      ]
+    },
+    {
+      "version": "0.77.20",
+      "date": "2026-11-09",
+      "title": "The till scrolls itself",
+      "features": [
+        "The Pack Shop till now scrolls its own contents when a product's description, pack slots or chase line get tall. Before, the panel stuck to the top while its lower half sat below the window, so scrolling moved the shelves behind it and the Ring Up & Rip button stayed out of reach."
+      ]
+    },
+    {
+      "version": "0.77.19",
+      "date": "2026-11-09",
+      "title": "Back to the shelf",
+      "features": [
+        "The OPEN MORE button on the pack-opening summary now takes you back to the Pack Shop shelf, with its filters and product details, instead of dropping you into Pack Opening's separate buy list."
+      ]
+    },
+    {
+      "version": "0.77.18",
+      "date": "2026-11-09",
+      "title": "Pickers price in one pass",
+      "features": [
+        "The screens that pick cards from your collection — Auctions, BidBay, Forum trades and local listings — were still looking up each card's TCGplayer price with a separate database query, once per row. They now load the whole batch in one query and resolve every row from it.",
+        "On a 484-card save the light inventory call now answers in about 0.075s instead of 0.138s, with the same picker fields and the same values. All 484 rows still match the full inventory endpoint.",
+        "A card without a TCGplayer price still follows the old fallback path — PriceCharting/eBay, Cardmarket, simulated or model estimate — so the shortcut never changes a quote. The full Inventory screen is untouched."
+      ]
+    },
+    {
+      "version": "0.77.17",
+      "date": "2026-11-09",
+      "title": "The side doors carry less",
+      "features": [
+        "The What’s New badge was downloading the entire 327KB changelog on every game boot just to compare version numbers. It now asks a 2KB summary of versions; opening the panel still loads the full entries and feature text.",
+        "Screens that only pick or list cards no longer ship fields they never draw. Pull History drops the unused image, session and printing fields (134KB → 57KB on 400 pulls), the Stream setup list keeps only the product name and price (153KB → 48KB across 464 products), and the shop’s stock, dollar-bin and grab-bag pickers drop card art and internal ids (53KB → 28KB, 81KB → 42KB and 111KB → 58KB).",
+        "The pawn counter was pricing every card twice and looking up each name separately. One price lookup and one joined name now produce the same quotes and tickets in about 0.18s instead of 0.27s on a 484-card save.",
+        "The full Shop shelf, Inventory and What’s New panel are unchanged, because those screens do use the larger rows."
+      ]
+    },
+    {
+      "version": "0.77.16",
+      "date": "2026-11-09",
+      "title": "Pickers travel light",
+      "features": [
+        "The screens where you choose a card — consigning to Auctions, building a BidBay lot, offering a trade on the Forum and picking cards for a local listing — were downloading the whole priced collection, including grading advice, copy drift and desk reads none of them display. They now ask a lighter endpoint for just the picker fields, while the Inventory screen keeps the full one.",
+        "On a 484-card save that cuts the response from about 562KB to about 140KB and answers in roughly 0.14s instead of 0.26s. Every shared field — name, condition, variant, quantity, graded grade, favourite, cost and value — matched the full endpoint row for row.",
+        "The numbers a picker quotes do not change: the light rows reuse the same sellable value and the same hidden counterfeit and authentication state, so a BidBay max bid or a local listing ask comes out the same as before."
+      ]
+    },
+    {
+      "version": "0.77.15",
+      "date": "2026-11-09",
+      "title": "The collection opens faster",
+      "features": [
+        "Opening the collection was resolving the same card's price three times per row — the market band, this copy's drift, and the sellable value — and then asking the grading model for the same graded prices once per service. Each card's band is now resolved once and reused, the raw anchor is shared across services, and graded quotes are memoised for ten seconds.",
+        "On a 484-card save the inventory endpoint now answers in about 0.23–0.30s instead of 0.78–0.83s, and the header's state poll is around 0.11–0.15s instead of 0.16–0.31s. A full-row check against the old paths matched every value and copy price.",
+        "This is server-side only: no screen, price or button changed, and the same faster total feeds Home and the header."
+      ]
+    },
+    {
+      "version": "0.77.14",
+      "date": "2026-11-09",
+      "title": "You can watch the sync run",
+      "features": [
+        "Settings now draws a progress bar under Check for new sets now and Restart full sync while either job runs. A full sync shows the sets finished out of the total, then switches to a moving bar with the set it is pulling and how many cards have arrived.",
+        "A catalog check has no set count to divide, so its bar sweeps instead of inventing a percentage. Both buttons lock while a job is running and the bar clears when it finishes."
+      ]
+    },
+    {
+      "version": "0.77.13",
+      "date": "2026-11-09",
+      "title": "The sample catalogue boots again",
+      "features": [
+        "The bundled sample catalogue (data/catalog-seed.db) could fail at boot once it contained the 30th Celebration Mew rares. The boot repair relabelled those three cards and then rebuilt the set's pull table before the set's pack products existed, so SQLite refused the pull rows' foreign key. Products are now built for every set with cards before the rarity repairs run, and the sample save starts with its packs intact.",
+        "Existing saves were unaffected because their pack products already existed, and an empty folder still boots the way 0.77.9 made it.",
+        "Nothing on a playing save changes: this only makes the shipped sample catalogue a usable starting point again."
+      ]
+    },
+    {
+      "version": "0.77.12",
+      "date": "2026-11-09",
+      "title": "Every open door sells",
+      "features": [
+        "The \"Which door pays most?\" panel on an owned card is now four working buttons. Market listing lists the copy at market, Buylist counter sells to whichever shop currently bids highest, and once their gates open the Instant dealer and Pawn counter pay exactly what their rows quote. Each row says List or Sell and returns a receipt naming the amount.",
+        "The server re-checks the gate on every click, so the locked Resale Desk and Pawn Shop refuse a sale even if the request is hand-rolled. The buylist re-quotes before paying and refuses a stale sheet rather than quietly paying a different number.",
+        "A sale from the panel refreshes the collection and closes the card sheet; a refused door leaves the card alone and says why."
+      ]
+    },
+    {
+      "version": "0.77.11",
+      "date": "2026-11-09",
+      "title": "The comparison counts only open doors",
+      "features": [
+        "The \"Which door pays most?\" panel on an owned card was comparing four sale routes as if all four were open. A young save can only use the Market listing and the Buylist counter — the Instant dealer needs the Resale Desk ($400 cash) and the Pawn counter needs 3 sales — but both were listed as ordinary options and either could be named the best door. Locked doors are now dimmed, print what opens them, and cannot win the pick.",
+        "The footer says \"Best open door\" and how many doors are still locked, so the number it recommends is one you can actually walk through today.",
+        "The rest of the always-open screens were checked for the same habit. Home's shop panel, Card Shows' booth, Inventory's slab options and the other conditional panels already hide themselves until their subject exists, and Grading, Buylist and Stream name their requirements rather than assuming them, so no other copy changed."
+      ]
+    },
+    {
+      "version": "0.77.10",
+      "date": "2026-11-09",
+      "title": "No lock hides its own answer",
+      "features": [
+        "Stream could never open on a new save. The row asked for 5 followers, but followers are only awarded when a stream ends — so the one screen that grows your channel was the one your channel count kept shut. Stream now opens from the start; the channel's default following is what you build on.",
+        "The Card Shop's locked row now carries the terms its page used to keep to itself: $6 a day rent while cases are stocked, and that a stocked case is what turns walk-ins into sales. It still asks for $500 and names the $250 lease.",
+        "The Resale Desk's locked row now says what the desk is for: sellers leave lots priced under market, and you buy them to flip the cards. The $400 float is still the goal, but the reason to want it is visible before the door opens.",
+        "Every other gate was checked for the same problem. Deals already opens its own page and explains what counts as a sale, and the venue tabs inside print their own sales gates — nothing else was explaining the lock only after it opened."
+      ]
+    },
+    {
+      "version": "0.77.9",
+      "date": "2026-11-09",
+      "title": "An empty folder still boots",
+      "features": [
+        "The game no longer refuses to start when its data folder has no starter catalogue. A bare save stopped at boot on a database error from the local release products: the 30th Celebration wave ships products for a set that only exists once the catalogue has loaded, so the insert pointed at a set the save did not have. Those products now wait for a later launch instead of blocking the boot, and the save opens with the sets and cards it can insert.",
+        "A data folder is allowed to hold only data. The boot used to read schema.sql from the folder itself even when TCGLIFE_HOME pointed at a fresh or copied save directory; it now falls back to the schema that ships beside the program, so the first launch can create its database instead of failing on a missing file.",
+        "Honest note: a no-seed launch is not the same as a seeded one. It starts with the local releases (Delta Reign and the 30th Celebration promos) and fills the rest from pokemontcg.io at the normal sync pace, so the shelf is not stocked instantly the way the bundled catalogue makes it."
+      ]
+    },
+    {
+      "version": "0.77.8",
+      "date": "2026-11-09",
+      "title": "The empty bench explains itself",
+      "features": [
+        "Grading now explains a page that used to be blank. A save holding ten fresh pulls showed no \"Worth grading now\" list at all, because the panel was hidden whenever nothing cleared the bar, and the empty lab underneath told you to \"Submit a card above\" when there was no above. The page now names the cheapest open service, its fee and the raw value it demands, and says plainly that cheaper cards should go to the Buylist rather than pay a fee that eats the spread.",
+        "The lab's empty queue no longer points at a list that isn't there. It says a card has to clear the fee before it appears as a candidate, then waits the same game-days for its verdict.",
+        "The locked Card Shop row now reads \"Save $500 · lease $250\", so the number on the locked row matches the $250 hole-in-the-wall deposit on the page it opens instead of looking like a $500 minimum lease."
+      ]
+    },
+    {
+      "version": "0.77.7",
+      "date": "2026-11-09",
+      "title": "The locked door explains itself",
+      "features": [
+        "Clicking the locked Deals row no longer bounces you home with a one-line toast. It opens the Deals page itself: all seven venues listed, the next one marked, and the sentence that says what counts as a sale — the Market, the Buylist, the Trading Post and your shop cases. Before this, that sentence lived only on the page the lock kept you off, so the one place that answered \"how do I get in?\" was the one place you could not reach.",
+        "The other locked rows still stay shut, because their requirements are cash or follower counts you can already read on the row itself; only Deals carries an explanation worth opening before the gate. A deep link to a still-locked Deals venue lands on the same page with the same sentence, so \"Make 3 sales\" and \"where do I sell?\" are answered in one click."
+      ]
+    },
+    {
+      "version": "0.77.6",
+      "date": "2026-11-09",
+      "title": "The first ten minutes",
+      "features": [
+        "A brand-new save now opens on a short, tickable route into the game: rip a pack, sell the ones you don't keep at the Buylist, and make three sales to open the Deals district. The checklist sits on Home until the third sale and links straight to the counter that finishes each step. Before this, the only sign Deals existed was a locked sidebar row reading \"Make 3 sales\", and the one sentence explaining where sales come from was behind that lock.",
+        "The welcome tour now counts its six stops correctly — it said five — names the Buylist in its last step, and says welcome in rather than \"Tutorial skipped\" when you press Let's go. Skipping still says skipped, and Settings can still replay the tour.",
+        "The Pack Shop now defines its own shorthand. TYP is the median value of the cards inside as a share of the pack price, so TYP 80% means a typical rip returns about 80% of what you paid. The figure sits on every shelf label and was explained nowhere.",
+        "Home's activity feed no longer says \"everything you did\": it also carries the town's auction and resale chatter, so a four-card save was crediting the player with NPC hammers and catalogue maintenance. It now reads as what is happening in the hobby, with the player's own moves included."
+      ]
+    },
+    {
+      "version": "0.77.5",
+      "date": "2026-11-09",
+      "title": "Screens on demand",
+      "features": [
+        "The app shell no longer ships the whole game before the first screen paints. Each screen — Market, Card Shop, Deals, the convention floor, your binders — is now fetched the first time you open it instead of riding along in the initial download. The shell's own JavaScript fell from 1.2 MB to under 50 kB, so the sidebar and day clock appear while a screen is still arriving, and screens you have already visited open from cache.",
+        "This is a loading change, not a rendering one: the first screen still needs the shared card and foil renderer, so what you notice is the faster shell and quicker returns to screens you have already opened, not a lighter card grid. The dev-only holofoil inspector is no longer included in a packaged build at all."
+      ]
+    },
+    {
+      "version": "0.77.4",
+      "date": "2026-11-09",
+      "title": "Every screen says what happened",
+      "features": [
+        "A failed first load no longer spins forever or invents an empty shelf. The collection offered to sell you your first pack over a catalogue that never answered, the binder shelf invited you to make a first binder while yours still existed, the resale desk claimed no notes were on the counter, pull history said you had never opened a pack, the ship bay showed a clean queue, and a card sheet stayed on \"Loading card…\" indefinitely. They now name what did not load, stay put on a failed background refresh, and retry on request.",
+        "A failed fetch no longer reads as a real zero. Home said you had no record, no digest and no activity; the Community board said zero threads; the Trading Post said no traders in town; the Marketplace showed six zeroes and \"no quotes\"; the stream room offered to go live with no products; and your inventory showed an empty binder. Each screen now says what it could not load and offers Try again, and keeps the last good data when a background poll fails rather than blanking the page.",
+        "Panels that used to disappear are now honest about it. Your storage box returned nothing at all until its fetch answered; the shop's tax desk, books, staff roster and accountant vanished the same way; and the convention floor simply showed no floor when its call failed. They now say they are reading, or that the read failed, and retrying actually retries. Settings no longer prints \"Cards 0\" and \"Sets synced —\" while it is still reading the database, and the notification bell distinguishes \"nothing yet\" from \"the server did not answer\"."
+      ]
+    },
+    {
+      "version": "0.77.3",
+      "date": "2026-11-09",
+      "title": "The whole card, no scrolling",
+      "features": [
+        "Pack Opening's reveal card is now sized by the height of your window as well as its width. It used to take 400px of width whatever the window did — and 60% of the window's width once the window was narrower than that — so on a short screen the card on its own stood taller than the page could show: at 1000x650 it drew an 837px card under its value, progress dots and buttons, and the bottom of every pull sat below the fold. You had to scroll mid-reveal to see the card you had just turned over.",
+        "Above roughly 1030px of window height nothing changes — the card is still 400px wide. Below that it shrinks just enough for the card, its value, the dots and the Skip animation / Reveal all buttons to fit in one view: about 325px wide on a 1440x944 window, smaller than that in a short one, and the fan of cards behind it shrinks with it so the stack never looks wider than the card it is holding. The stage no longer insists on a 560px floor (600px for a sealed wrapper) taller than the window either, and the wrapper on the tear screen shrinks with the window in the same way, so the pack stage fits too. Cards you have already pulled are unaffected: the summary binder scrolls as before."
+      ]
+    },
+    {
+      "version": "0.77.2",
+      "date": "2026-11-09",
+      "title": "Ten cards, not six",
+      "features": [
+        "30th Celebration collections were advertising the wrapper's six cards while every rip dealt ten. The two-pack blister said 12 cards and opened 20, and the binder, Knock Out Collection, mini tin, poster collection, Tech Sticker Collection, Sylveon ex and Greninja ex boxes had the same split. The shelf, the slot list and the opener now all say ten game cards; the manifest still records the physical six-card wrapper — five cards plus a foil Basic Energy — separately, because the game's ten-card abstraction is not a claim about the wrapper."
+      ]
+    },
+    {
+      "version": "0.77.1",
+      "date": "2026-11-09",
+      "title": "Every box gets a face",
+      "features": [
+        "Sealed shelf cards no longer leave an empty art slot when TCGplayer has no wrapper photo. The 79 sold products without a photo now show their set's logo, and a wrapper photo that fails to load falls back to that logo too. If the logo itself is unavailable or broken, the set symbol and finally a package mark remain behind it, so every facing has an image. The logo is only a stand-in for the missing product photo: the product's own name, price and promo badge are unchanged.",
+        "The Pack Shop header no longer stretches into a tall empty column. Its OPEN badge, title, description and cash balance now sit in the compact header row they were designed for, with the shelves beginning directly below."
+      ]
+    },
     {
       "version": "0.77.0",
       "date": "2026-11-08",
       "title": "The box hands you the promo",
       "features": [
-        "Sealed shelf cards now name the promo included before you buy. Elite Trainer Boxes, blisters and collections show the card beside their art and price — the four split boxes read PROMO · Koraidon, PROMO · Miraidon, PROMO · Riolu and PROMO · Alakazam, while a poster collection or Ultra-Premium Collection prints its full promo list on the shelf tag, with the longest three-name list wrapping onto a second line. A product whose copy names one of two still says “or” rather than implying both are inside, and a product with no documented promo shows no badge."
+        "Sealed shelf cards now name the promo included before you buy. Elite Trainer Boxes, blisters and collections show the card beside their art and price — the four split boxes read PROMO · Koraidon, PROMO · Miraidon, PROMO · Riolu and PROMO · Alakazam, while a poster collection or Ultra-Premium Collection prints its full promo list on the shelf tag, with the longest three-name list wrapping onto a second line. A product whose copy names one of two still says “or” rather than implying both are inside, and a product with no documented promo shows no badge.",
+        "Regular Scarlet & Violet and Mega Evolution Elite Trainer Boxes now show the art you are buying. Each shipped in two versions, and the shop treats them as separate SKUs with the promo that art pins: Koraidon → Koraidon (SVP 014), Miraidon → Miraidon (SVP 013), Mega Lucario → Riolu (MEP 010) and Mega Gardevoir → Alakazam (MEP 009). The old rows named both promos and handed over one by chance; the original ids keep Koraidon and Mega Lucario so stock already in a save stays put. TCGplayer markets read on 8 November 2026 price the four boxes at $131.73, $144.80, $114.85 and $112.42, each with its own box photo. The Pokémon Center versions already used these same art-to-promo pairs.",
+        "Primal Clash and BREAKthrough Elite Trainer Boxes now show both arts, with the box you buy carrying its own contents and its own price. Each is the real eight-pack box: 65 sleeves matching that art, 45 Energy cards, the set's player's guide, six damage-counter dice, a coin-flip die, two acrylic condition markers, a collector's box with four dividers and a TCGO code card — and no promo card, which the notes now say outright. The contents come from Pokémon.com's Primal Clash and BREAKthrough product pages. TCGplayer publishes no market price for three of the four arts, so the shop names the source it used rather than passing a secondary quote off as TCGplayer: Primal Groudon is $7,168.38 and Primal Kyogre $7,500.00 by PokeInvest on 8 November 2026, Mewtwo X is $1,598.41 by PriceCharting with a recorded $1,600.00 sale on 31 October 2026, and Mewtwo Y keeps TCGplayer's $1,499.00 market. PriceCharting's Groudon guide is lower at $5,795.75; the box follows PokeInvest's newer sealed-sale figure and names that source in its note. These are secondary-market readings, not official prices.",
+        "The Black & White shelf was rebuilt against the era's own products. Elite Trainer Boxes did not exist for every set: the line began with Plasma Storm, which held seven packs, and Plasma Blast added the eighth — the other ten BW boxes in the catalogue are gone. No Black & White expansion shipped a six-pack Booster Bundle either, so all of those rows are refused. Dragon Vault was never a normal set: its 21 cards came in five-card packs sold only inside three-pack blisters, so the standalone booster and the 36-pack display are refused and the blister is now its own openable product at three packs of five, priced at the exact blister's $1,995.90 TCGplayer market. Nine BW packs carry their own TCGplayer quotes too — $110 for Emerging Powers up to $651.13 for Plasma Storm — while Dragons Exalted and Boundaries Crossed publish no market and stay on the model, as do all eleven 36-pack displays. The blister's one-of-five Mirror Holofoil variant cards are a random accessory, not a fixed promo, so they are not handed over.",
+        "XY packs and displays now sell at what the marketplace charges for that exact wrapper or box, not at a value modelled from the cards inside. All twelve main-set booster packs carry a TCGplayer market read on 8 November 2026 — $33.65 for Steam Siege up to $229.72 for Phantom Forces — and seven of the twelve displays do too: Furious Fists $4,717.50, Roaring Skies $4,768.42, Ancient Origins $9,807.99, BREAKthrough $3,265.81, Fates Collide $2,754.99, Steam Siege $1,436.99 and Evolutions $2,707.61. The five displays whose TCGplayer listings publish no market — XY base, Flashfire, Phantom Forces, Primal Clash and BREAKpoint — deliberately stay on the model rather than borrowing another box's price. These are collector-market quotes for out-of-print sealed product, so a single XY pack now costs far more than its $3.99 sticker did.",
+        "Double Crisis can be opened again. Instead of refusing the set's invented booster, display and ETB, the shelf now carries the product that actually existed: a four-pack blister of seven-card packs. Opening it deals 28 cards across four wrappers, and it sells for $1,715.52 — four times the single pack's $428.88 TCGplayer market, because no blister quote exists, so the price is derived rather than listed. The wrapper is modelled as those four packs. While wiring the seven-card pack, special products now honour their own declared card count instead of assuming ten, which also corrects the 30th Celebration collections to their six-card packs.",
+        "The XY line's sealed shelf has been rebuilt against the era's own product copy. Every main XY Elite Trainer Box now opens eight packs instead of nine — Pokémon.com's box copy and Bulbapedia's composition table both say eight — and the boxes are split by art where two shipped: Xerneas / Yveltal, Primal Groudon / Primal Kyogre, Mewtwo X / Mewtwo Y and Mega Charizard Y / Mega Blastoise. Roaring Skies, BREAKpoint and Steam Siege ETBs now sell at their TCGplayer quotes ($7,899.99, $1,099.99 and $1,800), while the two-art boxes whose listings carry no market price stay on the modelled price and say so. Three products that never existed are gone: no XY expansion shipped a six-pack Booster Bundle, the Kalos Starter Set was three 39-card decks, and Generations packs came only inside Mythical and Red & Blue collections. Generations' one real box is corrected to ten packs with the Shaymin-EX promo, Double Crisis's invented booster, display and ETB are refused (its seven-card packs came only in four-pack blisters), and the Evolutions display stays on the shelf where it belongs.",
+        "Eight regular Elite Trainer Boxes that shipped in two arts are now two SKUs each, so the box you buy is the box you see: Sun & Moon (Solgaleo / Lunala), Ultra Prism (Dawn Wings / Dusk Mane Necrozma), Sword & Shield (Zacian / Zamazenta), Battle Styles (Single Strike / Rapid Strike Urshifu), Chilling Reign (Ice Rider / Shadow Rider Calyrex), Evolving Skies (the two Eeveelution four-packs), Paradox Rift (Iron Valiant / Roaring Moon) and Temporal Forces (Walking Wake / Iron Leaves). Each art carries its own TCGplayer quote read on 8 November 2026 — Sun & Moon is $248.05 / $246.84, Ultra Prism $780.99 / $760.77, Evolving Skies $546.57 / $456.06 — and its own box photo, instead of one row priced from the pack model. The original id keeps the first art, so existing stock stays on it. Paradox Rift and Temporal Forces also pin each art's promo (Iron Bundle with Iron Valiant, Scream Tail with Roaring Moon, Flutter Mane with Walking Wake, Iron Thorns with Iron Leaves), matching the Pokémon Center boxes.",
+        "Every Pokémon Center Elite Trainer Box now sells at its own TCGplayer quote, not at a value guessed from the packs inside it. The twenty boxes that still used the pack model were the worst-priced items on the shelf: Paldea Evolved sat at $104 while the box trades near $590, 151 at $174 against $1,152, Destined Rivals at $84 against $403, and Ascended Heroes at $133 against $323. All 38 Pokémon Center boxes — Sword & Shield through Delta Reign — now carry a marketplace number read on 8 November 2026, with the quote's listing photo used where a box had no art.",
+        "The Sword & Shield Elite Trainer Box Plus is on the shelf, in both arts: Zacian at $235.67 and Zamazenta at $240.64, the TCGplayer market for each box on 8 November 2026. These were the international half of the 2020 Ultra-Premium Collection — North America got the combined box instead — and each holds twelve packs, three each from Sword & Shield, Rebel Clash, Darkness Ablaze and Vivid Voltage, plus a gold full-art Zacian V or Zamazenta V. The metal dice, coin and condition markers are accessories and are not modelled.",
+        "That box needed something no other product did: its twelve packs come from four different expansions. The opener now follows the real composition — three packs of each set, in that order — instead of dealing twelve packs of its host set, and every way of ripping it (whole box, one wrapper at a time, pack battles and tournaments) deals the mix. The product page says so plainly rather than implying a single-set box.",
+        "The two-art Pokémon Center boxes are separate products now. Chilling Reign, Evolving Skies, Scarlet & Violet, Paradox Rift, Temporal Forces and Mega Evolution each shipped their Pokémon Center Elite Trainer Box in two arts, and the catalogue carried one row with one quote and a note naming the other version's price. Each art is its own box on the shelf, with its own photo and its own TCGplayer quote read on 8 November 2026: Chilling Reign $209.63 Ice Rider and $191.93 Shadow Rider, Evolving Skies $1,087.99 Jolteon art and $1,127.56 Glaceon art, Scarlet & Violet $286.56 Koraidon and $316.89 Miraidon, Paradox Rift $188.73 Iron Valiant and $205.75 Roaring Moon, Temporal Forces $197.48 Iron Leaves and $212.81 Walking Wake, and Mega Evolution $177.19 Mega Gardevoir and $194.26 Mega Lucario. The original row keeps the first art, so any stock already in a save stays where it was.",
+        "Each split box now carries the promo printed on its own art instead of a one-of draw between the pair. The Koraidon box seals Koraidon and the Miraidon box Miraidon; Iron Valiant seals Iron Bundle while Roaring Moon seals Scream Tail; Iron Leaves seals Iron Thorns while Walking Wake seals Flutter Mane; Mega Gardevoir seals Alakazam and Mega Lucario seals Riolu. Every one of those boxes holds the card twice, plain and with the Pokémon Center logo, and the stamp is still not modelled as a separate paper, so the box hands the card over once.",
+        "Sun & Moon Elite Trainer Boxes hold eight packs, not nine. The whole era from Sun & Moon base through Cosmic Eclipse was seeded with the later nine-pack format, so every box was opening a pack it never held. The three special sets are the exception at ten, and each now hands over the promo that was sealed inside: Shining Legends a Shining Ho-Oh, Dragon Majesty a Naganadel-GX and Hidden Fates a Moltres & Zapdos & Articuno-GX. Dragon Majesty's row opens ten packs because Bulbapedia's contents table and the published box copy both say ten; TCGplayer's own metadata says nine, and the note records the disagreement rather than hiding it.",
+        "The Sun & Moon shelf had products that never existed. No six-pack Booster Bundle shipped anywhere in the era, so the bundles listed for all twelve main sets and the three special sets are gone from sale. Shining Legends, Dragon Majesty and Hidden Fates never had a 36-pack Booster Display either, and Detective Pikachu had no Elite Trainer Box, bundle or display at all — its four-card packs only ever came inside the Case Files and collections, so its booster row now deals four cards instead of ten. The rows stay in the save so existing stock is untouched, but the shop will not sell them.",
+        "Hidden Fates' Shiny Vault is no longer sold as sealed product. The 94-card subset only ever existed inside Hidden Fates packs, and the catalogue had generated a booster, bundle, display and Elite Trainer Box for it out of the set's shape. Those four rows are now refused for sale, so the only way to a Shiny Vault card is a Hidden Fates pack, which is how the real product worked.",
+        "Sun & Moon boxes now sell at what they actually trade for. A 2017–2019 sticker is not today's price: the base set's Elite Trainer Box now lists at its $248.05 market instead of $39.99, Lost Thunder's at $729.80, Cosmic Eclipse's at $1,874.50 and Team Up's at $4,000, with every quote read from TCGplayer for the exact box on 8 November 2026. Where a box shipped in two art versions the row carries one quote and names the other version's price — Sun & Moon's Lunala box at $246.84 beside Solgaleo's $248.05, and Ultra Prism's Dusk Mane box at $760.77 beside Dawn Wings' $780.99.",
+        "Sword & Shield Elite Trainer Boxes hold eight packs, not nine. Every box from Sword & Shield base through Silver Tempest was being seeded with the nine-pack format that came later, so each was opening a pack it never held and pricing off it. Bulbapedia's contents table gives eight for the whole era, and the Silver Tempest box's own copy says eight. Champion's Path and Shining Fates are the exception at ten, and both of theirs carried a promo the catalogue was not handing over: Champion's Path a full-art Charizard V and Shining Fates an Eevee VMAX.",
+        "The Sword & Shield shelf had products that were never printed. No six-pack Booster Bundle existed before Lost Origin, so the bundles listed for Sword & Shield through Brilliant Stars are gone, along with Champion's Path's and Shining Fates' — and neither of those two special sets ever had a 36-pack Booster Display either, so those boxes are gone too. The era's real bundles are Lost Origin, Silver Tempest and Crown Zenith, and Crown Zenith's was missing from the catalogue entirely; it is on the shelf now at its $217.13 market. These rows stay in the save so existing stock is untouched, but the shop will not sell them.",
+        "The Sword & Shield boxes the catalogue never listed are here. Evolving Skies and Astral Radiance shipped European eighteen-pack half displays, priced like the Scarlet & Violet halves at half a display's sticker with the pack-value floor under them. Every Pokémon Center box from Chilling Reign to Silver Tempest is now on the shelf too — ten packs instead of eight, twelve for Crown Zenith's Plus box, and Chilling Reign's eight because of the packaging error Bulbapedia records. None of those carries a second stamped promo, which began with Scarlet & Violet, and each sells at the TCGplayer market for the exact box rather than a model: $182.26 for Astral Radiance up to $1,087.99 for Evolving Skies.",
+        "Hit rates were checked across the line: every Sword & Shield set that has cards has a pull table, so no set was being opened against an empty odds profile. The odds themselves are the era's researched profile rather than a per-set measurement, which is unchanged.",
+        "The new displays show their own boxes now. The Enhanced Journey Together display and the five half displays were drawing the set symbol because the artwork matcher only recognises a set's standard wrapper — these are separate SKUs whose photos sit on their own TCGplayer product pages. Each now wears the exact photo of that box, keyed to the same product id its price came from: the Enhanced box with its topper and four of the five eighteen-pack half boxes, none of them borrowing the standard display's picture. The fifth, the Surging Sparks half box, has no photo published anywhere — TCGplayer lists the product but answers 403 for its image at every size — so it keeps the set symbol rather than wearing the full display's picture.",
+        "The Pokémon Center Elite Trainer Boxes are on the shelf — every set that shipped one: Scarlet & Violet through Destined Rivals, 151, Paldean Fates, Shrouded Fable, Prismatic Evolutions, Black Bolt, White Flare, the Mega Evolution line from Mega Evolution through Delta Reign, Ascended Heroes and the 30th Celebration box. Each holds eleven packs instead of the regular box's nine, so it costs more and opens more: it sells at the $59.99 Pokémon Center charged, floored by what eleven packs are worth and with the promo counted on top.",
+        "Each Pokémon Center box carries the set's ETB promo twice — one plain and one with the Pokémon Center logo — and that second copy is the same card, not a second printing. The stamp is not modelled as its own paper, the same simplification the Prismatic Eevee and the Journey Together N's Reshiram already carry, so the box hands the card over once rather than inventing a duplicate card for your binder. None of these boxes has a TCGplayer quote here because they were Pokémon Center exclusives, and several now trade for four to six times what they cost; the shop prices an in-print box at its shelf price, so the Pokémon Center version sits above the regular one without pretending to be the collector market.",
+        "Journey Together now has its Enhanced Booster Display on the shelf: thirty-six packs plus a Box Topper, the illustration rare N's Reshiram 116/159 carrying a Journey Together stamp. It was a separate SKU sold through Pokémon Center and by Play! Pokémon retailers, and the ordinary display has no topper. It sells at TCGplayer's $225.73 market for the exact box, read on 8 November 2026. The stamp is not modelled as a separate paper, so the card you receive is the set's ordinary N's Reshiram — the same simplification the Prismatic Eevee already carries.",
+        "The 18-pack half displays are on the shelf: Twilight Masquerade, Stellar Crown, Surging Sparks, Journey Together and Destined Rivals. They are the half-size boxes sold in European markets — Bulbapedia records the Twilight Masquerade ones and TCGplayer lists all five as Half Booster Box, with Stellar Crown at $253.23, Surging Sparks at $193.27 and Destined Rivals at $317.50 read on 8 November 2026. The other two have no listed price here, so they sell at half a display's MSRP floored by what their packs are worth. A half display deals eighteen packs and is priced and battled as eighteen, not thirty-six.",
+        "The MEP Black Star Promos are in the catalogue: 116 printings with their real numbers, artwork and TCGplayer market prices — including the four Delta Reign Build & Battle Box promos (Masquerain, Magmortar, Enamorus and Kommo-o), which the promo set's own feed did not carry and which come from the TCGplayer mirror instead. They are the promo run behind the whole Mega Evolution line, so the boxes that seal one can finally hand over the card that was in the box.",
+        "30th Celebration boxes now give their actual promos. The Poster Collection gives Articuno, Zapdos and Moltres; the Tech Sticker Collection gives Alolan Exeggutor or Lucario; the Sylveon ex and Greninja ex boxes give their own ex; the Elite Trainer Box gives Nidorina; the Ditto Premium Collection gives Ditto; the Mew and Mewtwo figure collections give their Pokémon; and the Ultra-Premium Collections give Pikachu ex with Espeon ex by day, Pikachu ex with Umbreon ex by night.",
+        "Ascended Heroes does too. The Elite Trainer Box gives N's Zekrom; the Premium Poster Collection gives Mega Lucario ex or Mega Gardevoir ex; the three Mega ex boxes give Mega Meganium ex, Mega Emboar ex and Mega Feraligatr ex. The Tech Sticker Collection and First Partners Deluxe Pin Collection use the Ascended Heroes set cards they actually carry — Charmander 020 or Gastly 123, and Chikorita 008, Tepig 029 and Totodile 041 — on the Pixel Cosmos Holofoil those boxes print, which this build does not model as a separate paper.",
+        "The product pages now map each named promo to its printing instead of only naming it, so the promo panel in a manifest shows the card and its value.",
+        "Three 2-Pack Blisters join the shelf. The 30th Celebration one is the other product carrying the 116/128 Eevee — two packs, that foil promo and a plastic coin for $9.99 — and hands it over like the Knock Out Collection. The Prismatic Evolutions 2-Pack Blister gives the Eevee promo with the Pokémon Day 2025 stamp, a Cosmos Parallel Holofoil of the set's Eevee 074/131, plus a metallic coin for $9.99. The Ascended Heroes 2-Pack Blister gives Erika's Tangela or Larry's Komala from the set's own 007/217 and 175/217 printings, with a Gym Leader coin.",
+        "Single Pack and Three Pack Blisters are a family of their own now, for the thirteen sets whose promos the sources name card by card: Scarlet & Violet (Spidops, Espathra / Arcanine, Dondozo), Paldea Evolved (Smoliv, Growlithe / Tinkatink, Varoom), Obsidian Flames (Pawmi, Paldean Wooper / Houndstone, Eevee), Paradox Rift (Pineco, Sinistea / Cetitan, Arctibax), Temporal Forces (Carvanha, Bellibolt / Cleffa, Cyclizar), Twilight Masquerade (Toxel, Pupitar / Revavroom, Snorlax), Stellar Crown (Horsea, Porygon2 / Latias, Tinkaton), Surging Sparks (Wooper, Pachirisu / Quagsire, Zapdos), Destined Rivals (Zarude, Eevee / Zebstrika, Kangaskhan), Delta Reign (Spritzee / Seel), and Mega Evolution, Phantasmal Flames and Chaos Rising from the MEP run. A three-pack sells for the published $13.99; a single has no published MSRP, so it is priced from the pack's price with the promo counted on top, and every one of them hands over the card Bulbapedia files with that product.",
+        "Some blisters are deliberately missing. Perfect Order shipped blisters too, but their promo numbers were not sourced here, and Journey Together's sit at SVP 185 to 188, past the range mapped in this pass. They make no claim rather than a guessed one.",
+        "Where the blister evidence is thinner, the notes say so. The 30th Celebration blister was never on the official showcase, so its contents and price come from Bill's Archive's product guide; no published MSRP was found for the Ascended Heroes blister, so its price is the $12.99 retail listing Academy shows, and retailers disagree about whether it landed on 30 January or 20 February 2026. The stamped cosmos Eevee and the Trainer's Pokémon variants are held as their set cards, because this build does not model those stamps as separate papers.",
+        "The shop prices a special collection honestly now. Mini tins, poster collections and the premium boxes all shared one \"special\" price rule and every one of them landed on the same $90 floor; each now sells at its published shelf price, floored by what its packs are worth. A guaranteed promo also counts toward the price, so a box can no longer cost less than the card sealed inside it — the 30th Celebration Elite Trainer Box carries a $49 Nidorina, and its shelf price has to reflect that.",
+        "Delta Reign's two blisters name MEP 115 and MEP 116 for their promos, and those numbers are redirects: Bulbapedia files Spritzee and Seel as reprints of Perfect Order 35 and 18, so the boxes hand over those set cards, exactly as the Knock Out Collection's Eevee turned out to be 116/128. The Pixel Cosmos Holofoil those two blisters print is not modelled as a paper of its own, so the copy in your binder is the set card's ordinary one. The Elite Trainer Box is the same story from the other side: its Kyogre is Delta Reign's own 26/103, filed as MEP 117, so that box now hands over the set card too instead of naming a promo it could not find. Both blisters also sell at what they actually trade for on TCGplayer — $13.08 for the single and $19.05 for the three-pack — instead of the pack's price plus the promo, and no model is allowed to override a real quote: the game's own pack valuation had marked the $19.05 three-pack up to $47. The Knock Out Collection's Eevee turned out not to be a Black Star Promo at all. Bulbapedia's 30th Anniversary table lists it as 116/128 Eevee [Cosmos Holofoil] — the numbered set card, also carried by the 2-Pack Blister — so the box now hands over that card. The stamped cosmos printing is not modelled as its own paper, so the copy in your binder is the set card's ordinary one. Fourteen of the 116 MEP promos have no TCGplayer price on the source read here, so they are catalogued but never handed out; none of the boxes above depends on one. Prices, art and numbering are the source's, not measured from a physical card.",
+        "The whole Mega Evolution line now uses its own measured pack odds instead of a generic hit table. No profile ever carried a Mega Hyper Rare tier, so every gold card from Mega Evolution through Delta Reign was dealt at a 1-in-50 weight; each set now uses the count the TCGplayer Authentication Centre published for it — Mega Evolution and Phantasmal Flames 1 in 1,260, Ascended Heroes 1 in 540, Perfect Order 1 in 1,786, Chaos Rising 1 in 956, Pitch Black 1 in 1,081 and Delta Reign about 1 in 1,000. Ascended Heroes also gets its own Mega Attack Rare at 1 in 29 and the Ultra Rare rate that tier displaces (1 in 21). Delta Reign's modelled pack content falls from $15.80 to $6.32 — about the $6.35 a pack the $19.05 three-pack works out to on TCGplayer — so the ESTIMATE line and the shelf price agree instead of the valuation claiming the box was worth $47. Two older sets had measured tiers sitting on the same fallback and are pinned too: Paldean Fates prints a Shiny Ultra Rare 1 in 13 packs and a Shiny Rare 1 in 4, and Crown Zenith prints its secret rares 1 in 133 rather than 1 in 50. The odds are community counts, not official ones — The Pokémon Company publishes none — and the rarest tiers rest on few pulls (one gold Rayquaza in Delta Reign's pre-release sample), so treat 1 in 1,000 as an estimate rather than a measurement. Sets outside these eight keep the era profile; the full audit is in reports/hit-odds-audit.md.",
+        "Crown Zenith no longer puts a Galarian Gallery card in every pack. The gallery cards ride the reverse-holo position, and this build filled that position with a gallery card every single time, which valued a Crown Zenith pack at $44.28; the gallery is really in 35.2% of packs, so the other 64.8% now deal an ordinary reverse holo and a pack is worth $18.04. The booster's shelf price falls with it, from $132.90 to $18.04. The same 35.2% replaces the era's 9% figure in the gallery-only table, which is never sold but was wrong in the other direction. The odds are TCGplayer's per-rarity count rather than an official figure.",
+        "Out-of-print appreciation no longer stacks on top of a modern box's contents. Sealed was estimated as content value times the scarcity curve times the demand curve, so a $55 Crown Zenith Elite Trainer Box holding $180 of packs priced at $790. Modern sealed (2011 onwards) now prices at what its packs are worth, with the box discount applied. Crown Zenith's Elite Trainer Box falls from $790 to $146.65 and its booster from $54.15 to $14.33; Scarlet & Violet's ETB lands at $51.56 and Paldean Fates' at $114.84, both within reach of what they sell for. Pre-2011 boxes keep the collector curve, because there the sealed box is itself the asset rather than a bag of packs — Base Set's display is unchanged. The remaining gap on Crown Zenith is its own pack value: 35.2% of packs carry a Galarian Gallery card and the set's 70 gallery cards are all priced, so its ten packs still read at $155.80 of contents. That floor is the anti-money-printer rule, not a multiplier.",
+        "The sealed floor now values a box's packs at what selling the pulls actually pays. It was priced against the sticker market value of the contents, which nobody collects: the instant dealer pays 70-92%, a market listing pays market minus a 10% commission, the best buylist 75% and the pawn shop 40%. Every box was therefore floored above its own contents' realizable worth. The floor uses the best route of the four, so buying at it still cannot be turned into a profit by any route, but a box may now sit below its packs' sticker price the way real boxes do. Paldean Fates' Elite Trainer Box, whose contents are priced cleanly, falls from $123.08 to $114.84. The floor is still a floor, and it is what stops a box from being a printer: Crown Zenith's price is set entirely by what its packs hold, which is a card-value question rather than a sealed one.",
+        "The Galarian Gallery no longer hands each of its 70 cards the same chance. The gallery fills Crown Zenith's bonus slot in 35.2% of packs and the pool was split evenly, so the $290 Giratina VSTAR pulled exactly as often as a $2 Thievul. With the gallery carrying 81% of a pack's value, that flat pool priced a pack at $18.04. The four GG secrets now pull at the researched 1 in 500 packs each, which is 0.8% of packs and agrees with TCGplayer's 0.75-0.80% secret rate, and the other 66 cards share the remaining 34.4% evenly. That split inside the gallery is this build's distribution, not a measured one: only the secret tier has a per-card figure, so the rest is an even share. A Crown Zenith pack is worth $15.58, sells at $14.33, and the Elite Trainer Box lands at $146.65.",
+        "The other six bonus subsets had the same two faults: each was dealt into every single pack and each card in it had an equal share. Hidden Fates was handing out a Shiny Vault card in all 100% of packs; a Shiny Vault card really lands in 35.8% of them (21.2% baby shinies, 10.19% Shiny GX, 3.42% full-art Trainers, 1.01% gold, from Pokecompare's Elite Fourum table), so its pack value falls from $63.80 to $25.31. Shining Fates uses ThePriceDex's per-rarity rates — Shiny Rare 1 in 4.4 packs, Shiny V 1 in 19.8, Shiny VMAX 1 in 25.5, SV Secret 1 in 109.9 — for 32.6% of packs instead of all of them: $9.29 to $5.50 a pack. The four Trainer Galleries fill their slot in about one pack in eight rather than every pack, which puts a pack at $7.52 for Vivid Voltage, $6.54 for Battle Styles, $8.02 for Chilling Reign and $5.14 for Lost Origin. Lost Origin's gallery keeps its researched tier split; the other three share their slot evenly and use TCGplayer's 12.31% Lost Origin count, because no source read here publishes a per-tier table for them.",
+        "Foil was missing on 1,109 cards: the locally-seeded releases (Delta Reign, the 30th Celebration products) keep their artwork on a different image host from the rest of the catalogue, and the game's own copy of a card — the one the foil reads its pixels from — asked for a file that only exists on the old host. Those cards failed to load that copy and rendered flat, so a 30th Celebration holo showed no foil at all. The copy now falls back to whichever image the card actually uses, so every card with artwork gets its paper.",
+        "The Home dashboard claimed it was still building the card database and that 0 real cards were priced, on a save holding 20,898 priced cards. The sync's card counter only moved while a set was being fetched, so a start-up that found every set already synced reported zero — its first paint then quoted that zero as fact. The counter now reads the catalogue at boot and again when a pass ends, and the dashboard says \"Reading the card catalogue…\" until it has an answer instead of guessing.",
+        "Every holo card now has a shine: a slow violet-to-gold iridescent band travels across the card with one narrow white glint inside it — colour first, light second — staggered per card so a binder page glints rather than blinking in unison. Only cards whose printing actually has foil sweep — a plain common stays still — and the review link, the hover zoom, the slab well and the pack-opening reveal all show it, because they all render the same card component now. Cards no longer show a second, smaller copy of themselves sitting on top of them. The holo layer is computed at a small fixed size and then stretched over the card, and it was being drawn at that small size instead — centred on the card, so a holofoil card appeared to have a shrunken twin floating over its own artwork. It now fills the card exactly, which is where the duplicate came from on the collection grid and in the card detail view. The hover preview also sits beside a card rather than under your cursor, and is switched off inside the card detail view, where the card is already large.",
+        "A box that holds more than one promo now hands over every card inside it: the 30th Celebration Ultra-Premium Collections give Pikachu ex with Espeon ex by day or Umbreon ex by night, the Poster Collection gives all three Legendary Birds, and the Ascended Heroes First Partners Deluxe Pin Collection gives Chikorita, Tepig and Totodile. Before, each of those handed over one card from the group, chosen by a hash of the product id. Blisters and the Tech Sticker Collections are unchanged on purpose — their evidence says the box held one of two, so one is what a rip gives. The same rule fixes two prices: the promo contribution is now summed for a box that holds every named promo instead of averaged, so the day UPC counts $118.71 of promos rather than $59.36 and the night box $141.64 rather than $70.82, and each of those promos is marked guaranteed on the product rather than a one-in-three chance.",
+        "The five Mega Evolution Elite Trainer Boxes now hand over the promo that was in the box. Bulbapedia's MEP promo table files Alakazam (MEP 009) with the Mega Gardevoir box, Riolu (MEP 010) with the Mega Lucario box, Charcadet (MEP 022) with Phantasmal Flames, Tyrunt (MEP 070) with Perfect Order, Fennekin (MEP 080) with Chaos Rising and Zarude (MEP 088) with Pitch Black, so each box grants that card and its value now counts toward the shelf price. The names had been recorded since 0.75.0 without a catalogue id, so those boxes granted nothing at all. MEP 003 Alakazam is the Build & Battle Box printing and MEP 059 Fennekin is another promotion, so neither is the ETB card. The Mega Evolution box shipped in two versions, so it still hands over one of Riolu or Alakazam, which is what a real box contained.",
+        "Black Bolt's and White Flare's Elite Trainer Boxes finally hand over their promos: Thundurus (SVP 209) for Black Bolt and Tornadus (SVP 210) for White Flare. Both cards were named on the box all along but had no catalogue row — pokemontcg.io has not published 209 or 210, and its image paths return nothing — so the box granted no card and its price ignored the one inside. They are indexed as SVP promos with the plain ETB printing's TCGplayer market, Thundurus $1.50 and Tornadus $1.09, read through TCGdex on 8 November 2026; the Pokémon Center stamped copies TCGdex reports at about $17.33 and $14.41 are separate printings this build does not model, so the box hands over the ordinary card. Prices are a marketplace reading, not an official price line.",
+        "Black Bolt and White Flare no longer price off a mislabelled chase card. Their two Victini Black White Rare cards (171/086 and 172/086) came from the catalogue labelled as ordinary rares, so a $600+ card was dealt as often as a bulk rare: a pack valued at $105 and the Elite Trainer Box at $875. Both now sit in the Black White Rare pool, and the sets deal the pull rates TCGplayer measured over 700+ packs instead of the generic era ladder — a Black Bolt pack values at about $9 and its Elite Trainer Box at about $85, against a $13.74 pack on the secondary market. Black White Rare never appeared in that sample, so its 1-in-496 rate is the community estimate, not a count.",
+        "The Crown Zenith Elite Trainer Box now hands over the promo that was actually sealed inside it, Lucario VSTAR SWSH291 — the etched foil print named on the box and by Bulbapedia. It had been granting SWSH214, a different Lucario VSTAR promo worth about $2 on TCGplayer instead of about $8.50.",
+        "Prismatic Evolutions packs now deal the rates TCGplayer measured over 1,200 packs instead of the generic Scarlet & Violet ladder: a Double Rare about 1 in 6 packs, an Ultra Rare 1 in 13, an ACE SPEC 1 in 21 and a gold Hyper Rare 1 in 180, with the 32 art rares staying at the set's 1-in-45 Special Illustration Rare rate. The previous ladder was handing out a rare-or-better card in 37% of packs; the measured figure is about 29%."
       ]
     },
     {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   api,
-  type BattleProduct,
+  type StreamProduct,
   type BreakRipResult,
   type BreakStatus,
   type StreamChannel,
@@ -10,7 +10,7 @@ import {
   type StreamRipResult,
 } from '../api'
 import { useStore } from '../store'
-import { CardImg, EmptyState, fmtUsd } from '../components'
+import { CardImg, EmptyState, fmtUsd, LoadFailure, TipList } from '../components'
 
 // ---------------------------------------------------------------------------
 // Streaming room — go live, rip real packs, chat reacts, donations land.
@@ -23,7 +23,7 @@ const SPOT_MAX = 16
 export function StreamView() {
   const { toast, refreshState, openCard } = useStore()
   const [channel, setChannel] = useState<StreamChannel | null>(null)
-  const [products, setProducts] = useState<BattleProduct[]>([])
+  const [products, setProducts] = useState<StreamProduct[]>([])
   const [selProduct, setSelProduct] = useState('')
   const [packs, setPacks] = useState(6)
   const [busy, setBusy] = useState(false)
@@ -35,8 +35,14 @@ export function StreamView() {
   const [lastBreakRip, setLastBreakRip] = useState<BreakRipResult | null>(null)
   const [spotsInput, setSpotsInput] = useState(8)
   const [priceInput, setPriceInput] = useState('')
+  // A dead channel fetch used to render a go-live panel with an empty product
+  // list — it read as "you own nothing", not "the server is down".
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
-  const loadChannel = () => api.streamChannel().then(setChannel).catch(() => {})
+  const loadChannel = () =>
+    api.streamChannel()
+      .then((c) => { setChannel(c); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
   const loadBreak = () => api.breakStatus().then(setBreakState).catch(() => {})
   useEffect(() => {
     loadChannel()
@@ -416,6 +422,13 @@ export function StreamView() {
     )
   }
 
+  if (status === 'error') {
+    return <LoadFailure what="your channel" sub="The local server did not answer. You are not live and nothing was sold." onRetry={() => { setStatus('loading'); loadChannel(); loadBreak() }} />
+  }
+  if (!channel) {
+    return <EmptyState icon="📡" text="Opening the stream room…" sub="Reading your channel, your break status and the products you can rip." />
+  }
+
   // Offline — channel hub + go-live setup.
   const product = products.find((p) => p.id === selProduct)
   const price = product ? product.market_price ?? product.msrp : 0
@@ -451,8 +464,14 @@ export function StreamView() {
 
       <div className="panel mt14">
         <b>Open a case break</b>
-        <div className="small faint">
-          Buy the product up front, sell {SPOT_MIN}–{SPOT_MAX} team spots on stream at your own price, and rip: every pull goes to its Pokémon's spot-holder. Full sellout at a markup is pure margin; unsold spots mean the house keeps those pulls. Big pulls grow the room — and breaks grow the channel faster than solo rips.
+        <div className="small faint" style={{ margin: '4px 0 8px' }}>
+          <TipList
+            items={[
+              { icon: '💳', label: 'Buy first', text: <>the product is out of pocket before a spot sells</> },
+              { icon: '🎟️', label: `Sell ${SPOT_MIN}–${SPOT_MAX} spots`, text: <>at your price; every pull goes to that Pokémon's holder</> },
+              { icon: '📉', label: 'Unsold spots', text: <>mean the house keeps those pulls; a full sellout is pure margin</> },
+            ]}
+          />
         </div>
         {products.length === 0 ? (
           <EmptyState icon="📦" text="Nothing to break" sub="Seed the pack shop catalog first."

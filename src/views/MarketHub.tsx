@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { MARKET_MODES_META, marketModeLabel, isMarketMode, type MarketModeId } from '../route-meta'
 import { MarketView } from './Market'
 import { AuctionView } from './Auctions'
 import { BuylistView } from './Buylist'
@@ -15,7 +16,8 @@ import { BuylistView } from './Buylist'
  * Same shape as the DEALS and COLLECTION hubs: param route
  * (#/market/auctions), fixed-order mode bar, old hashes normalized by App.
  */
-export type MarketModeId = 'feed' | 'auctions' | 'buylist'
+export type { MarketModeId }
+export { marketModeLabel, isMarketMode }
 
 export type MarketMode = {
   id: MarketModeId
@@ -26,19 +28,13 @@ export type MarketMode = {
   Component: ComponentType
 }
 
-export const MARKET_MODES: MarketMode[] = [
-  { id: 'feed', label: 'Marketplace', icon: '⇄', verb: 'Buy singles from the simulated seller feed, anchored to real market prices', Component: MarketView },
-  { id: 'auctions', label: 'Auction House', icon: '🔨', verb: 'Bid on lots with escrow, or consign your own and let the room fight over it', Component: AuctionView },
-  { id: 'buylist', label: 'Buylist', icon: '🧾', verb: 'Sell bulk into shop want-lists for cash or store credit, and shop their shelves', Component: BuylistView },
-]
-
-export function marketModeLabel(id?: string): string | undefined {
-  return MARKET_MODES.find((m) => m.id === id)?.label
+const MARKET_COMPONENTS: Record<MarketModeId, ComponentType> = {
+  feed: MarketView,
+  auctions: AuctionView,
+  buylist: BuylistView,
 }
 
-export function isMarketMode(id?: string): id is MarketModeId {
-  return !!id && MARKET_MODES.some((m) => m.id === id)
-}
+export const MARKET_MODES: MarketMode[] = MARKET_MODES_META.map((m) => ({ ...m, Component: MARKET_COMPONENTS[m.id] }))
 
 const go = (id: MarketModeId) => {
   window.location.hash = `#/market/${id}`

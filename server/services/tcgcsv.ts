@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { db, getMeta, setMeta, nowIso, logActivity } from '../lib/db'
+import { markPricesChanged } from '../lib/derived-cache'
 import { fetchJson } from '../lib/http'
 
 // ---------------------------------------------------------------------------
@@ -293,6 +294,7 @@ async function syncTcgcsvSet(setId: string, group: TcgGroup): Promise<{ priced: 
   // sealed products — fill any pack_product still missing its image.
   const sealed = (prodRes.results ?? []).filter((p) => cardNumberFromProduct(p) == null)
   const art = applyPackArt(setId, group.name, sealed)
+  if (priced > 0) markPricesChanged()
   return { priced, art }
 }
 

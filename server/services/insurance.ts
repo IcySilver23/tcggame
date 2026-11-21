@@ -102,7 +102,7 @@ const COND_MULT: Record<Condition, number> = { NM: 1, LP: 0.8, MP: 0.65, HP: 0.5
 const SLAB_MULT = 1.05 // graded slabs carry a small sealed-premium at appraisal
 
 function slabDowngrade(grade: string): string | null {
-  const map: Record<string, string> = { PSA10: 'PSA9', BGS10: 'PSA9', CGC10: 'PSA9', SGC10: 'PSA9', PSA9: 'PSA8', PSA8: 'PSA7' }
+  const map: Record<string, string> = { PSA10: 'PSA9', BGS10BL: 'BGS9', BGS10: 'PSA9', CGC10P: 'CGC10', CGC10: 'CGC9', CGC9: 'CGC8', SGC10: 'PSA9', PSA9: 'PSA8', BGS9: 'BGS8', SGC9: 'PSA8', PSA8: 'PSA7', BGS8: 'PSA7' }
   return map[grade] ?? null
 }
 

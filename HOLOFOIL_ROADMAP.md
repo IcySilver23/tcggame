@@ -12,42 +12,34 @@ deliberately narrow:
 - **Partial** — some of the phase exists; the gaps are listed.
 - **Not started** — no code or data yet.
 
-Last updated: 2026-11-06 · App version 0.47.0
+Last updated: 2026-11-08 · App version 0.69.0
 
 ---
 
 ## Current work
 
-Phase 6 (Starlight) is implemented: all 47 Base/Jungle/Fossil holo rares sample a
-procedurally drawn starfield, one cut per card, labelled a reconstruction. Phase 7
-(Cracked Ice) is PARTIAL: the fracture sheet ships and Frost Rotom (Rising Rivals RT2)
-is wired with the verified outside-art mask, but the catalogue holds no Platinum/HGSS/
-BW theme-deck sets, so those printings cannot be added. A false prefix rule that painted
-all 44 EX Trainer Kit cards Cracked Ice has been removed. Phase 3 is validated per card;
-the reverse batch is stable (four patterns, six expansions validated).
+The renderer has no identified paper left to paint: `reports/unpainted-papers.md` sweeps
+all 20,782 catalogue cards and finds **0** papers a source names without a sheet. 7,008 of
+those cards carry a foil; 416 are on a documented finish whose paper no source names (the
+Shiny Vault families, Gold Star, the Neo Destiny sheen and the rest of `special-treatment`),
+and those draw plain foil, with a modelled relief where the finish is textured, rather than
+borrowing an era sheet.
 
-Phase 1, first chunk (this session): `engine.ts` composes a FRAME of independent
-layers, each with its own mask, texture, settings and reflectivity; `surface.ts`
-adds the normal-map/emboss pass the later textured phases need, fenced so it is
-inert without a map; `FoilOverlay` now renders through the engine. Still missing in
-Phase 1: a GPU path, device-motion tilt, and a player-facing quality switch.
-
-Ascended Heroes' first reverse slot now renders its documented Energy-pattern paper:
-one large type symbol behind the attack text (`reverse-energy-large`), with the
-outside-art mask and an explicit `reverseHolofoilEnergy` variant. The glyphs are the
-stylised type drawings, not official icons; a real Snorunt Energy reverse fixes the
-layout and approximate size, not the strokes. See
-`reports/reverse-energy-large-printings.md`.
-
-Phase 8's last family paper is now closed end to end: Sequin ships a drawn polygon sheet and a
-sampler, and the 19 cards Bulbapedia's per-series Sequin tables name resolve to it through
-`SEQUIN_PRINTINGS` in `printing-db.ts` (`reports/sequin-printings.md`). Each of those numbers
-also exists as a plain printing, which makes no foil claim: the General Mills copy carries the
-`sequinHolofoil` variant, and the report states the split per card.
+The last named family closed with **Sequin** in 0.59.0, and 0.59.9 made the family model
+explicit: a card's finish is a paper family (Cosmos, Tinsel, Mirror, Water Web, Line,
+Mirage, Starlight, Crosshatch, Confetti, Sequin and so on), while the per-card printing
+database still answers card-by-card questions. Since 0.72.0 the Settings → Appearance
+switch controls only the advanced treatment: every resolved paper renders at rest at a
+fixed neutral tilt, and the switch adds pointer tilt, colour and relief. Before 0.72.0 it
+gated the whole overlay, so a card at rest showed its scan and an off card fetched no
+sheet. The work from 0.60.0 to 0.66.0 was the pack and sealed economy, not the foil
+renderer; 0.65.0–0.66.0 added the expected-value floor and the full-catalog sealed audit.
 
 **Immediate next step:** the remaining gaps are evidence and catalogue data, not
 rendering: tilt photographs for the procedural papers, Japanese/Chinese-exclusive rows
-(Phase 14), and the Phase 12 finishes whose paper no source names.
+(Phase 14), and the Phase 12 finishes whose paper no source names. The 0.66.0 sweep counts
+four deliberate refusals, three evidence gaps, four open bugs and three unstarted phases
+(`reports/open-holo-questions.md`).
 
 ---
 
@@ -67,8 +59,8 @@ rendering: tilt photographs for the procedural papers, Japanese/Chinese-exclusiv
 | 9 | EX-era specialty | **Partial** | ex→artBorder belt, EX reverse papers; stamps/logo not modelled |
 | 10 | Modern special reverses | **Implemented** | Poké Ball and Master Ball papers, one-large and rows layouts; ten drawn sheets, one per printing; frame foil plus a modelled full-card etch; published Prismatic counts reproduced; large-ball size/placement measured from a real photo; inventory tags, two-slot pulls, pricing and detail-view foil wired. Ascended Heroes' first-slot Energy-pattern paper is painted as one large type stamp with its own explicit variant and per-type sheets; its six assigned papers (Poké Ball, Love, Friend, Quick, Dusk and the Team Rocket R) are painted card by card from the per-card assignment table, at the 0.434-card-width ring a real Snorunt photograph measures |
 | 11 | Ultra rare and textured | **Partial** | Two modelled etched normal maps split by era (deep BW/XY, fine later); mask- and tilt-gated; no scan or per-card evidence |
-| 12 | Shiny / Radiant / specialty | **Partial** | Four papers behind four families; `src/foil/shiny-db.ts` read by `printing-db.ts` at branch 1g; 377 rows resolve their own claim, 17 draw from a shipped sheet (Neo Revelation's Cosmos + the fifteen Radiant Pokémon); Radiant Pokémon painted as a procedural etched lattice, unverified; Shiny Vault's embossed/etched finish identified per set (316 rows) with no repeat borrowed; Pokémon-only and various-parts areas approximated by the window and marked unverified |
-| 13 | Promotional printings | **Partial** | 13 sourced Cosmos promos; no product pipeline |
+| 12 | Shiny / Radiant / specialty | **Partial** | Four papers behind four families; `src/foil/shiny-db.ts` read by `printing-db.ts` at branch 1g; 377 rows resolve their own claim, 18 draw from a shipped sheet (Neo Revelation's Cosmos, the fifteen Radiant Pokémon and the 30th Celebration Shining Celebi's Confetti); Radiant Pokémon painted as a procedural etched lattice, unverified; Shiny Vault's embossed/etched finish identified per set (316 rows) with no repeat borrowed; Pokémon-only and various-parts areas approximated by the window and marked unverified |
+| 13 | Promotional printings | **Partial** | Four pre-2012 programmes classified card by card (174 rows: 101 Cosmos, 64 non-holo, 4 Cracked Ice, 2 French Cosmos, 3 reverse); BW Black Star Promos 100 claims + 1 unlisted; Southern Islands, Pokémon Rumble and Best of Game classified; 38 named POP holo versions; no product pipeline |
 | 14 | Japanese / Chinese exclusives | **Not started** | `language` axis exists; only `en` catalogued. Japanese and Chinese-exclusive cards need their own rows, set ids and foil evidence |
 | 15 | Miscellaneous treatments | **Not started** | — |
 | 16 | Automatic identification | **Implemented** | Rule engine + exclusions; no human review UI |
@@ -91,14 +83,14 @@ rendering: tilt photographs for the procedural papers, Japanese/Chinese-exclusiv
   never darkens a pixel. Enforced by six suites.
 - **Masks** (`mask.ts`): rounded-card silhouette, art window, outside-art, art+border,
   full, full-art. Pure function shared by renderer and tests.
-- **Printing database** (`printing-db.ts`): 20,641 cards resolve; explicit > modelled >
+- **Printing database** (`printing-db.ts`): 20,782 cards resolve; explicit > modelled >
   set rule > inferred; statuses `verified` / `inferred` / `modelled` / `unresolved`.
 - **Radiant**: 57 cards, per-card motifs, RC commons correctly plain, duplicate-decoration
   guard proven over white.
-- **Cosmos**: 4 textures, 969 printings, 13 promo entries, reverse no longer borrows the
+- **Cosmos**: 4 textures, 1,055 printings, 15 catalogue promo entries, reverse no longer borrows the
   Cosmos sheet.
 - **Reverse**: 112 expansions, per-set masks (body vs window), eligibility exclusions,
-  4 painted patterns, 5 validated expansions.
+  10 painted patterns, all 112 validated.
 
 ### Incomplete or inaccurate (corrections required)
 
@@ -121,8 +113,11 @@ rendering: tilt photographs for the procedural papers, Japanese/Chinese-exclusiv
    *background*, excluding the Pokémon; the build uses the whole window and marks the mask
    `approximated`.
 6. ~~**δ Delta Species undetectable** from the card row, so those holos still get Cosmos.~~ **Fixed (0.59.5).** The marker is printed on the card and the catalogue carries it in the name; a generated index lists the 50 δ holo rares and they now resolve to `plain-holo`.
-7. **Promo coverage is a sourced subset** (13 Cosmos entries). Unnamed promo sets are
-   unresolved by design, which is correct but leaves visible gaps.
+7. **Promo coverage is classified but not exhaustive.** The four pre-2012 programmes,
+   BW Black Star Promos, Southern Islands, Pokémon Rumble and Best of Game are resolved
+   card by card; BW32 Victini and three POP holo versions still make no claim because no
+   source names their paper, and the catalogue still lacks some promo products. The
+   remaining gaps are catalogue gaps, not guesses.
 8. **Prime cards excluded conservatively** from reverse coverage; not verified either way.
 9. **Cosmos/Radiant textures are concept art**, not scans; every metadata file says so.
 10. **Inspector is dev-only.** The relief, normal-map, pixel-diff and reference
@@ -136,17 +131,15 @@ rendering: tilt photographs for the procedural papers, Japanese/Chinese-exclusiv
     are 2004–05 EX Trainer Kits, before the pattern existed; the prefix rule is removed and
     all 44 cards make no foil claim.
 
-### Verified this session
+### Verification status (0.66.0)
 
-- `tsc --noEmit` clean; production build clean.
-- Suites: printing DB 215, Cosmos 121, Radiant 166, reverse 612, holo routing 24, engine,
-  fallback, plus mask / reflection / pattern / iridescence — all green.
-- One stale expectation was corrected rather than worked around: `check-holo` wanted a
-  Radiant style for a Generations RC common, which the researched coverage says is
-  plain. It now expects no foil art.
-- Asset loading proven: `/foil/reverse/fireworks/pattern.png` and `/foil/cosmos/*` return
-  200 in the lab, and scans load through `/api/art/...`.
-- Lab: `screenshots/phase3-reverse-validation.png` (five panels + honest reference note).
+- `npm run typecheck` and `npm run build` are the release gate; both pass at 0.66.0.
+- `tmp/check-open-holo-questions.ts` rebuilds `reports/open-holo-questions.json` and fails
+  when this document's open-bug or unstarted-phase rows drift from it.
+- `tmp/check-pattern-registry.ts` holds every `implemented` registry row to a sheet that
+  actually exists, and parses the "Papers still unpainted" line below.
+- The foil renderer is behind Settings → Appearance and off by default, so a fresh save
+  shows scans; the dev inspector (Shift+H) still draws every layer when it is on.
 
 ---
 
@@ -256,8 +249,8 @@ the artwork background. Each is proved against its own mask, eligibility and ren
 Identified, then wired: `src/foil/shiny-db.ts` names a paper per family, `printing-db.ts` reads
 it at branch 1g, `scripts/shiny-report.ts` writes `reports/shiny-printings.{json,md}`, and
 `tmp/check-shiny.ts` pins the counts and the resolution. That is 377 catalogue rows across 11
-claims and four families; 17 of them draw from a shipped sheet — Neo Revelation's Cosmos and the
-fifteen Radiant Pokémon.
+claims and four families; 18 of them draw from a shipped sheet — Neo Revelation's Cosmos, the
+fifteen Radiant Pokémon and the 30th Celebration Shining Celebi's Confetti.
 
 **Radiant Pokémon is painted.** `src/foil/radiant-etched-sheet.ts` draws a 16px etch inside a
 128px diamond grid, `scripts/radiant-etched-foil.ts` writes `public/foil/radiant-etched/sheet.png`
@@ -288,7 +281,8 @@ card. The sheet is a reconstruction — `textureVerified` false, no relief claim
   the rows refuse it in writing.
 
 The report's comparison section is empty, which is the point: the two files answer the same way.
-The papers without a sheet still draw plain foil, and the two Pokémon-only areas keep the
+The 416 cards on a documented finish with no named paper still draw plain foil (with a
+modelled relief where the finish is textured), and the two Pokémon-only areas keep the
 illustration window marked unverified.
 
 ---
@@ -336,17 +330,17 @@ row registration remain modelled.
 | --- | --- | --- |
 | Sets with a ball reverse | 4 (Prismatic Evolutions, Black Bolt, White Flare, Ascended Heroes) | **Verified** by set guides |
 | Set/stamp printings | 12 | **Verified** — the two fixed-stamp sets, plus Ascended Heroes' five assigned ball papers and its Team Rocket R |
-| Eligible cards by the researched rule | 645 | **Implemented** — see the report; Ascended Heroes' 140 cards are counted from the per-card assignment instead |
-| Published counts reproduced | 2/2 (100 Poké Ball, 67 Master Ball, Prismatic Evolutions) | **Verified** — the rule matches exactly |
+| Eligible cards by the researched rule | 609 | **Implemented** — see the report; Ascended Heroes' 140 cards are counted from the per-card assignment instead |
+| Published counts reproduced | 8/8 (Prismatic Evolutions 100 Poké Ball + 67 Master Ball; Ascended Heroes' 140 stamped cards across six papers) | **Verified** — the rule and the assignment both match exactly |
 | Textures | 10 | **Modelled** — three real photos + two published renders reviewed for the ball layouts and the Ascended ball's size (a real Snorunt ring measures 0.434 card widths); the glyphs, the four assigned marks, the R, facet spacing and row registration are drawings |
-| Reference coverage | 3 photographs (Prismatic Sylveon Poké Ball, Umbreon Master Ball, Ascended Heroes Snorunt Poké Ball) + 2 published renders | **Verified** for layout, large/small alternation, the large ball's size and placement, M and the etched area; exact row registration, ball texture, the four assigned marks and the R remain **modelled** |
+| Reference coverage | 3 distinct photographs (Prismatic Sylveon Poké Ball, Umbreon Master Ball, Ascended Heroes Snorunt Poké Ball; 8 asset references) + 2 published renders | **Verified** for layout, large/small alternation, the large ball's size and placement, M and the etched area; exact row registration, ball texture, the four assigned marks and the R remain **modelled** |
 | Stamp variants in the game | 7 tokens: 2 rolled (Poké Ball, Master Ball) and 5 assigned (Love, Friend, Quick, Dusk, Team Rocket R) | **Implemented** — inventory, pulls and pricing |
 | Pack odds | Poké Ball 33.10% Prismatic / 30.56% Black Bolt & White Flare; Master Ball 1 in 20 Prismatic / 1 in 19 Black Bolt & White Flare; Ascended Heroes **87.31% an assigned paper**, 11.25% IR / 1.44% SIR | **Measured** for six printings and the Ascended replacements — TCGplayer opening studies; Ascended Heroes' 87.31% is **derived** from the measured second-slot hits |
 | Reverse slots | Prismatic 2 (Poké Ball first, Master Ball second); Ascended Heroes 2 (Energy pattern first, the card's assigned paper second); Black Bolt and White Flare 1 | **Verified** for Prismatic and the Ascended Heroes split; both Ascended papers are painted |
 | Stamp price premium | 1.5× for Poké Ball, the four assigned balls and the R; 8× for Master Ball | **Modelled** — labelled estimated in game; the assigned papers have no measured comps |
 
 `reports/special-reverse-printings.md` records each set, layout, eligible count,
-published count, source and the per-asset reference evidence. The two real
+published count, source and the per-asset reference evidence. The three real
 photographs confirm the large Poké Ball and Master Ball and that the etched field
 crosses the art; the Sylveon photo measures the Poké Ball at about 0.52 card widths
 across, centred about 0.675 down the card, and the Terastal render agrees, so the

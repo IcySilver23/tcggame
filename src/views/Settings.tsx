@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { SealedBackfillStatus, SaveBackupRow } from '../api'
 import { useStore } from '../store'
-import { fmtDate, fmtUsd } from '../components'
+import { EmptyState, fmtDate, fmtUsd, LoadFailure } from '../components'
 import { soundEnabled, setSoundEnabled } from '../audio'
 
 type SettingsData = Awaited<ReturnType<typeof api.settings>>
+type SyncInfo = NonNullable<Awaited<ReturnType<typeof api.syncProgress>>>
 
 export function SettingsView() {
   const { toast, refreshState, state: st, theme, setTheme, foil, setFoil } = useStore()
@@ -28,6 +29,9 @@ export function SettingsView() {
     refreshState()
   }
   const [data, setData] = useState<SettingsData | null>(null)
+  // The page used to render with `data?` defaults, so a failed first fetch
+  // reported "Cards 0" and "Sets synced —" as if those were facts.
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [key, setKey] = useState('')
   const [pc, setPc] = useState('')
   const [ebayId, setEbayId] = useState('')
@@ -48,9 +52,13 @@ export function SettingsView() {
     snapshot: lastBackupDay && lastBackupDay.length >= 10 ? lastBackupDay.slice(0, 10) : '',
   }
   const [restoring, setRestoring] = useState<string | null>(null)
+  const [deltaBusy, setDeltaBusy] = useState(false)
+  const [sync, setSync] = useState<SyncInfo | null>(null)
 
   const load = () => {
-    api.settings().then(setData).catch(() => {})
+    api.settings()
+      .then((d) => { setData(d); setStatus('ready') })
+      .catch(() => setStatus((s) => (s === 'ready' ? s : 'error')))
     api.sealedStatus().then(setSealedBf).catch(() => {})
     api.saveBackups().then((r) => { setBackups(r.backups); setLastBackupDay(r.daily.lastDay) }).catch(() => {})
   }
@@ -68,12 +76,22 @@ export function SettingsView() {
 
   // A weekly catalog delta runs on a server timer — reflect its live state here.
   useEffect(() => {
-    if (!data?.delta?.running) return
+    if (!data?.delta?.running && !deltaBusy) return
     const t = setInterval(() => {
       api.catalogDelta().then((d) => setData((prev) => (prev ? { ...prev, delta: d } : prev))).catch(() => {})
-    }, 5000)
+    }, 2000)
     return () => clearInterval(t)
-  }, [data?.delta?.running])
+  }, [data?.delta?.running, deltaBusy])
+
+  // Full-sync progress lives on its own endpoint: poll it so the bar moves even
+  // when the sync was started from the header or another tab.
+  useEffect(() => {
+    let live = true
+    const pull = () => api.syncProgress().then((s) => { if (live) setSync(s) }).catch(() => {})
+    pull()
+    const t = setInterval(pull, 2000)
+    return () => { live = false; clearInterval(t) }
+  }, [])
 
   const saveKey = async () => {
     await api.setApiKey(key)
@@ -148,12 +166,19 @@ export function SettingsView() {
   }
 
   const restartSync = async () => {
-    await fetch('/api/sync/restart', { method: 'POST' })
-    toast('Sync restarted from the beginning')
-    refreshState()
+    try {
+      const r = await fetch('/api/sync/restart', { method: 'POST' })
+      if (!r.ok) throw new Error('restart failed')
+      toast('Sync restarted from the beginning — progress is below', 'good')
+      refreshState()
+      api.syncProgress().then(setSync).catch(() => {})
+    } catch {
+      toast('Could not restart the sync', 'bad')
+    }
   }
 
   const runDelta = async () => {
+    setDeltaBusy(true)
     try {
       const r = await api.runCatalogDelta()
       if (!r.ran) toast(r.reason || 'Delta sync did not run', 'bad')
@@ -166,8 +191,10 @@ export function SettingsView() {
       }
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Delta sync failed', 'bad')
+    } finally {
+      setDeltaBusy(false)
+      load()
     }
-    load()
   }
 
   const resetSave = async () => {
@@ -216,9 +243,28 @@ export function SettingsView() {
     load()
   }
 
+  if (status === 'error') return <LoadFailure what="your settings" sub="The local server did not answer. Your keys, save and backups were not touched." onRetry={load} />
+  if (!data) return <EmptyState icon="⚙️" text="Reading your settings…" sub="Database counts, price sources, save snapshots and game pace." />
+
   const bf = data?.backfill
   const fxNum = Number(fx)
   const fxValid = fx.trim() !== '' && Number.isFinite(fxNum) && fxNum >= 0.5 && fxNum <= 3
+
+  // One bar for either job. A full sync knows how many sets it has to walk; a
+  // delta check does not, so it sweeps rather than inventing a percentage.
+  const deltaRunning = Boolean(data?.delta?.running || deltaBusy)
+  const runningSync = sync?.running ? sync : null
+  const syncRunning = Boolean(runningSync)
+  const syncTotal = runningSync?.setsTotal ?? 0
+  const syncPct = runningSync && syncTotal > 0 ? Math.min(100, Math.round(((runningSync.setsDone ?? 0) / syncTotal) * 100)) : 0
+  const syncIndeterminate = deltaRunning || !runningSync || runningSync.phase === 'cards' || syncTotal === 0
+  const syncLabel = runningSync
+    ? runningSync.phase === 'cards'
+      ? `Syncing cards — ${runningSync.currentSet ?? 'catalog'} (${(runningSync.cardsSyncedTotal ?? 0).toLocaleString()} pulled)`
+      : runningSync.phase === 'sets'
+        ? `Syncing sets ${runningSync.setsDone}/${syncTotal}`
+        : 'Starting the catalog sync…'
+    : 'Checking pokemontcg.io for new sets…'
 
   return (
     <div>
@@ -272,11 +318,22 @@ export function SettingsView() {
             })()}
           </p>
           <div className="row" style={{ gap: 8 }}>
-            <button onClick={runDelta} disabled={data?.delta?.running}>
-              {data?.delta?.running ? 'Checking for new releases…' : 'Check for new sets now'}
+            <button onClick={runDelta} disabled={deltaRunning || syncRunning}>
+              {deltaRunning ? 'Checking for new releases…' : 'Check for new sets now'}
             </button>
-            <button className="danger" onClick={restartSync}>Restart full sync</button>
+            <button className="danger" onClick={restartSync} disabled={deltaRunning || syncRunning}>Restart full sync</button>
           </div>
+          {(syncRunning || deltaRunning) && (
+            <div className={`sync-run ${syncIndeterminate ? 'indeterminate' : ''}`} role="status" aria-live="polite">
+              <div className="sync-run-head">
+                <span>{syncLabel}</span>
+                {!syncIndeterminate && <span className="num">{syncPct}%</span>}
+              </div>
+              <div className="bar" role="progressbar" aria-label="Sync progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={syncIndeterminate ? undefined : syncPct}>
+                <div className="fill" style={{ width: syncIndeterminate ? undefined : `${syncPct}%` }} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -494,12 +551,12 @@ export function SettingsView() {
         </div>
         <div className="row" style={{ alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
           <button className={foil ? 'ghost' : 'primary'} onClick={() => setFoil(!foil)}>
-            {foil ? 'Turn card foil off' : 'Turn card foil on'}
+            {foil ? 'Turn advanced foil off' : 'Turn advanced foil on'}
           </button>
           <span className="faint small">
             {foil
-              ? 'On — holo cards shimmer, tint and tilt under the pointer.'
-              : 'Off — every card shows its scan flat. The holofoil work is parked, not deleted: this switch is the whole of it, and this browser remembers your choice.'}
+              ? 'Advanced on — cards show the full foil at rest, and the highlight follows the pointer across the card. The card’s own paper is always on.'
+              : 'Advanced off — every card still shows its own paper at a fixed neutral tilt. This switch only parks the pointer movement, colour and relief.'}
           </span>
         </div>
       </div>
