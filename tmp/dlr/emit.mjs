@@ -57,6 +57,12 @@ const out = {
       : null,
   })),
   products: [
+    // 30th Celebration's core line: the generic catalog would apply the modern
+    // defaults (bundle $26.99, ETB $54.99) and ten cards a pack, while the real
+    // wrapper is six cards and the published stickers are $26.94 and $49.99.
+    { id: 'me55-booster', set_id: 'me55', name: '30th Celebration Booster Pack', kind: 'booster', msrp: 4.49, packs: 1, cards_per_pack: 6, release_date: '2026/09/16', description: 'Six cards per pack: five foil cards, one of them a guaranteed Pikachu, and a foil Basic Energy.' },
+    { id: 'me55-bundle', set_id: 'me55', name: '30th Celebration Booster Bundle', kind: 'bundle', msrp: 26.94, packs: 6, cards_per_pack: 6, release_date: '2026/10/02', description: 'Six booster packs.' },
+    { id: 'me55-etb', set_id: 'me55', name: '30th Celebration Elite Trainer Box', kind: 'etb', msrp: 49.99, packs: 9, cards_per_pack: 6, release_date: '2026/09/16', description: 'Nine booster packs, sleeves, dice, a coin and the Nidorina promo.' },
     // Delta Reign's own line. MSRPs are the published ones, not the era
     // defaults the generic catalog would apply (ETB $49.99, bundle $26.94).
     { id: 'me6-booster', set_id: 'me6', name: 'Delta Reign Booster Pack', kind: 'booster', msrp: 4.49, packs: 1, cards_per_pack: 10, release_date: '2026/11/06', description: '10 cards per pack.' },
@@ -64,11 +70,11 @@ const out = {
     { id: 'me6-etb', set_id: 'me6', name: 'Delta Reign Elite Trainer Box', kind: 'etb', msrp: 49.99, packs: 9, cards_per_pack: 10, release_date: '2026/11/06', description: 'Nine booster packs, sleeves, dice, a coin and the Kyogre promo.' },
     { id: 'me6-display', set_id: 'me6', name: 'Delta Reign Booster Display (36 packs)', kind: 'display', msrp: 161.64, packs: 36, cards_per_pack: 10, release_date: '2026/11/06', description: '36 booster packs.' },
     // 30th Celebration Wave 4, all released 6 November 2026.
-    { id: 'me55-upc-day', set_id: 'me55', name: '30th Celebration Ultra-Premium Collection — Day', kind: 'special', msrp: 179.99, packs: 29, cards_per_pack: 10, release_date: '2026/11/06', description: '29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Espeon ex promos, playmat, sleeves, deck box and coin.' },
-    { id: 'me55-upc-night', set_id: 'me55', name: '30th Celebration Ultra-Premium Collection — Night', kind: 'special', msrp: 179.99, packs: 29, cards_per_pack: 10, release_date: '2026/11/06', description: '29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Umbreon ex promos, playmat, sleeves, deck box and coin.' },
-    { id: 'me55-ditto-premium', set_id: 'me55', name: '30th Celebration Ditto Premium Collection', kind: 'special', msrp: 39.99, packs: 8, cards_per_pack: 10, release_date: '2026/11/06', description: 'Eight booster packs, a Ditto promo and an acrylic card display.' },
-    { id: 'me55-figure-mew', set_id: 'me55', name: '30th Celebration Figure Collection — Mew', kind: 'special', msrp: 29.99, packs: 5, cards_per_pack: 10, release_date: '2026/11/06', description: 'Five booster packs, a Mew foil promo and oversize card, and a sculpted figure.' },
-    { id: 'me55-figure-mewtwo', set_id: 'me55', name: '30th Celebration Figure Collection — Mewtwo', kind: 'special', msrp: 29.99, packs: 5, cards_per_pack: 10, release_date: '2026/11/06', description: 'Five booster packs, a Mewtwo foil promo and oversize card, and a sculpted figure.' },
+    { id: 'me55-upc-day', set_id: 'me55', name: '30th Celebration Ultra-Premium Collection — Day', kind: 'special', msrp: 179.99, packs: 29, cards_per_pack: 6, release_date: '2026/11/06', description: '29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Espeon ex promos, playmat, sleeves, deck box and coin.' },
+    { id: 'me55-upc-night', set_id: 'me55', name: '30th Celebration Ultra-Premium Collection — Night', kind: 'special', msrp: 179.99, packs: 29, cards_per_pack: 6, release_date: '2026/11/06', description: '29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Umbreon ex promos, playmat, sleeves, deck box and coin.' },
+    { id: 'me55-ditto-premium', set_id: 'me55', name: '30th Celebration Ditto Premium Collection', kind: 'special', msrp: 39.99, packs: 8, cards_per_pack: 6, release_date: '2026/11/06', description: 'Eight booster packs, a Ditto promo and an acrylic card display.' },
+    { id: 'me55-figure-mew', set_id: 'me55', name: '30th Celebration Figure Collection — Mew', kind: 'special', msrp: 29.99, packs: 5, cards_per_pack: 6, release_date: '2026/11/06', description: 'Five booster packs, a Mew foil promo and oversize card, and a sculpted figure.' },
+    { id: 'me55-figure-mewtwo', set_id: 'me55', name: '30th Celebration Figure Collection — Mewtwo', kind: 'special', msrp: 29.99, packs: 5, cards_per_pack: 6, release_date: '2026/11/06', description: 'Five booster packs, a Mewtwo foil promo and oversize card, and a sculpted figure.' },
   ],
 }
 

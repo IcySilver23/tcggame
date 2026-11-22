@@ -159,7 +159,15 @@ export type ProductRow = {
   msrp: number
   market_price: number | null
   /** Today's Pack Shop discount; its price is computed from product detail. */
-  deal?: { discountPct: number; price?: number; endsAt: string; claimed: boolean }
+  deal?: {
+    discountPct: number
+    price?: number
+    endsAt: string
+    claimed: boolean
+    /** What a claim on a skipped day adds to the deal price, in dollars: the
+     *  deal's own resale margin (discount minus the resale desk's cut). */
+    surcharge?: number
+  }
   /** Cheap source/print facts available without pricing the packs inside. */
   price_source?: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
   oop?: boolean
@@ -176,6 +184,8 @@ export type ProductRow = {
   image_url: string | null
   /** Named promo cards sealed in this product, for the shelf badge. */
   promos?: string[]
+  /** Those same promos with their catalogue ids, so the till can show the art. */
+  promoCards?: { cardId: string | null; name: string; image?: string | null }[]
   /** Whether the box held one of the named promos or all of them. */
   promoPolicy?: 'one-of' | 'all'
 }
@@ -284,7 +294,16 @@ export type GameStateResponse = {
   inventoryValue: number
   netWorth: number
   /** In-game day clock: UTC day number (since the save started) + progress toward the next one. */
-  day: { number: number; progress: number; resetsAt: string; lengthHours: 12 | 24 }
+  day: {
+    number: number
+    progress: number
+    resetsAt: string
+    lengthHours: 2 | 12 | 24
+    /** Price of one day pass at this save's pace (the rate is per hour of wait). */
+    skipFee: number
+    /** How far the save's clock runs ahead of this machine's, in ms. */
+    offsetMs: number
+  }
   sync: {
     running: boolean
     phase: 'idle' | 'sets' | 'cards' | 'done'
@@ -299,6 +318,8 @@ export type GameStateResponse = {
     delta: import('./api').CatalogDeltaStatus
   }
   binders: { count: number; slotted: number; value: number }
+  /** How many of your cards one trade offer may hold (server-enforced). */
+  trade: { maxOfferCards: number }
   /** Play-history counters the sidebar's progressive unlocks read. */
   progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean }
   /** Waiting-lab-result counters for badge chips — arrived auth verdicts and finished grading jobs. */
@@ -309,6 +330,18 @@ export type GameStateResponse = {
   tutorialEligible: boolean
   /** First-use tutorial gates for the other game surfaces. */
   tutorials: { start: boolean; local: boolean; auction: boolean; resale: boolean; convention: boolean; ebay: boolean; storage: boolean; buylist: boolean; pawn: boolean; yard: boolean; live: boolean; shipping: boolean; estate: boolean; auth: boolean; futures: boolean }
+}
+
+/** The optional Collector's Academy course — ten chapters, each paid once. */
+export type AcademyState = {
+  chapters: { id: string; title: string; reward: number; done: boolean; paid: boolean }[]
+  doneCount: number
+  total: number
+  bonus: number
+  bonusClaimed: boolean
+  earned: number
+  offerTotal: number
+  allDone: boolean
 }
 
 export type CardDetailResponse = {

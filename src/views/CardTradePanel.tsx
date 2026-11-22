@@ -37,7 +37,7 @@ export function CardTradePanel({ inventoryId, cardName, cardValue, onDone }: {
     setBusy(true)
     setReply(null)
     try {
-      const res = await api.tradePropose(traderId, inventoryId, Number(cash) || 0)
+      const res = await api.tradePropose(traderId, [inventoryId], Number(cash) || 0)
       setReply(res)
       if (res.ok && res.accepted) {
         toast(`Traded ${cardName} — ${trader?.name ?? 'collector'} accepted`, 'good')

@@ -203,6 +203,7 @@ export function BuylistView() {
             { icon: '💵', label: 'Flat rate', text: 'every buyer pays 55–75% of market — their cut is what instant money costs.' },
             { icon: '🔥', label: 'Want lists', text: 'four cards each, paying a premium over their usual rate — sell into demand.' },
             { icon: '🏪', label: 'Store credit', text: 'the credit leg pays a bonus rate at that shop, but only spends on that shop’s shelf.' },
+            { icon: '🀄', label: 'Bare cards', text: 'a raw card with no sleeve is quoted under a protected copy — the counter pays for how it is stored, not just what it is.' },
             { icon: '🧾', label: 'The receipt', text: 'the sheet is an offer; the register is the truth, so the quote is re-checked when you sell.' },
           ]}
         />

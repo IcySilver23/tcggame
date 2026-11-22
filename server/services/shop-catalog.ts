@@ -41,6 +41,10 @@ export function listProducts(): ShopProductRow[] {
     ORDER BY s.release_date DESC,
       CASE p.kind WHEN 'booster' THEN 1 WHEN 'bundle' THEN 2 WHEN 'etb' THEN 3 WHEN 'display' THEN 4 ELSE 5 END
   `).all() as Record<string, unknown>[]
+  // Prepared once, then called per named promo: the 2026 sets are not on
+  // images.pokemontcg.io, so a URL derived from the card id 404s for exactly the
+  // promos a player is most likely to look at. The stored image is the truth.
+  const cardRow = db.prepare('SELECT name, image_small FROM cards WHERE id = ?')
 
   return rows
     .filter((r) => sealed.sellsProduct(String(r.id), String(r.set_id)))
@@ -53,8 +57,10 @@ export function listProducts(): ShopProductRow[] {
         ...r,
         // Price and EV arrive from productDetail(); the list only carries the
         // cheap facts the shelf can paint immediately.
+        // `surcharge` is the day-pass share a claim owes on a skipped day; the
+        // shelf adds it to the deal price so the tag shows what the till takes.
         deal: deal
-          ? { discountPct: deal.discountPct, endsAt: deal.endsAt, claimed: deal.claimed }
+          ? { discountPct: deal.discountPct, endsAt: deal.endsAt, claimed: deal.claimed, surcharge: deal.surcharge }
           : undefined,
         price_source: facts.source,
         oop: facts.oop,
@@ -62,6 +68,16 @@ export function listProducts(): ShopProductRow[] {
         oop_status: facts.status,
         promos: evidence?.promos.length ? evidence.promos : undefined,
         promoPolicy: evidence?.promos.length ? (evidence.promoPolicy ?? 'one-of') : undefined,
+        // The same promos with their catalogue ids, so the till can show the
+        // cards themselves. A product whose promos are named by set rather than
+        // id (no promoIds) keeps the name and carries no art.
+        promoCards: evidence?.promos.length
+          ? evidence.promos.map((name, i) => {
+              const cardId = evidence.promoIds?.[i] ?? null
+              const hit = cardId ? (cardRow.get(cardId) as { image_small: string | null } | undefined) : undefined
+              return { cardId, name, image: hit?.image_small ?? null }
+            })
+          : undefined,
       }
     })
 }

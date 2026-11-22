@@ -88,6 +88,9 @@ try { db.exec('ALTER TABLE activity_log ADD COLUMN href TEXT') } catch { /* exis
 try { db.exec('ALTER TABLE pack_products ADD COLUMN image_url TEXT') } catch { /* exists */ }
 try { db.exec("INSERT INTO supplies (kind, quantity) VALUES ('mailer', 0)") } catch { /* exists */ }
 try { db.exec("ALTER TABLE inventory ADD COLUMN protection TEXT") } catch { /* exists */ }
+// Binders grew a cover stock (services/binders.ts BINDER_COVERS). The default
+// is the plain vinyl every older save already looked like.
+try { db.exec("ALTER TABLE binders ADD COLUMN cover TEXT NOT NULL DEFAULT 'vinyl'") } catch { /* exists */ }
 try { db.exec("ALTER TABLE card_shows ADD COLUMN guests TEXT NOT NULL DEFAULT '[]'") } catch { /* exists */ }
 try { db.exec("ALTER TABLE shop_ledger ADD COLUMN location TEXT NOT NULL DEFAULT 'main'") } catch { /* exists */ }
 try { db.exec("ALTER TABLE inventory ADD COLUMN protected_at TEXT") } catch { /* exists */ }

@@ -279,11 +279,12 @@ export const HOST_SUBSETS: Record<string, string> = {
 
 export const BLUEPRINTS: Record<string, SlotPlan[]> = {
   me55: [
-    // Real 30C pack: 2 commons + a flex card + a rare/hit + a guaranteed
-    // Pikachu, with the foil Basic Energy outside those game cards — so the
-    // ten dealt here are the commons, the rare-or-hit and the Pikachu. The
-    // rare and the hit are ONE card (the old shape dealt both).
-    { slot: 'common', count: 8 },
+    // The 30C wrapper holds six cards: five foil cards — a couple of commons, a
+    // flex spot, the rare-or-hit and a guaranteed Pikachu — plus a foil Basic
+    // Energy. This catalogue has no Basic Energy in me55, so the six dealt are
+    // four commons, the rare-or-hit and the Pikachu; the rare and the hit are
+    // ONE card (the old shape dealt both, and an eight-common body on top).
+    { slot: 'common', count: 4 },
     { slot: 'hit', count: 1 },
     { slot: 'subset', count: 1 },
   ],

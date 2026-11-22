@@ -27,7 +27,8 @@
 // The wipe lives here so reset-trap.ts can regression-test it against a
 // seeded save, and every statement is annotated — a failure reports the exact
 // statement instead of a bare "FOREIGN KEY constraint failed".
-import { db, nowIso } from '../lib/db'
+import { db } from '../lib/db'
+import { clockOffsetMs, resetClock } from '../lib/clock'
 
 // Config / external-pipeline meta that survives a reset. Everything else —
 // gameplay, world state, records, tutorial flags, daily gates — is deleted.
@@ -52,6 +53,10 @@ export const META_KEEP = new Set([
 ])
 
 export function resetSave(): void {
+  // A day pass leaves the save's clock ahead of real time (lib/clock). The
+  // fresh world's stamps — and the running clock itself — go back to real
+  // time, so the new save starts on today's date, not on the skipped one.
+  const stamp = new Date(Date.now() - clockOffsetMs()).toISOString()
   const run = (sql: string, ...params: unknown[]) => {
     try {
       db.prepare(sql).run(...params)
@@ -89,7 +94,7 @@ export function resetSave(): void {
                                      //   BEFORE inventory: this chain shipped inverted.
     del('binder_slots')              // children of inventory
     del('binders')                   // empty shells would carry over; a fresh save starts with one Main Collection binder
-    run('INSERT INTO binders (name, accent, created_at) VALUES (?, ?, ?)', 'Main Collection', 'yellow', nowIso())
+    run('INSERT INTO binders (name, accent, created_at) VALUES (?, ?, ?)', 'Main Collection', 'yellow', stamp)
 
     del('inventory')
     del('sealed_inventory')
@@ -200,7 +205,7 @@ export function resetSave(): void {
     // created_at IS the day counter (day 1 = its UTC date); re-stamping it to
     // now rewinds to day 1. last_tick_at follows so the next tick doesn't try
     // to sim the whole rewind gap in one catch-up pass.
-    run('UPDATE game_state SET cash = 1000, created_at = ?, last_tick_at = ? WHERE id = 1', nowIso(), nowIso())
+    run('UPDATE game_state SET cash = 1000, created_at = ?, last_tick_at = ? WHERE id = 1', stamp, stamp)
   }
 
   try {
@@ -214,4 +219,7 @@ export function resetSave(): void {
       db.transaction(wipe)()
     } else throw e
   }
+  // Only after the wipe committed: a rolled-back reset changed nothing, so it
+  // must not have moved the clock either.
+  resetClock()
 }

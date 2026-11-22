@@ -601,12 +601,137 @@ function cardMeta(cardId: string): { rarity: string | null; supertype: string; s
   return meta
 }
 
+// Delta Reign's Legendary Stadiums are two-card Stadiums: a booster that carries
+// one half carries the matching half as well — it is the same Stadium, not two
+// separate cards. So the six halves are not dealt as ordinary uncommons (that
+// had a Stadium in two of every three packs): they are kept out of the slot
+// pools and one pair is dealt on its own roll, then this pass keeps the pair
+// whole — both halves or neither, never the same half twice, and never the two
+// of them side by side, where the shared artwork and shared name read as one
+// card dealt twice.
+const LEGENDARY_STADIUMS: Record<string, [string, string][]> = {
+  me6: [
+    ['me6-94', 'me6-95'],
+    ['me6-96', 'me6-97'],
+    ['me6-98', 'me6-99'],
+  ],
+}
+
+type RolledCard = { cardId: string; variant: string; value: number; rarity: string | null; supertype: string; isHit: boolean }
+
+// No source publishes the rate: tcgtalk's 252-pack Delta Reign sample only notes
+// that a floor-only pack may hold a "connecting art" Stadium half in its rare
+// slot. One in twelve packs — about three per 36-pack box, in line with the set's
+// illustration-rare cadence — is this build's choice, and the changelog says so.
+const LEGENDARY_STADIUM_PACK_ODDS: Record<string, number> = { me6: 1 / 12 }
+
+function stadiumCard(id: string): RolledCard {
+  const meta = cardMeta(id)
+  return { cardId: id, variant: 'normal', value: valueOf(id), rarity: meta.rarity, supertype: meta.supertype, isHit: false }
+}
+
+/** One Stadium, both halves, in the place of two ordinary non-hit cards. */
+function dealLegendaryStadium(setId: string, picked: RolledCard[]): void {
+  const pairs = LEGENDARY_STADIUMS[setId]
+  const odds = LEGENDARY_STADIUM_PACK_ODDS[setId]
+  if (!pairs || !odds || Math.random() >= odds) return
+  const open = picked.map((card, i) => (card.isHit ? -1 : i)).filter((i) => i >= 0)
+  if (open.length < 2) return
+  const [left, right] = pairs[Math.floor(Math.random() * pairs.length)]
+  const first = open[Math.floor(Math.random() * open.length)]
+  const rest = open.filter((i) => i !== first)
+  const second = rest[Math.floor(Math.random() * rest.length)]
+  picked[first] = stadiumCard(left)
+  picked[second] = stadiumCard(right)
+}
+
+function pairLegendaryStadiums(setId: string, picked: RolledCard[], rows: { card_id: string; weight: number }[]): void {
+  const pairs = LEGENDARY_STADIUMS[setId]
+  if (!pairs) return
+  const size = picked.length
+  const halves = new Set(pairs.flat())
+  const asCard = stadiumCard
+  // The card a Stadium half can take the place of: a repeat if the pack has one
+  // (a Stadium is not a second copy of something already in the pack), else the
+  // last card that is neither the pack's hit nor another Stadium half.
+  const spareSlot = (): number => {
+    const counts = new Map<string, number>()
+    for (const card of picked) counts.set(card.cardId, (counts.get(card.cardId) ?? 0) + 1)
+    for (let i = 0; i < picked.length; i++) {
+      const card = picked[i]
+      if (card.isHit || halves.has(card.cardId)) continue
+      if ((counts.get(card.cardId) ?? 0) > 1) return i
+    }
+    for (let i = picked.length - 1; i >= 0; i--) {
+      const card = picked[i]
+      if (card.isHit || halves.has(card.cardId)) continue
+      return i
+    }
+    return -1
+  }
+  for (const [left, right] of pairs) {
+    // A pack carries each half once: a repeat of one half is that half again,
+    // not the other half of the Stadium, so it becomes the partner when the
+    // partner is what is missing.
+    for (const [id, partner] of [[left, right], [right, left]]) {
+      const first = picked.findIndex((c) => c.cardId === id)
+      for (let i = first + 1; i < picked.length; i++) {
+        if (picked[i].cardId !== id) continue
+        if (!picked.some((c) => c.cardId === partner)) picked[i] = asCard(partner)
+        else {
+          picked.splice(i, 1)
+          i--
+        }
+      }
+    }
+    const carriesLeft = picked.some((c) => c.cardId === left)
+    const carriesRight = picked.some((c) => c.cardId === right)
+    if (carriesLeft === carriesRight) continue
+    const spare = spareSlot()
+    if (spare >= 0) picked[spare] = asCard(carriesLeft ? right : left)
+  }
+  // The pass never changes how many cards the pack holds.
+  while (picked.length < size) {
+    const have = new Set(picked.map((c) => c.cardId))
+    const spare = rows.filter((r) => !have.has(r.card_id) && !halves.has(r.card_id))
+    if (spare.length === 0) break
+    picked.push(asCard(weightedPick(spare)))
+  }
+  // Never back to back: the later half moves to the place farthest from its
+  // partner, and the pass repeats because that move can park another pair's half
+  // beside its own.
+  for (let guard = 0; guard < 32; guard++) {
+    let moved = false
+    for (const [left, right] of pairs) {
+      const a = picked.findIndex((c) => c.cardId === left)
+      const b = picked.findIndex((c) => c.cardId === right)
+      if (a < 0 || b < 0 || Math.abs(a - b) !== 1) continue
+      const anchor = Math.min(a, b)
+      const from = Math.max(a, b)
+      let to = from
+      for (let j = 0; j < picked.length; j++) {
+        if (Math.abs(j - anchor) > Math.abs(to - anchor)) to = j
+      }
+      if (to === from) continue
+      const held = picked[from]
+      picked[from] = picked[to]
+      picked[to] = held
+      moved = true
+    }
+    if (!moved) break
+  }
+}
+
 export function rollPack(setId: string, sessionId: string, productKind = 'booster', cardsPerPack = 10, owner: 'player' | 'other' = 'player') {
   const pid = `${setId}-booster`
   const rows = db.prepare('SELECT card_id, weight, slot FROM pack_product_cards WHERE pack_product_id = ?').all(pid) as { card_id: string; weight: number; slot: string }[]
   if (rows.length === 0) return null
+  // The Legendary Stadium halves stay out of the ordinary pools; dealLegendaryStadium
+  // is the only thing that puts one in a pack, and it always puts in both.
+  const stadiumHalves = new Set((LEGENDARY_STADIUMS[setId] ?? []).flat())
+  const poolRows = stadiumHalves.size > 0 ? rows.filter((r) => !stadiumHalves.has(r.card_id)) : rows
 
-  const pool = (slot: string) => rows.filter((r) => r.slot === slot)
+  const pool = (slot: string) => poolRows.filter((r) => r.slot === slot)
   const commonPool = pool('common')
   const uncommonPool = pool('uncommon')
   // A special set's ordinary reverse paper covers Rare cards too, and
@@ -763,7 +888,7 @@ export function rollPack(setId: string, sessionId: string, productKind = 'booste
 
   // Never hand back an empty rip: a gallery-only set has no commons to pad
   // with, so one card out of its own pool is the whole pack.
-  if (picked.length === 0) take(hitPool.length > 0 ? hitPool : rows, 'hit', hitPool.length > 0)
+  if (picked.length === 0) take(hitPool.length > 0 ? hitPool : poolRows, 'hit', hitPool.length > 0)
 
   // One BASIC Energy per pack, full stop. The guard covers only the energy
   // slot's own cards: sets like Neo Genesis print Darkness and Metal Energy at
@@ -785,6 +910,9 @@ export function rollPack(setId: string, sessionId: string, productKind = 'booste
     card.supertype = meta.supertype
     card.isHit = false
   }
+
+  dealLegendaryStadium(setId, picked)
+  pairLegendaryStadiums(setId, picked, poolRows)
 
   const insertPull = db.prepare(
     `INSERT INTO pull_history (session_id, pack_product_id, card_id, variant, value, rarity, is_hit, opened_at, owner)
@@ -877,7 +1005,10 @@ export function buySealed(productId: string, qty: number) {
   // A daily deal is one unit, once per game day: bulk lots cannot be used to
   // turn a single discounted offer into ten discounted packs.
   if (deal && qty > 1) throw new Error('Daily deals are limited to one per game day')
-  const unit = round2(deal && base > 0 ? dailydeals.discountedPrice(base, deal.discountPct) : base)
+  // A deal on a day a paid pass opened pays its own resale margin on top of its
+  // discounted price — the ticket is flat, the board is what pays for itself,
+  // and only when it is used. The result is exactly what the resale desk pays.
+  const unit = round2(deal && base > 0 ? dailydeals.discountedPrice(base, deal.discountPct) + deal.surcharge : base)
   const cost = round2(unit * qty)
   const purchase = db.transaction(() => {
     // The claim and the charge commit together: if the claim is already taken,
@@ -892,7 +1023,7 @@ export function buySealed(productId: string, qty: number) {
     // Fresh off the distributor's truck — futures desk stamps case-fresh.
     db.prepare('INSERT INTO sealed_inventory (product_id, quantity, cost, condition, acquired_at) VALUES (?, ?, ?, ?, ?)')
       .run(productId, qty, unit, 'fresh', nowIso())
-    logActivity('buy', `Bought ${qty}× ${product.name} for $${cost.toFixed(2)} — kept sealed`, -cost)
+    logActivity('buy', `Bought ${qty}× ${product.name} for $${cost.toFixed(2)} — kept sealed${deal?.surcharge ? ` (includes $${deal.surcharge.toFixed(2)} day-pass share)` : ''}`, -cost)
     return { cost }
   })
   return purchase()

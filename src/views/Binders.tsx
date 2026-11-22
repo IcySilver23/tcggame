@@ -1,20 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, type BinderAvailableRow, type BinderDetail, type BinderSlot, type BinderSummary } from '../api'
+import { api, type BinderAvailableRow, type BinderCover, type BinderDetail, type BinderSlot, type BinderSummary } from '../api'
 import { useStore } from '../store'
 import { CardImg, DensityToggle, EmptyState, fmtUsd, LoadFailure } from '../components'
 
 // ---------------------------------------------------------------------------
-// Binders — the physical-feeling half of the collection.
+// Binders — the physical half of the collection.
 //
 // Two states, one verb: put cards in pockets and flip through them.
 //
-// The shelf used to be a grid of nearly empty panels ("name, 0 cards, value,
-// Delete") and the book put its page-flip arrows beside the pockets, which at
-// this game's width squeezed a 3×3 page into nine narrow strips and pushed the
-// right edge of the book off screen. So: the shelf now shows what is actually
-// inside each binder (a paper peek at the first pockets, a fill meter, how many
-// pockets are free), and the book carries its page controls in a bar under the
-// page instead of flanking it.
+// The shelf shows CLOSED BINDERS: a board with a spine down the left, hinges,
+// the cover stock you chose, a paper title label and the page block on the
+// right edge. Opening one shows a real spread — two 3×3 pages around a ring
+// spine — with the page controls under it. Covers are earned by filling
+// binders (the server owns the unlock rule), not bought.
 // ---------------------------------------------------------------------------
 
 const SLOTS_PER_PAGE = 9
@@ -25,8 +23,55 @@ const ACCENTS: Record<string, string> = {
 }
 const ACCENT_KEYS = Object.keys(ACCENTS)
 
+const PAGE_SLOTS = Array.from({ length: SLOTS_PER_PAGE }, (_, i) => i)
+
+/** The cover catalogue plus the slotted count that unlocks it. */
+function useCoverCatalog() {
+  const [cat, setCat] = useState<{ covers: BinderCover[]; slotted: number } | null>(null)
+  const reload = useCallback(() => {
+    api.binderCovers().then(setCat).catch(() => {})
+  }, [])
+  useEffect(() => { reload() }, [reload])
+  return { cat, reload }
+}
+
+/** A row of cover stocks. Locked ones say what earns them, and the server
+ *  enforces the same rule on both create and update. */
+function CoverPicker({ cat, value, onPick, busy }: {
+  cat: { covers: BinderCover[]; slotted: number } | null
+  value: string
+  onPick: (id: string) => void
+  busy?: boolean
+}) {
+  if (!cat) return <div className="faint small">Checking the cover stock…</div>
+  return (
+    <div className="binder-covers" role="radiogroup" aria-label="Cover stock">
+      {cat.covers.map((c) => {
+        const locked = cat.slotted < c.unlockAt
+        return (
+          <button
+            key={c.id}
+            role="radio"
+            aria-checked={value === c.id}
+            disabled={locked || busy}
+            className={`binder-cover-opt cover-${c.id}${value === c.id ? ' on' : ''}${locked ? ' locked' : ''}`}
+            title={locked
+              ? `${c.label} — unlocks at ${c.unlockAt} cards in binders (you have ${cat.slotted})`
+              : `${c.label} — ${c.blurb}`}
+            onClick={() => onPick(c.id)}
+          >
+            <span className="bco-face" aria-hidden>{locked ? '🔒' : c.special ? '★' : ''}</span>
+            <span className="bco-label">{c.label}</span>
+            {locked && <span className="bco-lock">{c.unlockAt}</span>}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function BindersView() {
-  const { toast, state } = useStore()
+  const { toast } = useStore()
   const [binders, setBinders] = useState<BinderSummary[]>([])
   // One detail read per binder so the shelf can show a real peek and a real
   // fill meter — the summary only carries counts, not what's in the pockets.
@@ -35,9 +80,11 @@ export function BindersView() {
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState('')
   const [draftAccent, setDraftAccent] = useState('yellow')
+  const [draftCover, setDraftCover] = useState('vinyl')
   const [busy, setBusy] = useState(false)
 
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const { cat, reload: reloadCovers } = useCoverCatalog()
 
   const load = useCallback(async () => {
     // A failed shelf read used to become an empty array, which rendered the
@@ -46,8 +93,11 @@ export function BindersView() {
     if (!rows) { setStatus((s) => (s === 'ready' ? s : 'error')); return }
     setBinders(rows)
     setStatus('ready')
+    reloadCovers()
+    // Every binder, not the first twelve: a capped slice made binder 13 and up
+    // silently lose its peek and its page count on the shelf.
     const pairs = await Promise.all(
-      rows.slice(0, 12).map(async (b) => {
+      rows.map(async (b) => {
         const d = await api.binderDetail(b.id).catch(() => null)
         return [b.id, d] as const
       }),
@@ -55,7 +105,7 @@ export function BindersView() {
     const next: Record<number, BinderDetail> = {}
     for (const [id, d] of pairs) if (d) next[id] = d
     setCovers(next)
-  }, [])
+  }, [reloadCovers])
 
   useEffect(() => { load() }, [load])
 
@@ -64,7 +114,7 @@ export function BindersView() {
     if (!name) { toast('Name the binder first', 'bad'); return }
     setBusy(true)
     try {
-      const b = await api.createBinder(name, draftAccent)
+      const b = await api.createBinder(name, draftAccent, draftCover)
       toast(`Binder "${name}" created`, 'good')
       setDraft('')
       setCreating(false)
@@ -83,11 +133,13 @@ export function BindersView() {
   }
 
   if (openId != null) {
-    return <BinderDetailV id={openId} onBack={() => { setOpenId(null); load() }} onChanged={load} />
+    return <BinderDetailV id={openId} cat={cat} onCovers={reloadCovers} onBack={() => { setOpenId(null); load() }} onChanged={load} />
   }
 
-  const slotted = state?.binders?.slotted ?? 0
-  const totalValue = state?.binders?.value ?? 0
+  // Summed from the shelf rows, not from /api/state: a binding or a removal
+  // has to move this number immediately, and the shelf is what just reloaded.
+  const slotted = binders.reduce((n, b) => n + b.cardCount, 0)
+  const totalValue = binders.reduce((n, b) => n + b.value, 0)
 
   return (
     <div>
@@ -96,7 +148,7 @@ export function BindersView() {
           <span className="ph-mark" aria-hidden>📒</span>
           <div style={{ minWidth: 0 }}>
             <h1>Binders</h1>
-            <div className="sub">Nine pockets a page. Group cards, flip through them, keep the good stuff where you can see it.</div>
+            <div className="sub">Nine pockets a page, two pages a spread. Pick the cover, fill the pockets, flip through the book.</div>
           </div>
         </div>
         {!creating && <button className="primary" onClick={() => setCreating(true)}>+ New binder</button>}
@@ -138,6 +190,10 @@ export function BindersView() {
               ))}
             </div>
           </div>
+          <div className="mt8">
+            <span className="faint small" style={{ letterSpacing: 1 }}>COVER</span>
+            <CoverPicker cat={cat} value={draftCover} onPick={setDraftCover} />
+          </div>
           <div className="row mt8" style={{ gap: 8, justifyContent: 'flex-end' }}>
             <button className="small ghost" onClick={() => { setCreating(false); setDraft('') }}>Cancel</button>
             <button className="primary small" disabled={busy} onClick={create}>Create binder</button>
@@ -166,41 +222,52 @@ export function BindersView() {
             const cap = pages * SLOTS_PER_PAGE
             const free = Math.max(0, cap - b.cardCount)
             const pct = cap > 0 ? Math.min(1, b.cardCount / cap) : 0
-            const peek = (d?.slots ?? []).slice(0, 4)
+            const peek = (d?.slots ?? []).slice(0, 3)
+            const stock = cat?.covers.find((c) => c.id === b.cover)
             return (
               <div
                 key={b.id}
-                className="binder-cover"
+                className={`binder-cover cover-${b.cover ?? 'vinyl'}${stock?.special ? ' special' : ''}`}
                 style={{ '--accent': ACCENTS[b.accent] ?? ACCENTS.yellow } as React.CSSProperties}
                 onClick={() => setOpenId(b.id)}
-                title={`Open ${b.name}`}
+                title={`Open ${b.name} — ${stock?.label ?? 'vinyl'}`}
               >
-                <div className="binder-cover-spine" />
+                <div className="binder-cover-spine" aria-hidden>
+                  <span className="binder-spine-rings" />
+                  <b className="binder-spine-text">{b.name}</b>
+                </div>
                 <div className="binder-cover-body">
-                  <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
-                    <b className="binder-cover-name">📔 {b.name}</b>
-                    <button className="small ghost binder-cover-kill" title="Delete this binder"
-                      onClick={(e) => { e.stopPropagation(); destroy(b) }}>✕</button>
+                  <div className="binder-cover-label">
+                    <b>{b.name}</b>
+                    <span className="faint small">{b.cardCount} card{b.cardCount === 1 ? '' : 's'} · {pages} page{pages === 1 ? '' : 's'} · {stock?.label ?? 'black vinyl'}</span>
                   </div>
-                  <div className="faint small">{b.cardCount} card{b.cardCount === 1 ? '' : 's'} · {pages} page{pages === 1 ? '' : 's'}</div>
                   <div className="binder-peek">
                     {peek.map((s) => (
                       <div key={s.inventory_id} className="binder-peek-cell">
                         <CardImg src={s.image_small} alt={s.name} cardId={s.card_id} />
                       </div>
                     ))}
-                    {Array.from({ length: Math.max(0, 4 - peek.length) }, (_, i) => (
+                    {Array.from({ length: Math.max(0, 3 - peek.length) }, (_, i) => (
                       <div key={`gap-${i}`} className="binder-peek-cell is-empty" aria-hidden />
                     ))}
                   </div>
-                  <div className="binder-fill" title={`${b.cardCount} of ${cap} pockets used`}>
-                    <span style={{ width: `${pct * 100}%` }} />
+                  <div className="binder-cover-foot">
+                    <div className="binder-fill" title={`${b.cardCount} of ${cap} pockets used`}>
+                      <span style={{ width: `${pct * 100}%` }} />
+                    </div>
+                    <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                      <span className="faint small">{free === 0 ? 'full — add another binder' : `${free} pocket${free === 1 ? '' : 's'} free`}</span>
+                      <b className="small" style={{ color: 'var(--gold)' }}>{fmtUsd(b.value)}</b>
+                    </div>
                   </div>
-                  <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
-                    <span className="faint small">{free === 0 ? 'full — add another binder' : `${free} pocket${free === 1 ? '' : 's'} free`}</span>
-                    <b className="small" style={{ color: 'var(--gold)' }}>{fmtUsd(b.value)}</b>
-                  </div>
+                  {stock?.special && <span className="binder-sheen" aria-hidden />}
+                  <button
+                    className="small ghost binder-cover-kill"
+                    title="Delete this binder"
+                    onClick={(e) => { e.stopPropagation(); destroy(b) }}
+                  >✕</button>
                 </div>
+                <div className="binder-cover-edges" aria-hidden />
               </div>
             )
           })}
@@ -212,10 +279,17 @@ export function BindersView() {
 
 // ---------------------------------------------------------------------------
 
-function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => void; onChanged: () => void }) {
+function BinderDetailV({ id, cat, onCovers, onBack, onChanged }: {
+  id: number
+  cat: { covers: BinderCover[]; slotted: number } | null
+  onCovers: () => void
+  onBack: () => void
+  onChanged: () => void
+}) {
   const { toast, openCard, density } = useStore()
   const [detail, setDetail] = useState<BinderDetail | null>(null)
-  const [page, setPage] = useState(0)
+  // A spread is TWO pages: left = 2·spread, right = 2·spread + 1.
+  const [spread, setSpread] = useState(0)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerQ, setPickerQ] = useState('')
   const [available, setAvailable] = useState<BinderAvailableRow[]>([])
@@ -253,15 +327,26 @@ function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => vo
 
   const { binder, slots } = detail
   const maxPage = Math.max(0, ...slots.map((s) => s.page), 0)
-  const pageSlots = slots.filter((s) => s.page === page)
-  const emptyOnPage = SLOTS_PER_PAGE - pageSlots.length
+  const pageCount = Math.max(1, maxPage + 1)
+  const leftPage = spread * 2
+  const rightPage = leftPage + 1
+  // The open spread always shows two pages, so the count has to include the
+  // blank right-hand sheet of a one-page binder.
+  const shownPages = Math.max(pageCount, rightPage + 1)
+  const spreadCount = Math.max(1, Math.ceil(shownPages / 2))
+  const slotsOn = (p: number) => slots.filter((s) => s.page === p)
+  const freeOnPage = (p: number) => PAGE_SLOTS.filter((i) => !slots.some((s) => s.page === p && s.slot === i))
+  const stock = cat?.covers.find((c) => c.id === binder.cover)
 
   const place = async (inventoryId: number, target?: { page: number; slot: number }) => {
     try {
-      await api.binderPlace(id, inventoryId, target?.page, target?.slot)
+      const res = await api.binderPlace(id, inventoryId, target?.page, target?.slot)
       toast(target ? 'Moved' : 'Placed in binder', 'good')
+      // Follow the card: a new placement can land on a page you cannot see.
+      if (res && typeof res.page === 'number') setSpread(Math.floor(res.page / 2))
       await load()
       onChanged()
+      onCovers()
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Placement failed', 'bad')
     }
@@ -272,6 +357,7 @@ function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => vo
     toast('Removed from binder')
     await load()
     onChanged()
+    onCovers()
   }
 
   /** Drop a dragged card onto a pocket: moves it, or swaps if the pocket is occupied. */
@@ -291,32 +377,74 @@ function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => vo
     }
   }
 
-  /** Drop onto a page-flip control: relocate to the first free pocket of that page. */
-  const dropOnPage = async (targetPage: number) => {
-    const from = dragging
-    if (!from || targetPage < 0) return
-    const taken = new Set(slots.filter((s) => s.page === targetPage).map((s) => s.slot))
-    const free = [0, 1, 2, 3, 4, 5, 6, 7, 8].find((i) => !taken.has(i))
-    if (free === undefined) { toast('That page is full', 'bad'); return }
-    await dropOn({ page: targetPage, slot: free })
+  /** The arrows move a whole spread, so a dropped card takes the first gap in it. */
+  const dropOnSpread = async (target: number) => {
+    if (!dragging) return
+    if (target < 0) return
+    const first = target * 2
+    const gap = freeOnPage(first)[0]
+    if (gap !== undefined) { await dropOn({ page: first, slot: gap }); return }
+    const second = freeOnPage(first + 1)[0]
+    if (second !== undefined) { await dropOn({ page: first + 1, slot: second }); return }
+    toast('Both pages of that spread are full', 'bad')
   }
 
-  const updateMeta = async (patch: { name?: string; accent?: string }) => {
-    await api.updateBinder(id, patch)
-    await load()
-    onChanged()
+  const updateMeta = async (patch: { name?: string; accent?: string; cover?: string }) => {
+    try {
+      await api.updateBinder(id, patch)
+      await load()
+      onChanged()
+      onCovers()
+      if (patch.cover) toast(`Cover changed to ${cat?.covers.find((c) => c.id === patch.cover)?.label ?? patch.cover}`, 'good')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not change the binder', 'bad')
+    }
   }
 
   const flipTarget = (target: number) => ({
     onDragOver: (e: React.DragEvent) => {
-      if (!dragging || target < 0 || target > maxPage) return
+      if (!dragging || target < 0 || target >= spreadCount) return
       e.preventDefault()
       if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
       e.currentTarget.classList.add('drag-over')
     },
     onDragLeave: (e: React.DragEvent) => e.currentTarget.classList.remove('drag-over'),
-    onDrop: (e: React.DragEvent) => { e.preventDefault(); e.currentTarget.classList.remove('drag-over'); dropOnPage(target) },
+    onDrop: (e: React.DragEvent) => { e.preventDefault(); e.currentTarget.classList.remove('drag-over'); dropOnSpread(target) },
   })
+
+  const pageSheet = (pageNo: number) => {
+    const onPage = slotsOn(pageNo)
+    const beyond = pageNo > maxPage
+    return (
+      <div className={`binder-page${beyond ? ' blank' : ''}`} key={`p${pageNo}`}>
+        <div className="binder-page-tag">
+          Page {pageNo + 1}
+          <span>{onPage.length}/{SLOTS_PER_PAGE}</span>
+        </div>
+        <div className="binder-pockets">
+          {PAGE_SLOTS.map((i) => {
+            const s = onPage.find((x) => x.slot === i)
+            const pos = { page: pageNo, slot: i }
+            return (
+              <Pocket
+                key={i}
+                slotData={s}
+                dragging={dragging !== null}
+                isDragOver={dragOver === `${pageNo}:${i}`}
+                onDragStart={() => setDragging(pos)}
+                onDragEnd={() => { setDragging(null); setDragOver(null) }}
+                onDragOverPocket={() => setDragOver(`${pageNo}:${i}`)}
+                onDragLeavePocket={() => setDragOver(null)}
+                onDropPocket={() => dropOn(pos)}
+                onClick={() => { if (s && !dragging) openCard(s.card_id) }}
+                onRemove={() => s && remove(s.inventory_id)}
+              />
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -363,7 +491,12 @@ function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => vo
             ))}
           </div>
           <div className="sub">
-            {detail.cardCount} card{detail.cardCount === 1 ? '' : 's'} · {detail.pages} page{detail.pages === 1 ? '' : 's'} · value {fmtUsd(detail.value)}
+            {detail.cardCount} card{detail.cardCount === 1 ? '' : 's'} · {pageCount} page{pageCount === 1 ? '' : 's'}
+            {' · '}{stock?.label ?? 'black vinyl'} cover · value {fmtUsd(detail.value)}
+          </div>
+          <div className="mt8">
+            <span className="faint small" style={{ letterSpacing: 1 }}>COVER</span>
+            <CoverPicker cat={cat} value={binder.cover ?? 'vinyl'} onPick={(cover) => updateMeta({ cover })} />
           </div>
         </div>
         <button className="primary" onClick={() => { setPickerOpen(true); setTimeout(() => searchRef.current?.focus(), 50) }}>+ Add cards</button>
@@ -371,50 +504,37 @@ function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => vo
 
       {dragging && (
         <div className="binder-drag-hint">
-          <span className="badge warn">Drop on a pocket to move it — or on ‹ › to send it to another page</span>
+          <span className="badge warn">Drop on a pocket to move it — or on ‹ › to send it to another spread</span>
           <button className="small ghost" onClick={() => { setDragging(null); setDragOver(null) }}>Cancel</button>
         </div>
       )}
 
-      <div className="binder-book" style={{ '--accent': ACCENTS[binder.accent] ?? ACCENTS.yellow } as React.CSSProperties}>
-        <div className="binder-page" key={page}>
-          <div className="binder-pockets">
-            {Array.from({ length: SLOTS_PER_PAGE }, (_, i) => {
-              const s = pageSlots.find((x) => x.slot === i)
-              const pos = { page, slot: i }
-              return (
-                <Pocket
-                  key={i}
-                  slotData={s}
-                  dragging={dragging !== null}
-                  isDragOver={dragOver === `${page}:${i}`}
-                  onDragStart={() => setDragging(pos)}
-                  onDragEnd={() => { setDragging(null); setDragOver(null) }}
-                  onDragOverPocket={() => setDragOver(`${page}:${i}`)}
-                  onDragLeavePocket={() => setDragOver(null)}
-                  onDropPocket={() => dropOn(pos)}
-                  onClick={() => { if (s && !dragging) openCard(s.card_id) }}
-                  onRemove={() => s && remove(s.inventory_id)}
-                />
-              )
-            })}
+      <div
+        className={`binder-book cover-${binder.cover ?? 'vinyl'}${stock?.special ? ' special' : ''}`}
+        style={{ '--accent': ACCENTS[binder.accent] ?? ACCENTS.yellow } as React.CSSProperties}
+      >
+        <div className="binder-spread" key={spread}>
+          {pageSheet(leftPage)}
+          <div className="binder-rings" aria-hidden>
+            <span /><span /><span /><span /><span />
           </div>
+          {pageSheet(rightPage)}
         </div>
 
         <div className="binder-nav">
-          <button className="binder-flip" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))} {...flipTarget(page - 1)} title="Previous page">‹</button>
+          <button className="binder-flip" disabled={spread === 0} onClick={() => setSpread((s) => Math.max(0, s - 1))} {...flipTarget(spread - 1)} title="Previous spread">‹</button>
           <div className="binder-page-num">
-            Page {page + 1} / {Math.max(1, maxPage + 1)}
-            <span>{pageSlots.length}/{SLOTS_PER_PAGE} pockets</span>
+            Pages {leftPage + 1}–{rightPage + 1} / {shownPages}
+            <span>{slotsOn(leftPage).length + slotsOn(rightPage).length}/{SLOTS_PER_PAGE * 2} pockets on this spread · {spreadCount} spread{spreadCount === 1 ? '' : 's'}</span>
           </div>
-          <button className="binder-flip" disabled={page >= maxPage} onClick={() => setPage((p) => Math.min(maxPage, p + 1))} {...flipTarget(page + 1)} title="Next page">›</button>
+          <button className="binder-flip" disabled={spread >= spreadCount - 1} onClick={() => setSpread((s) => Math.min(spreadCount - 1, s + 1))} {...flipTarget(spread + 1)} title="Next spread">›</button>
         </div>
       </div>
 
       <div className="faint small mt8" style={{ textAlign: 'center' }}>
-        {emptyOnPage > 0
-          ? `${emptyOnPage} empty pocket${emptyOnPage === 1 ? '' : 's'} on this page — Add cards drops straight into the first one.`
-          : 'This page is full. Flip on to the next one, or add another binder.'}
+        {(freeOnPage(leftPage).length + freeOnPage(rightPage).length) > 0
+          ? `${freeOnPage(leftPage).length + freeOnPage(rightPage).length} empty pocket${(freeOnPage(leftPage).length + freeOnPage(rightPage).length) === 1 ? '' : 's'} on this spread — Add cards drops straight into the first one, and the book follows the card.`
+          : 'This spread is full. Flip on, or drop a card on › to start the next page.'}
       </div>
 
       {/* Card picker modal */}
@@ -432,9 +552,19 @@ function BinderDetailV({ id, onBack, onChanged }: { id: number; onBack: () => vo
             {available.length === 0 ? (
               <EmptyState icon="🗃" text="Nothing to add" sub="Every raw card is already in a binder." />
             ) : (
-              <div className={`card-grid ${density !== 'comfortable' ? `density-${density}` : ''}`} style={{ maxHeight: '52vh', overflowY: 'auto' }}>
+              <div className={`card-grid binder-picker ${density !== 'comfortable' ? `density-${density}` : ''}`} style={{ maxHeight: '52vh', overflowY: 'auto' }}>
                 {available.map((a) => (
-                  <div key={a.id} className="card-cell" onClick={() => place(a.id).then(() => setAvailable((rows) => rows.filter((r) => r.id !== a.id)))}>
+                  // CardImg's wrapper opens the card on click; capture here so a
+                  // tile means "add" wherever in the tile it is clicked.
+                  <div
+                    key={a.id}
+                    className="card-cell"
+                    onClickCapture={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      place(a.id).then(() => setAvailable((rows) => rows.filter((r) => r.id !== a.id)))
+                    }}
+                  >
                     <CardImg src={a.image_small} alt={a.name} cardId={a.card_id} />
                     <div className="card-meta">
                       <div className="nm">{a.name}</div>

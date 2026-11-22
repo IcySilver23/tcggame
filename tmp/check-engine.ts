@@ -271,5 +271,34 @@ const one = (spec: FoilMaskSpec | null): FoilLayer => ({ id: 'test', spec, field
   ok(touched === 0 && same(copy, base), 'the surface pass refuses a null mask')
 }
 
+// ------------------------------------------------- the foil edge is a soft edge
+// A covered pixel next to an uncovered one used to be a one-pixel jump of the
+// whole highlight (measured 56/255 on a real card at 200x279), which upscaled
+// into a hard rectangle outline on the artwork — the "box" players saw. The
+// boundary must now be a ramp, and it must still stop where the mask stops.
+{
+  // A FLAT base: the synthetic gradient above jumps in luminance from pixel to
+  // pixel, and the duplicate-decoration guard reads luminance, so it would put
+  // steps of its own into the profile. On flat stock only the mask can step.
+  const flat = new Uint8ClampedArray(W * H * 4)
+  for (let i = 0; i < flat.length; i += 4) { flat[i] = 120; flat[i + 1] = 120; flat[i + 2] = 120; flat[i + 3] = 255 }
+  const out = new Uint8ClampedArray(W * H * 4)
+  paintFoil(out, flat, W, H, art, TILT, { mode: 'composite', settings: DEFAULT_FOIL_SETTINGS, map: null, field: plain })
+  const lift = (x: number, y: number) => {
+    const i = (y * W + x) * 4
+    return ((out[i] + out[i + 1] + out[i + 2]) - (flat[i] + flat[i + 1] + flat[i + 2])) / 3
+  }
+  const y = Math.round(0.3 * H)
+  let step = 0
+  for (let x = 1; x < W; x++) step = Math.max(step, Math.abs(lift(x, y) - lift(x - 1, y)))
+  // The highlight in the middle of the window: the edge must spread it over at
+  // least three pixels, where it used to arrive in one.
+  const peak = lift(Math.round(0.5 * W), y)
+  ok(peak > 20, 'the middle of the foil carries a highlight', peak.toFixed(1))
+  ok(step < peak / 3, 'the foil edge ramps in instead of stepping', `${step.toFixed(1)}/255 per pixel, ${(peak / Math.max(step, 0.001)).toFixed(1)}×`)
+  // The fade is INWARD only: not one bit of light outside the mask.
+  ok(onlyInside(flat, out, art), 'the fade stays inside the mask')
+}
+
 console.log(failed === 0 ? '\nALL OK — engine checks' : `\nFAILURES: ${failed}`)
 process.exit(failed === 0 ? 0 : 1)

@@ -949,9 +949,9 @@ export function SortSelect({ value, onChange, options }: { value: string; onChan
   )
 }
 
-export function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+export function Chip({ on, onClick, children, title }: { on: boolean; onClick: () => void; children: React.ReactNode; title?: string }) {
   return (
-    <span className={`chip ${on ? 'on' : ''}`} onClick={onClick}>{children}</span>
+    <span className={`chip ${on ? 'on' : ''}`} onClick={onClick} title={title}>{children}</span>
   )
 }
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
-import { byNum, byStr, Chip, EmptyState, fmtUsd, matchesQuery, OverflowMenu, SearchInput, SortSelect } from '../components'
+import { byNum, byStr, CardImg, Chip, EmptyState, fmtUsd, matchesQuery, OverflowMenu, SearchInput, SortSelect } from '../components'
 import type { DailyDealHistoryDay, ProductDetail, ProductRow } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -23,14 +23,18 @@ const GHOST_SETS = new Set(['base1', 'base2', 'base3', 'gym1', 'gym2', 'neo1', '
 
 /** The shelf price from the lazy detail, before any daily deal. */
 const marketOf = (d: ProductDetail | undefined) => d?.market ?? 0
-/** The till price: today's deal when the shop has one, otherwise the shelf price. */
+/** The till price: today's deal when the shop has one, otherwise the shelf price.
+ *  A deal on a day a paid day pass opened carries its own resale margin on top —
+ *  the same number the server charges, so the tag never lies. */
 const priceOf = (p: ProductRow, d: ProductDetail | undefined) => {
   const market = marketOf(d)
   if (!(market > 0)) return null
-  return p.deal
-    ? Math.round(market * (1 - p.deal.discountPct / 100) * 100) / 100
-    : market
+  if (!p.deal) return market
+  const dealPrice = Math.round(market * (1 - p.deal.discountPct / 100) * 100) / 100
+  return Math.round((dealPrice + (p.deal.surcharge ?? 0)) * 100) / 100
 }
+/** The day-pass share baked into this deal, if any. */
+const passShareOf = (p: ProductRow) => p.deal?.surcharge ?? 0
 /** A published quote, not a modelled shelf price. */
 const isRealPrice = (source: ProductRow['price_source']) => source === 'pricecharting' || source === 'tcgplayer' || source === 'pokeinvest'
 const priceSourceName = (source: ProductRow['price_source']) =>
@@ -74,8 +78,12 @@ function dealDayLabel(dayKey: string): string {
   const label = new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString(undefined, {
     month: 'short', day: 'numeric', timeZone: 'UTC',
   })
-  if (dayKey.endsWith('-am')) return `${label} · AM`
-  if (dayKey.endsWith('-pm')) return `${label} · PM`
+  const tail = dayKey.slice(11)
+  if (tail === 'am') return `${label} · AM`
+  if (tail === 'pm') return `${label} · PM`
+  // The 2-hour clock stamps keys by hour; without it two shelves a day apart
+  // would carry the same label.
+  if (/^\d{1,2}$/.test(tail)) return `${label} · ${tail.padStart(2, '0')}:00`
   return label
 }
 
@@ -228,8 +236,13 @@ function ShelfItem({ p, detail, active, busy, cash, onSelect, onVisible, onBuy }
       }}
     >
       {p.deal ? (
-        <span className={`bay-flag deal${p.deal.claimed ? ' claimed' : ''}`}>
-          {p.deal.claimed ? 'CLAIMED' : `-${p.deal.discountPct}%`}
+        <span
+          className={`bay-flag deal${p.deal.claimed ? ' claimed' : ''}`}
+          title={passShareOf(p) > 0
+            ? `This board was opened by a day pass — the claim pays its own resale margin, ${fmtUsd(passShareOf(p))} on top`
+            : `Daily deal: ${p.deal.discountPct}% off`}
+        >
+          {p.deal.claimed ? 'CLAIMED' : passShareOf(p) > 0 ? 'PASS' : `-${p.deal.discountPct}%`}
         </span>
       ) : (isNew(p) || p.oop) && (
         <span className={`bay-flag ${p.oop ? 'oop' : 'new'}`}>{p.oop ? 'OOP' : 'NEW'}</span>
@@ -281,7 +294,7 @@ function ShelfItem({ p, detail, active, busy, cash, onSelect, onVisible, onBuy }
               : cash < price ? 'Not enough cash' : `Buy sealed for ${fmtUsd(price)}`}
           onClick={(e) => { e.stopPropagation(); onBuy(p, 1) }}
         >
-          {claimed ? 'CLAIMED' : price == null ? '…' : cash < price ? 'NO CASH' : 'RING UP'}
+          {claimed ? 'CLAIMED' : price == null ? '…' : cash < price ? 'NO CASH' : 'PURCHASE'}
         </button>
       )}
     </div>
@@ -300,6 +313,10 @@ export function PacksView() {
   const [kind, setKind] = useState('all')
   const [era, setEra] = useState('all')
   const [source, setSource] = useState('all')
+  // "What fits in the drawer?" cannot be answered from the fast shelf rows:
+  // prices live in productDetail(). Turning this on weighs the whole shelf, then
+  // the bays keep only products whose real till price is within the cash you hold.
+  const [affordable, setAffordable] = useState(false)
   // The shelf opens in catalogue order; EV/price sorts weigh the products on
   // demand instead of holding the first paint hostage to 500 pack models.
   const [sort, setSort] = useState('release_desc')
@@ -442,6 +459,12 @@ export function PacksView() {
       if (source === 'est' && isRealPrice(p.price_source)) return false
       if (source === 'ghost' && !GHOST_SETS.has(p.set_id)) return false
       if (source === 'oop' && !p.oop) return false
+      if (affordable) {
+        // An unpriced product is not yet known to be affordable, so it stays off
+        // the shelf rather than promising a price the till may not honour.
+        const price = priceOf(p, details[p.id])
+        if (price == null || price > cash) return false
+      }
       return true
     })
     const sorters: Record<string, (a: ProductRow, b: ProductRow) => number> = {
@@ -458,7 +481,14 @@ export function PacksView() {
       oop_desc: byNum((p) => (p.oop ? p.oop_months ?? 0 : -1), 'desc'),
     }
     return [...out].sort(sorters[sort] ?? sorters.release_desc)
-  }, [products, q, kind, era, source, sort, details])
+  }, [products, q, kind, era, source, affordable, cash, sort, details])
+
+  /** Turn the afford filter on only once every price tag has been read. */
+  const toggleAffordable = () => {
+    if (affordable) { setAffordable(false); return }
+    setAffordable(true)
+    loadAllDetails(products.map((p) => p.id)).catch(() => {})
+  }
 
   const changeSort = (next: string) => {
     if (sortPending) return
@@ -570,6 +600,7 @@ export function PacksView() {
                   const d = details[p.id]
                   const price = priceOf(p, d)
                   const market = marketOf(d)
+                  const share = passShareOf(p)
                   return (
                     <button
                       type="button"
@@ -588,6 +619,7 @@ export function PacksView() {
                         setKind('all')
                         setEra('all')
                         setSource('all')
+                        setAffordable(false)
                         setSel(p.id)
                         document.getElementById('pack-till')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
                       }}
@@ -602,9 +634,11 @@ export function PacksView() {
                           <em className="daily-deal-claimed">CLAIMED TODAY</em>
                         ) : (
                           <>
-                            <s>{price == null ? '…' : fmtUsd(market)}</s>
+                            {share === 0 && <s>{price == null ? '…' : fmtUsd(market)}</s>}
                             <strong>{price == null ? '…' : fmtUsd(price)}</strong>
-                            <em>{p.deal!.discountPct}% OFF</em>
+                            {share > 0
+                              ? <em title={`A day pass opened this board — the claim pays the deal's own resale margin, ${fmtUsd(share)}`}>PASS +{fmtUsd(share)}</em>
+                              : <em>{p.deal!.discountPct}% OFF</em>}
                           </>
                         )}
                       </span>
@@ -692,8 +726,17 @@ export function PacksView() {
             <Chip on={source === 'est'} onClick={() => setSource(source === 'est' ? 'all' : 'est')}>Estimated</Chip>
             <Chip on={source === 'ghost'} onClick={() => setSource(source === 'ghost' ? 'all' : 'ghost')}>👻 1st Ed</Chip>
             <Chip on={source === 'oop'} onClick={() => setSource(source === 'oop' ? 'all' : 'oop')}>📈 OOP</Chip>
-            {(q || kind !== 'all' || era !== 'all' || source !== 'all' || sort !== 'release_desc') && (
-              <Chip on={false} onClick={() => { setQ(''); setKind('all'); setEra('all'); setSource('all'); setSort('release_desc') }}>✕ Reset</Chip>
+            <Chip
+              on={affordable}
+              onClick={toggleAffordable}
+              title={affordable
+                ? `Hiding anything priced above ${fmtUsd(cash)} — click to show the whole shelf again`
+                : `Show only products you can pay for with ${fmtUsd(cash)}`}
+            >
+              💵 I can afford
+            </Chip>
+            {(q || kind !== 'all' || era !== 'all' || source !== 'all' || affordable || sort !== 'release_desc') && (
+              <Chip on={false} onClick={() => { setQ(''); setKind('all'); setEra('all'); setSource('all'); setAffordable(false); setSort('release_desc') }}>✕ Reset</Chip>
             )}
           </div>
 
@@ -722,9 +765,13 @@ export function PacksView() {
                   </div>
                 </section>
               ))}
-              {aisles.length === 0 && (
+              {aisles.length === 0 && (affordable && detailBusy ? (
+                <EmptyState icon="💵" text="Checking the price tags…" sub={`Weighing every product against the ${fmtUsd(cash)} in the drawer.`} />
+              ) : affordable ? (
+                <EmptyState icon="💵" text="Nothing you can afford" sub={`No product on these shelves comes in under ${fmtUsd(cash)} with these filters — sell some cards or reset them.`} />
+              ) : (
                 <EmptyState icon="🔍" text="Nothing on that shelf" sub="No product matches these filters — try another aisle or reset them." />
-              )}
+              ))}
             </div>
 
             {/* The till. It never scrolls away, so whatever you picked is
@@ -745,11 +792,24 @@ export function PacksView() {
                 {selProduct.deal && (
                   <div className={`till-deal${selProduct.deal.claimed ? ' claimed' : ''}`}>
                     <span>
-                      {selProduct.deal.claimed ? 'DAILY DEAL · CLAIMED TODAY' : `DAILY DEAL · ${selProduct.deal.discountPct}% OFF`}
+                      {selProduct.deal.claimed
+                        ? 'DAILY DEAL · CLAIMED TODAY'
+                        : `DAILY DEAL · ${selProduct.deal.discountPct}% OFF${passShareOf(selProduct) > 0 ? ` + ${fmtUsd(passShareOf(selProduct))} PASS SHARE` : ''}`}
                     </span>
                     <s>{selProduct.deal.claimed ? 'back next game day' : selDetail ? `was ${fmtUsd(marketOf(selDetail))}` : 'was …'}</s>
                   </div>
                 )}
+                {/* The pay button sits at the TOP of the till, right under the
+                    price it charges. It used to live below the pack contents,
+                    the promos and the EV maths — a long scroll from the number
+                    you were deciding on, and off-screen entirely on a phone. */}
+                <button
+                  className="primary till-pay"
+                  disabled={busy === selProduct.id || selPrice == null || afford < 1 || selClaimed}
+                  onClick={() => buy(selProduct, 1)}
+                >
+                  {selClaimed ? 'Daily deal claimed today' : selPrice == null ? 'Weighing…' : afford < 1 ? 'Not enough cash' : `PURCHASE · ${fmtUsd(selPrice)}`}
+                </button>
                 <div className="till-line" aria-hidden />
                 <p className="till-say">“{ripLine(selProduct, selDetail)}”</p>
                 {selDetail?.slots && selDetail.slots.length > 0 && (
@@ -769,12 +829,23 @@ export function PacksView() {
                     <div className="till-promos-head">
                       {selProduct.promos.length === 1 ? 'Promo included' : selProduct.promoPolicy === 'all' ? 'Promos included' : 'One of these promos'}
                     </div>
-                    {selProduct.promos.map((name) => (
-                      <div className="till-promo" key={name}>
-                        <span className="till-promo-star" aria-hidden>★</span>
-                        <span>{name}</span>
-                      </div>
-                    ))}
+                    {selProduct.promos.map((name, i) => {
+                      // The promo you are actually buying, shown as the card it is:
+                      // a list of names told you a Charizard UPC carried three
+                      // promos without ever showing one.
+                      const card = selProduct.promoCards?.[i]
+                      const art = card?.image ?? null
+                      return (
+                        <div className="till-promo" key={name}>
+                          {art
+                            ? <span className="till-promo-art"><CardImg src={art} alt={name} cardId={card?.cardId ?? null} /></span>
+                            : card?.cardId
+                              ? <span className="till-promo-art"><CardImg src={null} alt={name} cardId={card.cardId} /></span>
+                              : <span className="till-promo-star" aria-hidden>★</span>}
+                          <span>{name}</span>
+                        </div>
+                      )
+                    })}
                     {selProduct.promos.length > 1 && selProduct.promoPolicy !== 'all' && (
                       <div className="till-promo-note">One is sealed in each box.</div>
                     )}
@@ -809,13 +880,6 @@ export function PacksView() {
                 ) : (
                   <div className="faint small">Weighing the packs for this product…</div>
                 )}
-                <button
-                  className="primary till-pay"
-                  disabled={busy === selProduct.id || selPrice == null || afford < 1 || selClaimed}
-                  onClick={() => buy(selProduct, 1)}
-                >
-                  {selClaimed ? 'Daily deal claimed today' : selPrice == null ? 'Weighing…' : afford < 1 ? 'Not enough cash' : `RING UP · ${fmtUsd(selPrice)}`}
-                </button>
                 <div className="till-foot">
                   <span className="faint small">
                     {selClaimed ? 'this deal returns next game day' : selPrice == null ? 'price and pack maths loading' : `you can afford ${afford} · sealed at the till`}

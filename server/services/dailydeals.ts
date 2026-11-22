@@ -1,6 +1,8 @@
 import { db } from '../lib/db'
 import { gameDayEnd, gameDayKey } from '../lib/gameday'
+import { isSkippedDay, RESALE_FEE_PCT, skippedClaimShare } from '../lib/skipped-days'
 import * as sealed from './sealed'
+import * as sealedfutures from './sealedfutures'
 
 /**
  * The Pack Shop's daily deals.
@@ -24,6 +26,13 @@ export type DailyDeal = {
   discountPct: number
   endsAt: string
   claimed: boolean
+  /**
+   * Extra charge on claim when today is a day a paid day pass opened: the deal's
+   * own resale margin, so a claim costs exactly what the resale desk would pay
+   * for it. Zero on any ordinary day — the pass is flat and the board it opened
+   * is what pays for itself, but only when it is used.
+   */
+  surcharge: number
 }
 
 export type PastDailyDeal = {
@@ -43,7 +52,7 @@ export type DailyDealHistoryDay = {
   deals: PastDailyDeal[]
 }
 
-type DealTerms = Omit<DailyDeal, 'claimed'>
+type DealTerms = Omit<DailyDeal, 'claimed' | 'surcharge'>
 
 type ProductRow = { id: string; set_id: string; kind: string }
 
@@ -99,10 +108,41 @@ export function discountedPrice(base: number, discountPct: number): number {
   return Math.round(base * (1 - discountPct / 100) * 100) / 100
 }
 
-function buildDeals(): ReadonlyMap<string, DealTerms> {
-  const key = gameDayKey()
-  if (cache?.key === key) return cache.deals
+/**
+ * What the resale desk would actually pay for one case-fresh unit: the desk's
+ * condition price (shelf × a case-fresh premium that fades with age) minus its
+ * 10% cut. Not `0.9 × shelf` — that was the assumption this formula had to stop
+ * making, because fresh pays 0.918–0.99 of shelf depending on the product.
+ */
+export function freshResaleProceeds(productId: string): number {
+  const gross = sealedfutures.conditionPriceOf(productId, 'fresh')
+  return gross > 0 ? Math.round(gross * (1 - RESALE_FEE_PCT) * 100) / 100 : 0
+}
 
+/**
+ * The pass share on one product's deal claim: whatever makes a claim plus an
+ * immediate resale net zero, when today is a game-day a paid pass opened.
+ * Otherwise nothing. Read by the shelf, the till and the charge alike, so the
+ * price shown is the price taken.
+ */
+export function passShareFor(productId: string, discountPct: number, dayKey: string = gameDayKey()): number {
+  if (!isSkippedDay(dayKey)) return 0
+  // Only a product the pass actually put on the board owes anything: buying
+  // anything else never goes through the claim path, so quoting a share here
+  // would be a price no till ever charges.
+  if (!chooseBoard(dayKey).some((row) => row.id === productId)) return 0
+  const shelf = sealed.priceOf(productId).market
+  if (!(shelf > 0)) return 0
+  return skippedClaimShare(discountedPrice(shelf, discountPct), freshResaleProceeds(productId))
+}
+
+/**
+ * The three products a day key deals: one per lane, filled from whatever is
+ * left when a lane has nothing. Keyed by the day STRING rather than by the
+ * clock, so the board for any day — including the one a day pass is about to
+ * open — can be built without moving anything.
+ */
+function chooseBoard(key: string): ProductRow[] {
   const rows = db
     .prepare('SELECT id, set_id, kind FROM pack_products')
     .all() as ProductRow[]
@@ -127,10 +167,16 @@ function buildDeals(): ReadonlyMap<string, DealTerms> {
       chosen.push(row)
     }
   }
+  return chosen
+}
+
+function buildDeals(): ReadonlyMap<string, DealTerms> {
+  const key = gameDayKey()
+  if (cache?.key === key) return cache.deals
 
   const endsAt = gameDayEnd().toISOString()
   const deals = new Map<string, DealTerms>()
-  for (const row of chosen) {
+  for (const row of chooseBoard(key)) {
     deals.set(row.id, {
       discountPct: 10 + (hash(`${key}:${row.id}:pct`) % 21),
       endsAt,
@@ -171,6 +217,9 @@ function recordDeals(deals: ReadonlyMap<string, DealTerms>): void {
         if (!product) continue
         const base = sealed.priceOf(productId).market
         if (!(base > 0)) continue
+        // The recorded deal price is the till price: on a day a pass opened, the
+        // pass share is part of what the player was charged.
+        const share = passShareFor(productId, deal.discountPct, key)
         insert.run(
           key,
           productId,
@@ -180,7 +229,7 @@ function recordDeals(deals: ReadonlyMap<string, DealTerms>): void {
           product.kind,
           deal.discountPct,
           base,
-          discountedPrice(base, deal.discountPct),
+          Math.round((discountedPrice(base, deal.discountPct) + share) * 100) / 100,
           deal.endsAt,
           recordedAt,
         )
@@ -227,7 +276,7 @@ export function dealsForToday(): ReadonlyMap<string, DailyDeal> {
   recordDeals(terms)
   const claimed = claimedProductIds()
   const deals = new Map<string, DailyDeal>()
-  for (const [id, deal] of terms) deals.set(id, { ...deal, claimed: claimed.has(id) })
+  for (const [id, deal] of terms) deals.set(id, { ...deal, claimed: claimed.has(id), surcharge: passShareFor(id, deal.discountPct) })
   return deals
 }
 
@@ -237,7 +286,7 @@ export function dealForToday(productId: string): DailyDeal | null {
   recordDeals(terms)
   const deal = terms.get(productId)
   if (!deal) return null
-  return { ...deal, claimed: isClaimedToday(productId) }
+  return { ...deal, claimed: isClaimedToday(productId), surcharge: passShareFor(productId, deal.discountPct) }
 }
 
 /** Daily heartbeat hook: record today's board even if the shop is never opened. */

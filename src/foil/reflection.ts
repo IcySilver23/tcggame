@@ -18,7 +18,14 @@
 // only scale the light down (0..1), never recolour it or move it outside the
 // mask, so the rules above hold whether or not a pattern is present.
 
-import { maskValue, type FoilMaskSpec } from './mask'
+import { maskCoverage, maskValue, type FoilMaskSpec } from './mask'
+
+/**
+ * Width of the foil's soft edge, in buffer pixels. Wide enough that the boundary
+ * is a ramp rather than a one-pixel jump, narrow enough that the foil still ends
+ * where the printing says it does.
+ */
+export const EDGE_FEATHER_PX = 4
 
 /** Past this, a card is edge-on and no longer readable; we stop there too. */
 export const MAX_TILT_DEG = 78
@@ -107,7 +114,10 @@ export function applyReflection(
       const i = (y * w + x) * 4
       const u = (x + 0.5) / w
       const v = (y + 0.5) / h
-      if (maskValue(spec, u, v, aspect) === 0) continue
+      // Coverage, not a yes/no: the mask's edge fades inward so the foil meets
+      // the print instead of drawing a line around itself.
+      const cov = maskCoverage(spec, u, v, aspect, EDGE_FEATHER_PX / w)
+      if (cov <= 0) continue
       let b = reflectionAt(u, v, tilt)
       if (b <= 0) continue
       const r = data[i]
@@ -115,7 +125,7 @@ export function applyReflection(
       const bl = data[i + 2]
       const m = modulate ? modulate(u, v, Math.max(r, g, bl) / 255) : 1
       if (m <= 0) continue
-      b *= strength
+      b *= strength * cov
       if (b <= 0) continue
       const headroom = 255 - Math.max(r, g, bl)
       const add = Math.min(Math.round(b * m * 255), headroom)

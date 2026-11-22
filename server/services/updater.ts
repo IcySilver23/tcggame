@@ -8,10 +8,15 @@ import { spawnSync } from 'node:child_process'
 //
 // TCG Life ships as a per-user Inno Setup install, so an update is the same
 // setup exe that was used the first time — just run silently against the
-// existing install. There is no release server to poll: when a newer
-// TCG-Life-Setup-*.exe is sitting in one of the player's normal download
-// folders, the running game offers it on open. The setup keeps the same AppId,
-// so Inno upgrades the existing directory and leaves data/ (the save) alone.
+// existing install. The setup keeps the same AppId, so Inno upgrades the
+// existing directory and leaves data/ (the save) alone.
+//
+// The release page is the source of truth: the newest published GitHub release
+// is polled (cached, so a launch and a half-hourly check cost one request), and
+// the setup attached to it is what an in-place update downloads. A newer
+// TCG-Life-Setup-*.exe already sitting in Downloads or on the Desktop still
+// wins when it is the same version, which keeps a hand-carried update working
+// with no connection at all.
 //
 // The hand-off is deliberately detached: this server cannot replace its own
 // exe while it is running. A small PowerShell helper waits for the window and
@@ -23,6 +28,13 @@ import { spawnSync } from 'node:child_process'
 const SETUP_RE = /^TCG-Life-Setup-(\d+(?:\.\d+){2,3})\.exe$/i
 const MIN_SETUP_BYTES = 1_000_000
 const DOWNLOAD_SETTLE_MS = 2_000
+
+const GITHUB_REPO = 'IcySilver23/tcggame'
+const LATEST_RELEASE_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`
+const RELEASE_PAGE = `https://github.com/${GITHUB_REPO}/`
+const RELEASE_TTL_MS = 5 * 60_000
+const RELEASE_TIMEOUT_MS = 8_000
+const DOWNLOAD_TIMEOUT_MS = 180_000
 
 type Candidate = {
   file: string
@@ -71,6 +83,87 @@ export function compareVersions(a: string, b: string): number {
 
 export function sameVersion(a: string, b: string): boolean {
   return compareVersions(a, b) === 0
+}
+
+export type RemoteRelease = {
+  version: string
+  tag: string
+  pageUrl: string
+  /** The Windows setup attached to the release, when it has one. */
+  setup?: { name: string; url: string; size: number }
+}
+
+let releaseCache: { at: number; release: RemoteRelease | null } = { at: 0, release: null }
+
+async function fetchWithTimeout(url: string, ms: number, init: RequestInit = {}): Promise<Response> {
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), ms)
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+function versionFromTag(tag: string): string | null {
+  const match = /^v?(\d+(?:\.\d+){1,3})$/.exec(tag.trim())
+  return match ? match[1] : null
+}
+
+function setupVersion(name: string): string | undefined {
+  return SETUP_RE.exec(name)?.[1]
+}
+
+/**
+ * The newest published release on GitHub, or null when there is no connection,
+ * the repo is unreachable, or the anonymous API rate limit is spent. Cached for
+ * five minutes so the half-hourly check and a fresh launch share one request.
+ */
+export async function latestRelease(force = false): Promise<RemoteRelease | null> {
+  if (!force && releaseCache.at > 0 && Date.now() - releaseCache.at < RELEASE_TTL_MS) {
+    return releaseCache.release
+  }
+  let release: RemoteRelease | null = null
+  try {
+    const res = await fetchWithTimeout(LATEST_RELEASE_URL, RELEASE_TIMEOUT_MS, {
+      headers: {
+        accept: 'application/vnd.github+json',
+        'x-github-api-version': '2022-11-28',
+        'user-agent': 'TCG-Life-Updater',
+      },
+    })
+    if (res.ok) {
+      const body = (await res.json()) as {
+        tag_name?: string
+        html_url?: string
+        draft?: boolean
+        prerelease?: boolean
+        assets?: { name?: string; size?: number; browser_download_url?: string }[]
+      }
+      const version = body.tag_name ? versionFromTag(body.tag_name) : null
+      if (version && body.draft !== true && body.prerelease !== true) {
+        const setups = (body.assets ?? [])
+          .map((asset) => ({
+            name: asset.name ?? '',
+            size: asset.size ?? 0,
+            url: asset.browser_download_url ?? '',
+          }))
+          .filter((asset) => !!asset.url && !!setupVersion(asset.name))
+        // The setup built for this release, else whatever setup it carries.
+        const hit = setups.find((asset) => sameVersion(setupVersion(asset.name) ?? '', version)) ?? setups[0]
+        release = {
+          version,
+          tag: body.tag_name ?? `v${version}`,
+          pageUrl: body.html_url ?? `${RELEASE_PAGE}releases/tag/${body.tag_name}`,
+          setup: hit ? { name: hit.name, url: hit.url, size: hit.size } : undefined,
+        }
+      }
+    }
+  } catch {
+    release = null
+  }
+  releaseCache = { at: Date.now(), release }
+  return release
 }
 
 function isExeFile(file: string): boolean {
@@ -142,6 +235,9 @@ const STATE_FILE = path.join(STATE_DIR, 'update-state.json')
 // can launch the game with a POSIX-style TEMP, which Windows PowerShell cannot
 // execute. LocalAppData is always a real Windows path.
 const TMP_DIR = path.join(STATE_DIR, 'tmp')
+// Downloaded setups live beside the update marker, not in the player's Downloads:
+// a failed hand-off can be retried without fetching the file again.
+const UPDATES_DIR = path.join(STATE_DIR, 'updates')
 
 type AppliedUpdate = { from: string; to: string; at: string }
 
@@ -175,24 +271,98 @@ export type UpdateStatus = {
   installerName?: string
   size?: number
   justUpdated: AppliedUpdate | null
+  /** False for a portable folder: it can be told, but not install itself. */
+  canSelfUpdate: boolean
+  /** Where the offered build came from — the release page or a local setup. */
+  source?: 'github' | 'downloads'
+  /** The release page, for the copy that has to download the new build itself. */
+  pageUrl?: string
 }
 
-export function checkForUpdate(currentVersion: string): UpdateStatus {
-  const justUpdated = readAppliedUpdate(currentVersion)
-  if (!isInstalledCopy()) {
-    return { currentVersion, available: false, justUpdated }
+/**
+ * The release's setup, downloaded into %LOCALAPPDATA%\TCGLife\updates. A file
+ * from an earlier attempt at the same size is finished, so it is reused rather
+ * than fetched again; anything else is replaced.
+ */
+async function downloadSetup(remote: RemoteRelease): Promise<Candidate> {
+  const setup = remote.setup
+  if (!setup) throw new Error('That release has no Windows setup attached, so it cannot install itself.')
+  fs.mkdirSync(UPDATES_DIR, { recursive: true })
+  const file = path.join(UPDATES_DIR, setup.name)
+
+  const current = (() => {
+    try { return fs.statSync(file) } catch { return null }
+  })()
+  const complete = !!current && current.isFile() && current.size >= MIN_SETUP_BYTES &&
+    (setup.size <= 0 || current.size === setup.size) && isExeFile(file)
+
+  if (!complete) {
+    const res = await fetchWithTimeout(setup.url, DOWNLOAD_TIMEOUT_MS, {
+      headers: { 'user-agent': 'TCG-Life-Updater' },
+    })
+    if (!res.ok) throw new Error(`Could not download the update (GitHub answered ${res.status}).`)
+    const bytes = Buffer.from(await res.arrayBuffer())
+    if (bytes.length < MIN_SETUP_BYTES || bytes[0] !== 0x4d || bytes[1] !== 0x5a) {
+      throw new Error('The downloaded file is not a Windows installer.')
+    }
+    const part = `${file}.part`
+    fs.writeFileSync(part, bytes)
+    fs.rmSync(file, { force: true })
+    fs.renameSync(part, file)
   }
-  const candidate = findCandidate(currentVersion)
-  if (!candidate) {
-    return { currentVersion, available: false, justUpdated }
+
+  // Superseded setups are dead weight once a newer one has landed.
+  for (const name of (() => { try { return fs.readdirSync(UPDATES_DIR) } catch { return [] } })()) {
+    if (name !== setup.name && (SETUP_RE.test(name) || name.endsWith('.part'))) {
+      try { fs.rmSync(path.join(UPDATES_DIR, name), { force: true }) } catch { /* best effort */ }
+    }
+  }
+
+  const stat = fs.statSync(file)
+  return { file, name: setup.name, version: remote.version, size: stat.size, mtime: stat.mtimeMs }
+}
+
+export async function checkForUpdate(currentVersion: string): Promise<UpdateStatus> {
+  const justUpdated = readAppliedUpdate(currentVersion)
+  const canSelfUpdate = isInstalledCopy()
+  // A portable copy has no uninstaller and no setup beside it, so it is told
+  // about the release and sent to the page instead of being offered an install.
+  const local = canSelfUpdate ? findCandidate(currentVersion) : null
+  const remote = await latestRelease()
+  const newer = remote && compareVersions(remote.version, currentVersion) > 0 ? remote : null
+
+  if (newer && (!local || compareVersions(newer.version, local.version) > 0)) {
+    return {
+      currentVersion,
+      available: true,
+      version: newer.version,
+      installerName: newer.setup?.name,
+      size: newer.setup?.size,
+      justUpdated,
+      canSelfUpdate,
+      source: 'github',
+      pageUrl: newer.pageUrl,
+    }
+  }
+  if (local) {
+    return {
+      currentVersion,
+      available: true,
+      version: local.version,
+      installerName: local.name,
+      size: local.size,
+      justUpdated,
+      canSelfUpdate,
+      source: 'downloads',
+      pageUrl: newer?.pageUrl ?? remote?.pageUrl,
+    }
   }
   return {
     currentVersion,
-    available: true,
-    version: candidate.version,
-    installerName: candidate.name,
-    size: candidate.size,
+    available: false,
     justUpdated,
+    canSelfUpdate,
+    pageUrl: remote?.pageUrl,
   }
 }
 
@@ -267,10 +437,21 @@ export type BeginUpdateResult = {
 
 /** Write the hand-off marker, launch the detached helper, and let the caller
  *  shut the server down after it has answered the HTTP request. */
-export function beginUpdate(currentVersion: string, wantedVersion: string): BeginUpdateResult {
-  if (!isInstalledCopy()) throw new Error('This copy was not installed, so it cannot update itself.')
-  const candidate = findCandidate(currentVersion, wantedVersion)
-  if (!candidate) throw new Error('That update setup file is no longer available.')
+export async function beginUpdate(currentVersion: string, wantedVersion: string): Promise<BeginUpdateResult> {
+  if (!isInstalledCopy()) {
+    throw new Error('This copy was not installed, so it cannot update itself — download the new build from the release page.')
+  }
+  // A setup in Downloads is used as-is; otherwise the release's own installer is
+  // fetched now. The player pressed the button on this version, so the cache is
+  // bypassed: a release pulled in the last five minutes should still be found.
+  let candidate = findCandidate(currentVersion, wantedVersion)
+  if (!candidate) {
+    const remote = await latestRelease(true)
+    if (!remote || !sameVersion(remote.version, wantedVersion)) {
+      throw new Error('That update is no longer on the release page.')
+    }
+    candidate = await downloadSetup(remote)
+  }
 
   const exe = appExe()
   if (!fs.existsSync(exe)) throw new Error('Could not find TCG-Life.exe next to the server.')
@@ -319,4 +500,21 @@ sh.Run cmd, 0, False
   }
 
   return { version: candidate.version, installerName: candidate.name }
+}
+
+/**
+ * Open this project's release page in the player's browser. The URL is checked
+ * against the repo's own prefix, so the endpoint can never be turned into a
+ * general "open anything" launcher.
+ */
+export function openReleasePage(url?: string): string {
+  const href = url && url.startsWith(RELEASE_PAGE) ? url : `${RELEASE_PAGE}releases/latest`
+  if (process.platform === 'win32') {
+    spawnSync('cmd.exe', ['/c', 'start', '', href], { windowsHide: true })
+  } else if (process.platform === 'darwin') {
+    spawnSync('open', [href])
+  } else {
+    spawnSync('xdg-open', [href])
+  }
+  return href
 }

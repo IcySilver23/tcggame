@@ -320,7 +320,8 @@ export function ResaleView() {
                     <div className="rd-flip-body">
                       <div className="rd-flip-name">{l.name}</div>
                       <div className="rd-flip-meta">
-                        {l.condition}{variantTag(l.variant) ? ` · ${variantTag(l.variant)}` : ''} · held {heldText(l.heldSince)}
+                        {l.condition}{variantTag(l.variant) ? ` · ${variantTag(l.variant)}` : ''}
+                        {l.bare ? <span className="faint" title="Raw and sleeveless — the dealer pays under a protected copy"> · bare</span> : null} · held {heldText(l.heldSince)}
                       </div>
                       <div className="rd-flip-nums">
                         <span>cost {fmtUsd(l.costBasis)}</span>

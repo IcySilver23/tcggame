@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { api } from './api'
+import { installClientClock } from './lib/clock'
 import type { CardDetailResponse, GameStateResponse } from './types'
 
 export type Toast = { id: number; text: string; kind: 'info' | 'good' | 'bad' }
@@ -145,6 +146,10 @@ export const useStore = create<Store>((set, get) => ({
   refreshState: async () => {
     try {
       const s = await api.state()
+      // A day pass leaves this save's clock ahead of the machine's; every
+      // countdown here is measured against the server's timestamps, so the page
+      // adopts the same shift before it renders them.
+      installClientClock(s.day.offsetMs ?? 0)
       set({ state: s })
       announceNewReleases(s)
     } catch {

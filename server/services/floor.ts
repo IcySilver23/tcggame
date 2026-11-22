@@ -2,6 +2,7 @@ import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
 import { gameDayMs } from '../lib/gameday'
 import { round2, gradedPriceOf, valueOf, type Condition } from './market'
 import { GRADING_SERVICES } from './grading'
+import { presentationFactor } from './supplies'
 import * as pnl from './pnl'
 
 // ---------------------------------------------------------------------------
@@ -279,7 +280,7 @@ function dealerMargin(mood: number, specialty: string): number {
   return Math.max(0.05, b - (mood - 50) * 0.0022)
 }
 
-export type SellCandidate = { id: number; name: string; condition: Condition; gradedGrade: string | null; anchor: number }
+export type SellCandidate = { id: number; name: string; condition: Condition; gradedGrade: string | null; anchor: number; bare: boolean }
 
 export function sellOffers(boothId: number, limit = 8) {
   const show = activeShow()
@@ -294,10 +295,10 @@ export function sellOffers(boothId: number, limit = 8) {
   // Raw collection cards (this save keeps raw selling simple; slabs too).
   const rows = db
     .prepare(
-      `SELECT i.id, i.card_id, i.condition, i.graded_grade, c.name FROM inventory i JOIN cards c ON c.id = i.card_id
+      `SELECT i.id, i.card_id, i.condition, i.graded_grade, i.protection, c.name FROM inventory i JOIN cards c ON c.id = i.card_id
        WHERE i.status = 'collection' AND i.quantity > 0 ORDER BY RANDOM() LIMIT 200`,
     )
-    .all() as { id: number; card_id: string; condition: Condition; graded_grade: string | null; name: string }[]
+    .all() as { id: number; card_id: string; condition: Condition; graded_grade: string | null; protection: string | null; name: string }[]
   const seen = new Set<string>()
   const candidates: SellCandidate[] = []
   for (const r of rows) {
@@ -306,14 +307,19 @@ export function sellOffers(boothId: number, limit = 8) {
     seen.add(key)
     const anchor = r.graded_grade ? gradedPriceOf(r.card_id, r.graded_grade).usd : valueOf(r.card_id, 'normal', r.condition)
     if (anchor < 0.5) continue
-    candidates.push({ id: r.id, name: r.name, condition: r.condition, gradedGrade: r.graded_grade, anchor: round2(anchor) })
+    candidates.push({ id: r.id, name: r.name, condition: r.condition, gradedGrade: r.graded_grade, anchor: round2(anchor), bare: presentationFactor(r.protection, r.graded_grade != null) < 1 })
   }
   candidates.sort((a, b2) => b2.anchor - a.anchor)
-  const top = candidates.slice(0, limit).map((c) => ({
-    ...c,
-    offer: round2(Math.max(0.1, c.anchor * (1 - margin))),
-    creditOffer: round2(Math.max(0.12, c.anchor * (1 - margin) * 1.08)),
-  }))
+  // A bare card is offered under a sleeved copy — the same rule as the buylist
+  // and the pawn counter, so no table quietly pays full price for loose stock.
+  const top = candidates.slice(0, limit).map((c) => {
+    const factor = c.bare ? presentationFactor(null) : 1
+    return {
+      ...c,
+      offer: round2(Math.max(0.1, c.anchor * (1 - margin) * factor)),
+      creditOffer: round2(Math.max(0.12, c.anchor * (1 - margin) * 1.08 * factor)),
+    }
+  })
   return { ok: true as const, booth: { id: b.id, vendorName: b.vendor_name, avatar: b.avatar }, mood, credit: creditBalance(b.id).credit, offers: top }
 }
 
@@ -334,7 +340,7 @@ export function sellToDealer(
     .prepare(
       `SELECT i.*, c.name FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.id = ? AND i.status = 'collection'`,
     )
-    .get(inventoryId) as { id: number; card_id: string; condition: Condition; graded_grade: string | null; cost_basis: number; name: string; fake_revealed: number } | undefined
+    .get(inventoryId) as { id: number; card_id: string; condition: Condition; graded_grade: string | null; cost_basis: number; name: string; protection: string | null; fake_revealed: number } | undefined
   if (!inv) return { ok: false as const, error: 'That card is not in your binder.' }
 
   // AUTH META: the training wall pays a flat dollar for a known fake — the
@@ -352,7 +358,8 @@ export function sellToDealer(
 
   const anchor = inv.graded_grade ? gradedPriceOf(inv.card_id, inv.graded_grade).usd : valueOf(inv.card_id, 'normal', inv.condition)
   const margin = dealerMargin(mood, b.specialty)
-  const offer = round2(Math.max(0.1, anchor * (1 - margin)))
+  // Bare, raw stock: the dealer offers under a sleeved copy (same as the sheet).
+  const offer = round2(Math.max(0.1, anchor * (1 - margin) * presentationFactor(inv.protection, inv.graded_grade != null)))
   const key = `floor:sell:${show.id}:${b.id}`
 
   const doSell = (amount: number, credit: boolean) => {

@@ -1,234 +1,255 @@
 {
   "entries": [
-{
-  "version": "0.77.66",
-  "date": "2026-11-21",
-  "title": "The gold-label lab",
-  "features": [
-    "CGC Cards Grading joins PSA and Beckett BGS at the lab: $20 a card, a 6–10 game-day turnaround, and its own CGC 10 Gem Mint, Mint 9 and NM-MT 8 slabs. CGC costs more than PSA Standard and takes longer, but it buys a different grade scale and its own comps.",
-    "The top of that scale is the CGC Pristine 10. It is no longer a flat 2% of gems: Pristine needs near-50/50 centering, clean edges and sharp corners, so a gem-grade copy with a real flaw stays Gem Mint while a flawless copy has a real gold-label path. Inspect before submitting — the copy's hidden traits are the odds. Pristine renders with CGC's gold label and is a real rung in the price ladder and Best chase maths: an exact CGC Pristine eBay comp is used when one exists, otherwise the value is a disclosed 1.45× estimate off the CGC 10 quote because PriceCharting has no Pristine column.",
-    "Grading candidates and CardDetail's Best chase now show CGC's Pristine chance beside the gem chance after you inspect a copy; before that they say to inspect rather than leaking the hidden gate. A clean copy's gold-label edge is visible before you pay the fee, and an uninspected copy only promises Gem Mint.",
-    "CardDetail's Slab Certifier and comp ladder now show that actual Pristine value instead of quietly dropping to the CGC 10 price. When the rung is an estimate, the ladder marks it GAME ESTIMATE and says it is 1.45× the CGC 10 quote with no published Pristine comp."
-  ]
-},
-{
-  "version": "0.77.65",
-  "date": "2026-11-19",
-  "title": "The shelf first, the maths after",
-  "features": [
-    "The Pack Shop now paints its 532-product shelf first and loads each product's price, typical return, chase maths, Sequin odds and pack contents only when that product is selected or scrolls into view. The shelf opens in newest-set order; choosing an EV or price sort weighs the shown products on demand and says so while it works."
-  ]
-},
-{
-  "version": "0.77.64",
-  "date": "2026-11-19",
-  "title": "The shelf checks before it repeats",
-  "features": [
-    "The Pack Shop no longer reuses a shelf response just because it is less than 20 seconds old. It now reuses one only while card and sealed prices, the catalogue, today's daily-deal claims and the save itself are unchanged — so a sync, a purchase that claims a deal, a snapshot restore or a save reset appears the next time you open the Shop."
-  ]
-},
-{
-  "version": "0.77.63",
-  "date": "2026-11-19",
-  "title": "Fresh estimates after every price move",
-  "features": [
-    "Pack, sealed and General Mills mini-pack estimates now refresh whenever a card price or the catalogue changes. A sync, a simulated-market roll or a pull-table rebuild can no longer leave the Pack Shop showing an old expected value, and its cached shelf response is cleared on the same signal."
-  ]
-},
-{
-  "version": "0.77.62",
-  "date": "2026-11-18",
-  "title": "Ring up, not rip",
-  "features": [
-    "The Pack Shop till now says RING UP instead of promising a rip. The purchase has always delivered the product sealed, and it still does: after you pay, open it whenever you like from Inventory → Sealed."
-  ]
-},
-{
-  "version": "0.77.61",
-  "date": "2026-11-18",
-  "title": "Faster shelves, faster badges",
-  "features": [
-    "The Achievements screen now computes set completion in one catalogue pass instead of re-scanning every card for every set. The badge wall's progress checks share that pass and the held-card valuation, so it opens in a fraction of the time and no longer blocks the rest of the dashboard.",
-    "The Pack Shop's first load now reads every pack card's TCGplayer price in one batch, then reuses each card's value across the pack estimate, sealed estimate and shelf price. The first build is several times faster, and the shelf response is reused briefly so returning to the Shop is immediate."
-  ]
-},
-{
-  "version": "0.77.60",
-  "date": "2026-11-16",
-  "title": "Sold, asking, estimated",
-  "features": [
-    "BGS 10 Black Label prices no longer treat every source as a sold quote. PriceCharting can publish a BGS 10 Black value without any Black Label sales, so the reveal and certifier label that number a PriceCharting estimate. An exact eBay Black Label comp is labelled ASKING because it comes from active listings, not completed sales. Only a sale-backed quote is labelled sold.",
-    "The activity feed and the slab certifier now use the same three labels. The BGS 10 × 1.6 fallback is explicitly a game estimate, and the grade ladder shows each rung's source and basis, so a thin or asking-price comp is visible instead of looking like a completed sale."
-  ]
-},
-{
-  "version": "0.77.59",
-  "date": "2026-11-16",
-  "title": "Black labels, real quotes",
-  "features": [
-    "BGS 10 Black Label slabs now read PriceCharting's BGS 10 Black column. When that column has a value for the exact grade, the reveal and activity feed use it instead of a 1.6× multiplier; PriceCharting can publish it without a Black Label sale, so it is not treated as a sold quote.",
-    "If PriceCharting has no Black Label price, the game checks exact-title eBay Black Label listings, which are active asking prices rather than completed sales. Ordinary BGS 10 comps no longer include Black Label listings. The estimated fallback only appears when neither external value exists."
-  ]
-},
-{
-  "version": "0.77.58",
-  "date": "2026-11-16",
-  "title": "A premium, not a quote",
-  "features": [
-    "A BGS 10 Black Label reveal and its activity line now mark a derived value ESTIMATED. When the figure is 1.6× the BGS 10 quote, the game no longer presents that derived number as a live quote even when the BGS 10 base is live.",
-    "The slab certifier still falls back to the published BGS 10 comp and says when it is doing so."
-  ]
-},
-{
-  "version": "0.77.57",
-  "date": "2026-11-16",
-  "title": "Black labels, sealed boxes",
-  "features": [
-    "Beckett Grading (BGS) is now a fourth grading service. It costs $60 a card, accepts raw cards worth $50 or more, and returns a BGS slab in 2–4 game-days. It is the only route to a BGS 10 Black Label: a 10 with four perfect subgrades, far rarer than a gem mint and valued above a BGS 10.",
-    "The Pack Shop no longer has a buy-and-rip shortcut. Every purchase now lands sealed in Inventory → Sealed, and opening it is a separate choice you make there. The Pack Opening buy list buys sealed too, instead of ripping the product immediately.",
-    "The sealed desk itself is unchanged: fresh and worn condition, selling, re-wrapping and the loan desk all still work as before."
-  ]
-},
-{
-  "version": "0.77.56",
-  "date": "2026-11-15",
-  "title": "The handoff holds",
-  "features": [
-    "The in-place updater now hands the installer to a one-time Windows scheduled task instead of a child of the closing game. The helper survives the window shutting down and runs the setup reliably.",
-    "The helper script and its log now live in TCG Life's own app-data folder, so a shell with a non-Windows TEMP path can no longer break the handoff.",
-    "This is a maintenance build for the update path; no gameplay, card data or economy rules changed."
-  ]
-},
-{
-  "version": "0.77.55",
-  "date": "2026-11-15",
-  "title": "The loop closes",
-  "features": [
-    "This is a maintenance build for the in-place updater: it verifies that a newer setup downloaded to Downloads can replace an installed copy, leave the save untouched, reopen the game automatically and land on What's New.",
-    "No gameplay, card data or economy rules changed in this build."
-  ]
-},
-{
-  "version": "0.77.54",
-  "date": "2026-11-15",
-  "title": "Updates that install themselves",
-  "features": [
-    "Installed copies now look for a newer TCG Life setup file in Downloads, Desktop and OneDrive Desktop when the game opens. No rerunning the installer by hand.",
-    "When a newer setup is found, the game shows its version and an Update now button. The game closes, runs the setup silently in place, and opens again automatically; your save, collection and settings are untouched.",
-    "The first launch after an update opens What's New by itself, so the changes in that version are the first thing you see.",
-    "If the update cannot be installed, the game reopens the version you already have instead of leaving you with no game."
-  ]
-},
-{
-  "version": "0.77.53",
-  "date": "2026-11-13",
-  "title": "Both paces",
-  "features": [
-    "Pack reveals now have a Manual reveal / Auto reveal switch beside the speed controls. Manual, the default, waits after each card for a swipe or click; Auto schedules the next card after the usual beat.",
-    "The choice carries across the packs in a session, so a whole box can be read by hand or run hands-off. Skip animation and Reveal all still work in either mode."
-  ]
-},
-{
-  "version": "0.77.52",
-  "date": "2026-11-13",
-  "title": "At your own pace",
-  "features": [
-    "Cards no longer advance on a timer. Once a card lands, it waits for a sideways swipe (or a click) before the next card comes out, so a pack is read at the player's pace instead of presenting the whole stack.",
-    "The card flip itself still runs automatically, and Skip animation and Reveal all still work when you want them. Swipe anywhere on the reveal stage; the hint under the card tells you when the next one is waiting."
-  ]
-},
-{
-  "version": "0.77.51",
-  "date": "2026-11-13",
-  "title": "The best wrapper",
-  "features": [
-    "A box rip's summary header now carries a BEST PACK total: the highest market value of any single wrapper opened so far, beside box hits and average per hit.",
-    "It updates with each pack and after a skip to the end, and it measures one wrapper's total rather than the whole box."
-  ]
-},
-{
-  "version": "0.77.50",
-  "date": "2026-11-13",
-  "title": "The best of the box",
-  "features": [
-    "A box rip's summary header now names its best hit: the highest-value card marked HIT across the wrappers opened so far, with its set and market value.",
-    "The line follows the box as it continues, so a later chase can take it. A box with no hits simply leaves the line out."
-  ]
-},
-{
-  "version": "0.77.49",
-  "date": "2026-11-13",
-  "title": "What a hit is worth",
-  "features": [
-    "A box rip's summary now shows AVG PER HIT: the mean market value of every card marked HIT across the wrappers opened so far. A big chase raises the number; bulk cards do not dilute it because only hit cards are counted.",
-    "The tile updates with each pack and after a skip to the end. A box with no hits shows a dash rather than dividing by zero."
-  ]
-},
-{
-  "version": "0.77.48",
-  "date": "2026-11-13",
-  "title": "The box score",
-  "features": [
-    "A box rip's summary now carries a BOX HITS total beside cards pulled and value. It counts every card marked HIT across every wrapper opened so far in the box, not just the pack whose page is on screen.",
-    "The count stays visible at 0 on a quiet box and updates as the box continues, including after a skip to the end."
-  ]
-},
-{
-  "version": "0.77.47",
-  "date": "2026-11-13",
-  "title": "The whole page at once",
-  "features": [
-    "The combined box summary now has Expand all and Collapse all controls for the packs on the current page. Expand all opens every wrapper together so their card grids and hit counts can be compared without opening each one by one; Collapse all folds the page back to its pack tags.",
-    "Each page keeps its own state, and the controls only act on the page in front of you. Individual pack tags still toggle, and returning to a page restores whatever was open there."
-  ]
-},
-{
-  "version": "0.77.46",
-  "date": "2026-11-13",
-  "title": "The page remembers",
-  "features": [
-    "The box summary now remembers which wrapper you had expanded on each page. Paging forward and back returns to that pack instead of collapsing the page back to its first wrapper.",
-    "The memory clears when a new rip or skip begins, so a fresh summary still opens at its first pack."
-  ]
-},
-{
-  "version": "0.77.45",
-  "date": "2026-11-13",
-  "title": "Every wrapper's score",
-  "features": [
-    "The collapsed PACK tag in a box rip now carries that wrapper's hit count beside its card count and total value. A quiet pack reads 0 hits, so the summary does not make every wrapper look the same.",
-    "The count uses the same HIT flag as the cards in the expanded sleeve, so a pack tagged 2 hits holds exactly the two cards marked HIT beneath it."
-  ]
-},
-{
-  "version": "0.77.44",
-  "date": "2026-11-13",
-  "title": "The scorecard at the counter",
-  "features": [
-    "Earlier at the counter now carries a compact tally in its header: how many offers this save claimed and how many it missed. With three past days on screen that is the last nine offers; a newer save with less history only counts the days it actually has.",
-    "The tally uses the same CLAIMED and MISSED flags as the offer rows, so the summary cannot disagree with the history beneath it."
-  ]
-},
-{
-  "version": "0.77.43",
-  "date": "2026-11-13",
-  "title": "The other half of the shelf",
-  "features": [
-    "Booster bundles and 36-pack displays now quote their own TCGplayer listing instead of being priced only from the packs inside. Sixty-six rows gained a quote — twenty-six bundles and forty displays — including Paldea Evolved at $123.74 for the bundle and $464.86 for the display, Team Up at $12,389.94, Sword & Shield at $692.76 and Primal Clash at $4,066.66.",
-    "Each number is the market for that exact listing, read through the mirror on 13 November 2026, and the shelf and till name TCGplayer rather than a model. A six-pack bundle, a 36-pack display and a half display never share a quote: only the product with a published listing gets one.",
-    "The shop now quotes 78 of its 145 bundle and display rows. The remaining 67 are older displays whose TCGplayer listings publish no market at all; they stay modelled from their packs and labelled MODEL rather than borrowing a price to fill the gap."
-  ]
-},
-{
-  "version": "0.77.42",
-  "date": "2026-11-13",
-  "title": "The last unpriced boxes",
-  "features": [
-    "Six early Elite Trainer Boxes now carry a PriceCharting sold-price value: Plasma Storm $16,225.09, Plasma Blast $7,193.29, Furious Fists $4,750.00, Phantom Forces $5,873.07, Ancient Origins $3,751.45 and Fates Collide $1,149.24.",
-    "The two XY base-set arts are priced separately rather than sharing one quote: Xerneas $4,320.61 and Yveltal $4,558.22.",
-    "Every one of these is labelled PriceCharting and dated 13 November 2026 in the shop and product note. None is presented as a TCGplayer market, and the old pack-content model is no longer used for these boxes."
-  ]
-},
+    {
+      "version": "0.83.0",
+      "date": "2026-11-22",
+      "title": "Real prices, a real course, real offers",
+      "features": [
+        "A game day now runs 2 real hours instead of 12 — twelve game-days per real day — so shop rent and payroll, loan interest, condition wear, the disaster roll and save snapshots all land on that beat. The header clock sells a flat $25 day pass to skip the wait, priced per hour of waiting whatever the pace; a reset puts the clock back on real time instead of keeping the lead a pass bought.",
+        "Trading takes bundles. An offer stacks up to 12 of your cards, traders can ask for up to three of yours at once, and every offer is capped by what that trader can actually put up — their cards plus a slice of their wallet — so nobody offers what they cannot pay.",
+        "Binders are objects now: a board with a hinged spine in your accent colour, a paper title label, the page block on the right edge and a peek window with the monster ball drawn where it belongs. Empty pockets look like pockets — dark, translucent and dashed — and the close-up cover actually shows its ball.",
+        "The Pack Shop's till reads properly: the pay button says PURCHASE, it sits at the top of the till under the price it charges, a box's promos are listed rather than only named, and an 'I can afford' filter beside the aisle chips keeps the shelf to what your cash covers.",
+        "Sealed stock shows its wrapper — Inventory → Sealed draws the same pack art the shop shelf uses beside every product, and the loan desk shows the picture of the box sitting in its vault. The pack you tear is now exactly the size and shape of the card inside, so a rip no longer snaps from a tall booster into a wider card.",
+        "In-print sealed sells at real market prices: every 30th Celebration product and every other in-print pack and blister is priced from TCGplayer's market for that exact listing read on 13 November 2026, and the last three modelled products moved onto real listings too. Honestly: it is one dated snapshot, not a live feed, and a listing with no price read that day keeps its researched number.",
+        "A 30th Celebration pack is six cards again — a couple of commons, a flex slot, the rare-or-better card and a guaranteed Pikachu illustration rare — matching what the real wrapper holds.",
+        "Delta Reign's Legendary Stadiums come as a matched pair, both halves or neither and never a lone half, at about one pack in twelve instead of the two-in-three the six halves used to manage.",
+        "Selling tells the truth. A raw card with no sleeve sells 6% under the sleeved price at the buylist and at every counter that names its own number; a deal claimed on a skipped day pays its own resale margin (the discount minus the desk's 10%); and when an NPC buyer takes a card you listed, the header bell badges it with the card and the price instead of leaving it to the activity feed.",
+        "There is a new 🎓 Academy in the sidebar: an optional ten-chapter course covering every system in the game — the economy and the day clock, packs and pull odds, condition and grading, buying, selling, storage, the collection, events, the shop business and the audience layer including counterfeits. It pays $25 a chapter and a $50 graduation bonus, $300 for the whole course, which is deliberately under the $400 Resale Desk and $500 Card Shop gates so the course can never buy you a business. The reading is free to repeat; the rewards are paid once.",
+        "Foils lost their boxes. Illustration Rares, Special Illustration Rares, ultra rares and gold hyper rares are foiled across the whole face instead of wearing a rectangle inset from the card edge, and every foil's boundary now fades in over a few pixels instead of switching on in one — so a holo window no longer draws a tinted line around the artwork. The whole-face geometry and the soft edge are modelled from the scans rather than stated by a source, and a card whose set carries its own researched printing record keeps that record's foil area.",
+        "The notification bell keeps its own row: the brand and the bell stay put while only the link list scrolls beneath them, and the panel opens under the bell, follows it, stays inside the window and closes on a click outside it or Escape.",
+        "A rip finally celebrates: opening a pack from Inventory → Sealed — or picking a half-finished box back up after a reload — now records the pull and plays the new-best-pull moment the pack shop already played.",
+        "Housekeeping: the welcome tour describes the game as it is (buy a pack sealed, then open it from Inventory), and the app checks its GitHub release page when it opens and every half hour after that, so a new release announces itself instead of waiting for you to find a setup."
+      ]
+    },
+    {
+      "version": "0.77.66",
+      "date": "2026-11-21",
+      "title": "The gold-label lab",
+      "features": [
+        "CGC Cards Grading joins PSA and Beckett BGS at the lab: $20 a card, a 6–10 game-day turnaround, and its own CGC 10 Gem Mint, Mint 9 and NM-MT 8 slabs. CGC costs more than PSA Standard and takes longer, but it buys a different grade scale and its own comps.",
+        "The top of that scale is the CGC Pristine 10. It is no longer a flat 2% of gems: Pristine needs near-50/50 centering, clean edges and sharp corners, so a gem-grade copy with a real flaw stays Gem Mint while a flawless copy has a real gold-label path. Inspect before submitting — the copy's hidden traits are the odds. Pristine renders with CGC's gold label and is a real rung in the price ladder and Best chase maths: an exact CGC Pristine eBay comp is used when one exists, otherwise the value is a disclosed 1.45× estimate off the CGC 10 quote because PriceCharting has no Pristine column.",
+        "Grading candidates and CardDetail's Best chase now show CGC's Pristine chance beside the gem chance after you inspect a copy; before that they say to inspect rather than leaking the hidden gate. A clean copy's gold-label edge is visible before you pay the fee, and an uninspected copy only promises Gem Mint.",
+        "CardDetail's Slab Certifier and comp ladder now show that actual Pristine value instead of quietly dropping to the CGC 10 price. When the rung is an estimate, the ladder marks it GAME ESTIMATE and says it is 1.45× the CGC 10 quote with no published Pristine comp."
+      ]
+    },
+    {
+      "version": "0.77.65",
+      "date": "2026-11-19",
+      "title": "The shelf first, the maths after",
+      "features": [
+        "The Pack Shop now paints its 532-product shelf first and loads each product's price, typical return, chase maths, Sequin odds and pack contents only when that product is selected or scrolls into view. The shelf opens in newest-set order; choosing an EV or price sort weighs the shown products on demand and says so while it works."
+      ]
+    },
+    {
+      "version": "0.77.64",
+      "date": "2026-11-19",
+      "title": "The shelf checks before it repeats",
+      "features": [
+        "The Pack Shop no longer reuses a shelf response just because it is less than 20 seconds old. It now reuses one only while card and sealed prices, the catalogue, today's daily-deal claims and the save itself are unchanged — so a sync, a purchase that claims a deal, a snapshot restore or a save reset appears the next time you open the Shop."
+      ]
+    },
+    {
+      "version": "0.77.63",
+      "date": "2026-11-19",
+      "title": "Fresh estimates after every price move",
+      "features": [
+        "Pack, sealed and General Mills mini-pack estimates now refresh whenever a card price or the catalogue changes. A sync, a simulated-market roll or a pull-table rebuild can no longer leave the Pack Shop showing an old expected value, and its cached shelf response is cleared on the same signal."
+      ]
+    },
+    {
+      "version": "0.77.62",
+      "date": "2026-11-18",
+      "title": "Ring up, not rip",
+      "features": [
+        "The Pack Shop till now says RING UP instead of promising a rip. The purchase has always delivered the product sealed, and it still does: after you pay, open it whenever you like from Inventory → Sealed."
+      ]
+    },
+    {
+      "version": "0.77.61",
+      "date": "2026-11-18",
+      "title": "Faster shelves, faster badges",
+      "features": [
+        "The Achievements screen now computes set completion in one catalogue pass instead of re-scanning every card for every set. The badge wall's progress checks share that pass and the held-card valuation, so it opens in a fraction of the time and no longer blocks the rest of the dashboard.",
+        "The Pack Shop's first load now reads every pack card's TCGplayer price in one batch, then reuses each card's value across the pack estimate, sealed estimate and shelf price. The first build is several times faster, and the shelf response is reused briefly so returning to the Shop is immediate."
+      ]
+    },
+    {
+      "version": "0.77.60",
+      "date": "2026-11-16",
+      "title": "Sold, asking, estimated",
+      "features": [
+        "BGS 10 Black Label prices no longer treat every source as a sold quote. PriceCharting can publish a BGS 10 Black value without any Black Label sales, so the reveal and certifier label that number a PriceCharting estimate. An exact eBay Black Label comp is labelled ASKING because it comes from active listings, not completed sales. Only a sale-backed quote is labelled sold.",
+        "The activity feed and the slab certifier now use the same three labels. The BGS 10 × 1.6 fallback is explicitly a game estimate, and the grade ladder shows each rung's source and basis, so a thin or asking-price comp is visible instead of looking like a completed sale."
+      ]
+    },
+    {
+      "version": "0.77.59",
+      "date": "2026-11-16",
+      "title": "Black labels, real quotes",
+      "features": [
+        "BGS 10 Black Label slabs now read PriceCharting's BGS 10 Black column. When that column has a value for the exact grade, the reveal and activity feed use it instead of a 1.6× multiplier; PriceCharting can publish it without a Black Label sale, so it is not treated as a sold quote.",
+        "If PriceCharting has no Black Label price, the game checks exact-title eBay Black Label listings, which are active asking prices rather than completed sales. Ordinary BGS 10 comps no longer include Black Label listings. The estimated fallback only appears when neither external value exists."
+      ]
+    },
+    {
+      "version": "0.77.58",
+      "date": "2026-11-16",
+      "title": "A premium, not a quote",
+      "features": [
+        "A BGS 10 Black Label reveal and its activity line now mark a derived value ESTIMATED. When the figure is 1.6× the BGS 10 quote, the game no longer presents that derived number as a live quote even when the BGS 10 base is live.",
+        "The slab certifier still falls back to the published BGS 10 comp and says when it is doing so."
+      ]
+    },
+    {
+      "version": "0.77.57",
+      "date": "2026-11-16",
+      "title": "Black labels, sealed boxes",
+      "features": [
+        "Beckett Grading (BGS) is now a fourth grading service. It costs $60 a card, accepts raw cards worth $50 or more, and returns a BGS slab in 2–4 game-days. It is the only route to a BGS 10 Black Label: a 10 with four perfect subgrades, far rarer than a gem mint and valued above a BGS 10.",
+        "The Pack Shop no longer has a buy-and-rip shortcut. Every purchase now lands sealed in Inventory → Sealed, and opening it is a separate choice you make there. The Pack Opening buy list buys sealed too, instead of ripping the product immediately.",
+        "The sealed desk itself is unchanged: fresh and worn condition, selling, re-wrapping and the loan desk all still work as before."
+      ]
+    },
+    {
+      "version": "0.77.56",
+      "date": "2026-11-15",
+      "title": "The handoff holds",
+      "features": [
+        "The in-place updater now hands the installer to a one-time Windows scheduled task instead of a child of the closing game. The helper survives the window shutting down and runs the setup reliably.",
+        "The helper script and its log now live in TCG Life's own app-data folder, so a shell with a non-Windows TEMP path can no longer break the handoff.",
+        "This is a maintenance build for the update path; no gameplay, card data or economy rules changed."
+      ]
+    },
+    {
+      "version": "0.77.55",
+      "date": "2026-11-15",
+      "title": "The loop closes",
+      "features": [
+        "This is a maintenance build for the in-place updater: it verifies that a newer setup downloaded to Downloads can replace an installed copy, leave the save untouched, reopen the game automatically and land on What's New.",
+        "No gameplay, card data or economy rules changed in this build."
+      ]
+    },
+    {
+      "version": "0.77.54",
+      "date": "2026-11-15",
+      "title": "Updates that install themselves",
+      "features": [
+        "Installed copies now look for a newer TCG Life setup file in Downloads, Desktop and OneDrive Desktop when the game opens. No rerunning the installer by hand.",
+        "When a newer setup is found, the game shows its version and an Update now button. The game closes, runs the setup silently in place, and opens again automatically; your save, collection and settings are untouched.",
+        "The first launch after an update opens What's New by itself, so the changes in that version are the first thing you see.",
+        "If the update cannot be installed, the game reopens the version you already have instead of leaving you with no game."
+      ]
+    },
+    {
+      "version": "0.77.53",
+      "date": "2026-11-13",
+      "title": "Both paces",
+      "features": [
+        "Pack reveals now have a Manual reveal / Auto reveal switch beside the speed controls. Manual, the default, waits after each card for a swipe or click; Auto schedules the next card after the usual beat.",
+        "The choice carries across the packs in a session, so a whole box can be read by hand or run hands-off. Skip animation and Reveal all still work in either mode."
+      ]
+    },
+    {
+      "version": "0.77.52",
+      "date": "2026-11-13",
+      "title": "At your own pace",
+      "features": [
+        "Cards no longer advance on a timer. Once a card lands, it waits for a sideways swipe (or a click) before the next card comes out, so a pack is read at the player's pace instead of presenting the whole stack.",
+        "The card flip itself still runs automatically, and Skip animation and Reveal all still work when you want them. Swipe anywhere on the reveal stage; the hint under the card tells you when the next one is waiting."
+      ]
+    },
+    {
+      "version": "0.77.51",
+      "date": "2026-11-13",
+      "title": "The best wrapper",
+      "features": [
+        "A box rip's summary header now carries a BEST PACK total: the highest market value of any single wrapper opened so far, beside box hits and average per hit.",
+        "It updates with each pack and after a skip to the end, and it measures one wrapper's total rather than the whole box."
+      ]
+    },
+    {
+      "version": "0.77.50",
+      "date": "2026-11-13",
+      "title": "The best of the box",
+      "features": [
+        "A box rip's summary header now names its best hit: the highest-value card marked HIT across the wrappers opened so far, with its set and market value.",
+        "The line follows the box as it continues, so a later chase can take it. A box with no hits simply leaves the line out."
+      ]
+    },
+    {
+      "version": "0.77.49",
+      "date": "2026-11-13",
+      "title": "What a hit is worth",
+      "features": [
+        "A box rip's summary now shows AVG PER HIT: the mean market value of every card marked HIT across the wrappers opened so far. A big chase raises the number; bulk cards do not dilute it because only hit cards are counted.",
+        "The tile updates with each pack and after a skip to the end. A box with no hits shows a dash rather than dividing by zero."
+      ]
+    },
+    {
+      "version": "0.77.48",
+      "date": "2026-11-13",
+      "title": "The box score",
+      "features": [
+        "A box rip's summary now carries a BOX HITS total beside cards pulled and value. It counts every card marked HIT across every wrapper opened so far in the box, not just the pack whose page is on screen.",
+        "The count stays visible at 0 on a quiet box and updates as the box continues, including after a skip to the end."
+      ]
+    },
+    {
+      "version": "0.77.47",
+      "date": "2026-11-13",
+      "title": "The whole page at once",
+      "features": [
+        "The combined box summary now has Expand all and Collapse all controls for the packs on the current page. Expand all opens every wrapper together so their card grids and hit counts can be compared without opening each one by one; Collapse all folds the page back to its pack tags.",
+        "Each page keeps its own state, and the controls only act on the page in front of you. Individual pack tags still toggle, and returning to a page restores whatever was open there."
+      ]
+    },
+    {
+      "version": "0.77.46",
+      "date": "2026-11-13",
+      "title": "The page remembers",
+      "features": [
+        "The box summary now remembers which wrapper you had expanded on each page. Paging forward and back returns to that pack instead of collapsing the page back to its first wrapper.",
+        "The memory clears when a new rip or skip begins, so a fresh summary still opens at its first pack."
+      ]
+    },
+    {
+      "version": "0.77.45",
+      "date": "2026-11-13",
+      "title": "Every wrapper's score",
+      "features": [
+        "The collapsed PACK tag in a box rip now carries that wrapper's hit count beside its card count and total value. A quiet pack reads 0 hits, so the summary does not make every wrapper look the same.",
+        "The count uses the same HIT flag as the cards in the expanded sleeve, so a pack tagged 2 hits holds exactly the two cards marked HIT beneath it."
+      ]
+    },
+    {
+      "version": "0.77.44",
+      "date": "2026-11-13",
+      "title": "The scorecard at the counter",
+      "features": [
+        "Earlier at the counter now carries a compact tally in its header: how many offers this save claimed and how many it missed. With three past days on screen that is the last nine offers; a newer save with less history only counts the days it actually has.",
+        "The tally uses the same CLAIMED and MISSED flags as the offer rows, so the summary cannot disagree with the history beneath it."
+      ]
+    },
+    {
+      "version": "0.77.43",
+      "date": "2026-11-13",
+      "title": "The other half of the shelf",
+      "features": [
+        "Booster bundles and 36-pack displays now quote their own TCGplayer listing instead of being priced only from the packs inside. Sixty-six rows gained a quote — twenty-six bundles and forty displays — including Paldea Evolved at $123.74 for the bundle and $464.86 for the display, Team Up at $12,389.94, Sword & Shield at $692.76 and Primal Clash at $4,066.66.",
+        "Each number is the market for that exact listing, read through the mirror on 13 November 2026, and the shelf and till name TCGplayer rather than a model. A six-pack bundle, a 36-pack display and a half display never share a quote: only the product with a published listing gets one.",
+        "The shop now quotes 78 of its 145 bundle and display rows. The remaining 67 are older displays whose TCGplayer listings publish no market at all; they stay modelled from their packs and labelled MODEL rather than borrowing a price to fill the gap."
+      ]
+    },
+    {
+      "version": "0.77.42",
+      "date": "2026-11-13",
+      "title": "The last unpriced boxes",
+      "features": [
+        "Six early Elite Trainer Boxes now carry a PriceCharting sold-price value: Plasma Storm $16,225.09, Plasma Blast $7,193.29, Furious Fists $4,750.00, Phantom Forces $5,873.07, Ancient Origins $3,751.45 and Fates Collide $1,149.24.",
+        "The two XY base-set arts are priced separately rather than sharing one quote: Xerneas $4,320.61 and Yveltal $4,558.22.",
+        "Every one of these is labelled PriceCharting and dated 13 November 2026 in the shop and product note. None is presented as a TCGplayer market, and the old pack-content model is no longer used for these boxes."
+      ]
+    },
     {
       "version": "0.77.41",
       "date": "2026-11-13",

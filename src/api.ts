@@ -123,12 +123,18 @@ export const api = {
 
   pulls: () => req<import('./types').PullRow[]>('/api/pulls'),
   pullsSummary: () => req<{ sessions: { session_id: string; total_value: number; card_count: number; opened_at: string; hits: number }[]; sealedInStock: SealedStockRow[] }>('/api/pulls/summary'),
-  pullsBest: () => req<{ cardId: string | null; value: number; name?: string; image?: string | null; setName?: string; rarity?: string | null; isHit?: boolean; openedAt?: string; bestPackTotal?: number }>('/api/pulls/best'),
+  /** The all-time record. Pass the session being revealed when the server
+   *  already ripped it (Inventory → Sealed, a resumed box) to get the record
+   *  as it stood before that rip, not one that includes it. */
+  pullsBest: (excludeSession?: string) => req<{ cardId: string | null; value: number; name?: string; image?: string | null; setName?: string; rarity?: string | null; isHit?: boolean; openedAt?: string; bestPackTotal?: number }>(
+    `/api/pulls/best${excludeSession ? `?exclude=${encodeURIComponent(excludeSession)}` : ''}`,
+  ),
 
   binders: () => req<BinderSummary[]>('/api/binders'),
   binderDetail: (id: number) => req<BinderDetail>(`/api/binders/${id}`),
-  createBinder: (name: string, accent: string) => post<BinderSummary>('/api/binders', { name, accent }),
-  updateBinder: (id: number, p: { name?: string; accent?: string }) => patch<{ ok: boolean }>(`/api/binders/${id}`, p),
+  binderCovers: () => req<{ covers: BinderCover[]; slotted: number }>('/api/binders/covers'),
+  createBinder: (name: string, accent: string, cover?: string) => post<BinderSummary>('/api/binders', { name, accent, cover }),
+  updateBinder: (id: number, p: { name?: string; accent?: string; cover?: string }) => patch<{ ok: boolean }>(`/api/binders/${id}`, p),
   deleteBinder: (id: number) => del<{ ok: boolean }>(`/api/binders/${id}`),
   binderPlace: (id: number, inventoryId: number, page?: number, slot?: number) =>
     post<{ ok: boolean; page: number; slot: number }>(`/api/binders/${id}/place`, { inventoryId, page, slot }),
@@ -264,6 +270,9 @@ export const api = {
   pnl: () => req<PnlResponse>('/api/shop/pnl'),
   shopStats: () => req<ShopStatsResponse>('/api/shop/stats'),
   today: () => req<TodayResponse>('/api/today'),
+  /** Pay the day pass to skip the wait to the next game-day; the server moves the clock. */
+  skipDay: () =>
+    post<{ ok: true; fee: number; cash: number; day: { number: number; resetsAt: string }; message: string }>('/api/day/skip'),
   finance: () => req<FinanceStatus>('/api/finance'),
   financeBorrow: (amount: number) => post<{ ok: boolean; amount?: number; lender?: string; rateDaily?: number; error?: string }>('/api/finance/borrow', { amount }),
   financeRepay: (loanId: number, amount?: number) => post<{ ok: boolean; paid?: number; remaining?: number; cleared?: boolean; error?: string }>('/api/finance/repay', { loanId, amount }),
@@ -423,8 +432,9 @@ export const api = {
   auctionConsign: (inventoryId: number) =>
     post<{ ok: boolean; open?: number; message?: string; error?: string }>('/api/auctions/consign', { inventoryId }),
   tradeHistory: () => req<TradeHistoryRow[]>('/api/trades/history'),
-  tradePropose: (traderId: number, inventoryId: number, cash: number) =>
-    post<TradeReply>('/api/trade/propose', { traderId, inventoryId, cash }),
+  /** One card or a bundle — the trader values every card you put up as one offer. */
+  tradePropose: (traderId: number, inventoryIds: number[], cash: number) =>
+    post<TradeReply>('/api/trade/propose', { traderId, inventoryIds, cash }),
   tradeAcceptIncoming: (id: number) => post<TradeReply>(`/api/trade/accept-incoming/${id}`),
   tradeRejectIncoming: (id: number) => post<{ ok: boolean; improved?: boolean; bump?: number }>(`/api/trade/reject-incoming/${id}`),
   tradeAcceptCounter: (id: number) => post<TradeReply>(`/api/trade/accept-counter/${id}`),
@@ -444,7 +454,7 @@ export const api = {
   ebayWatch: (cardId: string, maxPrice?: number | null) => post<{ ok: boolean; error?: string }>('/api/ebay/watch', { card_id: cardId, max_price: maxPrice ?? null }),
   ebayUnwatch: (cardId: string) => post<{ ok: boolean }>(`/api/ebay/unwatch/${encodeURIComponent(cardId)}`),
 
-  setDayLength: (hours: 12 | 24) => post<{ ok: boolean; hours: number }>('/api/settings/day-length', { hours }),
+  setDayLength: (hours: 2 | 12 | 24) => post<{ ok: boolean; hours: number }>('/api/settings/day-length', { hours }),
   settings: () =>
     req<{
       apiKeySet: boolean
@@ -486,6 +496,11 @@ export const api = {
 
   tutorialDone: () => post<{ ok: boolean }>('/api/tutorials/start/done'),
   tutorialReplay: () => post<{ ok: boolean }>('/api/tutorials/start/replay'),
+  /** The optional Collector's Academy — chapters, progress and the one-time pay. */
+  academy: () => req<import('./types').AcademyState>('/api/academy'),
+  academyChapter: (id: string) =>
+    post<{ ok: boolean; awarded: number; state: import('./types').AcademyState }>('/api/academy/chapter', { id }),
+  academyReset: () => post<{ ok: boolean; state: import('./types').AcademyState }>('/api/academy/reset'),
   syncProgress: () => req<import('./types').GameStateResponse['sync']>('/api/sync/progress'),
 
   changelog: () => req<ChangelogResponse>('/api/changelog'),
@@ -497,6 +512,7 @@ export const api = {
   updateCheck: () => req<UpdateStatus>('/api/update'),
   updateApply: (version: string) => post<{ ok: boolean; version?: string; installerName?: string; error?: string }>('/api/update/apply', { version }),
   updateSeen: () => post<{ ok: boolean }>('/api/update/seen'),
+  updateOpenRelease: (url?: string) => post<{ ok: boolean; url?: string }>('/api/update/open-release', { url }),
 
   shipments: () => req<ShipmentsSection>('/api/shipments'),
   shipOrder: (kind: string, id: number, method: string, pack: string, photos: boolean) =>
@@ -514,6 +530,11 @@ export type UpdateStatus = {
   installerName?: string
   size?: number
   justUpdated: { from: string; to: string; at: string } | null
+  /** False for a portable folder: it is told about a release, not offered an install. */
+  canSelfUpdate: boolean
+  /** The release page the offered build came from, when it knows one. */
+  pageUrl?: string
+  source?: 'github' | 'downloads'
 }
 
 // ------------------------------------------------------------- Quota / simulated market
@@ -760,6 +781,11 @@ export type SealedStockRow = {
   basis: number
   unrealized: number
   packs?: number
+  /** Wrapper art, then the set logo and symbol — the same fallback ladder the
+   *  Pack Shop shelf uses, so a box looks the same in both places. */
+  image_url?: string | null
+  set_logo?: string | null
+  set_symbol?: string | null
   /** Futures desk: fresh/worn unit split and escrowed (vault) count. */
   freshQty?: number
   wornQty?: number
@@ -821,7 +847,10 @@ export type SealedFuturesSection = {
   history: SealedLoanRow[]
 }
 
-export type BinderSummary = { id: number; name: string; accent: string; created_at: string; cardCount: number; value: number }
+export type BinderSummary = { id: number; name: string; accent: string; cover: string; created_at: string; cardCount: number; value: number }
+
+/** Cover stock, from the server's own catalogue (server/services/binders.ts). */
+export type BinderCover = { id: string; label: string; blurb: string; unlockAt: number; special: boolean }
 
 export type BinderSlot = {
   page: number
@@ -2622,6 +2651,8 @@ export type FlipStock = {
     costBasis: number
     market: number
     offer: number
+    /** Raw and unprotected — the dealer pays under a sleeved copy. */
+    bare?: boolean
     marginPct: number
     heldSince: string
   }[]

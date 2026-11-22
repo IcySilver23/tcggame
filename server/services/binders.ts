@@ -3,7 +3,35 @@ import { valueOf, type Condition } from './market'
 
 export const SLOTS_PER_PAGE = 9 // 3×3 pockets
 
-export type Binder = { id: number; name: string; accent: string; created_at: string }
+export type Binder = { id: number; name: string; accent: string; cover: string; created_at: string }
+
+export type BinderCover = { id: string; label: string; blurb: string; unlockAt: number; special: boolean }
+
+/**
+ * Cover stock. It is not sold anywhere: a cover is EARNED by filling binders,
+ * so collecting is what unlocks the shelf rather than cash. `unlockAt` counts
+ * cards slotted across every binder, and the server enforces it — the greyed-out
+ * chips in the UI are the same rule, not the rule itself.
+ */
+export const BINDER_COVERS: BinderCover[] = [
+  { id: 'vinyl', label: 'Black vinyl', blurb: 'The plain black binder every collection starts in.', unlockAt: 0, special: false },
+  { id: 'canvas', label: 'Grey canvas', blurb: 'Stitched bookcloth — matte, no shine at all.', unlockAt: 0, special: false },
+  { id: 'leather', label: 'Saddle leather', blurb: 'Brown leather with a gilt border and a real hinge.', unlockAt: 12, special: false },
+  { id: 'holo', label: 'Galaxy holo', blurb: 'Foil stock that shifts as the light crosses it.', unlockAt: 36, special: true },
+  { id: 'gold', label: 'Gold stamp', blurb: 'Gold leaf on black cloth and a blind-embossed frame.', unlockAt: 72, special: true },
+  { id: 'monster', label: 'Monster ball', blurb: 'Red and white, stadium issue, 1999 on the spine.', unlockAt: 150, special: true },
+]
+
+const COVER_IDS = new Set(BINDER_COVERS.map((c) => c.id))
+
+/** Cards slotted across every binder — what a cover is earned with. */
+export function slottedTotal(): number {
+  return (db.prepare('SELECT COUNT(*) AS n FROM binder_slots').get() as { n: number }).n
+}
+
+function coverDef(id: string): BinderCover | undefined {
+  return BINDER_COVERS.find((c) => c.id === id)
+}
 
 export type BinderSlotRow = {
   page: number
@@ -52,14 +80,34 @@ export function listBinders() {
   return binders.map((b) => ({ ...b, cardCount: countMap.get(b.id) ?? 0, value: Math.round((valueMap.get(b.id) ?? 0) * 100) / 100 }))
 }
 
-export function createBinder(name: string, accent = 'yellow'): Binder {
-  const res = db.prepare('INSERT INTO binders (name, accent, created_at) VALUES (?, ?, ?)').run(name.trim() || 'New Binder', accent, nowIso())
+export function createBinder(name: string, accent = 'yellow', cover = 'vinyl'): Binder {
+  const def = coverDef(cover)
+  if (!def) throw new Error('Unknown cover')
+  if (slottedTotal() < def.unlockAt) {
+    throw new Error(`${def.label} unlocks at ${def.unlockAt} cards in binders — you have ${slottedTotal()}.`)
+  }
+  const res = db
+    .prepare('INSERT INTO binders (name, accent, cover, created_at) VALUES (?, ?, ?, ?)')
+    .run(name.trim() || 'New Binder', accent, def.id, nowIso())
   return db.prepare('SELECT * FROM binders WHERE id = ?').get(res.lastInsertRowid) as Binder
 }
 
-export function updateBinder(id: number, patch: { name?: string; accent?: string }) {
+export function updateBinder(
+  id: number,
+  patch: { name?: string; accent?: string; cover?: string },
+): { ok: boolean; error?: string } {
+  if (patch.cover !== undefined && !COVER_IDS.has(patch.cover)) return { ok: false, error: 'Unknown cover' }
+  if (patch.cover !== undefined) {
+    const def = coverDef(patch.cover)!
+    const slotted = slottedTotal()
+    if (slotted < def.unlockAt) {
+      return { ok: false, error: `${def.label} unlocks at ${def.unlockAt} cards in binders — you have ${slotted}.` }
+    }
+  }
   if (patch.name !== undefined) db.prepare('UPDATE binders SET name = ? WHERE id = ?').run(patch.name.trim() || 'Binder', id)
   if (patch.accent !== undefined) db.prepare('UPDATE binders SET accent = ? WHERE id = ?').run(patch.accent, id)
+  if (patch.cover !== undefined) db.prepare('UPDATE binders SET cover = ? WHERE id = ?').run(patch.cover, id)
+  return { ok: true }
 }
 
 export function deleteBinder(id: number) {

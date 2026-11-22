@@ -340,10 +340,18 @@ function fittingLineup(traderId: number, arch: Archetype, traits: { scrutiny: nu
   return lineup
 }
 
-/** Propose a trade: you give one collection card (+ optional cash top-up), they give cards/cash. */
+/** One of your collection rows, as the trade screens read it. */
+type MineRow = { id: number; card_id: string; condition: string; variant: string; quantity: number; graded_grade: string | null; name: string; image_small: string | null }
+/** How many of your cards one offer may hold. */
+export const MAX_OFFER_CARDS = 12
+
+/** Propose a trade: you give one or more collection cards (+ optional cash
+ *  top-up), they give cards/cash. A bundle is valued as ONE offer on both
+ *  sides — the trader's lineup is fitted to the bundle's real worth and the
+ *  fairness floor compares the whole thing, not the best card in it. */
 export function proposeTrade(
   traderId: number,
-  inventoryId: number,
+  inventoryIds: number[],
   yourCashOffer: number,
 ): { ok: boolean; reply: string; accepted?: boolean; offer?: Record<string, unknown>; error?: string } {
   ensureTraders()
@@ -354,17 +362,31 @@ export function proposeTrade(
   const arch = ARCHETYPES.find((a) => a.id === trader.archetype) ?? ARCHETYPES[0]
   const traits = JSON.parse(trader.traits) as { patience: number; scrutiny: number; cashFlex: number; heat: number }
 
+  const ids = [...new Set((inventoryIds ?? []).map(Number).filter((n) => Number.isFinite(n) && n > 0))]
+  if (ids.length === 0) return { ok: false, reply: '', error: 'Pick at least one card to offer' }
+  if (ids.length > MAX_OFFER_CARDS) {
+    return { ok: false, reply: '', error: `One offer holds up to ${MAX_OFFER_CARDS} of your cards — split it into two trades` }
+  }
   const mine = db
-    .prepare(`SELECT i.*, c.name, c.image_small FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.id = ? AND i.status = 'collection'`)
-    .get(inventoryId) as { id: number; card_id: string; condition: string; variant: string; quantity: number; graded_grade: string | null; name: string; image_small: string | null } | undefined
-  if (!mine) return { ok: false, reply: '', error: 'That card is not available to trade' }
-  const onBlock = db.prepare(`SELECT COUNT(*) AS n FROM ebay_auctions WHERE inventory_id = ? AND status = 'live'`).get(inventoryId) as { n: number }
-  if (onBlock.n > 0) return { ok: false, reply: '', error: 'That card is on the BidBay auction block — traders respect a live hammer' }
-  if (mine.quantity > 1) return { ok: false, reply: '', error: 'Trade one copy at a time' }
-  if (mine.graded_grade) return { ok: false, reply: '', error: 'Graded slabs do not trade — sell them instead' }
+    .prepare(`SELECT i.*, c.name, c.image_small FROM inventory i JOIN cards c ON c.id = i.card_id
+              WHERE i.status = 'collection' AND i.id IN (${ids.map(() => '?').join(',')})`)
+    .all(...ids) as MineRow[]
+  if (mine.length !== ids.length) return { ok: false, reply: '', error: 'One of those cards is not available to trade any more' }
+  const onBlock = db
+    .prepare(`SELECT COUNT(*) AS n FROM ebay_auctions WHERE status = 'live' AND inventory_id IN (${ids.map(() => '?').join(',')})`)
+    .get(...ids) as { n: number }
+  if (onBlock.n > 0) return { ok: false, reply: '', error: 'One of those cards is on the BidBay auction block — traders respect a live hammer' }
+  const stacked = mine.find((m) => m.quantity > 1)
+  if (stacked) return { ok: false, reply: '', error: `Trade one copy at a time — ${stacked.name} has more than one in the binder` }
+  const slab = mine.find((m) => m.graded_grade)
+  if (slab) return { ok: false, reply: '', error: `Graded slabs do not trade — sell ${slab.name} instead` }
 
-  const realValue = valueOf(mine.card_id, mine.variant || 'normal', (mine.condition as Condition) || 'NM')
-  if (realValue <= 0) return { ok: false, reply: '', error: 'No market data for that card yet' }
+  const priceOf = (m: MineRow) => valueOf(m.card_id, m.variant || 'normal', (m.condition as Condition) || 'NM')
+  const noData = mine.find((m) => priceOf(m) <= 0)
+  if (noData) return { ok: false, reply: '', error: `No market data for ${noData.name} yet` }
+  const realValue = round2(mine.reduce((a, m) => a + priceOf(m), 0))
+  // Every line of copy names the bundle the way the player sees it.
+  const mineLabel = mine.length === 1 ? mine[0].name : `${mine[0].name} + ${mine.length - 1} more`
 
   // Reputation colors everything: trusted collectors value your cards higher,
   // hostile ones lowball and refuse more often.
@@ -381,7 +403,7 @@ export function proposeTrade(
   // can't even reach 30% of your card's worth is politely declined outright.
   const lineupReal = theirCards.reduce((a, c) => a + valueOf(c.cardId, 'normal', (c.condition as Condition) || 'NM'), 0)
   if (realValue >= 1 && lineupReal < realValue * 0.3) {
-    logActivity('trade', `${trader.name} eyes your ${mine.name}. "That's out of my league — got anything smaller?"`)
+    logActivity('trade', `${trader.name} eyes your ${mineLabel}. "That's out of my league — got anything smaller?"`)
     return { ok: true, reply: `"Whoa — that's out of my league. Bring me something in my range and we'll talk." — ${trader.name}`, accepted: false }
   }
   // Direct execution requires the lineup to be at least 85% of your card's
@@ -393,7 +415,10 @@ export function proposeTrade(
   // Their acceptance math on YOUR side: perceived value of what they receive.
   // 'value' mode on both sides keeps the exchange honest — specialists still
   // overpay for cards they chase, but nobody wins a baked-in discount.
-  const yourPerceived = perceivedValue(traits, arch, mine.card_id, (mine.condition as Condition) || 'NM', repMult, 'value')
+  const yourPerceived = mine.reduce(
+    (a, m) => a + perceivedValue(traits, arch, m.card_id, (m.condition as Condition) || 'NM', repMult, 'value'),
+    0,
+  )
   const theirSide = theirCards.reduce((a, c) => a + c.value, 0)
   const balance = yourPerceived + yourCashOffer - theirSide
 
@@ -403,13 +428,13 @@ export function proposeTrade(
       return counterFrom(trader, theirCards, mine, yourCashOffer)
     }
     if (lineupReal >= realValue * 0.85) {
-      return executeTrade(trader, theirCards, inventoryId, yourCashOffer, 'outgoing')
+      return executeTrade(trader, theirCards, ids, yourCashOffer, 'outgoing')
     }
     return counterFrom(trader, theirCards, mine, yourCashOffer)
   }
   if (balance < -realValue * (0.9 + streak * 0.25)) {
     // Insulting lowball — hard no. A walk-away streak hardens the door.
-    logActivity('trade', `${trader.name} turned you down flat on ${mine.name}.${grudge > 0.4 ? ' "And after how you traded with me? My best stays in the binder."' : ''}`)
+    logActivity('trade', `${trader.name} turned you down flat on ${mineLabel}.${grudge > 0.4 ? ' "And after how you traded with me? My best stays in the binder."' : ''}`)
     return { ok: true, reply: pickHardNo(trader.name, rep, streak), accepted: false }
   }
   return counterFrom(trader, theirCards, mine, yourCashOffer)
@@ -418,7 +443,7 @@ export function proposeTrade(
 function counterFrom(
   trader: { id: number; name: string; archetype: string; cash: number; seed_cash: number; reputation?: number; walked_away?: number },
   theirCards: TheirCard[],
-  mine: { id: number; card_id: string; name: string; image_small: string | null; condition: string; variant: string },
+  mine: MineRow[],
   yourCashOffer: number,
 ) {
   const gap = Math.max(0, theirCards.reduce((a, c) => a + c.value, 0) - yourCashOffer)
@@ -434,7 +459,7 @@ function counterFrom(
   // A strong lineup supports a bigger ask; a weak one forces the trader to
   // bridge the gap in cash (negative ask = their_cash, paid to you) instead of
   // you overpaying.
-  const myReal = valueOf(mine.card_id, mine.variant || 'normal', (mine.condition as Condition) || 'NM')
+  const myReal = round2(mine.reduce((a, m) => a + valueOf(m.card_id, m.variant || 'normal', (m.condition as Condition) || 'NM'), 0))
   const lineupReal = theirCards.reduce((a, c) => a + valueOf(c.cardId, 'normal', (c.condition as Condition) || 'NM'), 0)
   // No minimum-value guard: the cap applies to penny cards too — a $0.76 ask on
   // top of a $0.65 lineup for a $0.44 card is exactly the rip-off it exists to
@@ -451,7 +476,14 @@ function counterFrom(
     direction: 'outgoing',
     theirCards: theirReal,
     theirCash: ask, // cash the TRADER wants FROM you (negative: they chip in)
-    yourItems: [{ inventoryId: mine.id, cardId: mine.card_id, name: mine.name, image: mine.image_small, condition: mine.condition, value: myReal }],
+    yourItems: mine.map((m) => ({
+      inventoryId: m.id,
+      cardId: m.card_id,
+      name: m.name,
+      image: m.image_small,
+      condition: m.condition,
+      value: valueOf(m.card_id, m.variant || 'normal', (m.condition as Condition) || 'NM'),
+    })),
     yourCash: yourCashOffer,
     message: counterMsg(trader.name, ask),
     rounds: 1,
@@ -491,7 +523,7 @@ export function acceptCounter(tradeId: number) {
   if (!trader) return { ok: false, error: 'Trader gone' }
   if (t.direction !== 'outgoing' || !t.your_items) return { ok: false, error: 'Nothing to accept' }
   const yourItems = JSON.parse(t.your_items) as { inventoryId: number }[]
-  if (yourItems.length !== 1) return { ok: false, error: 'Broken thread' }
+  if (yourItems.length === 0) return { ok: false, error: 'Broken thread' }
   const netCash = t.your_cash - t.their_cash // >0: trader pays you; <0: you pay the counter
   if (netCash < 0) {
     const gs = market.getGameState()
@@ -499,7 +531,7 @@ export function acceptCounter(tradeId: number) {
   } else if (trader.cash < netCash) {
     return { ok: false, error: `${trader.name} is out of cash` }
   }
-  return executeTrade(trader, theirCards, yourItems[0].inventoryId, netCash, 'outgoing')
+  return executeTrade(trader, theirCards, yourItems.map((i) => i.inventoryId), netCash, 'outgoing')
 }
 
 export function declineCounter(tradeId: number) {
@@ -527,15 +559,18 @@ function haggleContext(t: { id: number; trader_id: number; direction: 'incoming'
   const trader = db.prepare('SELECT * FROM traders WHERE id = ?').get(t.trader_id) as
     | { id: number; name: string; archetype: string; traits: string; cash: number; reputation?: number }
     | undefined
-  if (!trader || yourItems.length !== 1) return null
+  if (!trader || yourItems.length === 0) return null
   const arch = ARCHETYPES.find((a) => a.id === trader.archetype) ?? ARCHETYPES[0]
   const traits = JSON.parse(trader.traits) as { patience: number; scrutiny: number; cashFlex: number; heat: number }
   const repMult = repValueMult(trader.reputation ?? 0)
   // Their perception of the whole deal — the surplus their opinion leaves on
   // the table is the haggle room. REAL values only set the fairness floor.
-  const perceivedMine = perceivedValue(traits, arch, yourItems[0].cardId, (yourItems[0].condition as Condition) || 'NM', repMult, 'value')
+  const perceivedMine = yourItems.reduce(
+    (a, i) => a + perceivedValue(traits, arch, i.cardId, (i.condition as Condition) || 'NM', repMult, 'value'),
+    0,
+  )
   const perceivedLineup = theirCards.reduce((a, c) => a + perceivedValue(traits, arch, c.cardId, (c.condition as Condition) || 'NM', repMult, 'value'), 0)
-  const myReal = yourItems[0].value
+  const myReal = round2(yourItems.reduce((a, i) => a + i.value, 0))
   const lineupReal = theirCards.reduce((a, c) => a + c.value, 0)
   // Current stance in netToPlayer terms (positive = trader pays you).
   const current = t.direction === 'incoming' ? t.their_cash - t.your_cash : t.your_cash - t.their_cash
@@ -589,7 +624,7 @@ export function offerHaggle(tradeId: number, cashToYou: number): { ok: boolean; 
   // accidentally take less money); counters settle at the offered number.
   if (cashToYou <= current + 0.005) {
     const settle = t.direction === 'incoming' ? current : cashToYou
-    return { ...executeTrade(trader as never, ctx.theirCards, ctx.yourItems[0].inventoryId, settle, t.direction), result: 'accepted' }
+    return { ...executeTrade(trader as never, ctx.theirCards, ctx.yourItems.map((i) => i.inventoryId), settle, t.direction), result: 'accepted' }
   }
   // Otherwise they meet you partway — patience decides how big a step. On
   // incoming threads a concession RAISES their sweetener; on counters it
@@ -616,14 +651,17 @@ export function offerHaggle(tradeId: number, cashToYou: number): { ok: boolean; 
 function executeTrade(
   trader: { id: number; name: string; cash: number; reputation?: number; walked_away?: number; ev_net?: number; trade_count?: number },
   theirCards: TheirCard[],
-  inventoryId: number,
+  inventoryIds: number[],
   cashToMe: number,
   dir: 'incoming' | 'outgoing' = 'incoming',
 ) {
+  const ids = [...new Set((inventoryIds ?? []).map(Number).filter((n) => Number.isFinite(n)))]
+  if (ids.length === 0) return { ok: false, reply: '', error: 'Nothing of yours is on the table' }
   const mine = db
-    .prepare(`SELECT i.*, c.name FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.id = ? AND i.status = 'collection'`)
-    .get(inventoryId) as { id: number; card_id: string; name: string; condition: string } | undefined
-  if (!mine) return { ok: false, reply: '', error: 'Your card changed status — trade aborted' }
+    .prepare(`SELECT i.*, c.name FROM inventory i JOIN cards c ON c.id = i.card_id
+              WHERE i.status = 'collection' AND i.id IN (${ids.map(() => '?').join(',')})`)
+    .all(...ids) as { id: number; card_id: string; name: string; condition: string }[]
+  if (mine.length !== ids.length) return { ok: false, reply: '', error: 'Your card changed status — trade aborted' }
   if (cashToMe > 0 && trader.cash < cashToMe) return { ok: false, reply: '', error: 'Trader is out of cash' }
   // Storage & the vault: a trade is a two-way door — but the incoming side
   // still needs somewhere to live.
@@ -631,9 +669,11 @@ function executeTrade(
   if (!admit.ok) return { ok: false, reply: '', error: admit.error }
 
   const tx = db.transaction(() => {
-    // 1. Your card leaves the collection.
-    db.prepare(`DELETE FROM inventory WHERE id = ?`).run(inventoryId)
-    db.prepare('DELETE FROM binder_slots WHERE inventory_id = ?').run(inventoryId)
+    // 1. Your cards leave the collection (and any binder page they sat on).
+    for (const m of mine) {
+      db.prepare(`DELETE FROM inventory WHERE id = ?`).run(m.id)
+      db.prepare('DELETE FROM binder_slots WHERE inventory_id = ?').run(m.id)
+    }
     // 2. Their cards enter your collection as REAL inventory rows.
     for (const c of theirCards) {
       db.prepare(
@@ -659,12 +699,12 @@ function executeTrade(
     db.prepare(`UPDATE trade_offers SET status = 'accepted' WHERE trader_id = ? AND status = 'pending'`).run(trader.id)
     logActivity(
       'trade',
-      `Traded ${mine.name} to ${trader.name} for ${theirCards.map((c) => c.name).join(' + ')}${cashToMe > 0 ? ` + $${cashToMe.toFixed(2)}` : cashToMe < 0 ? ` (you added $${(-cashToMe).toFixed(2)})` : ''}.`,
+      `Traded ${mine.map((m) => m.name).join(' + ')} to ${trader.name} for ${theirCards.map((c) => c.name).join(' + ')}${cashToMe > 0 ? ` + $${cashToMe.toFixed(2)}` : cashToMe < 0 ? ` (you added $${(-cashToMe).toFixed(2)})` : ''}.`,
     )
   })
   tx()
   const gained = theirCards.reduce((a, c) => a + valueOf(c.cardId, c.variant, (c.condition as Condition) || 'NM'), 0) + Math.max(0, cashToMe)
-  const gave = valueOf(mine.card_id, 'normal', (mine.condition as Condition) || 'NM') + Math.max(0, -cashToMe)
+  const gave = mine.reduce((a, m) => a + valueOf(m.card_id, 'normal', (m.condition as Condition) || 'NM'), 0) + Math.max(0, -cashToMe)
   // Relationship moments: the ledger crossing a threshold is felt.
   const preLedger = { ev_net: trader.ev_net ?? 0, trade_count: trader.trade_count ?? 0 }
   const postLedger = { ev_net: preLedger.ev_net + (gained - gave), trade_count: preLedger.trade_count + 1 }
@@ -741,6 +781,15 @@ function saveThread(o: {
   )
 }
 
+/** The three fields a collection or binder row needs to be priced. */
+type CopyRow = { card_id: string; variant: string; condition: string }
+
+/** How much of what they ask for an incoming offer must actually cover. Below
+ *  this the trader is reaching for a card they cannot pay for, and the offer is
+ *  shrunk (or skipped) rather than sent as a lowball. 0.85 matches the bar a
+ *  proposal needs to execute outright in the other direction. */
+const INCOMING_MIN_COVERAGE = 0.85
+
 function maybeIncomingOffer() {
   // Cap applies to NPC-initiated offers only — your own counter threads don't block them.
   const pending = (db.prepare(`SELECT COUNT(*) AS n FROM trade_offers WHERE status = 'pending' AND direction = 'incoming'`).get() as { n: number }).n
@@ -765,13 +814,13 @@ function maybeIncomingOffer() {
   const generosity = generosityOf(trader)
   const want = db
     .prepare(
-      `SELECT i.id, i.card_id, i.condition, c.name, c.image_small,
+      `SELECT i.id, i.card_id, i.variant, i.condition, c.name, c.image_small,
               (SELECT market FROM price_records pr WHERE pr.card_id = i.card_id AND pr.kind = 'tcgplayer' AND pr.market IS NOT NULL ORDER BY retrieved_at DESC LIMIT 1) AS m
        FROM inventory i JOIN cards c ON c.id = i.card_id
        WHERE i.status = 'collection' AND i.quantity = 1 AND i.graded_grade IS NULL AND i.condition != 'DM'
        ORDER BY RANDOM() LIMIT 60`,
     )
-    .all() as { id: number; card_id: string; condition: string; name: string; image_small: string | null; m: number | null }[]
+    .all() as { id: number; card_id: string; variant: string; condition: string; name: string; image_small: string | null; m: number | null }[]
   if (want.length === 0) return
   const yearOf = (setId: string): number => {
     const row = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(setId) as { release_date: string } | undefined
@@ -785,55 +834,97 @@ function maybeIncomingOffer() {
       return { ...w, score: d * (0.8 + Math.random() * 0.4) }
     })
     .sort((a, b) => b.score - a.score)
-  const target = scored[0]
+  let target = scored[0]
   if (!target) return
   // A walk-away streak dims their interest in your binder — they pick from a
-  // lower-quality slice of your collection.
+  // lower-quality slice of your collection. (This reassigns the target itself:
+  // writing it back into `scored` after `target` was bound did nothing, so the
+  // streak never actually changed who they asked for.)
   if (streak > 0 && scored.length > 2) {
     const dimmed = scored[Math.min(scored.length - 1, Math.floor(Math.random() * 3) + streak)]
-    if (dimmed && Math.random() < 0.5) scored[0] = dimmed
+    if (dimmed && Math.random() < 0.5) target = dimmed
   }
 
-  const realValue = valueOf(target.card_id, 'normal', (target.condition as Condition) || 'NM')
-  // They offer cards they personally value that FIT the target's worth — a real
-  // trader doesn't throw their grail at a $0.13 common.
-  const theirCards = fittingLineup(trader.id, arch, traits, realValue, repValueMult(rep), 'value', grudge, generosity).map((c) => ({
-    ...c,
-    // Offers are presented in REAL market value — what you see is what you
-    // get. The trader's specialist bias decides what they WANT (and how hard
-    // they sweeten), but their opinion of their own cards must not inflate
-    // the sticker on an offer you're about to accept.
-    value: valueOf(c.cardId, 'normal', (c.condition as Condition) || 'NM'),
-  }))
-  if (theirCards.length === 0) return
-  const theirSide = theirCards.reduce((a, c) => a + c.value, 0)
-  // Cash sweetener out of their wallet — partial, and capped well under the
-  // shortfall: traders leave a little on the table in kind, not in cash. The
-  // old top-up-to-95% turned every offer into free value; keep sweeteners as
-  // a nudge toward yes, not a subsidy.
-  let cash = 0
-  if (theirSide < realValue * 0.95 && trader.cash > 20) {
-    cash = Math.min(trader.cash * 0.25, round2((realValue * 0.95 - theirSide) * (0.3 + Math.random() * 0.4)))
-    cash = round2(cash)
+  // What they ask FOR is one card or a bundle of up to three. Most offers still
+  // chase the one card they covet; a trader building a run names two or three,
+  // and the whole bundle is one deal — their lineup is fitted to its total and
+  // every card is named on the offer.
+  // Value the physical copy they want (a reverse holo is not a plain one).
+  const copyValue = (r: CopyRow) => valueOf(r.card_id, r.variant || 'normal', (r.condition as Condition) || 'NM')
+  const bundleValueOf = (items: CopyRow[]) => round2(items.reduce((a, b) => a + copyValue(b), 0))
+  // 45% one card, ~27.5% two, ~27.5% three.
+  const wantCount = Math.random() < 0.45 ? 1 : Math.random() < 0.5 ? 2 : 3
+  const bundle = [target]
+  const scale = Math.max(copyValue(target), 0.25)
+  for (const cand of scored) {
+    if (bundle.length >= wantCount) break
+    if (bundle.some((b) => b.id === cand.id)) continue
+    const v = copyValue(cand)
+    // Nothing dwarfs the card they actually want, and the pile stays within a
+    // small multiple of it.
+    if (v <= 0 || v > scale * 1.5 || bundleValueOf(bundle) + v > scale * 3) continue
+    bundle.push(cand)
   }
-  const total = theirSide + cash
+
+  // Their side of a deal: the lineup that fits a pile's worth, plus a sweetener
+  // out of their wallet. Offers are presented in REAL market value — what you
+  // see is what you get — and the sweetener stays partial and capped well under
+  // the shortfall, because traders leave a little on the table in kind, not in
+  // cash.
+  const buildOffer = (items: typeof bundle) => {
+    const value = bundleValueOf(items)
+    const theirCards = fittingLineup(trader.id, arch, traits, value, repValueMult(rep), 'value', grudge, generosity).map((c) => ({
+      ...c,
+      value: valueOf(c.cardId, 'normal', (c.condition as Condition) || 'NM'),
+    }))
+    const theirSide = theirCards.reduce((a, c) => a + c.value, 0)
+    const cash = theirSide < value * 0.95 && trader.cash > 20
+      ? round2(Math.min(trader.cash * 0.25, (value * 0.95 - theirSide) * (0.3 + Math.random() * 0.4)))
+      : 0
+    return { value, theirCards, cash, total: round2(theirSide + cash) }
+  }
+
+  // An offer has to be one they can actually cover. Their reach is a lineup
+  // plus a slice of their wallet, so asking a $900 pile from a trader holding
+  // one $98 card reads as a lowball nobody would make: drop the priciest extra
+  // until the ask fits inside their reach (the lead card is the point of the
+  // offer, so it is never the one dropped), and skip the offer entirely when
+  // even that pile is beyond them.
+  const extras = bundle.slice(1).sort((x, y) => copyValue(x) - copyValue(y)) // cheapest → priciest
+  let offer = buildOffer(bundle)
+  while (offer.total < offer.value * INCOMING_MIN_COVERAGE && extras.length > 0) {
+    bundle.splice(bundle.indexOf(extras.pop()!), 1)
+    offer = buildOffer(bundle)
+  }
+  // An unreachable offer is one nobody would make — say nothing instead.
+  if (offer.theirCards.length === 0 || offer.total < offer.value * INCOMING_MIN_COVERAGE) return
+  const { value: realValue, theirCards, cash, total } = offer
   const flavor =
     total > realValue * 1.15
       ? pick(['"I know this is over market. I want it THAT bad."', '"Overpaying? Call it enthusiasm."'])
       : total >= realValue * 0.9
         ? pick(['"Fair swap by my book."', '"Even trade, binder to binder."'])
         : pick(['"I know it\'s light — but my binder needed this."', '"Take it or leave it, this is my number."'])
+  const wantedItems = bundle.map((b) => ({
+    inventoryId: b.id,
+    cardId: b.card_id,
+    name: b.name,
+    image: b.image_small,
+    condition: b.condition,
+    value: copyValue(b),
+  }))
+  const wantedLabel = bundle.map((b) => b.name).join(' + ')
   saveThread({
     traderId: trader.id,
     direction: 'incoming',
     theirCards,
     theirCash: cash,
-    yourItems: [{ inventoryId: target.id, cardId: target.card_id, name: target.name, image: target.image_small, condition: target.condition, value: realValue }],
+    yourItems: wantedItems,
     yourCash: 0,
     message: `${flavor} — ${trader.name}`,
     rounds: 0,
   })
-  logActivity('trade', `${trader.name} offered ${theirCards.map((c) => c.name).join(' + ')}${cash > 0 ? ` + $${cash.toFixed(2)}` : ''} for your ${target.name}.`)
+  logActivity('trade', `${trader.name} offered ${theirCards.map((c) => c.name).join(' + ')}${cash > 0 ? ` + $${cash.toFixed(2)}` : ''} for your ${wantedLabel}.`)
 }
 
 /** Accept an incoming offer as-is. */
@@ -847,7 +938,7 @@ export function acceptIncoming(tradeId: number) {
   const trader = db.prepare('SELECT * FROM traders WHERE id = ?').get(t.trader_id) as { id: number; name: string; cash: number } | undefined
   if (!trader) return { ok: false, error: 'Trader gone' }
   if (trader.cash < t.their_cash) return { ok: false, error: 'Trader is out of cash' }
-  return executeTrade(trader, theirCards, yourItems[0].inventoryId, t.their_cash, 'incoming')
+  return executeTrade(trader, theirCards, yourItems.map((i) => i.inventoryId), t.their_cash, 'incoming')
 }
 
 /** Reject an incoming offer — small chance they come back with more cash. Repeated

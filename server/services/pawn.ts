@@ -2,6 +2,7 @@ import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
 import { gameDayMs, gameDayKey, gameDayKeyStartMs } from '../lib/gameday'
 import { round2, valueOf, gradedPriceOf, type Condition } from './market'
 import { factor as regimeFactor } from './regimes'
+import { presentationFactor } from './supplies'
 import * as pnl from './pnl'
 
 // ---------------------------------------------------------------------------
@@ -90,12 +91,14 @@ export interface PawnQuote {
 }
 
 export function quotes(): { quotes: PawnQuote[]; terms: typeof TERMS; activeLoans: number; outstanding: number } {
-  const rows = db.prepare(`SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, c.name, c.image_small FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.status = 'collection' AND i.quantity > 0`).all() as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null; name: string; image_small: string | null }[]
+  const rows = db.prepare(`SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, i.protection, c.name, c.image_small FROM inventory i JOIN cards c ON c.id = i.card_id WHERE i.status = 'collection' AND i.quantity > 0`).all() as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null; protection: string | null; name: string; image_small: string | null }[]
   const qs = rows.map((r) => {
     // One price lookup per row: the market value is what the fire-sale quote
     // was recomputing. The card name arrives in the same join, not a query each.
     const market = r.graded_grade ? gradedPriceOf(r.card_id, r.graded_grade).usd : valueOf(r.card_id, r.variant, r.condition)
-    const fire = round2(market * TERMS.fireSaleOfMarket * regimeFactor(r.card_id))
+    // The counter buys bare cardboard at a discount, and lends against the
+    // same read, so the ticket and the cash offer never disagree.
+    const fire = round2(market * TERMS.fireSaleOfMarket * regimeFactor(r.card_id) * presentationFactor(r.protection, r.graded_grade != null))
     return {
       inventoryId: r.id, cardId: r.card_id, name: r.name, variant: r.variant, condition: r.condition, gradedGrade: r.graded_grade, image: r.image_small,
       market: round2(market), fireSale: fire, cashNow: round2(fire * TERMS.quotePct), loanMax: round2(fire * TERMS.loanPct),
@@ -108,7 +111,7 @@ export function quotes(): { quotes: PawnQuote[]; terms: typeof TERMS; activeLoan
 // --- Sell outright -------------------------------------------------------------
 
 export function sellOutright(inventoryId: number): { ok: true; paid: number } | { ok: false; error: string } {
-  const row = db.prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade FROM inventory WHERE id = ? AND status = 'collection'`).get(inventoryId) as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null } | undefined
+  const row = db.prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade, protection FROM inventory WHERE id = ? AND status = 'collection'`).get(inventoryId) as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null; protection: string | null } | undefined
   if (!row) return { ok: false, error: 'Card not in your collection (already hocked or listed?)' }
   // AUTH META: the pawn counter doesn't launder counterfeits — the guy has
   // seen every fake on the wall twice. Known fakes exit at the buylist's $1.
@@ -116,7 +119,11 @@ export function sellOutright(inventoryId: number): { ok: true; paid: number } | 
   if (pf && (pf.fake_revealed || pf.is_fake)) {
     return { ok: false, error: 'Known counterfeit — buylist shops pay $1 flat for it (Inventory → 🛡 Authentication)' }
   }
-  const paid = round2(fireSaleValue(row.card_id, row.variant, row.condition, row.graded_grade) * TERMS.quotePct)
+  const paid = round2(
+    fireSaleValue(row.card_id, row.variant, row.condition, row.graded_grade) *
+      presentationFactor(row.protection, row.graded_grade != null) *
+      TERMS.quotePct,
+  )
   if (paid <= 0) return { ok: false, error: 'No price data — the counter guy squints and waves you off.' }
   db.prepare(`DELETE FROM binder_slots WHERE inventory_id = ?`).run(inventoryId)
   db.prepare(`DELETE FROM inventory WHERE id = ?`).run(inventoryId)
@@ -130,9 +137,9 @@ export function sellOutright(inventoryId: number): { ok: true; paid: number } | 
 // --- Hock (collateral loan) ------------------------------------------------------
 
 export function hock(inventoryId: number, amount?: number): { ok: true; principal: number; dueAt: string } | { ok: false; error: string } {
-  const row = db.prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade FROM inventory WHERE id = ? AND status = 'collection'`).get(inventoryId) as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null } | undefined
+  const row = db.prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade, protection FROM inventory WHERE id = ? AND status = 'collection'`).get(inventoryId) as { id: number; card_id: string; variant: string; condition: Condition; quantity: number; graded_grade: string | null; protection: string | null } | undefined
   if (!row) return { ok: false, error: 'Card not in your collection' }
-  const fire = fireSaleValue(row.card_id, row.variant, row.condition, row.graded_grade)
+  const fire = round2(fireSaleValue(row.card_id, row.variant, row.condition, row.graded_grade) * presentationFactor(row.protection, row.graded_grade != null))
   const max = round2(fire * TERMS.loanPct)
   const principal = amount == null ? max : round2(Math.min(max, Math.max(1, amount)))
   if (principal <= 0 || max <= 0) return { ok: false, error: 'No price data — nothing to lend against.' }

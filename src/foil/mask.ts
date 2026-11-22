@@ -114,10 +114,17 @@ export function foilMaskFor(input: {
     }
   }
 
-  if (/special illustration|illustration rare|full art|ultra rare/i.test(rarity)) {
+  // A chase-tier card whose illustration runs to the card edge: the whole face
+  // is foiled, text band included, so the mask is the card itself. This used to
+  // be LAYOUT.fullArt — inset 5% from the sides and stopping at 78% height —
+  // which cut a visible straight edge across the artwork and left matte margins
+  // on every SV-era Illustration/Special Illustration Rare, ultra rare and gold
+  // hyper rare whose set has no printing row. A rectangle is not a foil area on a
+  // full-bleed card; the silhouette is.
+  if (/special illustration|illustration rare|full art|ultra rare|hyper rare/i.test(rarity)) {
     return {
-      ...base, kind: 'fullArt', rect: LAYOUT.fullArt, verified: false,
-      evidence: 'Full-art layout: illustration area foiled under the text wash. Geometry unverified for this print.',
+      ...base, kind: 'full', rect: LAYOUT.full, verified: false,
+      evidence: 'Chase tier: the illustration runs edge to edge and the face is foiled across, so coverage is the card silhouette. Modelled from the scans; no source here states this print’s foil area.',
     }
   }
 
@@ -186,6 +193,62 @@ export function maskValue(spec: FoilMaskSpec, u: number, v: number, aspect = 734
     case 'outsideArt':
       return inside ? 0 : 255
   }
+}
+
+/**
+ * Signed distance to the foiled region, in the same units as the fractions
+ * (card widths). Negative inside the foil, positive outside. The definition the
+ * composite uses for its soft edge; maskValue remains the exact 0/255 answer.
+ */
+function sdRegion(spec: FoilMaskSpec, u: number, v: number, aspect: number): number {
+  const r = spec.rect
+  const inW = (r.w * aspect) / 2
+  const inH = r.h / 2
+  const px = (u - (r.x + r.w / 2)) * aspect
+  const py = v - (r.y + r.h / 2)
+  const window = sdRoundRect(px, py, inW, inH, spec.radius * aspect)
+  const card = sdRoundRect((u - 0.5) * aspect, v - 0.5, aspect / 2, 0.5, RADIUS * aspect)
+  const inset = 0.045
+  const bx = (u - 0.5) * aspect
+  const by = v - 0.5
+  const ring = sdRoundRect(bx, by, aspect / 2 - 0.001, 0.5 - 0.001, spec.radius * aspect)
+  const inner = sdRoundRect(bx, by, (aspect / 2) * (1 - inset * 2), 0.5 * (1 - inset * 2), spec.radius * aspect)
+  switch (spec.kind) {
+    case 'full':
+      return card
+    case 'art':
+    case 'fullArt':
+      return Math.max(card, window)
+    case 'outsideArt':
+      return Math.max(card, -window)
+    case 'border':
+      return Math.max(card, Math.max(ring, -inner))
+    case 'artBorder':
+      return Math.min(Math.max(card, window), Math.max(card, Math.max(ring, -inner)))
+  }
+}
+
+/**
+ * Coverage with an anti-aliased INNER edge, 0..1.
+ *
+ * The composite used to read the mask as a step: a pixel was foil or it was
+ * not, so the boundary between a lit art window and the matte frame around it
+ * arrived as a one-pixel jump of the full highlight — at 200x279 that is a ~56/
+ * 255 step, and upscaled it draws a hard rectangle outline on the card. A foil
+ * boundary is never that crisp. The fade is inward only, so nothing outside the
+ * mask is touched and the "no light outside the mask" rule still holds exactly.
+ */
+export function maskCoverage(
+  spec: FoilMaskSpec,
+  u: number,
+  v: number,
+  aspect = 734 / 1024,
+  feather = 0.008,
+): number {
+  const d = sdRegion(spec, u, v, aspect)
+  if (d >= 0) return 0
+  const f = Math.max(1e-6, feather)
+  return d <= -f ? 1 : -d / f
 }
 
 /**

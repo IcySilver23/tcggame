@@ -3,7 +3,7 @@ import { api } from '../api'
 import { useStore } from '../store'
 
 /**
- * The starting tutorial — a five-step welcome walkthrough for brand-new
+ * The starting tutorial — a six-step welcome walkthrough for brand-new
  * saves. Gated server-side: only saves with no play history (no sales, no
  * inventory) are offered it, veterans never see it, and finishing (or
  * skipping) flips the `tut:start` flag so it never nags again. Settings can
@@ -37,8 +37,12 @@ const STEPS: Step[] = [
     body: (
       <>
         <p>
-          Cards come from <b>ripping packs</b> (real pull tables from the actual catalog),{' '}
+          Cards come from <b>opening packs</b> (real pull tables from the actual catalog),{' '}
           <b>hunting the Market</b> for underpriced NPC listings, and the deal surfaces below.
+        </p>
+        <p>
+          The <b>Pack Shop</b> rings every purchase up <b>sealed</b> — open it from{' '}
+          <b>Inventory → Sealed</b> whenever you like, one product at a time.
         </p>
         <p>
           <b>Hover any card art</b> for a zoom, <b>click it</b> for the full detail sheet — market
@@ -56,6 +60,10 @@ const STEPS: Step[] = [
           Two "NM" copies are never the same card. <b>👁 Inspect</b> your copies to read the hidden
           tells — centering, whitening, corners — then send the right ones to <b>PSA, BGS, or CGC</b>.
         </p>
+        <p>
+          CGC's <b>Pristine 10</b> is the gold label: it needs near-perfect centering, clean edges and
+          sharp corners, so inspect before you pay the fee. The copy's hidden traits <i>are</i> the odds.
+        </p>
         <p className="faint">A whitening-disaster NM grades a 6. A dead-centered one is a gem machine. The eye can be trained.</p>
       </>
     ),
@@ -67,12 +75,14 @@ const STEPS: Step[] = [
       <>
         <p>
           <b>BidBay</b> — NPC sellers and rival snipers. <b>Pawn Shop</b> — 40¢ fire sales and
-          collateral loans. <b>Yard Sales</b> — weekend driveways priced from vibes.{' '}
-          <b>Storage Auctions</b> — blind lockers, hidden collections.
+          collateral loans. <b>Yard Sales</b> and <b>Flea Markets</b> — driveway tables and flat-price
+          dig bins. <b>Local Deals</b> — parking-lot meetups. <b>Estate Buyouts</b> — a whole
+          collection, sight unseen.
         </p>
         <p>
           And <b>📺 Live Shopping</b> — Whatnot-style streams with $1 sudden deaths and
-          rip-it-or-ship-it. The <b>Calendar</b> tells you when the scene happens.
+          rip-it-or-ship-it. Blind lockers wait under <b>Inventory → Storage</b>, and the{' '}
+          <b>📅 Calendar</b> tells you when the scene happens.
         </p>
       </>
     ),
@@ -97,9 +107,9 @@ const STEPS: Step[] = [
       <>
         <p>Suggested opening:</p>
         <p>
-          📦 Rip a pack from the Pack Shop · 🧾 take the dupes to the Buylist — the first three
-          sales unlock Deals · ⇄ scan the Market for a deal · ★ wishlist a grail and let the 🔔
-          watch it for you · 📅 check what's happening this week
+          📦 Purchase a pack at the Pack Shop and open it in Inventory → Sealed · 🧾 take the dupes
+          to the Buylist — the first three sales unlock Deals · ⇄ scan the Market for a deal · ★
+          wishlist a grail and let the 🔔 watch it for you · 📅 check what's happening this week
         </p>
         <p className="faint">Everything else waits for you. Welcome to the hobby.</p>
       </>
@@ -126,7 +136,7 @@ export function StartingTutorial() {
     await refreshState()
     toast(
       completed
-        ? "Welcome in — rip a pack, then take what you don't keep to the 🧾 Buylist."
+        ? "Welcome in — purchase a pack, open it in Inventory → Sealed, then take what you don't keep to the 🧾 Buylist."
         : 'Tutorial skipped — ⚙ Settings can replay it any time',
       completed ? 'good' : 'info',
     )

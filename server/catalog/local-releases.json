@@ -1,6 +1,6 @@
 {
  "release": "Delta Reign and the 30th Celebration Wave 4 products, 2026-11-06 + MEP promos",
- "note": "Releases newer than the upstream catalog. Card identity, numbering and rarity from the published Delta Reign card list (Serebii + YesTCG), prices are TCGplayer market as relayed by YesTCG on 2026-11-05, images from the same image service the catalog uses. Supertype/subtype/type/HP come from Serebii cards. Subtypes of Pokémon are not published in the sources read here, so they stay null rather than being guessed. The MEP Black Star Promos are added from TCGdex: identity, numbering, rarity, artwork and TCGplayer USD market prices as published there, with the four Build & Battle Box promos TCGdex omits (MEP 111-114) taken from the TCGplayer mirror tcgcsv, which publishes no illustrator or Pokédex number for them. MEP 115-118 are not imported: Bulbapedia's promo pages for them redirect to the set printings they reprint (Spritzee Perfect Order 35, Seel Perfect Order 18, Kyogre Delta Reign 26, Mega Rayquaza ex Delta Reign 84), so the products that carry them hand over those set cards. The set is the promo programme, not a booster line, so it ships no sealed product of its own; its cards exist so the 30th Celebration, Ascended Heroes and Delta Reign boxes can hand out the promo they actually contain.",
+ "note": "Releases newer than the upstream catalog. Card identity, numbering and rarity from the published Delta Reign card list (Serebii + YesTCG), prices are TCGplayer market as relayed by YesTCG on 2026-11-05, images from the same image service the catalog uses. Supertype/subtype/type/HP come from Serebii cards. Subtypes of Pokémon are not published in the sources read here, so they stay null rather than being guessed. The MEP Black Star Promos are added from TCGdex: identity, numbering, rarity, artwork and TCGplayer USD market prices as published there, with the four Build & Battle Box promos TCGdex omits (MEP 111-114) taken from the TCGplayer mirror tcgcsv, which publishes no illustrator or Pokédex number for them. MEP 115-116 and 118 are not imported: Bulbapedia's promo pages for them redirect to the set printings they reprint (Spritzee Perfect Order 35, Seel Perfect Order 18, Mega Rayquaza ex Delta Reign 84), so the products that carry them hand over those set cards. MEP 117 is imported, because it is a printing of its own: the Delta Reign Elite Trainer Box promo is the Kyogre illustration rare (the Japanese Storm Emeralda artwork) that the English set left out, not the set's standard-frame Kyogre 26/103 that the $15 store promo reprints, and TCGplayer sells it as its own product (market $10.00 holofoil, 22 November 2026). The set is the promo programme, not a booster line, so it ships no sealed product of its own; its cards exist so the 30th Celebration, Ascended Heroes and Delta Reign boxes can hand out the promo they actually contain.",
  "sets": [
   {
    "id": "me6",
@@ -6062,6 +6062,33 @@
    }
   },
   {
+   "id": "mep-117",
+   "set_id": "mep",
+   "name": "Kyogre",
+   "supertype": "Pokémon",
+   "subtypes": [
+    "Basic"
+   ],
+   "number": "117",
+   "position": 117,
+   "rarity": "Promo",
+   "types": [
+    "Water"
+   ],
+   "hp": 150,
+   "artist": "Nurikabe",
+   "dex_numbers": [
+    382
+   ],
+   "image_small": "https://images.scrydex.com/pokemon/mep-117/small",
+   "image_large": "https://images.scrydex.com/pokemon/mep-117/large",
+   "regulation_mark": null,
+   "price": {
+    "market": 10,
+    "variant": "holofoil"
+   }
+  },
+  {
    "id": "mep-120",
    "set_id": "mep",
    "name": "Celebratory Fanfare",
@@ -6103,6 +6130,39 @@
   }
  ],
  "products": [
+  {
+   "id": "me55-booster",
+   "set_id": "me55",
+   "name": "30th Celebration Booster Pack",
+   "kind": "booster",
+   "msrp": 4.49,
+   "packs": 1,
+   "cards_per_pack": 6,
+   "release_date": "2026/09/16",
+   "description": "Six cards per pack: five foil cards, one of them a guaranteed Pikachu, and a foil Basic Energy."
+  },
+  {
+   "id": "me55-bundle",
+   "set_id": "me55",
+   "name": "30th Celebration Booster Bundle",
+   "kind": "bundle",
+   "msrp": 26.94,
+   "packs": 6,
+   "cards_per_pack": 6,
+   "release_date": "2026/10/02",
+   "description": "Six booster packs."
+  },
+  {
+   "id": "me55-etb",
+   "set_id": "me55",
+   "name": "30th Celebration Elite Trainer Box",
+   "kind": "etb",
+   "msrp": 49.99,
+   "packs": 9,
+   "cards_per_pack": 6,
+   "release_date": "2026/09/16",
+   "description": "Nine booster packs, sleeves, dice, a coin and the Nidorina promo."
+  },
   {
    "id": "me6-booster",
    "set_id": "me6",
@@ -6154,7 +6214,7 @@
    "kind": "special",
    "msrp": 179.99,
    "packs": 29,
-   "cards_per_pack": 10,
+   "cards_per_pack": 6,
    "release_date": "2026/11/06",
    "description": "29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Espeon ex promos, playmat, sleeves, deck box and coin."
   },
@@ -6165,7 +6225,7 @@
    "kind": "special",
    "msrp": 179.99,
    "packs": 29,
-   "cards_per_pack": 10,
+   "cards_per_pack": 6,
    "release_date": "2026/11/06",
    "description": "29 30th Celebration packs plus one three-card Classic Collection pack, Pikachu ex and Umbreon ex promos, playmat, sleeves, deck box and coin."
   },
@@ -6176,7 +6236,7 @@
    "kind": "special",
    "msrp": 39.99,
    "packs": 8,
-   "cards_per_pack": 10,
+   "cards_per_pack": 6,
    "release_date": "2026/11/06",
    "description": "Eight booster packs, a Ditto promo and an acrylic card display."
   },
@@ -6187,7 +6247,7 @@
    "kind": "special",
    "msrp": 29.99,
    "packs": 5,
-   "cards_per_pack": 10,
+   "cards_per_pack": 6,
    "release_date": "2026/11/06",
    "description": "Five booster packs, a Mew foil promo and oversize card, and a sculpted figure."
   },
@@ -6198,7 +6258,7 @@
    "kind": "special",
    "msrp": 29.99,
    "packs": 5,
-   "cards_per_pack": 10,
+   "cards_per_pack": 6,
    "release_date": "2026/11/06",
    "description": "Five booster packs, a Mewtwo foil promo and oversize card, and a sculpted figure."
   }

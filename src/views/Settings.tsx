@@ -15,14 +15,28 @@ export function SettingsView() {
     await refreshState()
     toast('Welcome walkthrough armed — back it comes', 'good')
   }
-  const setDayLength = async (hours: 12 | 24) => {
-    if ((st?.day?.lengthHours ?? 12) === hours) return
-    if (!confirm(hours === 12
-      ? 'Switch game days to 12 real hours? The daily heartbeat (rent, wear, snapshots, grading) fires twice per real day from the next boundary.'
-      : 'Switch game days to 24 real hours? The daily heartbeat returns to one pass per real day.')) return
+  // Pace copy is derived, not written into the markup: the boundary text has to
+  // follow whichever length the save is actually running.
+  const dayHours = st?.day?.lengthHours ?? 2
+  const dayLabel = dayHours === 2
+    ? '2 real hours (rolling at every even UTC hour)'
+    : dayHours === 12 ? '12 real hours (rolling at 00:00 and 12:00 UTC)' : '24 real hours (rolling at 00:00 UTC)'
+  const rollLabel = dayHours === 24
+    ? '00:00 UTC'
+    : dayHours === 12 ? '00:00 / 12:00 UTC' : 'every even UTC hour'
+  // Shorter form for the "after each … boundary" rows, where the long label
+  // read as "each every even UTC hour boundary".
+  const boundaryLabel = dayHours === 24 ? '00:00 UTC' : dayHours === 12 ? '00:00 / 12:00 UTC' : 'even-hour'
+  const setDayLength = async (hours: 2 | 12 | 24) => {
+    if (dayHours === hours) return
+    if (!confirm(hours === 2
+      ? 'Switch game days to 2 real hours? The daily heartbeat (rent, wear, snapshots, grading) fires twelve times per real day from the next boundary, and the day number counts up about six times faster.'
+      : hours === 12
+        ? 'Switch game days to 12 real hours? The daily heartbeat (rent, wear, snapshots, grading) fires twice per real day from the next boundary.'
+        : 'Switch game days to 24 real hours? The daily heartbeat returns to one pass per real day.')) return
     try {
       await api.setDayLength(hours)
-      toast(hours === 12 ? 'Game days are 12 real hours now' : 'Game days are 24 real hours now', 'good')
+      toast(`Game days are ${hours} real hours now`, 'good')
     } catch {
       toast('Could not change day length', 'bad')
     }
@@ -501,32 +515,37 @@ export function SettingsView() {
         <div className="row small" style={{ gap: 8, alignItems: 'center', marginBottom: 8 }}>
           <span>Game day length:</span>
           <span
-            className={`chip ${(st?.day?.lengthHours ?? 12) === 12 ? 'on' : ''}`}
+            className={`chip ${dayHours === 2 ? 'on' : ''}`}
+            onClick={() => setDayLength(2)}
+            style={{ cursor: 'pointer' }}
+          >2h — twelve game-days per real day</span>
+          <span
+            className={`chip ${dayHours === 12 ? 'on' : ''}`}
             onClick={() => setDayLength(12)}
             style={{ cursor: 'pointer' }}
           >12h — two game-days per real day</span>
           <span
-            className={`chip ${(st?.day?.lengthHours ?? 12) === 24 ? 'on' : ''}`}
+            className={`chip ${dayHours === 24 ? 'on' : ''}`}
             onClick={() => setDayLength(24)}
             style={{ cursor: 'pointer' }}
           >24h — the classic cadence</span>
-          <span className="faint small">takes effect at the next 00:00/12:00 UTC boundary</span>
+          <span className="faint small">takes effect at the next UTC boundary</span>
         </div>
         <p className="small muted" style={{ marginTop: 0 }}>
-          One game day is <b>{(st?.day?.lengthHours ?? 12) === 24 ? '24 real hours (rolling at 00:00 UTC)' : '12 real hours (rolling at 00:00 and 12:00 UTC)'}</b> — the header day clock counts down to the next
+          One game day is <b>{dayLabel}</b> — the header day clock counts down to the next
           boundary. Every daily system below lands at that boundary, and only the real-world data syncs ignore the game
           day (they mirror live market sources on their own schedules).
         </p>
         <table className="table">
           <thead><tr><th>System</th><th>Cadence</th><th className="right">When it lands</th></tr></thead>
           <tbody>
-            <tr><td className="small">🏪 Shop rent + staff payroll</td><td className="small muted">every game day</td><td className="num small">00:00 / 12:00 UTC{pace.rent ? ` — ~${pace.rent}` : ''}</td></tr>
-            <tr><td className="small">🏦 Loan interest</td><td className="small muted">accrues every game day</td><td className="num small">00:00 / 12:00 UTC</td></tr>
+            <tr><td className="small">🏪 Shop rent + staff payroll</td><td className="small muted">every game day</td><td className="num small">{rollLabel}{pace.rent ? ` — ~${pace.rent}` : ''}</td></tr>
+            <tr><td className="small">🏦 Loan interest</td><td className="small muted">accrues every game day</td><td className="num small">{rollLabel}</td></tr>
             <tr><td className="small">🀄 Condition wear + 🎲 disaster roll</td><td className="small muted">daily chances</td><td className="num small">rolled through the day, stamped at each boundary</td></tr>
-            <tr><td className="small">💾 Save snapshot</td><td className="small muted">once per game day</td><td className="num small">first tick after each 00:00/12:00 boundary{pace.snapshot ? ` — last: ${pace.snapshot}` : ''}</td></tr>
+            <tr><td className="small">💾 Save snapshot</td><td className="small muted">once per game day</td><td className="num small">first tick after each {boundaryLabel} boundary{pace.snapshot ? ` — last: ${pace.snapshot}` : ''}</td></tr>
             <tr><td className="small">🛡 Insurance, 🗝️ lockers, 🔐 vault</td><td className="small muted">weekly bills</td><td className="num small">their own next-draft clock (see Today panel)</td></tr>
-            <tr><td className="small">⚖ Grading turnaround</td><td className="small muted">Express 1–2 days · Standard 3–6 · Premium 1</td><td className="num small">game-days (12h) — express is back overnight</td></tr>
-            <tr><td className="small">🏢 Franchise stores</td><td className="small muted">rent + manager wage every game day</td><td className="num small">00:00 / 12:00 UTC</td></tr>
+            <tr><td className="small">⚖ Grading turnaround</td><td className="small muted">Express 1–2 days · Standard 3–6 · Premium 1</td><td className="num small">game-days ({dayHours}h) — express is back overnight</td></tr>
+            <tr><td className="small">🏢 Franchise stores</td><td className="small muted">rent + manager wage every game day</td><td className="num small">{rollLabel}</td></tr>
             <tr><td className="small">🌅 Day recap</td><td className="small muted">once per rollover</td><td className="num small">first tick after each boundary</td></tr>
             <tr><td className="small">🌐 Real-world syncs (prices, catalog)</td><td className="small muted muted">daily refresh · weekly delta</td><td className="num small">real-world schedule — NOT game days</td></tr>
           </tbody>

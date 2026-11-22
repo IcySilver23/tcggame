@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import type { TradeOfferRow, TradeReply, TraderRow } from '../api'
 import { useStore } from '../store'
@@ -335,15 +335,21 @@ function OfferCard({ o, onChanged }: { o: TradeOfferRow; onChanged: () => void }
 }
 
 function TradersPanel({ traders, onChanged }: { traders: TraderRow[]; onChanged: () => void }) {
-  const { toast, refreshState, openCard } = useStore()
+  const { toast, refreshState, openCard, state } = useStore()
+  // The cap the server enforces, read from the state poll — the picker stops
+  // at it instead of letting you build an offer that cannot be sent.
+  const maxOffer = state?.trade?.maxOfferCards ?? 0
   const [traderId, setTraderId] = useState<number | null>(null)
   const [collection, setCollection] = useState<{ id: number; name: string; condition: string; value: number }[]>([])
-  const [inventoryId, setInventoryId] = useState<number | ''>('')
+  // A trade can put several cards up at once. They are one offer: the trader
+  // fits their lineup to the bundle's total worth and the fairness floor
+  // compares the whole thing, so a $40 card plus a $5 card is a $45 offer.
+  const [offered, setOffered] = useState<number[]>([])
   const [cash, setCash] = useState('')
   const [busy, setBusy] = useState(false)
   const [reply, setReply] = useState<TradeReply | null>(null)
 
-  useEffect(() => {
+  const loadCollection = useCallback(() => {
     api
       .inventory()
       .then((rows) =>
@@ -361,19 +367,28 @@ function TradersPanel({ traders, onChanged }: { traders: TraderRow[]; onChanged:
       .catch(() => {})
   }, [])
 
+  useEffect(() => { loadCollection() }, [loadCollection])
+
   const trader = traders.find((t) => t.id === traderId) ?? null
-  const selected = collection.find((c) => c.id === inventoryId)
+  // Selecting the same card twice is not two cards, so the chips read from
+  // the collection itself and a removed card never lingers in the offer.
+  const offeredCards = offered.flatMap((id) => collection.filter((c) => c.id === id))
+  const offerValue = offeredCards.reduce((a, c) => a + c.value, 0)
+  const offerFull = maxOffer > 0 && offered.length >= maxOffer
 
   const propose = async () => {
-    if (!traderId || !inventoryId) return
+    if (!traderId || offered.length === 0) return
     setBusy(true)
     setReply(null)
     try {
-      const res = await api.tradePropose(traderId, inventoryId, Number(cash) || 0)
+      const res = await api.tradePropose(traderId, offered, Number(cash) || 0)
       setReply(res)
       if (res.ok) {
         if (res.accepted) {
           toast('Trade complete', 'good')
+          setOffered([])
+          setCash('')
+          loadCollection()
           onChanged()
           refreshState()
         }
@@ -477,11 +492,25 @@ function TradersPanel({ traders, onChanged }: { traders: TraderRow[]; onChanged:
 
             <div className="offer-side-label" style={{ marginTop: 12 }}>Your offer</div>
             <div className="trade-propose">
-              <select value={inventoryId} onChange={(e) => setInventoryId(e.target.value ? Number(e.target.value) : '')}>
-                <option value="">Choose a card from your collection…</option>
-                {collection.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name} — {fmtUsd(c.value)}</option>
-                ))}
+              <select
+                value=""
+                disabled={offerFull}
+                onChange={(e) => {
+                  const id = Number(e.target.value)
+                  if (id && !offerFull) setOffered((o) => (o.includes(id) ? o : [...o, id]))
+                  e.currentTarget.value = ''
+                }}
+              >
+                <option value="">
+                  {offerFull
+                    ? `Offer is full — ${maxOffer} cards`
+                    : offered.length === 0 ? 'Choose a card from your collection…' : 'Add another card…'}
+                </option>
+                {collection
+                  .filter((c) => !offered.includes(c.id))
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>{c.name} — {fmtUsd(c.value)}</option>
+                  ))}
               </select>
               <input
                 type="number"
@@ -492,13 +521,32 @@ function TradersPanel({ traders, onChanged }: { traders: TraderRow[]; onChanged:
                 onChange={(e) => setCash(e.target.value)}
                 style={{ width: 92 }}
               />
-              <button className="primary" disabled={!inventoryId || busy} onClick={propose}>
-                {busy ? 'Negotiating…' : 'Propose trade'}
+              <button className="primary" disabled={offered.length === 0 || busy} onClick={propose}>
+                {busy ? 'Negotiating…' : offered.length > 1 ? `Propose trade · ${offered.length} cards` : 'Propose trade'}
               </button>
             </div>
-            {selected && (
+            {offerFull && (
+              <div className="small" style={{ marginTop: 6, color: 'var(--gold)' }}>
+                That's the whole offer — one trade holds up to {maxOffer} of your cards. Click a chip above to take one back off.
+              </div>
+            )}
+            {offeredCards.length > 0 && (
+              <div className="row" style={{ gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                {offeredCards.map((c) => (
+                  <span
+                    key={c.id}
+                    className="chip on"
+                    title={`Remove ${c.name} from the offer`}
+                    onClick={() => setOffered((o) => o.filter((id) => id !== c.id))}
+                  >
+                    {c.name} — {fmtUsd(c.value)} ×
+                  </span>
+                ))}
+              </div>
+            )}
+            {offeredCards.length > 0 && (
               <div className="faint small" style={{ marginTop: 6 }}>
-                Offering {selected.name} (market {fmtUsd(selected.value)}){Number(cash) > 0 ? ` + ${fmtUsd(Number(cash))} cash` : ''}
+                Offering {offeredCards.length === 1 ? offeredCards[0].name : `${offeredCards.length}${maxOffer > 0 ? ` of ${maxOffer}` : ''} cards`} (market {fmtUsd(offerValue)}){Number(cash) > 0 ? ` + ${fmtUsd(Number(cash))} cash` : ''}{offeredCards.length > 1 ? ' — the trader values the bundle as one offer.' : ''}
               </div>
             )}
 

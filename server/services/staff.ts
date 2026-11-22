@@ -98,10 +98,11 @@ function marketWage(role: StaffRole, quality: number): number {
   return Math.round(base * (0.6 + quality * 0.5) * 4) / 4
 }
 
-/** Human label for a game-day key: 'Wed, Oct 8 · PM'. */
+/** Human label for a game-day key: 'Wed, Oct 8 · PM', or '· 14:00' on a 2-hour clock. */
 function offLabel(key: string): string {
   const d = new Date(key.slice(0, 10) + 'T12:00:00Z')
-  const half = key.endsWith('-pm') ? ' · PM' : key.endsWith('-am') ? ' · AM' : ''
+  const tail = key.slice(11)
+  const half = tail === 'pm' ? ' · PM' : tail === 'am' ? ' · AM' : /^\d{1,2}$/.test(tail) ? ` · ${tail.padStart(2, '0')}:00` : ''
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }) + half
 }
 

@@ -36,6 +36,12 @@ export function NotificationBell() {
   // the panel says which one it means.
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const wrap = useRef<HTMLDivElement | null>(null)
+  const bell = useRef<HTMLButtonElement | null>(null)
+  // The panel is fixed to the viewport (a sidebar scroll container would clip
+  // anything absolutely positioned inside it), so its corner is measured from
+  // the bell and re-measured whenever the page or the sidebar scrolls. That is
+  // what stops it hanging over the content while the list scrolls under it.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 
   const load = useCallback(() => {
     fetch('/api/notifications')
@@ -52,12 +58,47 @@ export function NotificationBell() {
     return () => window.clearInterval(t)
   }, [load])
 
-  // Click-away closes the panel; the bell itself is inside the wrapper.
+  // Click-away and Escape close the panel; the bell itself is inside the wrapper.
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  // Keep the panel under the bell: measure on open, then follow scrolls (the
+  // event is captured because the sidebar is the thing that scrolls) and the
+  // window's own resizes. Scrolling inside the panel itself is ignored.
+  useEffect(() => {
+    if (!open) { setPos(null); return }
+    const place = () => {
+      const el = bell.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      const width = Math.min(360, window.innerWidth - 24)
+      const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8))
+      const top = Math.max(8, Math.min(r.bottom + 8, window.innerHeight - 180))
+      setPos({ top: Math.round(top), left: Math.round(left) })
+    }
+    place()
+    const onScroll = (e: Event) => {
+      const t = e.target
+      if (t instanceof Node && wrap.current?.contains(t)) return
+      const panel = wrap.current?.querySelector('.notif-panel')
+      if (t instanceof Node && panel && panel.contains(t)) return
+      place()
+    }
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', place)
+    return () => {
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', place)
+    }
   }, [open])
 
   const unread = rows.filter((r) => !r.read_at).length
@@ -81,6 +122,7 @@ export function NotificationBell() {
   return (
     <div className="notif-wrap" ref={wrap}>
       <button
+        ref={bell}
         className={`notif-bell nav-item ${unread > 0 ? 'live' : ''} ${open ? 'active' : ''}`}
         onClick={() => { setOpen((o) => !o); load() }}
         title={unread > 0 ? `${unread} unread notification${unread === 1 ? '' : 's'}` : 'Notifications'}
@@ -92,7 +134,12 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="notif-panel" role="dialog" aria-label="Notifications">
+        <div
+          className="notif-panel"
+          role="dialog"
+          aria-label="Notifications"
+          style={pos ? { top: pos.top, left: pos.left } : { visibility: 'hidden' }}
+        >
           <div className="notif-head">
             <b>Notifications</b>
             {unread > 0 && <button className="notif-all" onClick={markAll}>Mark all read</button>}

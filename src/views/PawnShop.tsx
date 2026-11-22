@@ -168,6 +168,7 @@ export function PawnShopView() {
             { icon: '🔑', label: 'Hock it instead', text: <>leave the card in the case and walk out with a <b>30-game-day loan</b> at <b>0.75% a day, compounded</b></> },
             { icon: '✅', label: 'Pay on time', text: <>the ticket clears and the card comes home</> },
             { icon: '⏰', label: 'Miss the date', text: <>it goes in the case at a <b>25% markup</b>, first come first served — you can buy your own card back like any stranger</> },
+            { icon: '🀄', label: 'Bare is cheap', text: <>an unsleeved card is valued under a protected one — the counter pays for how it is stored</> },
             { icon: '📓', label: 'Off the books', text: <>the loan shows up nowhere on your net worth. Your conscience still knows</> },
           ]}
         />

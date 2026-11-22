@@ -301,13 +301,13 @@ export function GradingView() {
           <span className="faint small">{pending.length === 0 ? 'nothing in transit' : 'verdicts pop when they land'}</span>
         </div>
         {pending.length === 0 ? (
-          <div className="home-mini">Nothing out for grading. A card has to clear the fee before it appears above as a candidate; once submitted, its verdict waits here for {state?.day?.lengthHours ?? 12}h game-days.</div>
+          <div className="home-mini">Nothing out for grading. A card has to clear the fee before it appears above as a candidate; once submitted, its verdict waits here for {state?.day?.lengthHours ?? 2}h game-days.</div>
         ) : (
           <div className="pf-rows">
             {pending.map((p) => {
               const msLeft = new Date(p.grading_due_at).getTime() - Date.now()
               // Game-days are 12h or 24h per the save's setting — day-scale ETAs, then h/m as the reveal closes.
-              const back = gameDayEtaFor(state?.day?.lengthHours ?? 12, msLeft)
+              const back = gameDayEtaFor(state?.day?.lengthHours ?? 2, msLeft)
               return (
                 <div className="pf-row" key={p.id}>
                   <div className="row" style={{ gap: 9, minWidth: 0, flex: 1, cursor: 'pointer' }} onClick={() => openCard(p.card_id)}>

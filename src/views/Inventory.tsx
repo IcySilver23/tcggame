@@ -9,6 +9,28 @@ import type { InventoryRow } from '../types'
 import type { SaleRow } from '../api'
 import { variantTag } from '../variant-label'
 
+/** Wrapper art for a sealed holding: the product photo, then the set logo,
+ *  then the set symbol, then a box. The same ladder the Pack Shop shelf uses,
+ *  so the box you bought looks the same in your binder — and the loan desk can
+ *  use it too, because it only asks for the three art fields. */
+type ThumbArt = { image_url?: string | null; set_logo?: string | null; set_symbol?: string | null }
+
+function SealedThumb({ row, small }: { row?: ThumbArt; small?: boolean }) {
+  const sources = [row?.image_url, row?.set_logo, row?.set_symbol].filter((x): x is string => Boolean(x))
+  const [i, setI] = useState(0)
+  const cls = `inv-seal-thumb${small ? ' sm' : ''}`
+  if (i >= sources.length) return <span className={`${cls} ph`} aria-hidden>📦</span>
+  return (
+    <img
+      className={cls}
+      src={sources[i]}
+      alt=""
+      loading="lazy"
+      onError={() => setI((n) => n + 1)}
+    />
+  )
+}
+
 export function InventoryView() {
   const { toast, refreshState, openCard, density, browse, state } = useStore()
   const [tab, setTab] = useState<'raw' | 'listed' | 'sealed' | 'grading' | 'incoming' | 'supplies' | 'auth'>('raw')
@@ -131,6 +153,11 @@ export function InventoryView() {
     }
     return [...out].sort(sorters[invSort] ?? sorters.value_desc)
   }, [raw, invQ, invSort])
+  // Loan-desk rows name their collateral by product id; the art comes from the
+  // sealed holdings the same load already fetched, so there is one source of
+  // truth for what a product looks like.
+  const sealedById = useMemo(() => new Map(sealed.map((s) => [s.product_id, s])), [sealed])
+
   const shownSealed = useMemo(() => {
     const out = sealed.filter((s) => matchesQuery(s, sealedQ, (x) => [x.name]))
     const sorters: Record<string, (a: SealedStockRow, b: SealedStockRow) => number> = {
@@ -685,7 +712,7 @@ export function InventoryView() {
                   </td>
                   <td className="small">{t.serviceName}</td>
                   <td className="num">{fmtUsd(t.fee)}</td>
-                  <td className="small">{t.status === 'arrived' ? '🟢 verdict waiting' : `⏳ ${gameDayEtaFor(state?.day?.lengthHours ?? 12, t.hoursLeft * 3600000)}`}</td>
+                  <td className="small">{t.status === 'arrived' ? '🟢 verdict waiting' : `⏳ ${gameDayEtaFor(state?.day?.lengthHours ?? 2, t.hoursLeft * 3600000)}`}</td>
                   <td className="right">{t.status === 'arrived' && <button className="primary small" onClick={() => revealAuth(t)}>Open the envelope</button>}</td>
                 </tr>
               ))}
@@ -720,9 +747,9 @@ export function InventoryView() {
     const item = protectPick.item
     const stock = supplies?.stock ?? []
     const options = [
-      { kind: 'sleeve', label: 'Penny sleeve', icon: '🀄', note: 'stops wear' },
-      { kind: 'toploader', label: 'Toploader', icon: '🛡️', note: 'stops wear' },
-      { kind: 'one_touch', label: 'One-touch', icon: '💎', note: 'stops wear' },
+      { kind: 'sleeve', label: 'Penny sleeve', icon: '🀄', note: 'stops wear · counters pay more' },
+      { kind: 'toploader', label: 'Toploader', icon: '🛡️', note: 'stops wear · counters pay more' },
+      { kind: 'one_touch', label: 'One-touch', icon: '💎', note: 'stops wear · counters pay more' },
     ] as const
     return (
       <div className="modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) closeMenu(() => setProtectPick(null)) }}>
@@ -758,7 +785,7 @@ export function InventoryView() {
                 </div>
               )
             })}
-            <p className="small muted">One unit covers the row (a stack shares its sleeve). Removing protection returns it to stock.</p>
+            <p className="small muted">One unit covers the row (a stack shares its sleeve). Removing protection returns it to stock. A bare card sells for less at every counter that names its price — buylist, instant dealer, pawn, convention tables — and never changes your own asking price.</p>
           </div>
         </div>
       </div>
@@ -1277,7 +1304,7 @@ export function InventoryView() {
                 const svc = gradingSvc.find((s) => s.id === p.grading_service)
                 const msLeft = new Date(p.grading_due_at).getTime() - Date.now()
                 // Game-days are 12h or 24h per the save's setting — same formatting as the Grading page.
-                const back = gameDayEtaFor(state?.day?.lengthHours ?? 12, msLeft)
+                const back = gameDayEtaFor(state?.day?.lengthHours ?? 2, msLeft)
                 return (
                   <tr key={p.id}>
                     <td>
@@ -1303,7 +1330,7 @@ export function InventoryView() {
           <tbody>
             {incoming.map((d) => {
               const msLeft = new Date(d.due_at).getTime() - Date.now()
-              const eta = gameDayEtaFor(state?.day?.lengthHours ?? 12, msLeft)
+              const eta = gameDayEtaFor(state?.day?.lengthHours ?? 2, msLeft)
               return (
                 <tr key={d.id}>
                   <td>
@@ -1348,6 +1375,9 @@ export function InventoryView() {
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {futures.loans.map((l) => (
                   <div key={l.id} className="row small" style={{ gap: 8, padding: '6px 10px', background: 'var(--panel2)', borderRadius: 6, flexWrap: 'wrap' }}>
+                    {/* Keyed by product so a ticket whose collateral changed starts
+                        the fallback ladder over instead of inheriting a failure. */}
+                    <SealedThumb key={l.collateralProductId ?? 'none'} row={sealedById.get(l.collateralProductId ?? '')} small />
                     <b style={{ minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>#{l.id} {l.collateralName}</b>
                     <span className="faint">{l.collateralLeft}× in vault</span>
                     <span className="faint">{(l.rateDaily * 100).toFixed(1)}%/day</span>
@@ -1412,11 +1442,16 @@ export function InventoryView() {
                     return (
                       <tr key={s.product_id}>
                         <td>
-                          <b className="small">{s.name}</b>{' '}
-                          {s.oop && <span className="badge oop" title={`Print run ended ~${s.oop_months} months ago`}>📈 OOP</span>}
-                          {wornQty > 0 && <span className="badge est" title="Worn: shrink scuffed, corners dinged — trades below market">worn ×{wornQty}</span>}
-                          {vaultQty > 0 && <span className="badge live" title="Posted as loan-desk collateral — in the bank's vault, untouchable until redeemed">🏦 vault ×{vaultQty}</span>}
-                          <div className="faint small">{s.source === 'pricecharting' ? 'PriceCharting' : 'est. price'} · {s.status}{f ? ` · fresh ${f.freshPremium > 0 ? '+' : ''}${f.freshPremium.toFixed(1)}%` : ''}</div>
+                          <div className="row" style={{ gap: 8, alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+                            <SealedThumb row={s} />
+                            <div style={{ minWidth: 0 }}>
+                              <b className="small">{s.name}</b>{' '}
+                              {s.oop && <span className="badge oop" title={`Print run ended ~${s.oop_months} months ago`}>📈 OOP</span>}
+                              {wornQty > 0 && <span className="badge est" title="Worn: shrink scuffed, corners dinged — trades below market">worn ×{wornQty}</span>}
+                              {vaultQty > 0 && <span className="badge live" title="Posted as loan-desk collateral — in the bank's vault, untouchable until redeemed">🏦 vault ×{vaultQty}</span>}
+                              <div className="faint small">{s.source === 'pricecharting' ? 'PriceCharting' : 'est. price'} · {s.status}{f ? ` · fresh ${f.freshPremium > 0 ? '+' : ''}${f.freshPremium.toFixed(1)}%` : ''}</div>
+                            </div>
+                          </div>
                         </td>
                         <td className="num">{freshQty}</td>
                         <td className="num" style={{ color: wornQty > 0 ? 'var(--yellow)' : undefined }}>{wornQty}</td>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>foil lab — one card each, paper at rest</title>
+<style>
+  body { background:#0b0f1d; color:#cfd6e6; font:12px/1.4 system-ui, sans-serif; margin:0; padding:14px; }
+  h1 { font-size:14px; margin:0 0 10px; }
+  #grid { display:grid; grid-template-columns:repeat(2, 404px); gap:14px; }
+  .cell { background:#121a2e; border:1px solid #24304d; border-radius:8px; padding:6px; }
+  .lbl { font-size:10px; color:#8f9bb5; margin-top:4px; word-break:break-word; }
+  .lbl b { color:#e6edff; }
+  canvas { width:392px; height:547px; display:block; border-radius:5px; }
+</style>
+</head>
+<body>
+<h1>Foil lab — the shipped paper at rest, mask rect outlined in magenta</h1>
+<div id="grid"></div>
+<script type="module">
+import { foilMaskFor } from '/src/foil/mask.ts'
+import { composeFrameInto } from '/src/foil/engine.ts'
+import { loadMarkFieldFor } from '/src/foil/mark-field.ts'
+import { printingFor } from '/src/foil/printing-db.ts'
+import { DEFAULT_FOIL_SETTINGS } from '/src/foil/stages.ts'
+
+const W = 200, H = 279
+const TILT = { deg: 22, axis: Math.PI / 4 }
+const CARDS = [
+  ['me6-111', 'Illustration Rare', 'normal'],
+  ['me6-107', 'Illustration Rare', 'normal'],
+  ['me6-105', 'Illustration Rare', 'normal'],
+  ['me6-45', 'Rare', 'holofoil'],
+  ['me6-26', 'Rare', 'holofoil'],
+  ['me6-82', 'Rare', 'holofoil'],
+  ['ecard1-13', 'Rare Holo', 'holofoil'],
+  ['me55-36', 'Pikachu Rare', 'holofoil'],
+  ['base1-4', 'Rare Holo', 'holofoil'],
+  ['swsh1-25', 'Rare Holo', 'holofoil'],
+  ['sv1-81', 'Rare Holo', 'holofoil'],
+  ['me6-30', 'Common', 'reverseHolofoil'],
+]
+
+const grid = document.getElementById('grid')
+
+async function render([cardId, rarity, variant]) {
+  const cell = document.createElement('div')
+  cell.className = 'cell'
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  cell.appendChild(canvas)
+  const lbl = document.createElement('div')
+  lbl.className = 'lbl'
+  cell.appendChild(lbl)
+  grid.appendChild(cell)
+
+  const cut = cardId.lastIndexOf('-')
+  const src = `/api/art/${cardId.slice(0, cut)}/${cardId.slice(cut + 1)}`
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
+  img.src = src
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej }).catch(() => {})
+
+  const off = document.createElement('canvas')
+  off.width = W
+  off.height = H
+  const octx = off.getContext('2d', { willReadFrequently: true })
+  octx.drawImage(img, 0, 0, W, H)
+  const base = new Uint8ClampedArray(octx.getImageData(0, 0, W, H).data)
+
+  const spec = foilMaskFor({ cardId, rarity, variant })
+  const field = await loadMarkFieldFor({ cardId, rarity, variant }).catch(() => null)
+  const adv = location.search.includes('adv')
+  const settings = adv ? { ...DEFAULT_FOIL_SETTINGS } : { ...DEFAULT_FOIL_SETTINGS, intensity: 0.6, iridescence: 0 }
+  const frame = new Uint8ClampedArray(W * H * 4)
+  composeFrameInto(frame, base, W, H, {
+    tilt: TILT,
+    layers: [{ id: 'printing', spec, field, settings }],
+  })
+
+  const ctx = canvas.getContext('2d')
+  const out = new ImageData(W, H)
+  out.data.set(frame)
+  ctx.putImageData(out, 0, 0)
+  if (spec && spec.kind !== 'full' && location.search.includes('outline')) {
+    const r = spec.rect
+    ctx.strokeStyle = '#ff00c8'
+    ctx.lineWidth = 1
+    ctx.strokeRect(r.x * W, r.y * H, r.w * W, r.h * H)
+  }
+  const p = printingFor({ cardId, rarity, variant })
+  lbl.innerHTML = `<b>${cardId}</b> ${rarity}/${variant}<br>mask ${spec ? spec.kind : 'none'} · ${spec ? `${spec.rect.x.toFixed(3)},${spec.rect.y.toFixed(3)},${spec.rect.w.toFixed(3)},${spec.rect.h.toFixed(3)}` : '—'}<br>pattern ${p ? p.patternName ?? p.pattern : '—'}`
+}
+
+for (const c of CARDS) await render(c)
+document.title = 'foil lab ready'
+</script>
+</body>
+</html>

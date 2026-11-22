@@ -22,6 +22,7 @@ const PacksView = lazy(() => import('./views/Packs').then((m) => ({ default: m.P
 const PackOpeningView = lazy(() => import('./views/PackOpening').then((m) => ({ default: m.PackOpeningView })))
 const InventoryHubView = lazy(() => import('./views/InventoryHub').then((m) => ({ default: m.InventoryHubView })))
 const SettingsView = lazy(() => import('./views/Settings').then((m) => ({ default: m.SettingsView })))
+const AcademyView = lazy(() => import('./views/Academy').then((m) => ({ default: m.AcademyView })))
 const AchievementsView = lazy(() => import('./views/Achievements').then((m) => ({ default: m.AchievementsView })))
 const PullHistoryView = lazy(() => import('./views/PullHistory').then((m) => ({ default: m.PullHistoryView })))
 const GradingView = lazy(() => import('./views/Grading').then((m) => ({ default: m.GradingView })))
@@ -49,7 +50,7 @@ const HoloDebugLauncher = import.meta.env.DEV
   : null
 
 export type ViewId =
-  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'settings' | 'pulls-history' | 'achievements'
+  | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'settings' | 'pulls-history' | 'achievements' | 'academy'
 
 type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean } }
 type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** One sentence of the locked screen's own guidance, shown on the lock row. */ note?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
@@ -90,6 +91,7 @@ const NAV: NavEntry[] = [
   // the channel count kept shut. It opens from the start; the default following
   // is what you build on.
   { id: 'stream', label: 'Stream', icon: '📡', section: '' },
+  { id: 'academy', label: 'Academy', icon: '🎓', section: 'SYSTEM' },
   { id: 'settings', label: 'Settings', icon: '⚙', section: 'SYSTEM' },
 ]
 
@@ -104,10 +106,10 @@ const SELF_GATED_VIEWS: ViewId[] = ['deals']
 
 /**
  * The in-game day clock (top right): DAY n with a progress bar filling toward
- * the next day. A game day is 12 real hours — rent, wear, disasters, and save
- * snapshots all roll at the 00:00/12:00 UTC boundaries — so the bar shows how
- * close the next daily roll (and the next save snapshot) is. Ticks locally
- * every 15s to stay smooth without hammering the server.
+ * the next day. A game day is 2 real hours by default (rent, wear, disasters
+ * and save snapshots all roll at the same UTC boundaries — every even hour),
+ * so the bar shows how close the next daily roll is. It recomputes twice a
+ * second from the wall clock rather than polling the server.
  */
 const ROLL_ICON: Record<string, string> = {
   rent: '🏪',
@@ -122,15 +124,52 @@ const ROLL_ICON: Record<string, string> = {
   disaster: '🎲',
 }
 
-function DayClock({ day }: { day?: { number: number; progress: number; resetsAt: string; lengthHours: 12 | 24 } }) {
+function DayClock({ day }: { day?: { number: number; progress: number; resetsAt: string; lengthHours: 2 | 12 | 24; skipFee?: number; offsetMs?: number } }) {
   const [, setTick] = useState(0)
   const [hover, setHover] = useState(false)
   const [today, setToday] = useState<TodayResponse | null>(null)
+  const [skipping, setSkipping] = useState(false)
+  const cash = useStore((s) => s.state?.cash ?? 0)
+  const refreshState = useStore((s) => s.refreshState)
+  const toast = useStore((s) => s.toast)
   const hoverT = useRef<number | undefined>(undefined)
+  const lastRollRefresh = useRef(0)
+  // The countdown is derived from the wall clock, so it has to be re-rendered by
+  // a clock this component owns. It used to be a 15s setInterval, which froze
+  // whenever the window was not the focused one: Chromium throttles timers in a
+  // background or occluded window, so the bar and the countdown sat still until
+  // a hover happened to re-render them. rAF runs whenever the window is really
+  // on screen, and the wake listeners catch the moment it comes back.
   useEffect(() => {
-    const t = setInterval(() => setTick((x) => x + 1), 15_000)
-    return () => clearInterval(t)
+    let raf = 0
+    let last = 0
+    const loop = (t: number) => {
+      if (t - last >= 500) { last = t; setTick((x) => x + 1) }
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    // A slow interval behind rAF: in a window Chromium has fully throttled the
+    // frame loop, this still moves the countdown about once a minute.
+    const slow = setInterval(() => setTick((x) => x + 1), 15_000)
+    const wake = () => setTick((x) => x + 1)
+    window.addEventListener('focus', wake)
+    document.addEventListener('visibilitychange', wake)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearInterval(slow)
+      window.removeEventListener('focus', wake)
+      document.removeEventListener('visibilitychange', wake)
+    }
   }, [])
+  // As soon as the boundary passes, ask the server for the new day instead of
+  // leaving yesterday's number up until the next poll.
+  useEffect(() => {
+    if (!day) return
+    if (new Date(day.resetsAt).getTime() > Date.now()) return
+    if (Date.now() - lastRollRefresh.current < 20_000) return
+    lastRollRefresh.current = Date.now()
+    void refreshState()
+  })
   // Fresh rolls on every hover-open — checkboxes stay honest even across midnight.
   useEffect(() => {
     if (hover) api.today().then(setToday).catch(() => {})
@@ -138,7 +177,7 @@ function DayClock({ day }: { day?: { number: number; progress: number; resetsAt:
   if (!day) return null
   // Recompute progress locally from resetsAt so the bar moves between polls.
   const remaining = Math.max(0, new Date(day.resetsAt).getTime() - Date.now())
-  const progress = Math.min(1, Math.max(0, 1 - remaining / gameDayMsFor(day.lengthHours ?? 12)))
+  const progress = Math.min(1, Math.max(0, 1 - remaining / gameDayMsFor(day.lengthHours ?? 2)))
   const hoursLeft = Math.floor(remaining / 3_600_000)
   const minsLeft = Math.floor((remaining % 3_600_000) / 60_000)
   // Final hour: the chip turns into a countdown so rent/wear/snapshot/disaster never land unseen.
@@ -148,6 +187,28 @@ function DayClock({ day }: { day?: { number: number; progress: number; resetsAt:
   const countdown = `${Math.floor(remaining / 60_000)}:${String(Math.floor((remaining % 60_000) / 1_000)).padStart(2, '0')}`
   const rolls = today?.rolls ?? []
   const knownOut = rolls.reduce((a, r) => a + (r.amount ?? 0), 0)
+  // The day pass: a ticket priced by the wait it buys (a sixth of the old 12-hour
+  // ticket on a 2-hour day). The board it opens is paid for
+  // only if used — a deal claimed on a skipped day pays its own resale margin on
+  // top, which the deal rows carry as `surcharge`. It buys the rollovers, not the
+  // rolls: rent, payroll, the deals board and the price tick land exactly as they
+  // would at a real boundary.
+  const skipFee = day.skipFee ?? 0
+  const canSkip = skipFee > 0 && cash >= skipFee
+  const skipDay = async () => {
+    if (skipping) return
+    setSkipping(true)
+    try {
+      const r = await api.skipDay()
+      await refreshState()
+      toast(r.message, 'good')
+      setHover(false)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'The calendar would not turn', 'bad')
+    } finally {
+      setSkipping(false)
+    }
+  }
   const daily = rolls.filter((r) => r.cadence === 'daily')
   const weekly = rolls.filter((r) => r.cadence === 'weekly')
   return (
@@ -179,6 +240,25 @@ function DayClock({ day }: { day?: { number: number; progress: number; resetsAt:
           {knownOut > 0 && (
             <div className="small faint" style={{ borderTop: '1px solid var(--border)', marginTop: 6, paddingTop: 6 }}>
               known out <b style={{ color: 'var(--red, #e0644d)' }}>-{fmtUsd(knownOut)}</b> at the next 00:00/12:00 UTC boundary
+            </div>
+          )}
+          {skipFee > 0 && (
+            <div style={{ borderTop: '1px solid var(--border)', marginTop: 6, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-start' }}>
+              <button
+                className="primary small"
+                disabled={!canSkip || skipping}
+                title={canSkip
+                  ? `Skip the wait: ${fmtUsd(skipFee)} turns the calendar to the next day now. A deal claimed on the skipped day pays its own resale margin, so the board is paid for only when you use it.`
+                  : `A day pass costs ${fmtUsd(skipFee)} — the drawer holds ${fmtUsd(cash)}`}
+                onClick={skipDay}
+              >
+                {skipping ? 'Turning the calendar…' : `⏭ Skip to the next day · ${fmtUsd(skipFee)}`}
+              </button>
+              <span className="faint small">
+                {canSkip
+                  ? 'deals claimed that day pay their resale margin · rent, payroll, deals and prices roll now'
+                  : `needs ${fmtUsd(skipFee)} in cash`}
+              </span>
             </div>
           )}
         </div>
@@ -233,7 +313,8 @@ export default function App() {
   const [showChangelog, setShowChangelog] = useState(false)
   const [update, setUpdate] = useState<UpdateStatus | null>(null)
   const [updateBusy, setUpdateBusy] = useState(false)
-  const [updateDismissed, setUpdateDismissed] = useState(false)
+  // Dismissing is per version: "Later" on 0.77.68 must not hide 0.78.0.
+  const [updateDismissed, setUpdateDismissed] = useState<string | null>(null)
 
   // Routing: hash-first (#/view), with path-fallback for packaged mode where
   // the server SPA-serves deep links like /buylist. Path mode re-render comes
@@ -270,22 +351,30 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  // One update check per launch. A just-installed version opens What's New
-  // straight away; otherwise a newer setup in Downloads gets an offer. The
-  // marker is cleared only after we have acted on it, so a failed hand-off
-  // cannot make the changelog pop up on every reload.
+  // Update checks: once at launch and then every half hour, so a release
+  // published while the game is open still finds the player. A just-installed
+  // version opens What's New straight away; a newer build — from the GitHub
+  // release page, or a setup in Downloads — gets the offer. The marker is
+  // cleared only after we have acted on it, so a failed hand-off cannot make
+  // the changelog pop up on every reload.
   useEffect(() => {
     let alive = true
-    api.updateCheck().then((u) => {
-      if (!alive) return
-      if (u.justUpdated) {
-        setShowChangelog(true)
-        api.updateSeen().catch(() => {})
-      } else if (u.available) {
-        setUpdate(u)
-      }
-    }).catch(() => {})
-    return () => { alive = false }
+    const check = () => {
+      api.updateCheck().then((u) => {
+        if (!alive) return
+        if (u.justUpdated) {
+          setShowChangelog(true)
+          api.updateSeen().catch(() => {})
+        } else if (u.available) {
+          setUpdate(u)
+        } else {
+          setUpdate(null)
+        }
+      }).catch(() => { /* offline — keep what we already knew */ })
+    }
+    check()
+    const t = setInterval(check, 30 * 60_000)
+    return () => { alive = false; clearInterval(t) }
   }, [])
 
   const applyUpdate = async () => {
@@ -298,6 +387,17 @@ export default function App() {
     } catch (err) {
       setUpdateBusy(false)
       toast(`Update failed: ${err instanceof Error ? err.message : 'unknown error'}`, 'bad')
+    }
+  }
+
+  // A portable copy cannot install over itself, so its offer opens the release
+  // page and lets the player unzip the new build where they keep the game.
+  const openRelease = async () => {
+    try {
+      const r = await api.updateOpenRelease(update?.pageUrl)
+      toast(`Opened ${r.url ?? 'the release page'} — download the new build there.`, 'info')
+    } catch {
+      toast('Could not open the release page — github.com/IcySilver23/tcggame/releases', 'bad')
     }
   }
 
@@ -386,6 +486,10 @@ export default function App() {
           </div>
         </div>
         <NotificationBell />
+        {/* The brand and the bell are pinned; only this list scrolls. Keeping the
+            scroller here (rather than on the whole sidebar) is what stops a
+            scrolling list from sliding under a stuck bell. */}
+        <div className="nav-scroll">
         {(() => {
           const snap: UnlockState | null = state?.progress
             ? { cash: state.cash, collectionValue: state.collectionValue, inventoryValue: state.inventoryValue, netWorth: state.netWorth, progress: state.progress }
@@ -439,6 +543,7 @@ export default function App() {
         </div>
         <div className="footer-note" style={{ padding: '8px 10px' }}>
           Real data via pokemontcg.io · prices TCGplayer USD
+        </div>
         </div>
       </aside>
 
@@ -496,6 +601,7 @@ export default function App() {
               {view === 'resale' && <ResaleView />}
               {view === 'shop' && <ShopView />}
               {view === 'settings' && <SettingsView />}
+              {view === 'academy' && <AcademyView />}
               {view === 'pulls-history' && <PullHistoryView />}
             </>
           )}
@@ -507,7 +613,7 @@ export default function App() {
       <Suspense fallback={null}>
         {detailCardId && <CardDetailModal />}
         {showChangelog && <ChangelogModal onClose={() => { setShowChangelog(false); refreshWhatsNew() }} />}
-        {update?.available && !updateDismissed && !showChangelog && (
+        {update?.available && updateDismissed !== update.version && !showChangelog && (
           <div className="modal-backdrop">
             <div className="modal" style={{ width: 'min(470px, 94vw)' }}>
               <div className="modal-head">
@@ -518,13 +624,26 @@ export default function App() {
               </div>
               <p className="small" style={{ lineHeight: 1.6, marginTop: 0 }}>
                 {updateBusy
-                  ? 'Installing now. The game will close and reopen — your save, collection and settings stay exactly as they are.'
-                  : 'Update now closes the game, installs the new version, and opens it again. Your save, collection and settings stay exactly as they are.'}
+                  ? 'Downloading and installing now. The game will close and reopen — your save, collection and settings stay exactly as they are.'
+                  : update.canSelfUpdate === false
+                    ? 'This is a portable copy, so it cannot replace its own files. Open the release page and download the new build — unzip it over this folder and your save in data/ comes with it.'
+                    : update.source === 'github'
+                      ? 'Update now downloads the new setup from GitHub, closes the game, installs it, and opens it again. Your save, collection and settings stay exactly as they are.'
+                      : 'Update now closes the game, installs the new version, and opens it again. Your save, collection and settings stay exactly as they are.'}
               </p>
-              {update.installerName && <div className="faint small" style={{ marginBottom: 14 }}>Found {update.installerName}.</div>}
+              {update.installerName && (
+                <div className="faint small" style={{ marginBottom: 14 }}>
+                  {update.source === 'github' ? 'Downloads' : 'Found'} {update.installerName}
+                  {update.size ? ` · ${Math.round(update.size / 1_000_000)} MB` : ''}.
+                </div>
+              )}
               <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
-                {!updateBusy && <button className="ghost" onClick={() => setUpdateDismissed(true)}>Later</button>}
-                <button className="primary" disabled={updateBusy} onClick={applyUpdate}>{updateBusy ? 'Updating…' : 'Update now'}</button>
+                {!updateBusy && <button className="ghost" onClick={() => setUpdateDismissed(update.version ?? '')}>Later</button>}
+                {update.canSelfUpdate === false ? (
+                  <button className="primary" onClick={openRelease}>Open the release page</button>
+                ) : (
+                  <button className="primary" disabled={updateBusy} onClick={applyUpdate}>{updateBusy ? 'Updating…' : 'Update now'}</button>
+                )}
               </div>
             </div>
           </div>

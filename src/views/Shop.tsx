@@ -1663,7 +1663,7 @@ function ConsignmentPanel() {
   }, [])
 
   if (!data) return <PanelState status={status} what="the consignment counter" onRetry={load} />
-  const daysLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / gameDayMsFor(state?.day?.lengthHours ?? 12)))
+  const daysLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / gameDayMsFor(state?.day?.lengthHours ?? 2)))
 
   return (
     <div className="panel">

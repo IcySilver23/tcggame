@@ -768,9 +768,21 @@ export function resolveGradedSales(): number {
       total += proceeds
       sellRow.run(row.id)
       cleanupSlotsForInventory([row.id])
-      insertSale.run(row.id, row.card_id, row.variant, row.condition, row.quantity, proceeds, cost, fee, profit, pick(FIRST_NAMES), nowIso())
+      const buyer = pick(FIRST_NAMES)
+      insertSale.run(row.id, row.card_id, row.variant, row.condition, row.quantity, proceeds, cost, fee, profit, buyer, nowIso())
       const name = (db.prepare('SELECT name FROM cards WHERE id = ?').get(row.card_id) as { name: string } | undefined)?.name ?? row.card_id
       logActivity('sale', `${name} (${row.graded_grade}) sold for $${proceeds.toFixed(2)} after 10% fee`, proceeds)
+      // A listed card leaving the binder is what the player has been waiting
+      // on — badge it, so it is not just another line scrolling past in the feed.
+      void import('./notify')
+        .then((n) => n.push(
+          'sale',
+          `💵 ${name} (${row.graded_grade}) sold`,
+          `${buyer} paid $${(row.listing_price ?? 0).toFixed(2)} — $${proceeds.toFixed(2)} to you after the 10% fee, ${profit >= 0 ? '+' : '−'}$${Math.abs(profit).toFixed(2)} against your $${cost.toFixed(2)} basis.`,
+          '#/inventory',
+          `sale:inv:${row.id}`,
+        ))
+        .catch(() => {})
     }
   }
   if (total > 0) db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(round2(total))
@@ -821,9 +833,21 @@ export function resolveSales(): number {
       total += proceeds
       sellRow.run(row.id)
       cleanupSlotsForInventory([row.id])
-      insertSale.run(row.id, row.card_id, row.variant, row.condition, row.quantity, proceeds, cost, fee, profit, pick(FIRST_NAMES), nowIso())
+      const buyer = pick(FIRST_NAMES)
+      insertSale.run(row.id, row.card_id, row.variant, row.condition, row.quantity, proceeds, cost, fee, profit, buyer, nowIso())
       const name = (db.prepare('SELECT name FROM cards WHERE id = ?').get(row.card_id) as { name: string } | undefined)?.name ?? row.card_id
       logActivity('sale', `${row.quantity > 1 ? `${row.quantity}× ` : ''}${name} sold for $${proceeds.toFixed(2)} (after 10% fee)`, proceeds)
+      // A listed card leaving the binder is what the player has been waiting
+      // on — badge it, so it is not just another line scrolling past in the feed.
+      void import('./notify')
+        .then((n) => n.push(
+          'sale',
+          `💵 ${row.quantity > 1 ? `${row.quantity}× ` : ''}${name} sold`,
+          `${buyer} paid $${gross.toFixed(2)} — $${proceeds.toFixed(2)} to you after the 10% fee, ${profit >= 0 ? '+' : '−'}$${Math.abs(profit).toFixed(2)} against your $${cost.toFixed(2)} basis.`,
+          '#/inventory',
+          `sale:inv:${row.id}`,
+        ))
+        .catch(() => {})
     }
   }
   if (total > 0) {

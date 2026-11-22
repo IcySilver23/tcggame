@@ -419,7 +419,6 @@ export const BUNDLE_DISPLAY_SHELF: Readonly<Record<string, { market: number; pro
   'me4-display': { market: 183.96, productId: 684444, product: 'Chaos Rising Booster Box' },
   'me5-bundle': { market: 37.78, productId: 692942, product: 'Pitch Black Booster Bundle' },
   'me5-display': { market: 173.83, productId: 692939, product: 'Pitch Black Booster Box' },
-  'me55-bundle': { market: 59.67, productId: 704171, product: '30th Celebration Booster Bundle' },
   'me6-bundle': { market: 38.1, productId: 712097, product: 'Delta Reign Booster Bundle' },
   'me6-display': { market: 187.23, productId: 712094, product: 'Delta Reign Booster Box' },
   'rsv10pt5-bundle': { market: 92.15, productId: 630696, product: 'White Flare Booster Bundle' },
@@ -565,9 +564,11 @@ const MEGA_SETS: Record<string, MegaSet> = {
   me4: { promos: ['Fennekin'], promoIds: ['mep-080'], promoSet: 'mep', source: MEGA_SOURCE('Chaos Rising', 'chaos-rising'), bundle: true, display: true },
   me5: { promos: ['Zarude'], promoIds: ['mep-088'], promoSet: 'mep', source: MEGA_SOURCE('Pitch Black', 'pitch-black'), bundle: true, display: true },
   me2pt5: { promos: ["N's Zekrom"], promoIds: ['mep-031'], promoSet: 'mep', source: MEGA_SOURCE('Ascended Heroes', 'ascended-heroes'), bundle: true, display: false },
-  // Delta Reign's ETB promo is MEP 117, whose page redirects to the set's own
-  // Kyogre 26/103 — so the box hands over that card rather than nothing.
-  me6: { promos: ['Kyogre'], promoIds: ['me6-26'], promoSet: 'me6', source: LOCAL_RELEASE, bundle: true, display: true },
+  // Delta Reign's ETB promo is MEP 117 — the Kyogre illustration rare the
+  // English set left out (Japanese Storm Emeralda 080's artwork), not the set's
+  // own Kyogre 26/103. That one is the separate $15 store promo: a standard
+  // frame with the anniversary logo, which is the wrong card to seal in a box.
+  me6: { promos: ['Kyogre'], promoIds: ['mep-117'], promoSet: 'mep', source: LOCAL_RELEASE, bundle: true, display: true },
   me55: { promos: ['Nidorina'], promoIds: ['mep-101'], promoSet: 'mep', source: THIRTIETH, cardsPerPack: 6, bundle: true, display: false },
 }
 
@@ -610,6 +611,7 @@ for (const [setId, info] of Object.entries(MEGA_SETS)) {
       : `Nine-pack Elite Trainer Box; the box held either ${info.promos.join(' or ')}.`,
   }
 }
+
 
 // The regular Scarlet & Violet and Mega Evolution boxes also shipped in two
 // arts. Unlike the one-of-two rows above, each art pins a single promo, so the
@@ -1318,22 +1320,26 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
   // MEP 116 (Seel) on Pixel Cosmos Holofoil, but both promo pages redirect to the
   // set printings they reprint, so the box hands over that set card — the same
   // answer the Knock Out Collection's Eevee gets. The Pixel Cosmos paper is not
-  // modelled as a separate printing.
+  // modelled as a separate printing. The blisters below were cross-checked
+  // against the tcgcsv mirror, which read the same listings on 22 November at
+  // $9.51 and $21.17 against this $8.99 and $22.46, and the Pokémon Center ETB
+  // at $132.56 against $141.44 — 4–6% apart across nine and fourteen days, so
+  // the dated reads stand.
   {
     id: 'me6-single-blister', setId: 'me6', name: 'Delta Reign Single Pack Blister', msrp: 4.49,
     packs: 1, cardsPerPack: 10, releaseDate: '2026/11/06',
     description: 'One Delta Reign pack and a Spritzee promo on Pixel Cosmos Holofoil.',
     promos: ['Spritzee'], promoIds: ['me3-35'], promoSet: 'me3', source: MEP_BLISTERS,
-    shelf: { market: 13.08, source: TCGPLAYER_SHELF('Delta Reign Single Pack Blister [Spritzee]', 712108), asOf: '2026-11-08' },
-    note: 'Single Pack Blister: one pack and the Spritzee promo Bulbapedia files as MEP 115, a Pixel Cosmos Holo exclusive. That promo page redirects to Spritzee (Perfect Order 35), so the box hands over that set card; the shelf price is the pack MSRP plus the promo.',
+    shelf: { market: 8.99, source: TCGPLAYER_SHELF('Delta Reign Single Pack Blister [Spritzee]', 712108), asOf: '2026-11-13' },
+    note: 'Single Pack Blister: one pack and the Spritzee promo Bulbapedia files as MEP 115, a Pixel Cosmos Holo exclusive. That promo page redirects to Spritzee (Perfect Order 35), so the box hands over that set card. It sells at its own listing, $8.99 on 13 November 2026, not at pack MSRP plus a promo.',
   },
   {
     id: 'me6-triple-blister', setId: 'me6', name: 'Delta Reign Three Pack Blister', msrp: 13.99,
     packs: 3, cardsPerPack: 10, releaseDate: '2026/11/06',
     description: 'Three Delta Reign packs and a Seel promo on Pixel Cosmos Holofoil.',
     promos: ['Seel'], promoIds: ['me3-18'], promoSet: 'me3', source: MEP_BLISTERS,
-    shelf: { market: 19.05, source: TCGPLAYER_SHELF('Delta Reign 3 Pack Blister [Seel]', 712093), asOf: '2026-11-08' },
-    note: 'Three Pack Blister: three packs and the Seel promo Bulbapedia files as MEP 116, a Pixel Cosmos Holo exclusive, $13.99. That promo page redirects to Seel (Perfect Order 18), so the box hands over that set card.',
+    shelf: { market: 22.46, source: TCGPLAYER_SHELF('Delta Reign 3 Pack Blister [Seel]', 712093), asOf: '2026-11-13' },
+    note: 'Three Pack Blister: three packs and the Seel promo Bulbapedia files as MEP 116, a Pixel Cosmos Holo exclusive, $13.99 sticker. That promo page redirects to Seel (Perfect Order 18), so the box hands over that set card. It trades at $22.46 on 13 November 2026.',
   },
   // Prismatic Evolutions
   {
@@ -1345,7 +1351,7 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
   },
   // 30th Celebration
   {
-    id: 'me55-poster', setId: 'me55', name: '30th Celebration Poster Collection', msrp: 29.99,
+    id: 'me55-poster', setId: 'me55', name: '30th Celebration Poster Collection', msrp: 14.99,
     packs: 3, cardsPerPack: 6, releaseDate: '2026/09/16',
     description: 'Three 30th Celebration packs, Articuno/Zapdos/Moltres promos and a double-sided poster.',
     promos: ['Articuno', 'Zapdos', 'Moltres'], promoIds: ['mep-097', 'mep-098', 'mep-096'], promoSet: 'mep', promoPolicy: 'all', source: THIRTIETH_POSTER,
@@ -1414,7 +1420,7 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     packs: 2, cardsPerPack: 10, releaseDate: '2026/02/20',
     description: 'Two Ascended Heroes packs, an Erika\'s Tangela or Larry\'s Komala promo and a metallic Gym Leader coin.',
     promos: ["Erika's Tangela", "Larry's Komala"], promoIds: ['me2pt5-7', 'me2pt5-175'], promoSet: 'me2pt5', source: ASCENDED_BLISTER,
-    note: 'Two packs, one of two Trainer\'s Pokémon promos and a metallic coin featuring Erika or Larry. The promos carry the set numbering — Erika\'s Tangela 007/217 and Larry\'s Komala 175/217 — so they resolve to those set cards rather than a black-star promo. No published MSRP was found; $12.99 is the retail price Academy listed, and retailers show a release around 20 February 2026 after an earlier 30 January pre-order date.',
+    note: 'Two packs, one of two Trainer\'s Pokémon promos and a metallic coin featuring Erika or Larry. The promos carry the set numbering — Erika\'s Tangela 007/217 and Larry\'s Komala 175/217 — so they resolve to those set cards rather than a black-star promo. No published MSRP was found; $12.99 is the retail price Academy listed, and retailers show a release around 20 February 2026 after an earlier 30 January pre-order date. It sells at its own listings\' mean, $29.10 on 22 November 2026 — Erika $28.99, Larry $29.21.',
   },
   {
     id: 'me2pt5-mini-tin', setId: 'me2pt5', name: 'Ascended Heroes Mini Tin', msrp: 9.99,
@@ -1428,7 +1434,7 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     packs: 10, cardsPerPack: 10, releaseDate: '2026/03/20',
     description: 'Ten Ascended Heroes packs, a Mega Lucario ex or Mega Gardevoir ex promo and a poster.',
     promos: ['Mega Lucario ex', 'Mega Gardevoir ex'], promoIds: ['mep-033', 'mep-032'], promoSet: 'mep', source: ASCENDED_POSTER,
-    note: 'Premium Poster Collection: ten packs and one of two Mega Evolution promos.',
+    note: 'Premium Poster Collection: ten packs and one of two Mega Evolution promos. It sells at its own listings\' mean, $136.93 on 22 November 2026 — Mega Lucario $140.08, Mega Gardevoir $133.77 — not at the $64.99 sticker.',
   },
   {
     id: 'me2pt5-first-partners-pin', setId: 'me2pt5', name: 'Ascended Heroes First Partners Deluxe Pin Collection', msrp: 24.99,
@@ -1507,7 +1513,7 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Eighteen Journey Together packs in the half-size display.',
     promos: [], source: SV_MERCH,
     image: 'https://tcgplayer-cdn.tcgplayer.com/product/649492_in_400x400.jpg',
-    note: 'Half display: eighteen packs, no promo. TCGplayer lists a Journey Together Half Booster Box but publishes no market price here, so the $80.82 shelf price is half a display\'s MSRP and the pack-EV floor applies.',
+    note: 'Half display: eighteen packs, no promo. TCGplayer quotes it as the Half Booster Box at $333.33 on 22 November 2026 — the same way the Destined Rivals half display is quoted — rather than at the $80.82 half-display sticker.',
   },
   {
     id: 'sv10-half-display', setId: 'sv10', name: 'Destined Rivals Half Booster Display (18 packs)', msrp: 80.82,
@@ -2004,8 +2010,10 @@ export const PC_ETB_SHELF: Readonly<Record<string, { market: number; productId: 
   'me3-etb-pc': { market: 118.33, productId: 672404 },
   'me4-etb-pc': { market: 120.9, productId: 684452 },
   'me5-etb-pc': { market: 114.83, productId: 692949 },
-  'me55-etb-pc': { market: 257.07, productId: 704144 },
-  'me6-etb-pc': { market: 198.2, productId: 712104 },
+  // The Nov-12 mirror read ($198.20) sat 40% over the Nov-13 marketplace market
+  // for the same listing, which is the drift a launch-week read produces; the
+  // later, per-product read wins here.
+  'me6-etb-pc': { market: 141.44, productId: 712104 },
 }
 
 // Regular Elite Trainer Boxes whose real TCGplayer market was never entered.
@@ -2025,7 +2033,6 @@ export const REGULAR_ETB_SHELF: Readonly<Record<string, { market: number; produc
   'me3-etb': { market: 72.16, productId: 672401 },
   'me4-etb': { market: 67.8, productId: 684450 },
   'me5-etb': { market: 71.39, productId: 692947 },
-  'me55-etb': { market: 109.26, productId: 704143 },
   'me6-etb': { market: 81.96, productId: 712102 },
   'pgo-etb': { market: 166.24, productId: 270708 },
   'rsv10pt5-etb': { market: 143.26, productId: 630689 },
@@ -2052,6 +2059,93 @@ export const REGULAR_ETB_SHELF: Readonly<Record<string, { market: number; produc
   'swsh35-etb': { market: 208.75, productId: 218791 },
   'swsh45-etb': { market: 142.89, productId: 228821 },
   'zsv10pt5-etb': { market: 152.85, productId: 630686 },
+}
+
+// One snapshot, one provenance, one rule for everything still in print: a pack,
+// blister or box sells at TCGplayer's market for that exact listing on
+// 13 November 2026, read per product through RiftCompare's TCGplayer feeds.
+// Boosters were the odd ones out — the rest of the shelf was quoted while packs
+// came from the game's per-pack EV, a model of what the pack holds — so two
+// packs on one shelf were answering different questions. Multivariant products
+// (sets that shipped several blisters, the five Ascended Heroes mini tins) carry
+// the mean of their variants and say so. RiftCompare left three rows unpriced;
+// they are read from the tcgcsv mirror in MIRROR_SHELF below, so as of
+// 22 November 2026 nothing in print is modelled.
+const PACK_SHELF_AS_OF = '2026-11-13'
+const PACK_SHELF_SOURCE: EvidenceSource = {
+  label: 'TCGplayer market for the exact listing (via RiftCompare)',
+  url: 'https://riftcompare.com/pokemon/sets',
+}
+// 30th Celebration had almost no shelf evidence: its collections fell through
+// the 'special' rule, so a mini tin, a poster collection and a premium box all
+// carried their own sticker floored by the packs inside, and the two
+// Ultra-Premium Collections were a model guess at $311 and $337.
+const SNAPSHOT_SHELF: Readonly<Record<string, number>> = {
+  'me55-bundle': 60.11,
+  'me55-etb': 109.08,
+  'me55-etb-pc': 253.93,
+  'me55-upc-day': 338.42,
+  'me55-upc-night': 376.99,
+  'me55-ditto-premium': 81.55,
+  'me55-figure-mew': 67.25,
+  'me55-figure-mewtwo': 60.28,
+  'me55-poster': 28.78,
+  'me55-tech-sticker': 33.68,
+  'me55-binder': 94.67,
+  // The ten mini-tin designs trade $21.58–$25.69; this is their mean.
+  'me55-mini-tin': 23.67,
+  'me55-knockout': 20.99,
+  'me55-sylveon-ex-box': 43.88,
+  'me55-greninja-ex-box': 39.9,
+  // Two packs for the price of six is what the wrapper really trades at: both
+  // sources read it near $60, because the blister itself is the scarce thing.
+  'me55-2pack-blister': 61.49,
+
+  // Booster packs — the single-pack market, one rule for the whole shelf.
+  'me1-booster': 9.18,
+  'me2-booster': 11.92,
+  'me2pt5-booster': 10.54,
+  'me3-booster': 5.53,
+  'me4-booster': 5.32,
+  'me5-booster': 5.73,
+  'me6-booster': 5.91,
+  'me55-booster': 9.28,
+  'sv9-booster': 6.76,
+  'sv10-booster': 8.13,
+  // Single-pack blisters (mean where a set shipped several promos).
+  'me1-single-blister': 14.05,
+  'me2-single-blister': 13.1,
+  'me4-single-blister': 6.85,
+  'sv10-single-blister': 10.94,
+  // Three-pack blisters (mean where a set shipped several promos).
+  'me1-triple-blister': 39.26,
+  'me2-triple-blister': 42.39,
+  'me4-triple-blister': 21.22,
+  'sv10-triple-blister': 40.08,
+  // Ascended Heroes' boxes and the five mini tins (the ex tins are other rows).
+  'me2pt5-first-partners-pin': 59.67,
+  'me2pt5-mega-emboar-box': 50.49,
+  'me2pt5-mega-feraligatr-box': 53.11,
+  'me2pt5-mega-meganium-box': 47.38,
+  'me2pt5-mini-tin': 32.79,
+  'me2pt5-tech-sticker': 32.77,
+}
+
+// The three rows RiftCompare could not price, read from the tcgcsv mirror —
+// TCGplayer's own catalog feed, no key — on 22 November 2026. Two are
+// multivariant and carry the mean of their variants, like the rows above.
+const MIRROR_AS_OF = '2026-11-22'
+const MIRROR_SHELF_SOURCE: EvidenceSource = {
+  label: 'TCGplayer market for the exact listing (via the tcgcsv mirror)',
+  url: 'https://tcgcsv.com/tcgplayer/3/groups',
+}
+const MIRROR_SHELF: Readonly<Record<string, number>> = {
+  // Collection—Erika's Tangela $28.99 and Collection—Larry's Komala $29.21.
+  'me2pt5-2pack-blister': 29.1,
+  // Premium Poster Collection: Mega Lucario $140.08, Mega Gardevoir $133.77.
+  'me2pt5-premium-poster': 136.93,
+  // Journey Together Half Booster Box — the only listing that carries a price.
+  'sv9-half-display': 333.33,
 }
 
 /** Shelf quotes are keyed by product id; most special products have none. */
@@ -2094,6 +2188,14 @@ const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; a
         asOf: '2026-11-13',
         kind: 'tcgplayer' as const,
       }] as const,
+  ),
+  // Last, so the modern snapshot above wins over the older ETB/bundle reads it
+  // replaces for the same products.
+  ...Object.entries(SNAPSHOT_SHELF).map(
+    ([id, market]) => [id, { market, source: PACK_SHELF_SOURCE, asOf: PACK_SHELF_AS_OF, kind: 'tcgplayer' as const }] as const,
+  ),
+  ...Object.entries(MIRROR_SHELF).map(
+    ([id, market]) => [id, { market, source: MIRROR_SHELF_SOURCE, asOf: MIRROR_AS_OF, kind: 'tcgplayer' as const }] as const,
   ),
 ])
 

@@ -192,6 +192,10 @@ export function PackOpeningView() {
   // card). Same fairness rule as the card record — the bar is the value
   // BEFORE this session existed.
   const [prevBestPack, setPrevBestPack] = useState(0)
+  // The highest record this BOX has already crowned. A box opens wrapper by
+  // wrapper against the pre-box bar, so without this a $15 card in pack 4
+  // would "set a record" the box broke in pack 1 with a $900 pull.
+  const [boxRecord, setBoxRecord] = useState(0)
   // Pack Shop handoff, captured into state on mount: state survives React
   // StrictMode's double effect-invoke, a module slot does not — the first
   // effect run would otherwise consume the handoff and be thrown away.
@@ -226,12 +230,13 @@ export function PackOpeningView() {
     if (h) setHandoff(h)
   }, [ensureProducts, loadSealed])
 
-  // Pack Shop handoff: the purchase already happened (and wrote pull
-  // history), so fetch both record bars now — this is the honest "before"
-  // for any record this session set — then run the ceremony.
+  // Inventory → Sealed handoff: the pack was already ripped server-side (its
+  // pulls are in pull_history), so the record is read EXCLUDING this session.
+  // A plain read here returns the new record as the bar to beat, which no
+  // pull can ever clear — that was the whole broken chase.
   useEffect(() => {
     if (!handoff) return
-    api.pullsBest().then((best) => {
+    api.pullsBest(handoff.session.sessionId).then((best) => {
       beginCeremony(handoff.session, handoff.productId, best.value, best.bestPackTotal ?? 0)
     }).catch(() => beginCeremony(handoff.session, handoff.productId, 0, 0))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -313,6 +318,7 @@ export function PackOpeningView() {
     setPreviousBest(prevBest)
     setPrevBestPack(prevPack)
     setRecord(null)
+    setBoxRecord(0)
     const boxPromos = res.promos?.length ? res.promos : res.promo ? [res.promo] : []
     if (boxPromos.length > 0) {
       setPromo(boxPromos)
@@ -372,8 +378,10 @@ export function PackOpeningView() {
       setBoxPackValues(allPackValues)
       setBoxPackCards(allPacks)
       const bestPull = allCards.reduce((a, c) => (c.value > a.value ? c : a), allCards[0])
-      if (bestPull && previousBest > 0 && bestPull.value > previousBest) {
+      const skipBar = Math.max(previousBest, boxRecord)
+      if (bestPull && skipBar > 0 && bestPull.value > skipBar) {
         setRecord({ cardId: bestPull.cardId, value: bestPull.value })
+        setBoxRecord((r) => Math.max(r, bestPull.value))
       }
       // The summary reads one session; give it the whole box rather than the
       // last wrapper, so the grid is every card pulled from every pack.
@@ -412,9 +420,12 @@ export function PackOpeningView() {
 
   const resumeBox = async (b: { id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }) => {
     if (busy) return
-    setBusy('resume')
+          setBusy('resume')
     try {
       const res = await api.openBoxNext(b.id)
+      // Same honest-baseline rule as the handoff: this wrapper's cards are
+      // already written, so the bar is everything except this session.
+      const best = await api.pullsBest(res.sessionId).catch(() => ({ value: 0, bestPackTotal: 0 }))
       setBox({
         boxId: res.boxId,
         productId: res.productId,
@@ -430,7 +441,7 @@ export function PackOpeningView() {
       setPromo([])
       setPromoThen(null)
       ensureProducts().catch(() => products).then((rows) => {
-        runCeremony(res, rows.find((x) => x.id === res.productId), previousBest, prevBestPack)
+        runCeremony(res, rows.find((x) => x.id === res.productId), best.value, best.bestPackTotal ?? 0)
       })
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Could not reopen that box', 'bad')
@@ -449,7 +460,6 @@ export function PackOpeningView() {
 
   // Did this session's best beat the pre-session record?
   const sessionBest = useMemo(() => session?.cards.reduce((a, c) => (c.value > a.value ? c : a), session.cards[0]) ?? null, [session])
-  const isRecord = !!sessionBest && sessionBest.value > previousBest && previousBest > 0
 
   // The shared TearPack fires onTorn the moment the rip completes; hold the
   // stage ~760ms so the flash and falling foil shards play out, then the
@@ -556,8 +566,15 @@ export function PackOpeningView() {
     if (batch.length === 0) return
     const best = batch.reduce((a, c) => (c.value > a.value ? c : a), batch[0])
     hitStinger(best.value, best.isHit)
-    if (previousBest > 0 && !record && best.value > previousBest) setRecord({ cardId: best.cardId, value: best.value })
-  }, [phase, stage, idx, queue, previousBest, record])
+    // The bar rises as records fall: a card revealed after a smaller record
+    // breaker upgrades the banner instead of being swallowed by the first
+    // one, and nothing in a box can out-crown a bigger pull from the same box.
+    const bar = Math.max(previousBest, boxRecord)
+    if (bar > 0 && best.value > bar && best.value > (record?.value ?? 0)) {
+      setRecord({ cardId: best.cardId, value: best.value })
+      setBoxRecord((r) => Math.max(r, best.value))
+    }
+  }, [phase, stage, idx, queue, previousBest, record, boxRecord])
 
   // Click or swipe anywhere on the stage to walk the ceremony: hold → flip →
   // land → next card. A landed last card pushes straight to the summary.
@@ -604,7 +621,8 @@ export function PackOpeningView() {
   // Summary-facing record state: true when this session's best beats the
   // pre-session record (the server has already counted this session's pulls,
   // so previousBest is the honest "before" number).
-  const beatRecord = !!session && !!sessionBest && sessionBest.value > previousBest && previousBest > 0
+  const recordBar = Math.max(previousBest, boxRecord)
+  const beatRecord = !!session && !!sessionBest && sessionBest.value > recordBar && recordBar > 0
   // Second chase: this rip's best SINGLE PACK beats the pre-session
   // pack-total record. For boxes (bundle/ETB/display) the session total spans
   // many packs, so the honest number is the best per-pack session the server

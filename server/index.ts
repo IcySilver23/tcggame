@@ -6,8 +6,10 @@ import path from 'node:path'
 import { variantTag } from '../src/variant-label'
 import { db, getMeta, setMeta, getSetting, setSetting, logActivity, nowIso } from './lib/db'
 import { gameDayMs, gameDayStart, gameDayEnd, gameDayNumber, gameDayHours, resetGameDayCache } from './lib/gameday'
+import { clockOffsetMs, installClock } from './lib/clock'
 import * as sync from './services/sync'
 import * as market from './services/market'
+import * as daypass from './services/daypass'
 import * as deliveries from './services/deliveries'
 import { portfolio } from './services/portfolio'
 import { refreshBenchmarkCache, benchmarkStatus } from './services/benchmark'
@@ -80,11 +82,17 @@ import * as demographics from './services/demographics'
 import * as breaks from './services/breaks'
 import * as savebackup from './services/savebackup'
 import * as savereset from './services/savereset'
+import * as academy from './services/academy'
 import * as updater from './services/updater'
 import * as fleamarket from './services/fleamarket'
 import * as today from './services/today'
 import { resolvePrice, gradedPrices, round2, CONDITION_MULT } from './services/market'
 import type { Condition } from './services/market'
+
+// The save's clock (lib/clock) is installed before anything is served: it
+// carries any game-days a paid day pass has skipped, and every service's day
+// key, deadline and timestamp reads it through Date.
+installClock()
 
 const app = new Hono()
 const PORT = Number(process.env.TCGLIFE_PORT || 8787) // ignore ambient PORT (dev proxies expect 8787)
@@ -104,15 +112,17 @@ const APP_VERSION: string = typeof __TCGLIFE_VERSION__ !== 'undefined' ? __TCGLI
 app.post('/api/settings/day-length', async (c) => {
   const body = await c.req.json<{ hours?: number }>().catch(() => ({}) as { hours?: number })
   const hours = Number(body?.hours)
-  if (hours !== 12 && hours !== 24) return c.json({ error: 'Day length must be 12 or 24 hours' }, 400)
+  if (hours !== 2 && hours !== 12 && hours !== 24) return c.json({ error: 'Day length must be 2, 12 or 24 hours' }, 400)
   setSetting('dayLengthHours', String(hours))
   resetGameDayCache()
-  // 24h→12h: gates stamped with the old date-only keys would read as "not yet
-  // run today" for the pm half — that's fine, they re-roll at the next
-  // boundary and the keys are comparable. Nothing else is stored per-length.
-  logActivity('system', hours === 12
-    ? '📅 Game days now run 12 real hours — the daily heartbeat (rent, wear, snapshots, grading) fires twice per real day.'
-    : '📅 Game days now run 24 real hours — the daily heartbeat is back to one pass per real day.')
+  // Switching length changes the day-key format, so gates stamped under the old
+  // length simply do not match and re-roll once at the next boundary. Nothing
+  // else is stored per-length.
+  logActivity('system', hours === 2
+    ? '📅 Game days now run 2 real hours — the daily heartbeat (rent, wear, snapshots, grading) fires twelve times per real day.'
+    : hours === 12
+      ? '📅 Game days now run 12 real hours — the daily heartbeat fires twice per real day.'
+      : '📅 Game days now run 24 real hours — the daily heartbeat is back to one pass per real day.')
   return c.json({ ok: true, hours })
 })
 
@@ -316,16 +326,17 @@ app.get('/api/art/:setId/:file', async (c) => {
 
 app.get('/api/changelog', (c) => c.json({ current: APP_VERSION, entries: CHANGELOG }))
 
-// In-place updates from a newer setup downloaded to Downloads/Desktop. The
-// check is read-only; apply launches a detached helper and then exits so the
-// installer can replace this exe. The next launch reads the marker in
-// %LOCALAPPDATA%\TCGLife and opens What's New by itself.
-app.get('/api/update', (c) => c.json(updater.checkForUpdate(APP_VERSION)))
+// In-place updates from the GitHub release page (or a newer setup in
+// Downloads). The check is read-only and cached; apply downloads the release's
+// installer, launches a detached helper and then exits so the setup can replace
+// this exe. The next launch reads the marker in %LOCALAPPDATA%\TCGLife and opens
+// What's New by itself.
+app.get('/api/update', async (c) => c.json(await updater.checkForUpdate(APP_VERSION)))
 
 app.post('/api/update/apply', async (c) => {
   const body = await c.req.json<{ version?: string }>().catch(() => ({}) as { version?: string })
   try {
-    const result = updater.beginUpdate(APP_VERSION, String(body?.version ?? ''))
+    const result = await updater.beginUpdate(APP_VERSION, String(body?.version ?? ''))
     // Answer first, then let go of the exe. The host watchdog closes the window
     // and the updater helper waits for that before running Inno Setup.
     setTimeout(() => process.exit(0), 1200)
@@ -338,6 +349,13 @@ app.post('/api/update/apply', async (c) => {
 app.post('/api/update/seen', (c) => {
   updater.clearAppliedUpdate()
   return c.json({ ok: true })
+})
+
+// A portable copy cannot replace its own exe, so the offer opens the release
+// page instead of promising an install.
+app.post('/api/update/open-release', async (c) => {
+  const body = await c.req.json<{ url?: string }>().catch(() => ({}) as { url?: string })
+  return c.json({ ok: true, url: updater.openReleasePage(body?.url) })
 })
 
 // The sidebar badge only compares versions — it does not need every feature
@@ -423,11 +441,11 @@ app.get('/api/state', (c) => {
     hasShop: !!db.prepare('SELECT id FROM shop WHERE id = 1').get(),
   }
 
-  // The in-game day clock: a game-day is 12 real hours (boundaries roll at
-  // 00:00 and 12:00 UTC — see lib/gameday), and rent, wear, disasters, save
-  // snapshots and the rest of the daily heartbeat all gate on its key. Progress
-  // = how far through the CURRENT game-day we are, so the HUD bar fills toward
-  // the next rent day / snapshot / wear pass twice per real day.
+  // The in-game day clock: a game-day is 2 real hours by default (the length is
+  // a setting — see lib/gameday), and rent, wear, disasters, save snapshots and
+  // the rest of the daily heartbeat all gate on its key. Progress = how far
+  // through the CURRENT game-day we are, so the HUD bar fills toward the next
+  // rent day / snapshot / wear pass.
   const now = new Date()
   const dayStart = gameDayStart(now)
   const dayProgress = (now.getTime() - dayStart.getTime()) / gameDayMs()
@@ -447,9 +465,22 @@ app.get('/api/state', (c) => {
     collectionValue: round2(collectionTotal),
     inventoryValue: round2(listedValue + sealedValue),
     netWorth: round2(state.cash + collectionTotal + listedValue + sealedValue - debt + building),
-    day: { number: dayNumber, progress: Math.min(1, Math.max(0, dayProgress)), resetsAt: gameDayEnd(now).toISOString(), lengthHours: gameDayHours() },
+    day: {
+      number: dayNumber,
+      progress: Math.min(1, Math.max(0, dayProgress)),
+      resetsAt: gameDayEnd(now).toISOString(),
+      lengthHours: gameDayHours(),
+      // A paid day pass moves this save's clock; the page adopts the same shift
+      // so its countdowns measure the server's "now". The ticket is flat, and
+      // what a skipped day's claim owes rides in the deal rows themselves.
+      skipFee: daypass.dayPassFee(),
+      offsetMs: clockOffsetMs(),
+    },
     sync: { ...syncP, cardCount, setCount, lastSnapshotAt: getMeta('lastSnapshotAt'), delta: sync.catalogDeltaStatus() },
     binders: binderStats,
+    // The trade screen caps its picker at this before the server ever sees the
+    // offer, so the limit comes from the one place that enforces it.
+    trade: { maxOfferCards: trading.MAX_OFFER_CARDS },
     progress,
     counters,
     apiConfigured: Boolean(process.env.POKEMONTCG_API_KEY || getSetting('pokemontcgApiKey')),
@@ -497,6 +528,18 @@ app.post('/api/tutorials/start/replay', (c) => {
   setMeta('tut:start', '')
   return c.json({ ok: true })
 })
+
+// The Collector's Academy — the optional advanced course. The state is per
+// save; completing a chapter pays its reward once, and the graduation bonus is
+// paid when the tenth lands. Replaying pays nothing extra.
+app.get('/api/academy', (c) => c.json(academy.academyState()))
+app.post('/api/academy/chapter', async (c) => {
+  const body = await c.req.json<{ id?: string }>().catch(() => ({ id: '' }))
+  const r = academy.completeChapter(String(body.id || ''))
+  if (!r.ok) return c.json(r, 400)
+  return c.json(r)
+})
+app.post('/api/academy/reset', (c) => c.json(academy.resetAcademy()))
 
 app.post('/api/sync/restart', (c) => {
   setMeta('sync:set', '') // reset checkpoint
@@ -1248,23 +1291,29 @@ app.get('/api/pulls', (c) => {
 })
 
 app.get('/api/pulls/best', (c) => {
+  // ?exclude=<session_id> answers "what was the record BEFORE this rip?" for
+  // rips the server opens itself (Inventory → Sealed, a resumed box): their
+  // pulls are already written when the ceremony mounts, so an unfiltered read
+  // would hand the client its own session as the bar to beat — a record that
+  // can never fall. Statuses and the record endpoint are unchanged without it.
+  const exclude = (c.req.query('exclude') ?? '').slice(0, 120)
   const row = db.prepare(`
     SELECT ph.card_id, ph.value, ph.is_hit, ph.opened_at, c.name, c.image_small, s.name AS set_name, ph.rarity
     FROM pull_history ph JOIN cards c ON c.id = ph.card_id JOIN sets s ON s.id = c.set_id
-    WHERE ph.owner = 'player'
+    WHERE ph.owner = 'player' AND ph.session_id <> ?
     ORDER BY ph.value DESC LIMIT 1
-  `).get() as { card_id: string; value: number; is_hit: number; opened_at: string; name: string; image_small: string | null; set_name: string; rarity: string | null } | undefined
+  `).get(exclude) as { card_id: string; value: number; is_hit: number; opened_at: string; name: string; image_small: string | null; set_name: string; rarity: string | null } | undefined
   // Second chase: the best SINGLE-PACK total. Sessions are one pack on the
   // main ceremony and Live paths; battles roll one session id per pack, so a
   // straight GROUP BY never mixes two packs into one "pack".
   const pack = db.prepare(`
     SELECT session_id, SUM(value) AS total
     FROM pull_history
-    WHERE owner = 'player'
+    WHERE owner = 'player' AND session_id <> ?
     GROUP BY session_id
     ORDER BY total DESC
     LIMIT 1
-  `).get() as { session_id: string; total: number } | undefined
+  `).get(exclude) as { session_id: string; total: number } | undefined
   if (!row && !pack) return c.json({ cardId: null, value: 0, bestPackTotal: 0 })
   return c.json({
     cardId: row?.card_id ?? null,
@@ -1307,7 +1356,14 @@ app.get('/api/pulls/summary', (c) => {
   }
   const sealedEnriched = [...agg.entries()].map(([productId, a]) => {
     const d = sealed.priceDetail(productId)
-    const product = db.prepare(`SELECT name, kind, packs FROM pack_products WHERE id = ?`).get(productId) as { name: string; kind: string; packs: number | null } | undefined
+    // Wrapper art rides along, with the set logo and symbol as fallbacks, so
+    // Inventory can show the box you own rather than a name in a table.
+    const product = db
+      .prepare(
+        `SELECT p.name, p.kind, p.packs, p.image_url, s.logo_url AS set_logo, s.symbol_url AS set_symbol
+         FROM pack_products p LEFT JOIN sets s ON s.id = p.set_id WHERE p.id = ?`,
+      )
+      .get(productId) as { name: string; kind: string; packs: number | null; image_url: string | null; set_logo: string | null; set_symbol: string | null } | undefined
     const marketValue = round2(a.value)
     const basis = round2(a.basis)
     // Boxes carry their pack count so the OPEN button can promise what the
@@ -1327,6 +1383,9 @@ app.get('/api/pulls/summary', (c) => {
       basis,
       unrealized: round2(marketValue - basis),
       packs: packsInBox,
+      image_url: product?.image_url ?? null,
+      set_logo: product?.set_logo ?? null,
+      set_symbol: product?.set_symbol ?? null,
       freshQty: a.qty - a.wornQty,
       wornQty: a.wornQty,
       escrowed: a.escrowed,
@@ -1345,9 +1404,18 @@ app.get('/api/binders/available', (c) => {
 
 app.get('/api/binders', (c) => c.json(binders.listBinders()))
 
+// Registered before /api/binders/:id, or the parameter route would swallow it.
+app.get('/api/binders/covers', (c) =>
+  c.json({ covers: binders.BINDER_COVERS, slotted: binders.slottedTotal() }),
+)
+
 app.post('/api/binders', async (c) => {
-  const body = await c.req.json<{ name: string; accent?: string }>()
-  return c.json(binders.createBinder(body.name ?? 'New Binder', body.accent ?? 'yellow'))
+  const body = await c.req.json<{ name: string; accent?: string; cover?: string }>()
+  try {
+    return c.json(binders.createBinder(body.name ?? 'New Binder', body.accent ?? 'yellow', body.cover ?? 'vinyl'))
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : 'Could not create the binder' }, 400)
+  }
 })
 
 app.get('/api/binders/:id', (c) => {
@@ -1357,8 +1425,9 @@ app.get('/api/binders/:id', (c) => {
 })
 
 app.patch('/api/binders/:id', async (c) => {
-  const body = await c.req.json<{ name?: string; accent?: string }>()
-  binders.updateBinder(Number(c.req.param('id')), body)
+  const body = await c.req.json<{ name?: string; accent?: string; cover?: string }>()
+  const r = binders.updateBinder(Number(c.req.param('id')), body)
+  if (!r.ok) return c.json({ error: r.error ?? 'Could not update the binder' }, 400)
   return c.json({ ok: true })
 })
 
@@ -1404,8 +1473,13 @@ app.get('/api/trades/pending', (c) => c.json(trading.pendingOffers()))
 app.get('/api/trades/history', (c) => c.json(trading.tradeHistory()))
 
 app.post('/api/trade/propose', async (c) => {
-  const body = await c.req.json<{ traderId: number; inventoryId: number; cash: number }>()
-  const res = trading.proposeTrade(body.traderId, body.inventoryId, Math.max(0, round2(body.cash || 0)))
+  // A trade can hold several of your cards: `inventoryIds` is the real shape,
+  // and the single `inventoryId` stays for the card-detail quick panel.
+  const body = await c.req.json<{ traderId: number; inventoryId?: number; inventoryIds?: number[]; cash: number }>()
+  const ids = Array.isArray(body.inventoryIds)
+    ? body.inventoryIds
+    : body.inventoryId != null ? [body.inventoryId] : []
+  const res = trading.proposeTrade(body.traderId, ids, Math.max(0, round2(body.cash || 0)))
   return c.json(res, res.ok ? 200 : 400)
 })
 
@@ -2489,6 +2563,16 @@ app.get('/api/flea', (c) => c.json(fleamarket.section()))
 
 // TODAY panel — everything that rolls at the next UTC midnight.
 app.get('/api/today', (c) => c.json(today.todayRolls()))
+
+// DAY PASS — pay a per-hour rate to skip the wait to the next game-day boundary;
+// the ticket scales with the day length, so a 2h day costs a sixth of a 12h one.
+app.post('/api/day/skip', (c) => {
+  const r = daypass.skipToNextDay()
+  if (!r.ok) return c.json(r, 400)
+  // The new day's rolls fire now instead of waiting for the next poll's tick.
+  market.tick()
+  return c.json(r)
+})
 app.post('/api/flea/dig/:binId', (c) => c.json(fleamarket.dig(Number(c.req.param('binId')))))
 app.post('/api/flea/debug-spawn', (c) => { fleamarket.debugSpawnMarket(); return c.json({ ok: true }) })
 
@@ -2726,6 +2810,10 @@ app.post('/api/saves/restore', async (c) => {
   if (!body?.file) return c.json({ error: 'No snapshot named' }, 400)
   const r = await savebackup.restoreBackup(String(body.file))
   if (!r.ok) return c.json({ error: r.error || 'Restore failed' }, 400)
+  // The restored snapshot brings its own meta, including any day-pass clock
+  // offset it was saved with — the running clock has to read that back, exactly
+  // as a boot would, or the save is played a day out of step with itself.
+  installClock()
   shopShelf.invalidateAfterSaveChange()
   return c.json({ ok: true, safety: r.safety })
 })

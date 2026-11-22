@@ -94,11 +94,14 @@ input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px color-mix
 input::placeholder{color:var(--text-faint)}
 .app{display:flex;height:100vh;overflow:hidden}
 /* TCG-blue chrome: the nav column stays dark so the play surface reads as paper. */
-.sidebar{width:220px;min-width:220px;background:linear-gradient(180deg,var(--chrome-a),var(--chrome-b));display:flex;flex-direction:column;padding:14px 12px;gap:2px;overflow-y:auto;color:#fff;--text:#ffffff;--text-dim:var(--chrome-dim);--text-faint:var(--chrome-faint);--panel:var(--chrome-panel);--panel2:var(--chrome-panel2);--border:var(--chrome-line);--border-soft:var(--chrome-line);--edge:#060c24}
+.sidebar{width:220px;min-width:220px;background:linear-gradient(180deg,var(--chrome-a),var(--chrome-b));display:flex;flex-direction:column;padding:14px 12px;gap:2px;overflow:hidden;color:#fff;--text:#ffffff;--text-dim:var(--chrome-dim);--text-faint:var(--chrome-faint);--panel:var(--chrome-panel);--panel2:var(--chrome-panel2);--border:var(--chrome-line);--border-soft:var(--chrome-line);--edge:#060c24}
 .brand{display:flex;align-items:center;gap:10px;padding:2px 6px 12px;border-bottom:2px solid rgba(255,255,255,.12);margin-bottom:8px}
 .brand h1{font-size:17px;letter-spacing:2.5px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
 .brand .accent{color:var(--yellow)}
 .brand .tag{font-size:9.5px;color:var(--text-faint);letter-spacing:1.6px;text-transform:uppercase}
+/* Only the nav list scrolls; the brand and the bell above it are pinned, so a
+   row can never end up drawn underneath the bell. */
+.nav-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;scrollbar-gutter:stable}
 /* Pokéball mark — pure CSS, no image asset (survives the packaged exe). */
 .pokeball{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #060c24;background:radial-gradient(circle at 50% 50%,#fff 0 3px,#060c24 3px 5px,transparent 5px),linear-gradient(180deg,var(--red-btn) 0 44%,#060c24 44% 56%,#f6f8ff 56% 100%);box-shadow:0 2px 0 rgba(0,0,0,.4)}
 .nav-item{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:12px;color:var(--text-dim);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:700;font-size:13px;letter-spacing:.2px;border:2px solid transparent;transition:background .12s,color .12s,transform .12s}
@@ -458,6 +461,10 @@ input::placeholder{color:var(--text-faint)}
    sits in. Scoped tokens keep every label, button and stat on it legible. */
 /* The floor is a viewport fraction, not a fixed 560px: on a short window a
    fixed floor is what pushed the reveal past the page and made you scroll. */
+/* One card-shaped box for the whole ritual. The wrapper you tear and the card it
+   hands you read the SAME width, so the pack does not shrink into the reveal and
+   the rip reads as one continuous object rather than two screens. */
+.po-stage,.po-reveal{--po-card-w:min(400px,60vw,calc((100vh - 470px) * 245 / 342));--po-card-w:min(400px,60vw,calc((100dvh - 470px) * 245 / 342))}
 .po-stage{position:relative;border-radius:16px;border:1.5px solid #1f3a7a;background:radial-gradient(ellipse at 50% 34%,#1a3168 0%,#0c1a41 50%,#060d24 100%);min-height:min(560px,calc(100vh - 210px));min-height:min(560px,calc(100dvh - 210px));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;overflow:hidden;-webkit-user-select:none;user-select:none;color:#fff;--text:#ffffff;--text-dim:#aebbe4;--text-faint:#8090c2;--panel:#12234f;--panel2:#1a3068;--panel3:#152a5c;--border:#22407e;--border-soft:#1b3464;--yellow-dim:#ffcb05;--gold:#ffcb05}
 .po-pack-shell{position:relative;display:flex;justify-content:center;animation:packFloat 5.2s ease-in-out infinite}
 .po-pack-shell.held{animation-play-state:paused}
@@ -465,9 +472,9 @@ input::placeholder{color:var(--text-faint)}
 /* A wrapper is 240px wide on a tall screen and shrinks on a short one, so the
    tear screen (pill, wrapper, hint, button) fits the window like the reveal
    does. */
-.po-pack{width:min(240px,calc((100vh - 415px) * 66 / 100));width:min(240px,calc((100dvh - 415px) * 66 / 100));aspect-ratio:66/100;border-radius:12px;cursor:pointer;position:relative;background:linear-gradient(160deg,#1d3a86,#0d1c42);border:1.5px solid #2f57a8;box-shadow:0 18px 50px #04091c80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .25s ease-out,box-shadow .3s}
+.po-pack{width:var(--po-card-w);aspect-ratio:245/342;border-radius:14px;cursor:pointer;position:relative;background:linear-gradient(160deg,#1d3a86,#0d1c42);border:1.5px solid #2f57a8;box-shadow:0 18px 50px #04091c80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transform:perspective(950px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--sc,1));transition:transform .25s ease-out,box-shadow .3s}
 .po-pack:hover{--sc:1.04}
-.po-pack .pack-foil{position:absolute;inset:0;border-radius:11px;overflow:hidden;pointer-events:none;background:linear-gradient(115deg,transparent 30%,hsl(var(--bh,45) 92% 72% / .16) 44%,hsl(calc(var(--bh,45) + 65) 92% 76% / .2) 52%,transparent 66%);background-size:300% 100%;mix-blend-mode:screen;animation:foilDrift 5.5s ease-in-out infinite}
+.po-pack .pack-foil{position:absolute;inset:0;border-radius:13px;overflow:hidden;pointer-events:none;background:linear-gradient(115deg,transparent 30%,hsl(var(--bh,45) 92% 72% / .16) 44%,hsl(calc(var(--bh,45) + 65) 92% 76% / .2) 52%,transparent 66%);background-size:300% 100%;mix-blend-mode:screen;animation:foilDrift 5.5s ease-in-out infinite}
 @keyframes foilDrift{0%,100%{background-position:10% 50%}50%{background-position:90% 50%}}
 .po-pack .pack-logo{width:84px;height:84px;object-fit:contain;opacity:.95}
 .po-pack .pack-name{font-weight:700;font-size:15px;color:var(--yellow);letter-spacing:.5px;text-align:center;padding:0 14px}
@@ -480,7 +487,7 @@ input::placeholder{color:var(--text-faint)}
   radial-gradient(ellipse at 50% 22%,hsl(var(--bh,215) 70% 34% / .5),transparent 62%),
   radial-gradient(ellipse at 50% 34%,#1a3168 0%,#0c1a41 50%,#060d24 100%)}
 .po-pack-hero{position:relative;display:flex;justify-content:center;padding-bottom:40px}
-.po-pack-reflect{position:absolute;left:50%;bottom:8px;width:min(232px,calc((100vh - 415px) * 66 / 100));width:min(232px,calc((100dvh - 415px) * 66 / 100));height:46px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(150,205,255,.28),transparent 70%);filter:blur(2px)}
+.po-pack-reflect{position:absolute;left:50%;bottom:8px;width:calc(var(--po-card-w) * .97);height:46px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(150,205,255,.28),transparent 70%);filter:blur(2px)}
 .po-pack-pill{position:absolute;top:16px;left:50%;transform:translateX(-50%);max-width:82%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#cfe0ff;background:rgba(10,22,48,.72);border:1px solid #2b4f92;border-radius:999px;padding:4px 14px}
 .po-pack-hint{margin-top:10px;font-size:11.5px;color:#aebbe4;background:rgba(16,32,66,.65);border:1px solid #2b4f92;border-radius:999px;padding:4px 14px}
 /* The face lands with a wipe of shine across it — the TCG Pocket tell that the
@@ -493,7 +500,7 @@ input::placeholder{color:var(--text-faint)}
    what is left is split by the card's own 245:342 ratio. A width-only size
    drew an 816px card in a 650px-tall window — taller than the page, so its
    bottom was always cut off. */
-.po-reveal{position:relative;perspective:1200px;display:flex;flex-direction:column;align-items:center;gap:14px;--po-card-w:min(400px,60vw,calc((100vh - 470px) * 245 / 342));--po-card-w:min(400px,60vw,calc((100dvh - 470px) * 245 / 342))}
+.po-reveal{position:relative;perspective:1200px;display:flex;flex-direction:column;align-items:center;gap:14px}
 /* --- Reveal ceremony: the back swings in, holds its breath, flips --- */
 /* 400px wide on a tall screen; on a short window it shrinks so the whole
    reveal fits without scrolling (see --po-card-w above). */
@@ -606,8 +613,12 @@ a:hover{text-decoration:underline}
 to{opacity:1;transform:none}
 }
 .binder-pockets{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.binder-pocket{position:relative;border-radius:10px;min-height:190px;border:1.5px solid var(--border-soft);background:var(--panel2);overflow:hidden}
-.binder-pocket.empty{display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:22px;cursor:pointer;background:repeating-linear-gradient(45deg,var(--panel2),var(--panel2) 10px,var(--panel3) 10px,var(--panel3) 20px);min-height:190px}
+.binder-pocket{position:relative;border-radius:10px;aspect-ratio:63/88;border:1.5px solid rgba(255,255,255,.13);background:rgba(0,0,0,.22);overflow:hidden}
+.binder-pocket.filled{background:rgba(0,0,0,.34)}
+/* An empty pocket is a pocket, not a white card: dark, translucent, its edge
+   dashed. The old theme-panel stripes were near-white in the light theme and
+   turned every empty page into a block of white rectangles. */
+.binder-pocket.empty{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.32);font-size:22px;cursor:pointer;border:1.5px dashed rgba(255,255,255,.17);background:repeating-linear-gradient(45deg,rgba(255,255,255,.045),rgba(255,255,255,.045) 9px,rgba(255,255,255,.012) 9px,rgba(255,255,255,.012) 18px)}
 .binder-pocket.empty.move-target:hover{outline:2px dashed var(--accent, var(--yellow));color:var(--accent)}
 .binder-pocket.filled{cursor:pointer;padding:8px;transition:transform .15s}
 .binder-pocket.filled:hover{transform:translateY(-2px)}
@@ -630,16 +641,52 @@ to{opacity:1;transform:none}
 .binder-shelf{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
 @media (min-width:880px){.binder-shelf{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (min-width:1180px){.binder-shelf{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.binder-cover{display:flex;min-width:0;background:linear-gradient(160deg,var(--panel),var(--panel2));border:2px solid var(--border);border-radius:14px;box-shadow:0 3px 0 var(--edge);overflow:hidden;cursor:pointer;transition:transform .12s,border-color .12s}
-.binder-cover:hover{transform:translateY(-2px);border-color:var(--accent)}
-.binder-cover-spine{width:9px;flex:none;background:var(--accent, var(--yellow))}
-.binder-cover-body{flex:1;min-width:0;padding:11px 12px;display:flex;flex-direction:column;gap:5px}
-.binder-cover-name{font-size:14px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.binder-cover-kill{opacity:.55;padding:2px 7px}
+/* A CLOSED BINDER: board, hinged spine down the left with the accent cloth, a
+   paper title label on the cover, the page block on the right edge. */
+.binder-cover{position:relative;display:flex;min-width:0;border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid #0a0c10;box-shadow:0 4px 0 var(--edge),0 12px 24px rgba(0,0,0,.4);transition:transform .12s,box-shadow .12s}
+.binder-cover:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--edge),0 16px 30px rgba(0,0,0,.45)}
+.binder-cover-spine{position:relative;width:20px;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,color-mix(in srgb,var(--accent, var(--yellow)) 55%,#000),var(--accent, var(--yellow)) 70%,color-mix(in srgb,var(--accent, var(--yellow)) 70%,#000));border-right:1px solid rgba(0,0,0,.55)}
+/* Hinge grooves live on the outer 5px of the spine. Running them across the
+   whole 20px cut the vertical title into chunks that read as clipped letters. */
+.binder-spine-rings{position:absolute;top:0;bottom:0;left:0;width:5px;z-index:0;background:repeating-linear-gradient(180deg,transparent 0 20px,rgba(0,0,0,.5) 20px 24px)}
+.binder-spine-text{position:relative;z-index:1;writing-mode:vertical-rl;transform:rotate(180deg);font-size:8.5px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:#0c0f14;max-height:86%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.binder-cover-body{position:relative;flex:1;min-width:0;padding:10px 12px 11px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+.binder-cover-label{display:flex;flex-direction:column;gap:1px;min-width:0;align-self:flex-start;max-width:calc(100% - 26px);padding:5px 9px;border-radius:5px;background:rgba(246,241,228,.94);color:#1b1f28;box-shadow:0 1px 0 rgba(0,0,0,.4);margin-right:22px}
+.binder-cover-label b{font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.binder-cover-label span{font-size:9px;opacity:.72}
+.binder-cover-foot{display:flex;flex-direction:column;gap:4px;margin-top:auto}
+/* The theme's fill track is pale; on a dark cover it read as a white rule. */
+.binder-cover .binder-fill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.14)}
+.binder-cover .binder-fill>span{background:var(--accent, var(--yellow))}
+.binder-cover-kill{position:absolute;top:6px;right:6px;z-index:3;opacity:.45;padding:2px 6px;background:rgba(0,0,0,.45);border-color:rgba(255,255,255,.2);color:#fff;box-shadow:none}
 .binder-cover:hover .binder-cover-kill{opacity:1}
-.binder-peek{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:3px 0}
+.binder-cover-edges{width:7px;flex:none;background:repeating-linear-gradient(180deg,#efe9d8 0 2px,#bdb5a1 2px 3px);border-left:1px solid rgba(0,0,0,.5);box-shadow:inset 2px 0 4px rgba(0,0,0,.25)}
+/* Cover stock. Matte cloth and leather stay flat; the three specials carry a
+   slow sheen so a galaxy/gold/monster cover reads as foil, not paint. */
+.cover-vinyl .binder-cover-body{background:linear-gradient(160deg,#262b35,#14171d 70%)}
+.cover-canvas .binder-cover-body{background:linear-gradient(160deg,#666d78,#3c424b 70%)}
+.cover-leather .binder-cover-body{background:radial-gradient(ellipse at 30% 0%,#8a5330,#57301b 55%,#33190d)}
+.cover-leather .binder-cover-body::before{content:"";position:absolute;inset:6px;border:1px solid rgba(255,214,140,.35);border-radius:6px;pointer-events:none}
+.cover-holo .binder-cover-body{background:linear-gradient(140deg,#2b3070,#6d3fa4 32%,#1f7078 62%,#2b3070)}
+.cover-gold .binder-cover-body{background:linear-gradient(160deg,#3a3018,#1a1509 65%)}
+.cover-gold .binder-cover-body::before{content:"";position:absolute;inset:5px;border:2px solid rgba(255,206,90,.55);border-radius:6px;pointer-events:none}
+.cover-monster .binder-cover-body{background:linear-gradient(180deg,#b3272d 0 46%,#1b1f27 46% 100%)}
+/* The ball sits in the header beside the title. Centred on the red/dark seam it
+   was painted UNDER the peek window and could not be seen at all. */
+.cover-monster .binder-cover-body::after{content:"";position:absolute;top:9px;right:42px;z-index:2;width:22px;height:22px;border-radius:50%;border:2px solid #0a0c10;box-shadow:0 1px 0 rgba(0,0,0,.5);background:linear-gradient(180deg,#f2ede1 0 47%,#15181e 47% 100%);pointer-events:none}
+.cover-monster .binder-cover-label{max-width:calc(100% - 76px)}
+/* The foil sweep sits over the cover stock only — the label, the peek and the
+   foot are lifted above it, or the sheen hazed the cards you were peeking at. */
+.binder-sheen{position:absolute;inset:-40%;pointer-events:none;background:linear-gradient(112deg,transparent 45%,rgba(255,255,255,.2) 50%,transparent 55%);animation:binderShine 6.5s linear infinite;z-index:0}
+.binder-cover-label,.binder-peek,.binder-cover-foot{position:relative;z-index:1}
+@keyframes binderShine{0%{transform:translateX(-70%)}60%,100%{transform:translateX(70%)}}
+@media (prefers-reduced-motion:reduce){.binder-sheen{animation:none;opacity:.35}}
+.binder-peek{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:3px 0}
+/* The peek is a window, not a link: CardImg would otherwise open the card and
+   swallow the click that is supposed to open the binder. */
+.binder-peek .card-img-wrap,.binder-peek img{pointer-events:none}
 .binder-peek-cell{aspect-ratio:63/88;border-radius:5px;overflow:hidden;background:var(--img-bg, var(--panel3));border:1px solid var(--border-soft)}
-.binder-peek-cell.is-empty{background:repeating-linear-gradient(45deg,var(--panel2),var(--panel2) 5px,var(--panel3) 5px,var(--panel3) 10px);border-style:dashed}
+.binder-peek-cell.is-empty{background:repeating-linear-gradient(45deg,rgba(255,255,255,.07),rgba(255,255,255,.07) 5px,rgba(255,255,255,.02) 5px,rgba(255,255,255,.02) 10px);border-style:dashed;border-color:rgba(255,255,255,.18)}
 .binder-peek-cell img{width:100%;height:100%;object-fit:contain;display:block}
 .binder-fill{height:7px;border-radius:4px;background:var(--track);border:1px solid var(--border-soft);overflow:hidden}
 .binder-fill>span{display:block;height:100%;background:var(--accent, var(--yellow));transition:width .3s}
@@ -648,14 +695,57 @@ to{opacity:1;transform:none}
 .binder-swatch:hover{opacity:.85;transform:translateY(-1px)}
 .binder-swatch.on{opacity:1;outline:2px solid var(--text);outline-offset:2px}
 .binder-new .binder-accents{margin-top:0}
+/* Cover stock picker — a chip per material, locked ones greyed with the count
+   that earns them (the server enforces the same rule). */
+.binder-covers{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.binder-cover-opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 6px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--panel2);min-width:66px;transition:transform .12s,border-color .12s}
+.binder-cover-opt:hover:not(:disabled){transform:translateY(-1px);border-color:var(--accent, var(--yellow))}
+.binder-cover-opt.on{outline:2px solid var(--yellow);outline-offset:1px}
+.binder-cover-opt:disabled{cursor:not-allowed}
+.binder-cover-opt.locked{opacity:.62}
+.bco-face{width:34px;height:44px;border-radius:4px;display:grid;place-items:center;font-size:13px;border:1px solid #0a0c10;box-shadow:0 2px 0 var(--edge);background:#1b1f27}
+.binder-cover-opt.cover-vinyl .bco-face{background:linear-gradient(160deg,#262b35,#14171d)}
+.binder-cover-opt.cover-canvas .bco-face{background:linear-gradient(160deg,#666d78,#3c424b)}
+.binder-cover-opt.cover-leather .bco-face{background:radial-gradient(ellipse at 30% 0%,#8a5330,#57301b 65%)}
+.binder-cover-opt.cover-holo .bco-face{background:linear-gradient(140deg,#2b3070,#6d3fa4 32%,#1f7078 62%,#2b3070)}
+.binder-cover-opt.cover-gold .bco-face{background:linear-gradient(160deg,#3a3018,#1a1509 65%);box-shadow:inset 0 0 0 2px rgba(255,206,90,.5),0 2px 0 var(--edge)}
+.binder-cover-opt.cover-monster .bco-face{background:linear-gradient(180deg,#b3272d 0 46%,#1b1f27 46% 100%)}
+.bco-label{font-size:8.5px;font-weight:800;letter-spacing:.3px;text-align:center;line-height:1.2;max-width:74px}
+.bco-lock{position:absolute;top:3px;right:4px;font-size:8px;font-weight:900;color:var(--yellow);background:rgba(0,0,0,.6);border-radius:3px;padding:0 3px}
 .binder-head{align-items:flex-start}
 .binder-title-row{display:flex;align-items:center;gap:8px;margin-top:8px;min-width:0;flex-wrap:wrap}
 .binder-title-row h1{min-width:0}
 .binder-drag-hint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 /* The book is one column: page, then its controls. Side-by-side arrows cost
    ~50px of a ~300px content width and squeezed the pockets into strips. */
-.binder-book{display:block;padding:12px}
-.binder-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft)}
+/* The open book: two page sheets around a ring spine, board around them. */
+.binder-book{display:block;position:relative;max-width:1060px;margin:14px auto 0;padding:12px;border-radius:14px;border:2px solid #0a0c10;background:linear-gradient(160deg,#232833,#12151b);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 10px 26px rgba(0,0,0,.45)}
+/* The boards of the OPEN book wear the same stock as the closed cover, so the
+   cover you picked stays visible while you flip. */
+.binder-book.cover-canvas{background:linear-gradient(160deg,#666d78,#2f343b 70%)}
+.binder-book.cover-leather{background:radial-gradient(ellipse at 30% 0%,#8a5330,#57301b 55%,#2b160c)}
+.binder-book.cover-holo{background:linear-gradient(140deg,#2b3070,#6d3fa4 32%,#1f7078 62%,#2b3070)}
+.binder-book.cover-gold{background:linear-gradient(160deg,#3a3018,#151107 65%)}
+/* The stamped frames of the closed cover travel onto the open boards, or a
+   gold book just looks like a black one once you open it. */
+.binder-book.cover-gold::before,.binder-book.cover-leather::before{content:"";position:absolute;inset:5px;border:2px solid rgba(255,206,90,.42);border-radius:10px;pointer-events:none}
+.binder-book.cover-leather::before{border-color:rgba(255,214,140,.3)}
+.binder-book.cover-monster{background:linear-gradient(180deg,#8f2329,#1b1f27 55%)}
+.binder-spread{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);gap:8px;align-items:stretch;animation:pageTurn .3s ease-out}
+.binder-rings{display:flex;flex-direction:column;justify-content:space-around;align-items:center;padding:8px 0}
+.binder-rings span{width:26px;height:8px;border-radius:8px;border:1px solid rgba(0,0,0,.55);background:linear-gradient(180deg,#eef2f9,#8e99ab 55%,#5b6577);box-shadow:0 1px 3px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.7)}
+.binder-page{position:relative;display:flex;flex-direction:column;gap:7px;padding:9px;border-radius:9px;background:linear-gradient(180deg,#20252e,#161a21);border:1px solid rgba(255,255,255,.07);box-shadow:inset 0 0 26px rgba(0,0,0,.55)}
+.binder-page.blank{background:linear-gradient(180deg,#1b1f26,#12151b);border-style:dashed;border-color:rgba(255,255,255,.12)}
+.binder-page-tag{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-size:8.5px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-faint)}
+.binder-page-tag span{letter-spacing:.5px;font-weight:700}
+@media (max-width:900px){
+  .binder-spread{grid-template-columns:minmax(0,1fr);gap:10px}
+  .binder-rings{flex-direction:row;padding:0 0 2px;height:16px}
+  .binder-rings span{width:6px;height:14px}
+}
+/* Dark plate under the page controls: the boards take the cover stock, and the
+   pale page numbers were unreadable on the holo/gold stocks. */
+.binder-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:9px 8px 3px;border-top:1px solid rgba(255,255,255,.12);background:rgba(8,10,14,.6);border-radius:0 0 10px 10px}
 .binder-nav .binder-flip{padding:5px 15px;font-size:20px}
 .binder-page-num{display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center}
 .binder-page-num span{font-size:9.5px;letter-spacing:1px;color:var(--text-faint);text-transform:none}
@@ -671,9 +761,17 @@ to{opacity:1;transform:none}
 /* Pin the art wrapper to the box instead of sizing it — a percentage height on
    .card-img-wrap resolved to 0 inside the flex item. Same pattern the pack
    opening uses for .po-front. */
+/* CardImg sets object-fit:cover INLINE on the <img> as it fades in, so a pocket
+   box of a different shape cropped the card's edges. Inline styles lose to an
+   !important declaration, which is the only way to keep the whole card in the
+   pocket without bending the shared component. */
 .binder-pocket-art{position:relative;flex:1;min-height:0}
 .binder-pocket-art .card-img-wrap{position:absolute;top:0;right:0;bottom:0;left:0;width:auto;height:auto;aspect-ratio:auto;border-radius:6px;background:transparent}
-.binder-pocket-art .card-img-wrap img{object-fit:contain}
+.binder-pocket-art .card-img-wrap img{object-fit:contain!important}
+/* In the add-cards picker the whole tile means "add". CardImg's own click opens
+   the card, so the art is taken out of hit-testing here rather than hijacking
+   the shared component. */
+.binder-picker .card-cell .card-img-wrap{pointer-events:none}
 .binder-drag-handle{cursor:grab;display:block}
 .binder-drag-handle:active{cursor:grabbing}
 .binder-drag-handle img{-webkit-user-drag:none;pointer-events:none;-webkit-user-select:none;user-select:none}
@@ -2728,6 +2826,11 @@ to{opacity:1;transform:none}
 .bay-sequin{font-size:8px;font-weight:900;letter-spacing:.5px;padding:1px 6px;border-radius:999px;color:#bff5e2;background:rgba(46,230,168,.14);border:1px solid rgba(46,230,168,.42);cursor:help;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .bay-rip{position:absolute;top:5px;left:5px;font:inherit;font-size:9.5px;font-weight:900;letter-spacing:.4px;padding:2px 6px;border-radius:5px;border:1px solid #f2c400;background:var(--yellow);color:#20180a;cursor:pointer;z-index:3}
 .bay-rip:disabled{opacity:.5;cursor:not-allowed}
+/* Sealed wrapper art in Inventory — the Pack Shop's own fallback ladder:
+   product photo, set logo, set symbol, then a box. */
+.inv-seal-thumb{flex:none;width:38px;height:46px;object-fit:contain;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);padding:2px;box-sizing:border-box}
+.inv-seal-thumb.ph{display:grid;place-items:center;font-size:17px;color:var(--text-dim)}
+.inv-seal-thumb.sm{width:26px;height:32px;font-size:12px;padding:1px}
 /* The till — fixed furniture beside the floor. */
 .till{position:sticky;top:10px;display:flex;flex-direction:column;gap:7px;padding:14px;border-radius:16px;border:2px solid var(--border);background:
   radial-gradient(ellipse at 50% 0%,rgba(255,206,120,.14),transparent 65%),
@@ -2758,7 +2861,9 @@ to{opacity:1;transform:none}
 .till-slots-head{font-size:9.5px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim)}
 .till-promos{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border:1px solid rgba(255,214,140,.4);border-radius:10px;background:rgba(255,214,140,.06)}
 .till-promos-head{font-size:9.5px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:#ffe9b8}
-.till-promo{display:flex;align-items:baseline;gap:5px;font-size:11.5px;font-weight:750;line-height:1.35}
+.till-promo{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:750;line-height:1.35}
+.till-promo-art{flex:none;width:26px;display:block}
+.till-promo-art .card-img-wrap{border-radius:3px}
 .till-promo-star{flex:none;color:var(--yellow)}
 .till-promo-note{font-size:10px;line-height:1.35;color:var(--text-dim)}
 .till-slot{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;font-size:10.5px;line-height:1.35}
@@ -2874,11 +2979,18 @@ to{opacity:1;transform:none}
    A wrapper you tear, not a card you click. The art is rendered twice and cut by
    one zigzag: the tail peels up and back, the body stays put, and the foil edge
    glows between them. No border, no radius, no captions printed on the pack. */
-.po-pack.has-art{background:none;border:none;border-radius:0;box-shadow:0 26px 60px rgba(0,0,0,.55);padding:0;overflow:visible;--ty:0%}
-.po-pack.has-art:after{content:"";position:absolute;inset:0;border-radius:3px;pointer-events:none;
+.po-pack.has-art{background:none;border:none;border-radius:14px;box-shadow:0 26px 60px rgba(0,0,0,.55);padding:0;overflow:visible;--ty:0%}
+.po-pack.has-art:after{content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;
   background:linear-gradient(118deg,transparent 32%,rgba(255,255,255,.18) 47%,transparent 60%);
   background-size:300% 100%;animation:foilDrift 6s ease-in-out infinite;mix-blend-mode:screen}
 .rip-body,.rip-tail{position:absolute;inset:0;overflow:hidden}
+/* The wrapper photo carries the card's corners. Each layer is rounded on its OWN
+   box, not clipped by the pack container: .po-pack keeps overflow:visible because
+   the grip and knob sit outside it, above the crimp. The tail's lower corners and
+   the body's upper ones are always cut away by the zigzag, so only the corners a
+   player can actually see are rounded. */
+.po-pack.has-art .rip-body,.po-pack.has-art .rip-tail{border-radius:14px}
+.po-pack.has-art .rip-mouth{border-radius:14px 14px 0 0}
 .rip-img{width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none;user-select:none}
 /* Mirror-image zigzags: the two halves meet exactly on the tear line. */
 .rip-tail{clip-path:polygon(0 0,100% 0,100% calc(var(--ty) + 2%),92% calc(var(--ty) - 2.6%),84% calc(var(--ty) + 2.6%),76% calc(var(--ty) - 2%),68% calc(var(--ty) + 3%),60% calc(var(--ty) - 2.6%),52% calc(var(--ty) + 2%),44% calc(var(--ty) - 2%),36% calc(var(--ty) + 2.6%),28% calc(var(--ty) - 2.6%),20% calc(var(--ty) + 2%),12% calc(var(--ty) - 2%),4% calc(var(--ty) + 2%),0 calc(var(--ty) - 1%))}
@@ -3258,18 +3370,19 @@ to{opacity:1;transform:none}
 .notif-txt em{font-size:11.5px;color:var(--text-dim);font-style:normal;line-height:1.4}
 .notif-txt i{font-size:10.5px;color:var(--text-faint);font-style:normal}
 
-/* Bell lives in the sidebar (the topbar strip overflows on narrow windows), so
-   the panel is fixed above it rather than anchored to an off-screen edge. */
-.notif-wrap{display:block;position:static}
+/* Bell lives in the sidebar, in the pinned strip above .nav-scroll: it never
+   scrolls, so no nav row can slide underneath it. The panel is FIXED but
+   positioned from the bell's own rect by the component — it used to sit at a
+   hardcoded top:118px and never move, which left a 340px panel hanging over the
+   page content (the sidebar is 220px) while the page scrolled underneath it.
+   Now it opens under the bell, follows it, stays inside the viewport, and
+   closes on click-away or Escape. */
+.notif-wrap{display:block;position:relative;z-index:7;padding-right:10px}
 .notif-bell.nav-item{width:100%;background:none;border:none;text-align:left;cursor:pointer;font:inherit;color:inherit;border-radius:10px}
 .notif-bell.nav-item .ico{font-size:14px}
 .notif-bell.nav-item.live{color:var(--yellow)}
 .notif-bell.nav-item.live .nav-badge{background:var(--yellow);color:#1a1206}
-.notif-panel{position:fixed;left:12px;bottom:76px;top:auto;right:auto;width:min(340px,calc(100vw - 24px));max-height:min(58vh,400px);z-index:80}
-
-/* Pinned under the brand: the nav list scrolls, the bell does not. */
-.notif-wrap{position:sticky;top:8px;z-index:7}
-.notif-panel{top:118px;bottom:auto;left:12px;width:min(340px,calc(100vw - 24px));max-height:min(60vh,420px)}
+.notif-panel{position:fixed;top:auto;bottom:auto;left:0;right:auto;width:min(360px,calc(100vw - 24px));max-height:min(70vh,460px);overflow-y:auto;z-index:90}
 
 /* ===== Resale desk =========================================================
    Three lanes over one ledger: notes on the desk, the shelf, the statement.
@@ -3395,3 +3508,45 @@ to{opacity:1;transform:none}
    rather than tuned. Coverage now lives in src/foil/mask.ts, which only says
    where foil physically exists; appearance layers get rebuilt on top of it one
    phase at a time. Nothing in this file draws foil. --- */
+
+/* --- Collector's Academy ----------------------------------------------------
+   The optional long course (roadmap: onboarding). A two-column page: the
+   chapter list is the index and keeps its own scroll, the chapter itself is a
+   card that reads like a manual page. Tokens only, so it restyles with the
+   theme; the progress fill borrows the same yellow as the day clock. -- */
+.academy{display:flex;flex-direction:column;gap:16px}
+.academy-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.academy-title{margin:0 0 6px;font-size:24px;letter-spacing:.02em}
+.academy-progress{min-width:220px;display:flex;flex-direction:column;gap:6px}
+.academy-count{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}
+.academy-count b{font-size:22px;color:var(--yellow)}
+.academy-bar{height:7px;border-radius:4px;background:var(--track);overflow:hidden;border:1px solid var(--border-soft)}
+.academy-bar .fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--amber));transition:width .3s ease}
+.academy-graduated{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--radius);border:1.5px solid var(--yellow-line);background:var(--yellow-soft)}
+.academy-graduated .ico{font-size:22px;line-height:1}
+.academy-body{display:grid;grid-template-columns:minmax(230px,300px) 1fr;gap:16px;align-items:start}
+.academy-list{display:flex;flex-direction:column;gap:4px;position:sticky;top:12px}
+.academy-item{display:grid;grid-template-columns:26px 22px 1fr 46px;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 10px;border-radius:10px;border:1px solid transparent;background:var(--panel2);color:var(--text-dim);font-size:12.5px;cursor:pointer;line-height:1.3}
+.academy-item:hover{background:var(--row-hover);color:var(--text)}
+.academy-item .num{font-variant-numeric:tabular-nums;color:var(--text-faint);font-size:11px}
+.academy-item .ico{font-size:14px;text-align:center}
+.academy-item .label{min-width:0}
+.academy-item .tick{color:var(--green);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.academy-item .tick .reward{font-size:10px;font-weight:500}
+.academy-item.on{border-color:var(--yellow-line);background:var(--yellow-soft);color:var(--text)}
+.academy-item.done .label{color:var(--text)}
+.academy-reset{margin-top:8px;width:100%}
+.academy-chapter{display:flex;flex-direction:column;gap:10px}
+.academy-chapter h2{margin:2px 0 4px;font-size:20px;display:flex;gap:8px;align-items:baseline}
+.academy-chapter h2 .ico{font-size:18px}
+.academy-lede{margin:0;line-height:1.6;color:var(--text)}
+.academy-points{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:9px;line-height:1.55}
+.academy-points li{color:var(--text-dim)}
+.academy-numbers,.academy-where{border-left:3px solid var(--border);padding:8px 12px;border-radius:0 10px 10px 0;background:var(--panel2);line-height:1.5;font-size:12.5px}
+.academy-numbers{border-left-color:var(--yellow-line)}
+.academy-where{border-left-color:var(--blue)}
+.academy-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px;padding-top:12px;border-top:1px solid var(--border-soft)}
+@media (max-width:900px){
+  .academy-body{grid-template-columns:1fr}
+  .academy-list{position:static}
+}

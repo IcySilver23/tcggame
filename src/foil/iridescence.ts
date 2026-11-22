@@ -25,8 +25,8 @@
 // card) and how far the card is tipped (the whole spectrum slides with the
 // angle, ~30° and ~60° being visibly different).
 
-import { maskValue, type FoilMaskSpec } from './mask'
-import { MAX_TILT_DEG, bandPosition, reflectionAt, type FoilTilt } from './reflection'
+import { maskCoverage, type FoilMaskSpec } from './mask'
+import { EDGE_FEATHER_PX, MAX_TILT_DEG, bandPosition, reflectionAt, type FoilTilt } from './reflection'
 
 /** Relative luminance weights, so "same brightness" means the same thing here as in the eye. */
 const LUM = { r: 0.2126, g: 0.7152, b: 0.0722 }
@@ -116,14 +116,18 @@ export function applyIridescence(
       const i = (y * w + x) * 4
       const u = (x + 0.5) / w
       const v = (y + 0.5) / h
-      if (maskValue(spec, u, v, aspect) === 0) continue
+      // Feathered coverage: the foil's boundary fades into the print over a
+      // pixel and a half instead of stepping, so the lit area no longer reads as
+      // a rectangle drawn on the card. Zero outside the mask, as before.
+      const cov = maskCoverage(spec, u, v, aspect, EDGE_FEATHER_PX / w)
+      if (cov <= 0) continue
       let light = reflectionAt(u, v, tilt)
       if (light <= 0) continue
       const r = data[i]
       const g = data[i + 1]
       const b = data[i + 2]
       if (modulate) light *= modulate(u, v, Math.max(r, g, b) / 255)
-      light *= lightScale
+      light *= lightScale * cov
       if (light <= 0) continue
       const tint = tintAt(u, v, tilt, chromaScale)
       const wantR = light * 255 * tint.r

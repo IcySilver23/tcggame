@@ -1,6 +1,7 @@
 import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
 import { valueOf, valueOfRow, round2, type Condition } from './market'
 import { cleanupSlotsForInventory } from './binders'
+import { BARE_SALE_CUT, presentationFactor } from './supplies'
 import * as vault from './vault'
 
 // ---------------------------------------------------------------------------
@@ -265,19 +266,21 @@ export function dealerMultiplier(inventoryId: number): number {
 export function flipStock() {
   const rows = db
     .prepare(
-      `SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, i.cost_basis, i.acquired_at, i.acquired_ref,
+      `SELECT i.id, i.card_id, i.variant, i.condition, i.quantity, i.graded_grade, i.cost_basis, i.acquired_at, i.acquired_ref, i.protection,
               c.name AS name, c.image_small AS image
        FROM inventory i JOIN cards c ON c.id = i.card_id
        WHERE i.status = 'collection' AND i.acquired_via = 'resale'
        ORDER BY i.acquired_at DESC`,
     )
-    .all() as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_at: string; acquired_ref: string | null; name: string; image: string | null }[]
+    .all() as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_at: string; acquired_ref: string | null; protection: string | null; name: string; image: string | null }[]
   const dealer = DEALER_NAMES[Math.floor(Math.random() * DEALER_NAMES.length)]
   const lots = rows.map((r) => {
     const market = round2(valueOfRow({ card_id: r.card_id, variant: r.variant, condition: r.condition, graded_grade: r.graded_grade }))
     const basis = round2(r.cost_basis * r.quantity)
     const mult = dealerMultiplier(r.id)
-    const offer = round2(market * mult)
+    // A bare card is worth less to the dealer — same rule as every counter.
+    const factor = presentationFactor(r.protection, r.graded_grade != null)
+    const offer = round2(market * mult * factor)
     return {
       inventoryId: r.id,
       cardId: r.card_id,
@@ -289,6 +292,7 @@ export function flipStock() {
       costBasis: basis,
       market,
       offer,
+      bare: factor < 1,
       marginPct: market > 0 ? Math.round(((offer - basis) / Math.max(basis, 0.01)) * 100) : 0,
       heldSince: r.acquired_at,
     }
@@ -298,13 +302,14 @@ export function flipStock() {
 
 export function instantSell(inventoryId: number) {
   const r = db
-    .prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade, cost_basis, acquired_via FROM inventory WHERE id = ? AND status = 'collection'`)
-    .get(inventoryId) as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_via: string } | undefined
+    .prepare(`SELECT id, card_id, variant, condition, quantity, graded_grade, cost_basis, acquired_via, protection FROM inventory WHERE id = ? AND status = 'collection'`)
+    .get(inventoryId) as { id: number; card_id: string; variant: string; condition: string; quantity: number; graded_grade: string | null; cost_basis: number; acquired_via: string; protection: string | null } | undefined
   if (!r) return { ok: false as const, error: 'Card not in stock' }
   const market = round2(valueOfRow({ card_id: r.card_id, variant: r.variant, condition: r.condition, graded_grade: r.graded_grade }))
   // Same rate the shelf quoted — this is the half that made the quote a lie.
   const mult = dealerMultiplier(r.id)
-  const offer = round2(market * mult)
+  const factor = presentationFactor(r.protection, r.graded_grade != null)
+  const offer = round2(market * mult * factor)
   const fee = 0
   const proceeds = offer
   const cost = round2(r.cost_basis * r.quantity)
@@ -320,7 +325,7 @@ export function instantSell(inventoryId: number) {
   insertSale.run(r.id, r.card_id, r.variant, r.condition, r.quantity, proceeds, cost, fee, profit, 'Instant dealer', nowIso())
   db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(proceeds)
   const name = cardMeta(r.card_id).name
-  logActivity('resale', `Instant-sold ${name} to the dealer for $${proceeds.toFixed(2)} (market $${market.toFixed(2)}). ${profit >= 0 ? 'Profit' : 'Loss'} $${Math.abs(profit).toFixed(2)}.`, proceeds)
+  logActivity('resale', `Instant-sold ${name} to the dealer for $${proceeds.toFixed(2)} (market $${market.toFixed(2)}${factor < 1 ? `, ${Math.round(BARE_SALE_CUT * 100)}% under a sleeved copy — it went over bare` : ''}). ${profit >= 0 ? 'Profit' : 'Loss'} $${Math.abs(profit).toFixed(2)}.`, proceeds)
 
   return { ok: true as const, proceeds, profit, market }
 }

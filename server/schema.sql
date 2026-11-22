@@ -308,6 +308,7 @@ CREATE TABLE IF NOT EXISTS binders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   accent TEXT NOT NULL DEFAULT 'yellow',   -- yellow | blue | red | green | purple
+  cover TEXT NOT NULL DEFAULT 'vinyl',     -- cover stock: vinyl | canvas | leather | holo | gold | monster
   created_at TEXT NOT NULL
 );
 

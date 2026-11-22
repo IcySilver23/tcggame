@@ -1,17 +1,21 @@
 // ---------------------------------------------------------------------------
 // The game-day clock — ONE definition of how long a game-day is and where its
-// boundaries fall. The length is a per-save setting ('12' or '24' real hours,
-// default 12): 12h rolls at 00:00 and 12:00 UTC (two game-days per real day),
-// 24h rolls at 00:00 UTC (the original cadence). Every daily system derives
-// its timing from here; real-world syncs (price crawls, catalog deltas, API
-// quotas, the tcgcsv mirror) are NOT game systems and stay on the 24h wall
-// clock regardless. The length is cached and reset by the Settings endpoint
-// when the player switches it.
+// boundaries fall. The length is a per-save setting (2, 12 or 24 real hours,
+// default 2): boundaries are every N hours of UTC, so a 2h day rolls at every
+// even hour (twelve game-days per real day), 12h at 00:00 and 12:00, and 24h at
+// 00:00. Every daily system derives its timing from here; real-world syncs
+// (price crawls, catalog deltas, API quotas, the tcgcsv mirror) are NOT game
+// systems and stay on the 24h wall clock regardless. The length is cached and
+// reset by the Settings endpoint when the player switches it.
 // ---------------------------------------------------------------------------
 
 import { getSetting } from './db'
 
-export type GameDayHours = 12 | 24
+export type GameDayHours = 2 | 12 | 24
+
+const LENGTHS: GameDayHours[] = [2, 12, 24]
+/** A new save starts on 2-hour days unless the player picks otherwise. */
+export const DEFAULT_GAME_DAY_HOURS: GameDayHours = 2
 
 function msOf(at: number | string | Date): number {
   if (typeof at === 'number') return at
@@ -21,10 +25,11 @@ function msOf(at: number | string | Date): number {
 const SETTING_KEY = 'dayLengthHours'
 let cachedHours: GameDayHours | null = null
 
-/** Current game-day length in real hours (12 or 24), read once until changed. */
+/** Current game-day length in real hours (2, 12 or 24), read once until changed. */
 export function gameDayHours(): GameDayHours {
   if (cachedHours == null) {
-    cachedHours = getSetting(SETTING_KEY) === '24' ? 24 : 12
+    const stored = Number(getSetting(SETTING_KEY))
+    cachedHours = LENGTHS.includes(stored as GameDayHours) ? (stored as GameDayHours) : DEFAULT_GAME_DAY_HOURS
   }
   return cachedHours
 }
@@ -39,11 +44,15 @@ export function resetGameDayCache(): void {
   cachedHours = null
 }
 
-/** The real-world instant the current game-day began (00:00 UTC at 24h; 00:00 or 12:00 UTC at 12h). */
+/**
+ * The real-world instant the current game-day began: UTC midnight cut into
+ * equal `hours` blocks, so 2h rolls at every even hour, 12h at 00:00/12:00 and
+ * 24h at 00:00 only.
+ */
 export function gameDayStart(at: number | string | Date = Date.now()): Date {
   const d = new Date(msOf(at))
-  const half = gameDayHours() === 24 ? 0 : d.getUTCHours() < 12 ? 0 : 1
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), half * 12))
+  const hour = Math.floor(d.getUTCHours() / gameDayHours()) * gameDayHours()
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hour))
 }
 
 /** The real-world instant the current game-day ends = the next boundary. */
@@ -61,13 +70,18 @@ export function gameDayNumber(createdAt: string | Date, at: number | string | Da
 }
 
 /**
- * The day-key gate stamp for "already ran this game-day". At 12h the key
- * changes at every 00:00/12:00 boundary; at 24h it degrades to the plain UTC
- * date, so keys are comparable across settings switches.
+ * The day-key gate stamp for "already ran this game-day". At 24h the key is the
+ * plain UTC date; at 12h it is date-am/pm; at 2h it is date-HH. Keys are
+ * comparable across settings switches in the one sense that matters: an old key
+ * from another length simply does not match, so the gate re-runs once.
  */
 export function gameDayKey(at: number | string | Date = Date.now()): string {
   const d = gameDayStart(at)
-  return gameDayHours() === 12 ? d.toISOString().slice(0, 10) + '-' + (d.getUTCHours() === 0 ? 'am' : 'pm') : d.toISOString().slice(0, 10)
+  const date = d.toISOString().slice(0, 10)
+  const hours = gameDayHours()
+  if (hours === 24) return date
+  if (hours === 12) return `${date}-${d.getUTCHours() === 0 ? 'am' : 'pm'}`
+  return `${date}-${String(d.getUTCHours()).padStart(2, '0')}`
 }
 
 /** N game-days ago as a real timestamp (for lookback windows). */
@@ -75,10 +89,11 @@ export function gameDaysAgoMs(n: number, at: number | string | Date = Date.now()
   return msOf(at) - n * gameDayMs()
 }
 
-/** Parse a day key ('2026-09-30-am' / '-pm' / plain date) to its boundary instant. */
+/** Parse a day key ('2026-09-30-am' / '-pm' / '-14' / plain date) to its boundary instant. */
 export function gameDayKeyStartMs(key: string): number {
   const datePart = key.slice(0, 10)
-  const half = key.endsWith('-pm') ? 12 : 0
+  const tail = key.slice(11)
+  const hour = tail === 'pm' ? 12 : tail === 'am' ? 0 : /^\d{1,2}$/.test(tail) ? Number(tail) : 0
   const [y, m, d] = datePart.split('-').map(Number)
-  return Date.UTC(y, (m ?? 1) - 1, d ?? 1, half)
+  return Date.UTC(y, (m ?? 1) - 1, d ?? 1, hour)
 }

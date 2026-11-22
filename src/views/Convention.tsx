@@ -395,7 +395,7 @@ function SellModal({ boothId, onClose }: { boothId: number; onClose: () => void 
           </table>
         )}
         <div className="faint small mt8">
-          Push = one haggle round on their offer. Happy dealers may bump it; grumpy ones show you the door — and a soured
+          A card handed over bare — no sleeve — is offered under a protected copy at every table. Push = one haggle round on their offer. Happy dealers may bump it; grumpy ones show you the door — and a soured
           table stops buying AND haggling for the rest of the show. 📦 drops the raw card into PSA's floor box ($20 standard fee).
           Credit spends at this dealer's table only, and rides out with the show.
         </div>

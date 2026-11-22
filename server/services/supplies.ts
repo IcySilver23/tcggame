@@ -53,6 +53,27 @@ export function isProtection(kind: string): kind is SupplyKind {
   return (PROTECTIONS as string[]).includes(kind)
 }
 
+// ---------------------------------------------------------------------------
+// Bare is cheaper.
+//
+// Wear is the slow tax — a few cents of sleeve stops it. This is the fast one:
+// a buyer paying for a card as HANDED OVER bids under the same card arriving
+// sleeved, so a raw, unprotected row sells for BARE_SALE_CUT less at every
+// counter that names its own price (the buylist, the instant dealer, the pawn
+// counter, a convention table). Slabs are sealed and pay full, and any sleeve,
+// toploader or one-touch clears it.
+//
+// Anywhere the PLAYER sets the ask — a market listing, a vendor table, a shop
+// display case — the ask is the ask, and this never touches it.
+// ---------------------------------------------------------------------------
+
+export const BARE_SALE_CUT = 0.06
+
+/** 1 for a protected or graded card, 1 − BARE_SALE_CUT for a raw bare one. */
+export function presentationFactor(protection: string | null | undefined, graded = false): number {
+  return graded || protection ? 1 : 1 - BARE_SALE_CUT
+}
+
 function qty(kind: SupplyKind): number {
   const row = db.prepare('SELECT quantity FROM supplies WHERE kind = ?').get(kind) as { quantity: number } | undefined
   return row?.quantity ?? 0

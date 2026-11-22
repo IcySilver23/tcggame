@@ -2,6 +2,7 @@ import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
 import { gameDayMs } from '../lib/gameday'
 import { valueOf, round2, resolvePrice, gradedPriceOf, type Condition } from './market'
 import { marketFactor } from './substats'
+import { presentationFactor } from './supplies'
 import { factor as regimeFactor } from './regimes'
 import * as pnl from './pnl'
 import * as vault from './vault'
@@ -168,15 +169,17 @@ export interface Offer {
   payoutCredit: number
   want: boolean
   wantPremium: number
+  /** True when the row is raw and unprotected — the counter pays under a sleeved copy. */
+  bare: boolean
 }
 
-function offerFor(shop: BuyShop, row: { id: number; card_id: string; variant: string; condition: string; graded_grade: string | null; fake_revealed?: number }, wantRow?: { premium: number }): Offer {
+function offerFor(shop: BuyShop, row: { id: number; card_id: string; variant: string; condition: string; graded_grade: string | null; protection?: string | null; fake_revealed?: number }, wantRow?: { premium: number }): Offer {
   const isGraded = row.graded_grade != null
   // AUTH META: a revealed counterfeit has exactly one market — the training
   // wall. The shop pays the flat dollar for it and keeps it behind glass.
   const name = (db.prepare('SELECT name FROM cards WHERE id = ?').get(row.card_id) as { name: string } | undefined)?.name ?? row.card_id
   if (row.fake_revealed) {
-    return { inventoryId: row.id, cardId: row.card_id, name, variant: row.variant, condition: row.condition as Condition, market: 1, payoutCash: 1, payoutCredit: 1, want: false, wantPremium: 0 }
+    return { inventoryId: row.id, cardId: row.card_id, name, variant: row.variant, condition: row.condition as Condition, market: 1, payoutCash: 1, payoutCredit: 1, want: false, wantPremium: 0, bare: false }
   }
   // CONDITION WARS: buylist appraisers grade the copy on the counter — an
   // inspected copy (read published) is paid for its sub-grade, unseen copies
@@ -193,9 +196,13 @@ function offerFor(shop: BuyShop, row: { id: number; card_id: string; variant: st
     wantPremium = wantRow.premium
     pct = Math.min(1.15, pct * (1 + wantPremium))
   }
-  const cash = round2(market * pct)
-  const credit = round2(market * Math.min(1.2, pct + shop.bonusRate))
-  return { inventoryId: row.id, cardId: row.card_id, name, variant: row.variant, condition: row.condition as Condition, market: round2(market), payoutCash: cash, payoutCredit: credit, want, wantPremium }
+  // A bare card is the same card handed over worse: they bid under a sleeved
+  // copy, on both payout legs. `market` stays the real market — the sheet shows
+  // that column honestly and the haircut lives in the rate.
+  const factor = presentationFactor(row.protection, isGraded)
+  const cash = round2(market * pct * factor)
+  const credit = round2(market * Math.min(1.2, pct + shop.bonusRate) * factor)
+  return { inventoryId: row.id, cardId: row.card_id, name, variant: row.variant, condition: row.condition as Condition, market: round2(market), payoutCash: cash, payoutCredit: credit, want, wantPremium, bare: factor < 1 }
 }
 
 function wantMap(shopId: number): Map<string, { premium: number }> {
@@ -208,7 +215,7 @@ export function collectionOffer(shopId: number): { shop: BuyShop; offers: Offer[
   const shop = SHOPS.find((s) => s.id === shopId)!
   ensureFresh(shopId)
   const wm = wantMap(shopId)
-  const rows = db.prepare(`SELECT id, card_id, variant, condition, graded_grade, fake_revealed FROM inventory WHERE status = 'collection'`).all() as { id: number; card_id: string; variant: string; condition: string; graded_grade: string | null; fake_revealed: number }[]
+  const rows = db.prepare(`SELECT id, card_id, variant, condition, graded_grade, protection, fake_revealed FROM inventory WHERE status = 'collection'`).all() as { id: number; card_id: string; variant: string; condition: string; graded_grade: string | null; protection: string | null; fake_revealed: number }[]
   const offers = rows
     .map((r) => offerFor(shop, r, wm.get(r.card_id)))
     .filter((o) => o.market > 0)

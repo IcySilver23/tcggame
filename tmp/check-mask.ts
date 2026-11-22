@@ -5,7 +5,7 @@
 //   - the mask is a card SHAPE (rounded silhouette), so the cut-away corners are
 //     black even on a full-bleed printing;
 //   - it is grayscale only, 0 or 255, and never touches the artwork.
-import { foilMaskFor, maskValue, coverageFraction, CARD_AREA } from '../src/foil/mask'
+import { foilMaskFor, maskValue, maskCoverage, coverageFraction, CARD_AREA } from '../src/foil/mask'
 
 let failed = 0
 const ok = (cond: boolean, label: string, detail?: string) => {
@@ -47,6 +47,45 @@ ok(maskValue(rev!, 0.5, 0.95) === 255, 'reverse: text panel has foil')
 ok(maskValue(rev!, 0.002, 0.002) === 0, 'reverse: corner is outside the card')
 ok(Math.abs(coverageFraction(rev) - (CARD_AREA - 0.838 * 0.448)) < 1e-9,
   'reverse coverage is the card minus the art rect')
+
+// --- Chase tiers foil the whole face, not a box inside it ---------------------
+// An SV-era Illustration Rare whose set has no printing row. The old model gave
+// it a rectangle inset 5% from the sides and ending at 78% height, which drew a
+// straight edge across the artwork; a full-bleed chase card is foiled to the
+// silhouette.
+const ir = foilMaskFor({ cardId: 'me6-111', rarity: 'Illustration Rare', variant: 'normal' })
+ok(ir?.kind === 'full', 'illustration rare foils the whole face', ir?.kind)
+ok(ir ? maskValue(ir, 0.5, 0.98) === 255 : false, 'illustration rare: bottom edge is foil')
+ok(ir ? maskValue(ir, 0.99, 0.5) === 255 : false, 'illustration rare: side edge is foil')
+ok(ir ? Math.abs(coverageFraction(ir) - CARD_AREA) < 1e-12 : false, 'illustration rare coverage is the silhouette')
+ok(ir?.verified === false, 'and says the geometry is modelled')
+const sir = foilMaskFor({ cardId: 'zsv10pt5-170', rarity: 'Special Illustration Rare', variant: 'normal' })
+ok(sir?.kind === 'full', 'special illustration rare too', sir?.kind)
+const ur = foilMaskFor({ cardId: 'me6-120', rarity: 'Ultra Rare', variant: 'normal' })
+ok(ur?.kind === 'full', 'ultra rare too', ur?.kind)
+const hr = foilMaskFor({ cardId: 'me6-141', rarity: 'Mega Hyper Rare', variant: 'normal' })
+ok(hr?.kind === 'full', 'mega hyper rare too', hr?.kind)
+// A standard card keeps its window: the fix must not widen every holo.
+const std = foilMaskFor({ cardId: 'me6-26', rarity: 'Rare', variant: 'holofoil' })
+ok(std?.kind === 'art', 'a standard rare still foils only the illustration window', std?.kind)
+ok(std ? maskValue(std, 0.5, 0.95) === 0 : false, 'and its text panel stays matte')
+
+// --- The composite reads coverage, so the edge is a ramp ----------------------
+// maskValue stays the exact 0/255 answer the diagnostic view and these tests use;
+// maskCoverage is what the light layers read, and it fades inward from the
+// boundary so a lit window cannot draw a hard rectangle outline on the card.
+ok(ir ? maskCoverage(ir, 0.5, 0.5, 734 / 1024) === 1 : false, 'coverage is full well inside the foil')
+ok(ir ? maskCoverage(ir, 0.5, 0.5, 734 / 1024, 4 / 200) === 1 : false, 'and stays full at the buffer feather')
+ok(rc16 ? maskCoverage(rc16, 0.5, 0.03, 734 / 1024) === 0 : false, 'coverage is zero outside the window')
+{
+  const xs = [0.081, 0.0825, 0.086, 0.095]
+  const cov = rc16 ? xs.map((u) => maskCoverage(rc16!, u, 0.3, 734 / 1024, 0.008)) : []
+  ok(cov.length === 4 && cov.every((c) => c >= 0 && c <= 1), 'coverage stays in 0..1 through the edge')
+  ok(cov[0] === 0, 'the boundary itself carries no coverage', String(cov[0]))
+  ok(cov[1] > 0 && cov[1] < 1, 'just inside the boundary is partially covered', String(cov[1]))
+  ok(cov.every((c, i) => i === 0 || c >= cov[i - 1]), 'coverage rises monotonically moving into the foil', cov.map((c) => c.toFixed(2)).join(' '))
+  ok(cov[cov.length - 1] === 1, 'and is full well inside')
+}
 
 // --- Non-holo cards get nothing ----------------------------------------------
 ok(foilMaskFor({ cardId: 'base1-1', rarity: 'Common' }) === null, 'plain common has no mask')
