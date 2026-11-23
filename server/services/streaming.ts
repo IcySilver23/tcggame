@@ -1,5 +1,5 @@
 import { db, nowIso, logActivity } from '../lib/db'
-import { round2 } from './market'
+import { round2, valueOf } from './market'
 import { rollPack } from './packs'
 import { listBattlableProducts } from './packbattles'
 import { settleStream, sponsorForKind, maybeGenerateOffer } from './sponsors'
@@ -85,6 +85,7 @@ function liveState() {
 
 export function channel() {
   const s = stats()
+  const st = liveStream()
   return {
     followers: s.followers,
     totalStreams: s.total_streams,
@@ -93,6 +94,12 @@ export function channel() {
     bestCardName: s.best_card_name,
     bestCardValue: s.best_card_value,
     live: liveState(),
+    // The selling half of the room: the lot on camera, the room's receipts, and
+    // the cards you could put up next. Empty while the channel is dark.
+    lots: st
+      ? streamLotsFor(st.id)
+      : { live: null, recent: [], totals: { listed: 0, sold: 0, unsold: 0, gross: 0, fees: 0, net: 0, sellThrough: 0, feePct: Math.round(LOT_FEE * 100) } },
+    sellable: st ? sellableCards(60) : [],
     contract: currentContractSafe(),
     offers: offersSafe(),
   }
@@ -374,6 +381,10 @@ export function endStream() {
     `UPDATE stream_stats SET followers = ?, total_streams = total_streams + 1, total_packs = total_packs + ?, total_donations = total_donations + ?, best_card_name = ?, best_card_value = ? WHERE id = 1`,
   ).run(newFollowers, packs, st.donations_total, bestName, bestValue)
 
+  // A lot still on camera when you wrap goes back to the binder untouched.
+  returnOpenLots(st.id)
+  const sales = streamLotsFor(st.id).totals
+
   db.prepare(`UPDATE streams SET status = 'ended', ended_at = ?, followers_gain = ? WHERE id = ?`).run(nowIso(), followersGainTotal, st.id)
   viewerHandles.delete(st.id)
 
@@ -394,6 +405,7 @@ export function endStream() {
     followersGain: followersGainTotal,
     followers: newFollowers,
     packs,
+    sales,
     peakViewers: st.peak_viewers,
     donationsTotal: round2(st.donations_total),
     best: st.best_card_name ? { name: st.best_card_name, value: st.best_card_value ?? 0 } : null,
@@ -409,6 +421,244 @@ export function endStream() {
       : null,
     break: breakSettled,
   }
+}
+
+// ---------------------------------------------------------------------------
+// SELLING ON STREAM — the other half of a live channel. Ripping is the show;
+// selling is the business, and the business is not guaranteed. You put one card
+// on the block at a time, the room bids what it thinks the card is worth, and a
+// lot that never reaches your reserve comes back to the binder untouched. Sales
+// pay out minus the platform's cut, the same way every live-selling app takes
+// one. Audience size is the only lever you control: a dead room has a low
+// ceiling, so a thin crowd means unsold lots, not free money.
+// ---------------------------------------------------------------------------
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS stream_lots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  stream_id INTEGER NOT NULL,
+  inventory_id INTEGER,                 -- the escrowed copy; null once sold
+  card_id TEXT NOT NULL,
+  variant TEXT NOT NULL DEFAULT 'normal',
+  start_price REAL NOT NULL,
+  reserve REAL NOT NULL,
+  current_bid REAL,
+  bids INTEGER NOT NULL DEFAULT 0,
+  ceiling REAL,                         -- hidden top of the room's interest
+  status TEXT NOT NULL DEFAULT 'live',  -- live | sold | passed
+  sold_price REAL,
+  winner TEXT,
+  chat TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  ends_at TEXT NOT NULL
+)`)
+
+const LOT_FEE = 0.08            // the platform's cut on a streamed sale
+const LOT_MS = 75_000           // a lot gets a little over a minute on camera
+const LOT_BID_EVERY_MS = 6_000
+
+const BIDDER_HANDLES = ['slabseeker', 'wagie_gradr', 'holo_hannah', 'dextright', 'packripper88', 'vintageVick', 'dexhole', 'packsbyanna', 'moonbreon_mia', 'binderbee']
+
+type LotRow = {
+  id: number; stream_id: number; inventory_id: number | null; card_id: string; variant: string
+  start_price: number; reserve: number; current_bid: number | null; bids: number; ceiling: number | null
+  status: string; sold_price: number | null; winner: string | null; chat: string; created_at: string; ends_at: string
+}
+
+function pushLotChat(lotId: number, lines: { who: string; avatar: string; text: string }[]): void {
+  const row = db.prepare('SELECT chat FROM stream_lots WHERE id = ?').get(lotId) as { chat: string } | undefined
+  if (!row) return
+  const arr = JSON.parse(row.chat) as { at: number; who: string; avatar: string; text: string }[]
+  const at = Date.now()
+  for (const l of lines) arr.push({ at, who: l.who, avatar: l.avatar ?? '💬', text: l.text })
+  while (arr.length > 40) arr.shift()
+  db.prepare('UPDATE stream_lots SET chat = ? WHERE id = ?').run(JSON.stringify(arr), lotId)
+}
+
+function lotView(l: LotRow) {
+  const name = cardName(l.card_id)
+  const image = (db.prepare('SELECT image_small FROM cards WHERE id = ?').get(l.card_id) as { image_small: string | null } | undefined)?.image_small ?? null
+  const net = l.status === 'sold' ? round2((l.sold_price ?? 0) * (1 - LOT_FEE)) : 0
+  return {
+    id: l.id,
+    cardId: l.card_id,
+    variant: l.variant,
+    name,
+    image,
+    market: round2(valueOf(l.card_id, l.variant)),
+    start: l.start_price,
+    reserve: l.reserve,
+    currentBid: l.current_bid,
+    bids: l.bids,
+    status: l.status,
+    soldPrice: l.sold_price,
+    net,
+    fee: l.status === 'sold' ? round2((l.sold_price ?? 0) * LOT_FEE) : 0,
+    winner: l.winner,
+    endsAt: l.ends_at,
+    chat: JSON.parse(l.chat) as { at: number; who: string; avatar: string; text: string }[],
+  }
+}
+
+/** Cards in the binder you could put up tonight, dearest first. */
+export function sellableCards(limit = 12) {
+  const rows = db
+    .prepare(
+      `SELECT i.id, i.card_id, i.variant, i.quantity, c.name, c.image_small, c.rarity, c.set_id
+       FROM inventory i JOIN cards c ON c.id = i.card_id
+       WHERE i.status = 'collection' AND i.graded_grade IS NULL AND i.quantity > 0
+       ORDER BY i.id DESC LIMIT 300`,
+    )
+    .all() as { id: number; card_id: string; variant: string; quantity: number; name: string; image_small: string | null; rarity: string | null; set_id: string }[]
+  return rows
+    .map((r) => ({ ...r, id: r.id, cardId: r.card_id, name: r.name, image: r.image_small, market: round2(valueOf(r.card_id, r.variant)) }))
+    .sort((a, b) => b.market - a.market)
+    .slice(0, limit)
+}
+
+export function streamLotsFor(streamId: number) {
+  const live = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live' ORDER BY id DESC LIMIT 1`).get(streamId) as LotRow | undefined
+  const recent = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status != 'live' ORDER BY id DESC LIMIT 6`).all(streamId) as LotRow[]
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS listed,
+              SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) AS sold,
+              SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) AS unsold,
+              COALESCE(SUM(CASE WHEN status = 'sold' THEN sold_price ELSE 0 END), 0) AS gross,
+              COALESCE(SUM(CASE WHEN status = 'sold' THEN sold_price * ? ELSE 0 END), 0) AS fees
+       FROM stream_lots WHERE stream_id = ?`,
+    )
+    .get(LOT_FEE, streamId) as { listed: number; sold: number | null; unsold: number | null; gross: number; fees: number }
+  const sold = row.sold ?? 0
+  const unsold = row.unsold ?? 0
+  return {
+    live: live ? lotView(live) : null,
+    recent: recent.map(lotView),
+    totals: {
+      listed: row.listed,
+      sold,
+      unsold,
+      gross: round2(row.gross),
+      fees: round2(row.fees),
+      net: round2(row.gross - row.fees),
+      sellThrough: row.listed > 0 ? Math.round((sold / row.listed) * 100) : 0,
+      feePct: Math.round(LOT_FEE * 100),
+    },
+  }
+}
+
+export function listStreamLot(inventoryId: number, startPrice?: number | null, reserve?: number | null) {
+  const st = liveStream()
+  if (!st) return { ok: false as const, error: 'Go live first — a lot needs a room.' }
+  const openLot = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'live'`).get(st.id)
+  if (openLot) return { ok: false as const, error: 'One thing at a time — hammer the card on camera first.' }
+  const inv = db
+    .prepare(`SELECT id, card_id, variant, quantity, cost_basis FROM inventory WHERE id = ? AND status = 'collection' AND graded_grade IS NULL`)
+    .get(inventoryId) as { id: number; card_id: string; variant: string; quantity: number; cost_basis: number } | undefined
+  if (!inv) return { ok: false as const, error: 'That card is not free to sell — it is listed, graded or already escrowed.' }
+  const market = round2(valueOf(inv.card_id, inv.variant))
+  const start = round2(Math.max(0.99, startPrice && startPrice > 0 ? startPrice : market * 0.3))
+  const reserveWanted = reserve && reserve > 0 ? reserve : market * 0.65
+  const floor = round2(Math.max(start, reserveWanted))
+
+  // Escrow exactly one copy: the lot must be able to come back untouched.
+  let escrowId = inv.id
+  const tx = db.transaction(() => {
+    if (inv.quantity > 1) {
+      db.prepare('UPDATE inventory SET quantity = quantity - 1 WHERE id = ?').run(inv.id)
+      const info = db
+        .prepare(`INSERT INTO inventory (card_id, variant, condition, quantity, status, acquired_via, cost_basis, acquired_at) VALUES (?, ?, 'NM', 1, 'escrowed', 'stream_sale', ?, ?)`)
+        .run(inv.card_id, inv.variant, inv.cost_basis, nowIso())
+      escrowId = Number(info.lastInsertRowid)
+    } else {
+      db.prepare(`UPDATE inventory SET status = 'escrowed' WHERE id = ?`).run(inv.id)
+    }
+  })
+  tx()
+
+  // The room's interest is not your reserve. A big room chases close to market;
+  // a thin one stalls well under it, which is exactly how a real lot passes.
+  const heat = 0.35 + Math.random() * 0.6 + Math.min(0.35, st.peak_viewers / 900)
+  const ceiling = round2(market * heat)
+  const info = db
+    .prepare(
+      `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, created_at, ends_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(st.id, escrowId, inv.card_id, inv.variant, start, floor, ceiling, nowIso(), new Date(Date.now() + LOT_MS).toISOString())
+  const lotId = Number(info.lastInsertRowid)
+  pushLotChat(lotId, [
+    { who: 'STREAM', avatar: '📣', text: `${cardName(inv.card_id)} is ON CAMERA — opens at $${start.toFixed(2)}, reserve $${floor.toFixed(2)}` },
+  ])
+  logActivity('stream', `Went on the block: ${cardName(inv.card_id)} — opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`)
+  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceiling }
+}
+
+/** Hammer one lot: sold if the room reached the reserve, otherwise it goes home. */
+function settleLot(l: LotRow): void {
+  const name = cardName(l.card_id)
+  const bid = l.current_bid ?? 0
+  const reached = l.bids > 0 && bid >= l.reserve
+  if (reached) {
+    const net = round2(bid * (1 - LOT_FEE))
+    const fee = round2(bid * LOT_FEE)
+    const tx = db.transaction(() => {
+      if (l.inventory_id) db.prepare('DELETE FROM inventory WHERE id = ?').run(l.inventory_id)
+      db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(net)
+      db.prepare(`UPDATE stream_lots SET status = 'sold', sold_price = ?, winner = ? WHERE id = ?`).run(bid, 'the room', l.id)
+    })
+    tx()
+    pushLotChat(l.id, [{ who: 'STREAM', avatar: '🔨', text: `SOLD — ${name} at $${bid.toFixed(2)} to ${pick(BIDDER_HANDLES)}. You keep $${net.toFixed(2)} after the $${fee.toFixed(2)} fee.` }])
+    logActivity('stream', `Sold ${name} on stream for $${bid.toFixed(2)} — $${net.toFixed(2)} after fees.`, net)
+    return
+  }
+  // No sale. The copy goes back to the binder exactly as it left it.
+  const tx = db.transaction(() => {
+    if (l.inventory_id) db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(l.inventory_id)
+    db.prepare(`UPDATE stream_lots SET status = 'passed' WHERE id = ?`).run(l.id)
+  })
+  tx()
+  const why = l.bids === 0 ? 'nobody opened it' : `the room stopped at $${bid.toFixed(2)}`
+  pushLotChat(l.id, [{ who: 'STREAM', avatar: '🚫', text: `NO SALE — ${name} went back to the binder: ${why}, under your $${l.reserve.toFixed(2)} reserve.` }])
+  logActivity('stream', `No sale on ${name} — ${why}, under the $${l.reserve.toFixed(2)} reserve. Card returned.`)
+}
+
+/** 2.5s heartbeat: the room raises, the hammer falls. */
+export function streamLotTick(): void {
+  const st = liveStream()
+  if (!st) return
+  const lots = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live'`).all(st.id) as LotRow[]
+  for (const l of lots) {
+    const now = Date.now()
+    const ends = new Date(l.ends_at).getTime()
+    if (now >= ends) { settleLot(l); continue }
+    // The room needs a beat to see the card before anyone opens it.
+    if (now - new Date(l.created_at).getTime() < LOT_BID_EVERY_MS) continue
+    if (Math.random() > 0.55) continue
+    const target = l.ceiling ?? l.start_price
+    const bid = l.current_bid ?? 0
+    if (bid >= target) continue // the room is at its ceiling; it just watches now
+    // Bidding is not linear: a cold lot sits on one low bid, a contested one
+    // climbs fast toward whatever the room is actually willing to pay.
+    const next =
+      bid === 0
+        ? round2(l.start_price)
+        : round2(Math.min(target, bid + Math.max(1, (target - bid) * (0.25 + Math.random() * 0.4))))
+    db.prepare('UPDATE stream_lots SET current_bid = ?, bids = bids + 1 WHERE id = ?').run(next, l.id)
+    if (Math.random() < 0.45) pushLotChat(l.id, [{ who: pick(BIDDER_HANDLES), avatar: pick(VIEWER_AVATARS), text: pick([`$${next.toFixed(2)}`, `I'm in at $${next.toFixed(2)}`, `$${next.toFixed(2)} — that's my ceiling`, `let me have it at $${next.toFixed(2)}`]) }])
+  }
+}
+
+/** Every live lot returns to the binder when the stream ends. */
+function returnOpenLots(streamId: number): void {
+  const lots = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live'`).all(streamId) as LotRow[]
+  const tx = db.transaction(() => {
+    for (const l of lots) {
+      if (l.inventory_id) db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(l.inventory_id)
+      db.prepare(`UPDATE stream_lots SET status = 'passed' WHERE id = ?`).run(l.id)
+    }
+  })
+  tx()
 }
 
 // ---------------------------- Channel analytics ----------------------------
@@ -530,6 +780,7 @@ export function listStreamProducts() {
 export function recoverOrphanStreams() {
   const st = liveStream()
   if (st) {
+    returnOpenLots(st.id)
     if (st.donations_total > 0) {
       db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(round2(st.donations_total))
     }

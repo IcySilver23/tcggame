@@ -322,6 +322,9 @@ export const api = {
   streamProducts: () => req<StreamProduct[]>('/api/stream/products'),
   streamGoLive: (productId: string, packs: number) => post<StreamGoLive>('/api/stream/live', { productId, packs }),
   streamRip: () => post<StreamRipResult>('/api/stream/rip'),
+  streamLot: (inventoryId: number, start: number | null, reserve: number | null) =>
+    post<{ ok: boolean; error?: string; lot?: StreamLot; market?: number }>('/api/stream/lot', { inventoryId, start, reserve }),
+  streamSellable: () => req<StreamSellable[]>('/api/stream/sellable'),
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
   breakStatus: () => req<BreakStatus>('/api/stream/break'),
   breakCreate: (productId: string, spots: number, spotPrice: number | null) =>
@@ -2604,6 +2607,47 @@ export type StreamLive = {
   best: { name: string; value: number } | null
 }
 
+export type StreamLot = {
+  id: number
+  cardId: string
+  variant: string
+  name: string
+  image: string | null
+  market: number
+  start: number
+  reserve: number
+  currentBid: number | null
+  bids: number
+  status: 'live' | 'sold' | 'passed'
+  soldPrice: number | null
+  net: number
+  fee: number
+  winner: string | null
+  endsAt: string
+  chat: { at: number; who: string; avatar: string; text: string }[]
+}
+
+export type StreamLotTotals = {
+  listed: number
+  sold: number
+  unsold: number
+  gross: number
+  fees: number
+  net: number
+  sellThrough: number
+  feePct: number
+}
+
+export type StreamSellable = {
+  id: number
+  cardId: string
+  name: string
+  image: string | null
+  variant: string
+  quantity: number
+  market: number
+}
+
 export type StreamChannel = {
   followers: number
   totalStreams: number
@@ -2612,6 +2656,9 @@ export type StreamChannel = {
   bestCardName: string | null
   bestCardValue: number | null
   live: StreamLive | null
+  /** The selling half of the room. */
+  lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals }
+  sellable: StreamSellable[]
   contract: SponsorContract | null
   offers: SponsorOffer[]
 }
@@ -2661,6 +2708,8 @@ export type StreamRipResult = {
 
 export type StreamEndResult = {
   ok: boolean
+  /** The selling half: lots listed, sold, returned, and what they paid. */
+  sales?: StreamLotTotals
   followersGain?: number
   followers?: number
   packs?: number
@@ -3334,6 +3383,8 @@ export type LiveItem = {
   cardId: string | null
   variant: string
   image: string | null
+  /** Full-size art for the item on camera. */
+  imageLarge?: string | null
   status: string
   shipChoice: string | null
   ask: number | null
@@ -3384,6 +3435,12 @@ export type LiveSection = {
     chat: { at: number; who: string; avatar: string; text: string }[]
     items: LiveItem[]
     recent: LiveItem[]
+    /** The lot the host is holding up right now — one thing at a time. */
+    onCam: LiveItem | null
+    /** The board behind it, in the order the room will get to it. */
+    upNext: LiveItem[]
+    /** The room's receipts: what just sold, and what went unsold. */
+    justSold: { id: number; name: string; kind: string; sold: boolean; price: number; winner: string | null }[]
     boards: LiveBreakBoard[]
     style: string
     endsAt: string

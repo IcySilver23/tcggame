@@ -364,10 +364,27 @@ export function LiveShoppingView() {
           ) : (
             <div className="wn-room">
               <div className="wn-stage" style={{ '--h': hueOf(show.host?.name ?? 'live') } as React.CSSProperties}>
-                {/* the stream */}
+                {/* THE CAMERA — what the host is holding up right now. A room
+                    sells one thing at a time, so the item on the block fills the
+                    stage and the rest of the board waits in Up next. */}
                 <div className="wn-cam">
                   <div className="wn-cam-glow" />
-                  {show.product.image
+                  {show.onCam && (show.onCam.imageLarge || show.onCam.image || show.product.image) ? (
+                    <>
+                      {/* A blind pile has no card to show, so the stage holds the
+                          pack it came out of — the tag still names the lot. */}
+                      <img className="wn-cam-card" src={(show.onCam.imageLarge ?? show.onCam.image ?? show.product.image)!} alt={show.onCam.name} />
+                      <div className="wn-cam-tag">
+                        <span className="wn-cam-on">● ON CAMERA</span>
+                        <b>{show.onCam.name}</b>
+                        <span className="wn-cam-ask">
+                          {show.onCam.kind === 'auction' || show.onCam.kind === 'sudden' || show.onCam.kind === 'ripship'
+                            ? <>bid {fmtUsd(show.onCam.currentBid ?? show.onCam.ask ?? 0)} · {show.onCam.bids} bids</>
+                            : <>asking {fmtUsd(show.onCam.ask ?? 0)}</>}
+                        </span>
+                      </div>
+                    </>
+                  ) : show.product.image
                     ? <img className="wn-cam-art" src={show.product.image} alt="" />
                     : <span className="wn-cam-emoji">{show.host?.avatar ?? '📺'}</span>}
                 </div>
@@ -413,10 +430,22 @@ export function LiveShoppingView() {
               </div>
 
               <aside className="wn-side">
+                {show.justSold && show.justSold.length > 0 && (
+                  <div className="wn-panel wn-soldfeed">
+                    <div className="wn-panel-h"><b>Just sold</b><span className="wn-dim">the room's receipts</span></div>
+                    {show.justSold.map((s) => (
+                      <div key={s.id} className="wn-soldrow">
+                        <span className={`wn-stamp ${s.sold ? 'yes' : 'no'}`}>{s.sold ? 'SOLD' : 'PASSED'}</span>
+                        <span className="wn-soldrow-n">{s.name}</span>
+                        <span className="wn-soldrow-p">{s.sold ? fmtUsd(s.price) : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="wn-panel wn-listings">
                   <div className="wn-panel-h">
-                    <b>Show listings</b>
-                    <span className="wn-dim">{show.items.filter((i) => i.kind !== 'teamspot').length} items</span>
+                    <b>Up next</b>
+                    <span className="wn-dim">{show.upNext?.length ?? 0} waiting</span>
                   </div>
                   <ListingRail
                     show={show}

@@ -7,7 +7,10 @@ import {
   type StreamChannel,
   type StreamChat,
   type StreamEndResult,
+  type StreamLot,
+  type StreamLotTotals,
   type StreamRipResult,
+  type StreamSellable,
 } from '../api'
 import { useStore } from '../store'
 import { CardImg, EmptyState, fmtUsd, LoadFailure, TipList } from '../components'
@@ -35,6 +38,13 @@ export function StreamView() {
   const [lastBreakRip, setLastBreakRip] = useState<BreakRipResult | null>(null)
   const [spotsInput, setSpotsInput] = useState(8)
   const [priceInput, setPriceInput] = useState('')
+  // Selling on stream: one card on the block at a time, and the room is free to
+  // say no. The picker is the cheapest honest interface — a card, a start, a
+  // reserve — because that is the whole decision a real seller makes.
+  const [pickInv, setPickInv] = useState<number | null>(null)
+  const [lotStart, setLotStart] = useState('')
+  const [lotReserve, setLotReserve] = useState('')
+  const [clock, setClock] = useState(0)
   // A dead channel fetch used to render a go-live panel with an empty product
   // list — it read as "you own nothing", not "the server is down".
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -64,6 +74,15 @@ export function StreamView() {
       setViewers(channel.live.viewers)
       loadBreak()
     }
+  }, [channel?.live?.id])
+
+  // A live lot is a clock and a bid feed, so the room polls while it is open and
+  // a local ticker keeps the countdown honest between polls.
+  useEffect(() => {
+    if (!channel?.live) return
+    const p = setInterval(() => { loadChannel() }, 3000)
+    const t = setInterval(() => setClock((x) => x + 1), 1000)
+    return () => { clearInterval(p); clearInterval(t) }
   }, [channel?.live?.id])
 
   const goLive = async () => {
@@ -205,6 +224,28 @@ export function StreamView() {
     }
   }
 
+  const listLot = async () => {
+    if (!pickInv) return
+    setBusy(true)
+    try {
+      const r = await api.streamLot(pickInv, lotStart ? Number(lotStart) : null, lotReserve ? Number(lotReserve) : null)
+      if (r.ok) {
+        toast(`${r.lot?.name ?? 'Card'} is on the block — reserve ${fmtUsd(r.lot?.reserve ?? 0)}`, 'good')
+        setPickInv(null)
+        setLotStart('')
+        setLotReserve('')
+        loadChannel()
+        refreshState()
+      } else {
+        toast(r.error ?? 'Could not list it', 'bad')
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not list it', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const declineOffer = async (id: number) => {
     setBusy(true)
     try {
@@ -230,6 +271,16 @@ export function StreamView() {
             <div><div className="faint small">TIPS</div><b style={{ color: 'var(--green)' }}>{fmtUsd(summary.donationsTotal ?? 0)}</b></div>
             <div><div className="faint small">NEW FOLLOWERS</div><b style={{ color: 'var(--green)' }}>+{summary.followersGain}</b></div>
           </div>
+          {summary.sales && summary.sales.listed > 0 && (
+            <div className="panel mt8" style={{ display: 'inline-block', textAlign: 'left', padding: '10px 16px' }}>
+              <b>🔨 Sold on stream</b> — {summary.sales.sold}/{summary.sales.listed} lots ({summary.sales.sellThrough}% sell-through)
+              {summary.sales.unsold > 0 && <> · <span style={{ color: 'var(--red)' }}>{summary.sales.unsold} came back</span></>}
+              <div className="small mt8">
+                gross {fmtUsd(summary.sales.gross)} − {summary.sales.feePct}% fees {fmtUsd(summary.sales.fees)} ={' '}
+                <b style={{ color: 'var(--green)' }}>{fmtUsd(summary.sales.net)}</b>
+              </div>
+            </div>
+          )}
           {summary.best && summary.best.value > 0 && (
             <div className="mt8">Best pull: <b>{summary.best.name}</b> — {fmtUsd(summary.best.value)}</div>
           )}
@@ -389,6 +440,21 @@ export function StreamView() {
           )}
         </div>
 
+        <LotBoard
+          lots={channel.lots}
+          sellable={channel.sellable ?? []}
+          busy={busy}
+          pick={pickInv}
+          setPick={setPickInv}
+          start={lotStart}
+          setStart={setLotStart}
+          reserve={lotReserve}
+          setReserve={setLotReserve}
+          onList={listLot}
+          onOpen={openCard}
+          now={Date.now()}
+        />
+
         <div className="row mt14" style={{ alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
           <div className="grow" style={{ minWidth: 0 }}>
             <b className="small">Last pack on camera</b>
@@ -529,7 +595,7 @@ export function StreamView() {
 
       <div className="panel mt14">
         <b>Go live</b>
-        <div className="small faint">The cards are yours to keep — the stream pays in tips and followers. Cost below is just buying the product.</div>
+        <div className="small faint">The cards stay yours unless you put one on the block — a stream pays in tips, followers and whatever actually sells. Cost below is just buying the product.</div>
         {products.length === 0 ? (
           <EmptyState icon="📦" text="No streamable products" sub="Seed the pack shop catalog first." />
         ) : (
@@ -579,6 +645,140 @@ export function StreamView() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// SELL LIVE — one card on the block, a reserve the room may not reach, and the
+// receipts underneath. This is the half of a real channel that ripping never
+// covered: a sale has to be earned, and an unsold lot is a normal night.
+// ---------------------------------------------------------------------------
+function LotBoard({ lots, sellable, busy, pick, setPick, start, setStart, reserve, setReserve, onList, onOpen, now }: {
+  lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals } | null
+  sellable: StreamSellable[]
+  busy: boolean
+  pick: number | null
+  setPick: (id: number | null) => void
+  start: string
+  setStart: (v: string) => void
+  reserve: string
+  setReserve: (v: string) => void
+  onList: () => void
+  onOpen: (id: string) => void
+  now: number
+}) {
+  const lot = lots?.live ?? null
+  const totals = lots?.totals
+  const secs = lot ? Math.max(0, Math.ceil((new Date(lot.endsAt).getTime() - now) / 1000)) : 0
+  const picked = sellable.find((s) => s.id === pick) ?? null
+  const bid = lot?.currentBid ?? 0
+  const met = lot ? bid >= lot.reserve : false
+
+  return (
+    <div className="panel mt14">
+      <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <b>🔨 Sell live</b>
+          <div className="faint small">
+            One card at a time. The room bids what it thinks the card is worth — a lot under your reserve goes straight back to the binder.
+          </div>
+        </div>
+        {totals && totals.listed > 0 && (
+          <div className="row small" style={{ gap: 14, flexWrap: 'wrap' }}>
+            <span>{totals.sold}/{totals.listed} sold · {totals.sellThrough}%</span>
+            <span>net <b style={{ color: 'var(--green)' }}>{fmtUsd(totals.net)}</b> <span className="faint">after {totals.feePct}%</span></span>
+          </div>
+        )}
+      </div>
+
+      <div className="row mt8" style={{ gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="panel" style={{ margin: 0, width: 250, textAlign: 'center', borderColor: lot ? 'var(--yellow)' : undefined }}>
+          <div className="faint small">ON THE BLOCK</div>
+          {lot ? (
+            <>
+              {lot.image && (
+                <img
+                  src={lot.image}
+                  alt={lot.name}
+                  onClick={() => onOpen(lot.cardId)}
+                  style={{ maxHeight: 168, display: 'block', margin: '4px auto', cursor: 'pointer' }}
+                />
+              )}
+              <div><b>{lot.name}</b></div>
+              <div className="faint small">market {fmtUsd(lot.market)}</div>
+              <div className="row mt8" style={{ justifyContent: 'center', gap: 14 }}>
+                <div><div className="faint small">BID</div><b>{lot.bids > 0 ? fmtUsd(bid) : '—'}</b></div>
+                <div><div className="faint small">BIDS</div><b>{lot.bids}</b></div>
+                <div><div className="faint small">LEFT</div><b style={{ color: secs < 12 ? 'var(--red)' : undefined }}>{secs}s</b></div>
+              </div>
+              <div className="faint small mt8">reserve {fmtUsd(lot.reserve)}</div>
+              <div className="small" style={{ color: met ? 'var(--green)' : 'var(--yellow)' }}>
+                {met ? 'reserve met — it sells at the hammer' : `needs ${fmtUsd(lot.reserve - bid)} more to sell`}
+              </div>
+            </>
+          ) : (
+            <div className="faint small mt8">Nothing up. Pick a card and put it on.</div>
+          )}
+        </div>
+
+        <div className="grow" style={{ minWidth: 260 }}>
+          <b className="small">Put a card up</b>
+          {sellable.length === 0 ? (
+            <div className="faint small mt8">No free cards in the binder — everything is listed, graded or already escrowed.</div>
+          ) : (
+            <select
+              className="mt8"
+              value={pick ?? ''}
+              disabled={busy || !!lot}
+              style={{ minWidth: 280, maxWidth: '100%' }}
+              onChange={(e) => {
+                const id = Number(e.target.value) || null
+                setPick(id)
+                const s = sellable.find((x) => x.id === id)
+                if (s) {
+                  setStart(String(Math.round(s.market * 0.25 * 100) / 100))
+                  setReserve(String(Math.round(s.market * 0.65 * 100) / 100))
+                }
+              }}
+            >
+              <option value="">Pick a card from the binder…</option>
+              {sellable.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} — {fmtUsd(s.market)}{s.quantity > 1 ? ` ×${s.quantity}` : ''}
+                </option>
+              ))}
+            </select>
+          )}
+          <div className="row mt8" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <label className="small">opens at <input type="number" min={0.99} step={0.5} value={start} onChange={(e) => setStart(e.target.value)} style={{ width: 80 }} disabled={busy || !!lot} /></label>
+            <label className="small">reserve <input type="number" min={0.99} step={0.5} value={reserve} onChange={(e) => setReserve(e.target.value)} style={{ width: 80 }} disabled={busy || !!lot} /></label>
+            <button className="primary" disabled={busy || !pick || !!lot} onClick={onList}>
+              {lot ? 'Hammer the lot first' : 'Put it on the block'}
+            </button>
+            {picked && Number(reserve) > 0 && (
+              <span className="faint small">at the reserve you'd net {fmtUsd(Number(reserve) * 0.92)}</span>
+            )}
+          </div>
+          <div className="faint small mt8">
+            A thin room has a low ceiling: real sales need an audience. Tips, followers and sales all land when you wrap.
+          </div>
+        </div>
+      </div>
+
+      {lots && lots.recent.length > 0 && (
+        <div className="row mt8" style={{ gap: 8, flexWrap: 'wrap' }}>
+          {lots.recent.map((r) => (
+            <span
+              key={r.id}
+              className="badge"
+              style={{ padding: '3px 8px', borderColor: r.status === 'sold' ? 'var(--green)' : 'var(--red)' }}
+            >
+              {r.status === 'sold' ? `SOLD · ${r.name} · ${fmtUsd(r.soldPrice ?? 0)}` : `PASSED · ${r.name}`}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function StreamHead() {
   return (
     <div className="page-head desk">
@@ -586,7 +786,7 @@ function StreamHead() {
         <span className="ph-mark" aria-hidden>📡</span>
         <div>
           <h1>Stream</h1>
-          <div className="sub">Run your own pack-opening stream — real product, real rips, chat that never sleeps.</div>
+          <div className="sub">Run your own pack-opening stream — real product, real rips, a card on the block and chat that never sleeps.</div>
         </div>
       </div>
     </div>

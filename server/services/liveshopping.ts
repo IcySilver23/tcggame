@@ -1302,8 +1302,27 @@ export function section(showId?: number) {
   let currentShow: Record<string, unknown> | null = null
   if (live) {
     const h = host(live.host_id)
+    // The lot in the host's hand: a won rip-it-or-ship-it first (it is waiting
+    // on the player), then whatever clock is closest to its hammer, then the
+    // freshest buy-it-now, then anything left on the board.
+    const camOn = (list: ItemRow[]): ItemRow | null => {
+      const pending = list.find((i) => i.kind === 'ripship' && i.status === 'pending')
+      if (pending) return pending
+      const timed = list
+        .filter((i) => i.status === 'open' && i.ends_at && (i.kind === 'auction' || i.kind === 'sudden' || i.kind === 'ripship'))
+        .sort((a, b) => new Date(a.ends_at!).getTime() - new Date(b.ends_at!).getTime())
+      if (timed.length > 0) return timed[0]
+      const drops = list.filter((i) => i.status === 'open' && i.kind === 'drop').sort((a, b) => b.id - a.id)
+      if (drops.length > 0) return drops[0]
+      // A single card is what a room wants in the frame; a blind pile or a spot
+      // board only gets the camera when there is nothing else left to show.
+      const single = list.find((i) => i.status === 'open' && i.card_id)
+      if (single) return single
+      return list.find((i) => i.status === 'open') ?? list.find((i) => i.status === 'pending') ?? null
+    }
     const items = db.prepare(`SELECT * FROM live_items WHERE show_id = ? AND status IN ('open','pending') ORDER BY id DESC LIMIT 60`).all(live.id) as ItemRow[]
     const recent = db.prepare(`SELECT * FROM live_items WHERE show_id = ? AND status != 'open' ORDER BY id DESC LIMIT 12`).all(live.id) as ItemRow[]
+    const cam = camOn(items)
     const seasonalMult = walkInMultiplier()
     // Team-break board: spots for the show's open breaks, holders masked to
     // the room's handles (yours says 'you').
@@ -1327,6 +1346,19 @@ export function section(showId?: number) {
       chat: JSON.parse(live.chat) as { at: number; who: string; avatar: string; text: string }[],
       items: items.map(publicItem),
       recent: recent.map(publicItem),
+      // ONE THING ON CAMERA. A Whatnot room holds up a single item at a time:
+      // the host works it until it sells or passes, then reaches for the next.
+      // `items` is still the whole board (the rail and the team-spot panels need
+      // it), but the stage draws `onCam` and the strip under it draws `upNext`.
+      onCam: cam ? publicItem(cam) : null,
+      upNext: items
+        .filter((i) => i.id !== cam?.id && (i.status === 'open' || i.status === 'pending'))
+        .slice(0, 6)
+        .map(publicItem),
+      justSold: recent
+        .filter((i) => i.status === 'sold' || i.status === 'passed')
+        .slice(0, 4)
+        .map((i) => ({ id: i.id, name: describeItem(i), kind: i.kind, sold: i.status === 'sold', price: round2(i.current_bid ?? i.bin_price ?? i.ask ?? 0), winner: i.winner ?? null })),
       boards,
       style: h?.style ?? 'rip',
       endsAt: live.end_at,
@@ -1411,7 +1443,13 @@ function publicItem(it: ItemRow) {
     : it.kind === 'teamspot' ? `Pack break — ${it.qty} species spots`
     : sealed ? `${sealedRow?.name ?? it.product_id} — sealed`
     : describeItem(it)
-  const img = sealed ? null : it.card_id ? (db.prepare('SELECT image_small FROM cards WHERE id = ?').get(it.card_id) as { image_small: string | null } | undefined)?.image_small ?? null : null
+  // A sealed pack on camera shows its own wrapper, like the real rooms do.
+  const sealedArt = sealed ? productArt(it.product_id) : null
+  const cardArt = it.card_id
+    ? (db.prepare('SELECT image_small, image_large FROM cards WHERE id = ?').get(it.card_id) as { image_small: string | null; image_large: string | null } | undefined)
+    : undefined
+  const img = sealed ? sealedArt : cardArt?.image_small ?? null
+  const imageLarge = sealed ? sealedArt : cardArt?.image_large ?? null
   return {
     id: it.id,
     kind: it.kind,
@@ -1419,6 +1457,7 @@ function publicItem(it: ItemRow) {
     cardId: it.kind === 'mystery' || it.kind === 'teamspot' ? null : it.card_id,
     variant: it.variant,
     image: img,
+    imageLarge,
     status: it.status,
     shipChoice: it.ship_choice ?? null,
     ask: it.kind === 'drop' ? it.bin_price : it.ask,

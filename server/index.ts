@@ -2428,6 +2428,8 @@ app.post('/api/calendar/dev-set', async (c) => {
 // snipes and hard hammers resolved in real time, not on the ~20s game tick.
 setInterval(() => {
   try { liveshopping.sdMicroTick() } catch (e) { console.error('[live] sd micro-tick:', e instanceof Error ? e.message : e) }
+  // The stream's live lot runs on the same heartbeat: bids land, the hammer falls.
+  try { streaming.streamLotTick() } catch (e) { console.error('[stream] lot tick:', e instanceof Error ? e.message : e) }
 }, 2_500).unref()
 
 app.post('/api/tournaments/join', async (c) => {
@@ -2446,6 +2448,15 @@ app.post('/api/tournaments/abandon', (c) => c.json(tournaments.abandonTournament
 // ------------------------- Streaming room -------------------------
 
 app.get('/api/stream/channel', (c) => c.json(streaming.channel()))
+
+// Selling on stream: put a binder card on the block. The room may not reach the
+// reserve, in which case the card comes back — a sale is never guaranteed.
+app.post('/api/stream/lot', async (c) => {
+  const body = await c.req.json<{ inventoryId?: number; start?: number | null; reserve?: number | null }>().catch(() => ({}) as { inventoryId?: number; start?: number | null; reserve?: number | null })
+  const r = streaming.listStreamLot(Number(body.inventoryId), body.start ?? null, body.reserve ?? null)
+  return c.json(r, r.ok ? 200 : 400)
+})
+app.get('/api/stream/sellable', (c) => c.json(streaming.sellableCards(60)))
 app.get('/api/stream/products', (c) =>
   // The stream setup only picks a product and shows its price. Sending the
   // battle product's art, set, pool and release date doubles this payload.
