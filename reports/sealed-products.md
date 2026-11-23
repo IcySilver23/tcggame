@@ -1,12 +1,12 @@
 # Sealed products, every product
 
-Swept 536 sealed products across 133 sets; 529 offered for sale, 4 hidden pull-table hosts, 3 mini packs with their own composition. Each set is dealt 40 packs.
+Swept 551 sealed products across 133 sets; 544 offered for sale, 4 hidden pull-table hosts, 3 mini packs with their own composition. Each set is dealt 40 packs.
 
 ## Summary
 
 | | Products |
 |---|---:|
-| Offered for sale | 529 |
+| Offered for sale | 544 |
 | Hidden (pull-table hosts) | 4 |
 | Mini packs (own composition) | 3 |
 | Failures | 0 |
@@ -428,6 +428,21 @@ Each set is dealt 40 packs through the same roller the shop uses; the blueprint 
 | xy10-display | Fates Collide | display | 10 | 10 (avg 10.00) | 129 |
 | xy10-etb | Fates Collide | etb | 10 | 10 (avg 10.00) | 129 |
 | g1-etb | Generations | etb | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-arceus | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-celebi | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-darkrai | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-genesect | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-jirachi | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-keldeo | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-manaphy | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-meloetta | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-mew | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-shaymin | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-mythical-victini | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-red-blue-blastoise-ex | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-red-blue-charizard-ex | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-red-blue-pikachu-ex | Generations | special | 10 | 10 (avg 10.00) | 117 |
+| g1-red-blue-venusaur-ex | Generations | special | 10 | 10 (avg 10.00) | 117 |
 | xy9-booster | BREAKpoint | booster | 10 | 10 (avg 10.00) | 126 |
 | xy9-display | BREAKpoint | display | 10 | 10 (avg 10.00) | 126 |
 | xy9-etb | BREAKpoint | etb | 10 | 10 (avg 10.00) | 126 |

@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.91.0",
+      "date": "2026-11-23",
+      "title": "The boxes the packs came in",
+      "highlights": [
+        "Generations is stocked the way it was sold: eleven Mythical Pokémon Collections at $12.99 and four Red & Blue Collections at $24.99, each with its packs, its full-art promo and its pin or figure.",
+        "Every one of those fifteen promos is a real card in the catalogue — Mew through Meloetta, Charizard-EX through Pikachu-EX — so a box hands over the card it actually held.",
+        "The Elite Trainer Box keeps its ten packs and Shaymin-EX, and loose Generations packs stay unbuyable, because no shelf ever sold them that way."
+      ],
+      "features": [
+        "Generations was the 20th-anniversary set, and its packs were never sold on their own: they came inside boxes. The shop now stocks all fifteen of them. Eleven Mythical Pokémon Collections — Mew, Celebi, Jirachi, Darkrai, Manaphy, Shaymin, Arceus, Victini, Keldeo, Genesect and Meloetta — each held two Generations packs, a full-art promo of the Pokémon on the box and a collector’s pin, at $12.99. Four Red & Blue Collections — Charizard-EX, Blastoise-EX, Venusaur-EX and Pikachu-EX — held four packs, a full-art promo and a sculpted figure, at $24.99. Street dates follow the 20th-anniversary lineup, Mew in February through Meloetta in December, with the four Red & Blue boxes between March and September. The Elite Trainer Box is unchanged at ten packs and Shaymin-EX, and the loose Generations wrapper stays hidden: it exists only so all of these boxes have a pull table to deal from.",
+        "Each box’s promo is the numbered card the source files with it — XY110 through XY120 for the Mythicals, XY121 through XY124 for Red & Blue, all fifteen already in the catalogue — so opening a Mew box hands over the Mew promo rather than a stand-in, and its price sits above the others because that card is the valuable one. The boxes roll the same Generations pull table the ETB uses, so a pack is a pack whichever box it came out of.",
+        "The honest limit is the price. No marketplace quote for these boxes was read here, so each shelf price is modelled from its published retail price plus the catalogue value of its own promo, floored by what its packs are expected to deal — which is why a $12.99 Mythical box asks a few hundred dollars today and the Mew one asks more than the Celebi one. Sealed Generations boxes genuinely cost that much now, but this is this build’s model of it, not a listing. What the boxes also contained — the pin, the sculpted figure, the card holder, the online code — is an accessory and is not modelled, so a box is worth exactly its packs and its promo."
+      ]
+    },
+    {
       "version": "0.90.1",
       "date": "2026-11-23",
       "title": "A box is worth its packs",
       "highlights": [
-        "A booster display can no longer cost less than the cards its own packs are expected to deal, so ripping a box is a small loss again instead of a guaranteed margin.",
-        "Delta Reign’s box sold at $187 against $248 of pull value, a 32% profit every time — and the bulk rip made repeating it two clicks. It now prices with its contents.",
-        "Single packs and collections keep their marketplace quotes untouched; only a display, which holds thirty-six wrappers and nothing else, is floored."
+        "A booster display can no longer cost less than the cards its own packs are expected to deal, so ripping a box is a small loss again instead of a guaranteed margin."
       ],
       "features": [
         "The sealed audit found one product in the shop paying out more than it charged: the Delta Reign Booster Display at $187.23 for thirty-six packs, whose cards the game values at $248. Ripping it and selling the pulls was a reliable thirty-two percent, and the bulk rip added this release turned that from a curiosity into two clicks. A display holds thirty-six wrappers and nothing else — no sleeves, dice, binder or promo to justify selling under its contents — so its marketplace quote now goes through the same pull-value floor every modelled product already obeys: it costs the greater of the quote and ninety-two percent of what its packs deal, which puts this box at $227.87. The Pitch Black display was quietly under the same floor and moved with it.",
