@@ -1255,6 +1255,49 @@ export function openSealed(productId: string) {
   }
 }
 
+/**
+ * Ripping several of the same sealed product in one action. Every unit is a
+ * normal rip — its own sessions, its own cash, its own storage rules, oldest
+ * free stock first — and the lot comes back as one session-shaped payload so
+ * the ceremony can reveal it in one go, with the summary still grouped by
+ * wrapper because perPack keeps each unit's packs apart.
+ */
+export function openSealedMany(productId: string, qty: number) {
+  if (!(qty >= 2)) return openSealed(productId)
+  // Units, not rows: one purchase of four boosters is a single row carrying a
+  // quantity, and counting rows would have looked like one unit to rip.
+  const free = db.prepare('SELECT COALESCE(SUM(quantity), 0) AS n FROM sealed_inventory WHERE product_id = ? AND escrow_loan IS NULL AND quantity > 0').get(productId) as { n: number }
+  const units = Math.min(Math.max(2, Math.floor(qty)), free.n)
+  if (units < 2) return openSealed(productId)
+  const runs: ReturnType<typeof openSealed>[] = []
+  for (let i = 0; i < units; i++) {
+    try {
+      runs.push(openSealed(productId))
+    } catch (e) {
+      // Nothing has been ripped yet: the first unit's error is the whole answer.
+      if (runs.length === 0) throw e
+      // A later unit failed after earlier ones were already torn open. Those
+      // rips are real, so report them instead of throwing the lot away.
+      break
+    }
+  }
+  const first = runs[0]
+  const promos = runs.flatMap((r) => r.promos)
+  return {
+    sessionId: first.sessionId,
+    sessionIds: runs.flatMap((r) => r.sessionIds),
+    cards: runs.flatMap((r) => r.cards),
+    totalValue: round2(runs.reduce((a, r) => a + r.totalValue, 0)),
+    spent: round2(runs.reduce((a, r) => a + r.spent, 0)),
+    packsInBox: runs.reduce((a, r) => a + r.packsInBox, 0),
+    packsOpened: runs.reduce((a, r) => a + r.packsOpened, 0),
+    perPack: runs.flatMap((r) => r.perPack),
+    promo: promos[0] ?? null,
+    promos,
+    units: runs.length,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Opening a box, one pack at a time
 // ---------------------------------------------------------------------------

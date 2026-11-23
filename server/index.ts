@@ -1337,6 +1337,18 @@ app.post('/api/packs/open', async (c) => {
   }
 })
 
+// Several of the same sealed product in one action: each unit is a normal rip,
+// the response is one session so the ceremony reveals the lot together.
+app.post('/api/packs/open-many', async (c) => {
+  const body = await c.req.json<{ productId: string; qty?: number }>()
+  const qty = Math.max(2, Math.min(Math.floor(body.qty ?? 2), 36))
+  try {
+    return c.json(packs.openSealedMany(body.productId, qty))
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : 'Open failed' }, 400)
+  }
+})
+
 // Boxes open one wrapper at a time: start it (the promo lands in the binder
 // first), then keep asking for the next pack until packsLeft hits zero.
 app.get('/api/packs/boxes', (c) => c.json(packs.openBoxes()))

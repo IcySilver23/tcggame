@@ -196,10 +196,15 @@ type ShelfItemProps = {
  *  so the first Shop paint never waits for the whole catalogue's pack models. */
 function ShelfItem({ p, detail, active, busy, cash, onSelect, onVisible, onBuy }: ShelfItemProps) {
   const ref = useRef<HTMLDivElement | null>(null)
+  const [qty, setQty] = useState(1)
   const price = priceOf(p, detail)
   const typical = p50Of(p, detail)
   const claimed = Boolean(p.deal?.claimed)
   const quoted = isRealPrice(p.price_source)
+  // How many can actually be bought: the shelf price is known, so the cash on
+  // hand is the real ceiling. A daily deal is a single unit by the server's rule.
+  const maxQty = p.deal ? 1 : Math.max(1, Math.min(36, price != null && price > 0 ? Math.floor(cash / price) : 1))
+  const buyQty = Math.min(qty, maxQty)
   const flagged = Boolean(p.deal) || isNew(p) || p.oop
   const tone = typical == null ? 'mid' : typical >= 1 ? 'good' : typical >= 0.5 ? 'mid' : 'low'
 
@@ -283,18 +288,41 @@ function ShelfItem({ p, detail, active, busy, cash, onSelect, onVisible, onBuy }
           {sequinBadge(detail.mini)}
         </span>
       )}
+      {/* A wrapper can be bought by the armful: the stepper is capped by the
+          money on hand (and by one unit on a daily deal, which the server
+          enforces anyway), and the button always names the total. */}
+      {active && price != null && !claimed && (
+        <span className="bay-buy">
+          <span className="bay-qty" onClick={(e) => e.stopPropagation()}>
+            <button
+              aria-label="One fewer"
+              disabled={qty <= 1}
+              onClick={(e) => { e.stopPropagation(); setQty((n) => Math.max(1, n - 1)) }}
+            >−</button>
+            <b>{qty}</b>
+            <button
+              aria-label="One more"
+              disabled={p.deal ? true : qty >= maxQty}
+              title={p.deal ? 'Daily deals are one per game day' : qty >= maxQty ? 'That is as many as the cash on hand buys' : 'Buy one more'}
+              onClick={(e) => { e.stopPropagation(); setQty((n) => Math.min(maxQty, n + 1)) }}
+            >+</button>
+          </span>
+        </span>
+      )}
       {active && (
         <button
           className="bay-rip"
-          disabled={busy === p.id || price == null || cash < price || claimed}
+          disabled={busy === p.id || price == null || cash < price * buyQty || claimed}
           title={claimed
             ? 'Daily deal claimed for this game day'
             : price == null
               ? 'Weighing the packs…'
-              : cash < price ? 'Not enough cash' : `Buy sealed for ${fmtUsd(price)}`}
-          onClick={(e) => { e.stopPropagation(); onBuy(p, 1) }}
+              : cash < price * buyQty
+                ? 'Not enough cash'
+                : `Buy ${buyQty}× sealed for ${fmtUsd(price * buyQty)}`}
+          onClick={(e) => { e.stopPropagation(); onBuy(p, buyQty); setQty(1) }}
         >
-          {claimed ? 'CLAIMED' : price == null ? '…' : cash < price ? 'NO CASH' : 'PURCHASE'}
+          {claimed ? 'CLAIMED' : price == null ? '…' : cash < price * buyQty ? 'NO CASH' : buyQty > 1 ? `PURCHASE ×${buyQty}` : 'PURCHASE'}
         </button>
       )}
     </div>

@@ -95,6 +95,9 @@ export const api = {
   buyProduct: (productId: string, qty: number) =>
     post<{ ok: boolean; cost: number }>(`/api/shop/buy/${encodeURIComponent(productId)}`, { qty }),
   openPack: (productId: string) => post<import('./types').OpenSession & { packsInBox?: number; packsOpened?: number; perPack?: { sessionId: string; totalValue: number; spent: number }[] }>('/api/packs/open', { productId }),
+  /** Rip several of the same sealed product at once — one combined session. */
+  openMany: (productId: string, qty: number) =>
+    post<import('./types').OpenSession & { packsInBox?: number; packsOpened?: number; units?: number; perPack?: { sessionId: string; cards?: import('./types').OpenedCard[]; totalValue: number; spent: number }[] }>('/api/packs/open-many', { productId, qty }),
   /** Start a box: one pack comes out, the promo (if any) is already banked. */
   openBox: (productId: string) => post<import('./types').BoxOpen>('/api/packs/box', { productId }),
   /** The next wrapper out of a box that is already open. */

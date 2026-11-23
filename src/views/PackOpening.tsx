@@ -299,7 +299,13 @@ export function PackOpeningView() {
     setPendingPack({
       key: s.sessionId,
       name: wrapperName ?? face?.name ?? `${setName} Booster Pack`,
-      sub: packTotal > 1 ? `${setName} · pack ${packNo} of ${packTotal} · ${s.cards.length} cards` : `${setName} · ${s.cards.length} cards`,
+      // A bulk rip is several wrappers torn in one action: say how many are in
+      // the batch rather than pretending the whole lot came out of one pack.
+      sub: packTotal > 1
+        ? `${setName} · pack ${packNo} of ${packTotal} · ${s.cards.length} cards`
+        : (asBox.packsOpened ?? 0) > 1
+          ? `${setName} · ${asBox.packsOpened} packs · ${s.cards.length} cards`
+          : `${setName} · ${s.cards.length} cards`,
       cards: s.cards.length,
       spent: s.spent,
       symbol: wrapperSymbol ?? face?.set_symbol ?? product?.set_symbol ?? null,

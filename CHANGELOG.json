@@ -1,15 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.89.0",
+      "date": "2026-11-23",
+      "title": "An armful at a time",
+      "highlights": [
+        "The Pack Shop sells by quantity now: a − / + stepper by the price sets how many wrappers or boxes you take, and one PURCHASE button pays for the lot.",
+        "Sealed stock in Inventory can be ripped in one action — OPEN ×N tears every unit of that product, oldest first, and the stage reveals the whole batch together.",
+        "Bulk buying is capped by the cash on hand rather than by a failed check, and a daily deal still buys exactly one unit a game day.",
+        "A bulk rip keeps every rule of a single one: its own pulls and sessions, cost basis per card, storage space for each rip, and the record chase for the best pack in the batch."
+      ],
+      "features": [
+        "The shelf felt like a vending machine that only took one coin. Each bay now carries a small stepper beside the price sticker: − and + move the order between one and whatever the cash on hand actually buys (up to 36), the PURCHASE button names the count and pays the total in one request, and the stepper snaps back to one after the sale. A daily deal is still a single discounted unit per game day, so its stepper stays at one and the server keeps that rule even if a request asks for more.",
+        "Ripping ten boosters one at a time was ten clicks and ten ceremonies. Inventory now offers OPEN ×N beside the ordinary OPEN, which tears every unit of that product in one action — oldest free stock first, loan collateral still untouched — and stages the lot as one reveal. Each unit is a real rip underneath: its own session, its own pulls, its own cost basis and storage check, and the summary still groups the result wrapper by wrapper. If the rip stops partway (a missing pull table on a later product), the packs already torn open are still reported and shown rather than being lost with the error, and a bulk rip of boxes opens each box whole rather than pack by pack, since the point of the button is speed."
+      ]
+    },
+    {
       "version": "0.88.0",
       "date": "2026-11-23",
       "title": "What the course already knew",
       "highlights": [
-        "Chapters finished before the checklist existed keep their steps ticked and say so, instead of leaving a veteran save with a half-done course it can never satisfy.",
-        "A wrong answer now explains why the right one is right, and “I already know this” skips a chapter for good measure — no reward, no progress, no nagging, and it can be taken back.",
-        "The sidebar badges the Academy when a chapter is ticked and unpaid, and any chapter added after you graduated is marked new.",
-        "The changelog has a linter now (npm run check:changelog): highlight counts and lengths, dates, ordering, version match and baked-in counts, checked by machine instead of memory.",
-        "tmp/check-academy-steps.ts proves all ten Academy action steps tick from their own save rows, so a renamed activity kind fails loudly instead of quietly."
+        "Chapters finished before the checklist existed keep their steps ticked and say so, instead of leaving a veteran save with a half-done course it can never satisfy."
       ],
       "features": [
         "Every chapter finished under the read-and-claim build has a completion flag and no step evidence, and it never will — those steps did not exist when it was read. The Academy now waives such a chapter once: its steps are kept as done, the card says it was finished before the checklist landed, and its reward is not paid twice. The waiver runs a single time per save and records that it ran, so a chapter completed from now on must have been earned through its steps, because the claim refuses otherwise.",

@@ -3017,6 +3017,14 @@ to{opacity:1;transform:none}
 .bay-sequin{font-size:8px;font-weight:900;letter-spacing:.5px;padding:1px 6px;border-radius:999px;color:#bff5e2;background:rgba(46,230,168,.14);border:1px solid rgba(46,230,168,.42);cursor:help;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .bay-rip{position:absolute;top:5px;left:5px;font:inherit;font-size:9.5px;font-weight:900;letter-spacing:.4px;padding:2px 6px;border-radius:5px;border:1px solid #f2c400;background:var(--yellow);color:#20180a;cursor:pointer;z-index:3}
 .bay-rip:disabled{opacity:.5;cursor:not-allowed}
+/* Buy by the armful: a tiny stepper under the price sticker, capped by the cash
+   on hand. It sits over the card art so the shelf's grid never reflows. */
+.bay-buy{position:absolute;right:4px;bottom:42px;z-index:3}
+.bay-qty{display:inline-flex;align-items:center;gap:1px;padding:1px 2px;border-radius:5px;background:rgba(0,0,0,.68);border:1px solid var(--border-soft)}
+.bay-qty button{font:inherit;font-size:10px;font-weight:900;line-height:1;padding:2px 3px;border:0;border-radius:3px;background:transparent;color:var(--text);cursor:pointer}
+.bay-qty button:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.bay-qty button:disabled{opacity:.35;cursor:not-allowed}
+.bay-qty b{font-size:9.5px;font-weight:900;min-width:11px;text-align:center;font-variant-numeric:tabular-nums;color:var(--gold)}
 /* Sealed wrapper art in Inventory — the Pack Shop's own fallback ladder:
    product photo, set logo, set symbol, then a box. */
 .inv-seal-thumb{flex:none;width:38px;height:46px;object-fit:contain;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);padding:2px;box-sizing:border-box}

@@ -303,6 +303,21 @@ export function InventoryView() {
     }
   }
 
+  // Several of the same wrapper in one action: the server rips each unit and
+  // hands back one session, so the stage reveals the lot in a single run and
+  // the summary still groups it pack by pack.
+  const openSealedMany = async (productId: string, qty: number) => {
+    try {
+      const first = await api.openMany(productId, qty)
+      setOpeningHandoff({ session: first as unknown as import('../types').OpenSession, productId })
+      await load()
+      refreshState()
+      window.location.hash = '#/opening'
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Open failed', 'bad')
+    }
+  }
+
   const sellSealed = async (productId: string, qty: number) => {
     try {
       const r = await api.sellSealed(productId, qty)
@@ -1463,6 +1478,13 @@ export function InventoryView() {
                         <td className="right">
                           <span className="row" style={{ gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                             {freeQty > 0 && <button className="small" onClick={() => openSealed(s.product_id)}>{s.packs && s.packs > 1 ? `OPEN BOX · ${s.packs} packs` : 'OPEN 1'}</button>}
+                            {freeQty > 1 && (
+                              <button
+                                className="small"
+                                title={`Rip ${Math.min(freeQty, 36)} of your ${freeQty} ${s.packs && s.packs > 1 ? 'boxes' : 'wrappers'} in one go — every pack is opened and the stage shows the lot together`}
+                                onClick={() => openSealedMany(s.product_id, Math.min(freeQty, 36))}
+                              >OPEN ×{Math.min(freeQty, 36)}{s.packs && s.packs > 1 ? ' boxes' : ''}</button>
+                            )}
                             {freshQty > 0 && <button className="small primary" onClick={() => sellSealedCond(s.product_id, freshQty, 'fresh')}>SELL FRESH · {fmtUsd(freshQty * (f?.freshPrice ?? s.market_price) * 0.9)}</button>}
                             {wornQty > 0 && f && (
                               <>
