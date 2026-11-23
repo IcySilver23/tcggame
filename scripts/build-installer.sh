@@ -12,13 +12,18 @@ cd "$(dirname "$0")/.."
 
 # 0. Decide which save the installer carries. This must happen BEFORE step 1:
 #    build-exe.sh archives release/data/tcglife.db and then wipes release/.
-#    The payload used to be factory-fresh only; it now ships a played save when
-#    one is available, because an upgrade should never hand the player a brand
-#    new $1,000 game.
-#      TCGLIFE_SHIP_SAVE=<path>   ship that file
-#      TCGLIFE_SHIP_SAVE=none     force factory-fresh (the old behaviour)
-#      unset                      the save being played now, else the newest
-#                                 played archive in saves/
+#    The payload is FACTORY-FRESH by default: neither the installer nor the
+#    portable zip carries a player save unless one is named here. A release is a
+#    public download, and it used to carry whatever save happened to be in
+#    release/data — so anyone who downloaded it started on the developer's
+#    playthrough instead of a new game.
+#
+#    Shipping one is not needed for upgrades: installer.iss stages the save with
+#    `onlyifdoesntexist`, so installing over an existing game never touches
+#    data/. The file only ever seeds a machine that has no game at all.
+#      TCGLIFE_SHIP_SAVE=<path>   opt in: ship that file (a deliberate build)
+#      TCGLIFE_SHIP_SAVE=none     explicit factory-fresh (same as unset)
+#      unset                      factory-fresh — the default
 mkdir -p dist-server
 rm -f dist-server/ship-save.db
 
@@ -27,23 +32,10 @@ rows_of() {
   node -e "try{const db=require('better-sqlite3')(process.argv[1],{readonly:true});const n=db.prepare('SELECT COUNT(*) c FROM inventory').get().c+'/'+db.prepare('SELECT COUNT(*) c FROM activity_log').get().c;db.close();console.log(n)}catch(e){console.log('ERR')}" "$1" 2>/dev/null || echo ERR
 }
 
-SHIP=""
-case "${TCGLIFE_SHIP_SAVE:-}" in
-  none) echo "==> 0/6 ship save: disabled (TCGLIFE_SHIP_SAVE=none) — factory-fresh payload" ;;
-  "")
-    if [ -f release/data/tcglife.db ]; then
-      r=$(rows_of release/data/tcglife.db)
-      [ "$r" != "0/0" ] && [ "$r" != "ERR" ] && SHIP="release/data/tcglife.db"
-    fi
-    if [ -z "$SHIP" ]; then
-      for c in $(ls -t saves/save-*.db 2>/dev/null); do
-        r=$(rows_of "$c")
-        if [ "$r" != "0/0" ] && [ "$r" != "ERR" ]; then SHIP="$c"; break; fi
-      done
-    fi
-    ;;
-  *) SHIP="$TCGLIFE_SHIP_SAVE" ;;
-esac
+# Opt-in only. Nothing is picked up implicitly from release/data or saves/ — a
+# build that has not been asked to carry a save cannot leak one by accident.
+SHIP="${TCGLIFE_SHIP_SAVE:-}"
+[ "$SHIP" = "none" ] && SHIP=""
 
 if [ -n "$SHIP" ]; then
   [ -f "$SHIP" ] || { echo "!! ship save not found: $SHIP"; exit 1; }
@@ -63,7 +55,7 @@ if [ -n "$SHIP" ]; then
   fi
   echo "==> 0/6 ship save: $SHIP (inventory/activity $r) -> dist-server/ship-save.db"
 else
-  echo "==> 0/6 ship save: none available — installer will be factory-fresh"
+  echo "==> 0/6 ship save: none requested — factory-fresh payload (opt in with TCGLIFE_SHIP_SAVE=<path>)"
 fi
 
 # 1. The app itself (window host + server exe + support files)

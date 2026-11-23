@@ -7,12 +7,14 @@
       "highlights": [
         "The pack you tear is cropped to the wrapper: TCGplayer ships every product photo on a padded white canvas, so a booster sat at half width in a white card with the SWIPE handle out on the margin.",
         "The printed edge is measured in the browser through the app’s own art route, because the CDN sends no CORS headers, and the tear box takes the wrapper’s shape instead of the canvas’s.",
-        "All 513 sealed products with a photo get the same treatment: the pack fills the stage and the handle rides the crimped top it cuts."
+        "All 513 sealed products with a photo get the same treatment: the pack fills the stage and the handle rides the crimped top it cuts.",
+        "The download ships no player save: a build is factory-fresh unless a save is named on purpose, so a new install starts at $1,000 instead of in someone else's game."
       ],
       "features": [
         "A Celestial Storm booster photo arrives as 356×400 with the pack itself only at x 86–270, y 34–368 — 24% of white down each side and 8% above and below. The tear screen sized its box to the photo, so the wrapper drew at about half the stage width inside a white card, the crimp the SWIPE handle points at was nowhere near the handle, and the pack read as a picture of a pack rather than a pack you open.",
         "The photo now comes through the game’s own art route so a canvas may read it: a 160px copy finds the bounding box of everything that is not near-white (channel 244, alpha 8), the tear box switches to that box’s aspect, and both halves of the wrapper are scaled up and offset until the margin falls outside. A photo that is already tight keeps its own shape, the position is measured again for every product, and if the art route is unreachable the photo is used as-is rather than failing.",
-        "Honestly: the crop trusts that a wrapper’s edge is not white. A pack printed edge-to-edge on white would keep some of that white, and a product whose photo is already cropped tight is left alone rather than pushed to an assumed shape."
+        "Honestly: the crop trusts that a wrapper’s edge is not white. A pack printed edge-to-edge on white would keep some of that white, and a product whose photo is already cropped tight is left alone rather than pushed to an assumed shape.",
+        "The installer and the portable zip carried whatever save happened to be sitting in the build folder, which is how a played save ended up inside a public download. A build now carries no save unless one is named with TCGLIFE_SHIP_SAVE=<path>, and an upgrade still keeps its own save because the installer only writes data/ on a machine that has no game yet."
       ]
     },
     {

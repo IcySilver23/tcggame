@@ -64,10 +64,12 @@ Source: "dist-server\schema.sql"; DestDir: "{app}"; Flags: ignoreversion
 ; The offline catalog seed (sets + cards + latest prices): a fresh install
 ; starts fully stocked without crawling the API on first boot.
 Source: "data\catalog-seed.db"; DestDir: "{app}\data"; Flags: ignoreversion
-; The save the build staged (build-installer.sh writes dist-server\ship-save.db;
-; absent → factory-fresh payload, data/ is created on first boot from schema.sql).
-; onlyifdoesntexist is the safety rail: installing over an existing game never
-; touches data/, it only seeds a machine that has no save yet.
+; A player save, only when the build was told to carry one on purpose
+; (TCGLIFE_SHIP_SAVE=<path> in build-installer.sh — the default build stages no
+; save at all). Absent → factory-fresh payload, data/ is created on first boot
+; from schema.sql. onlyifdoesntexist is the safety rail: installing over an
+; existing game never touches data/, it only seeds a machine that has no save
+; yet — which is why an upgrade does not need the save to be shipped.
 Source: "dist-server\ship-save.db"; DestDir: "{app}\data"; DestName: "tcglife.db"; \
   Flags: skipifsourcedoesntexist onlyifdoesntexist
 Source: "assets\WebView2Bootstrapper.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
