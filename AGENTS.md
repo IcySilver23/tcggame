@@ -32,6 +32,11 @@ For each update:
    `features` in the full view only. If in doubt, write the highlight first and
    move the detail down into `features` — it is the panel, not the release, that
    has to stay short.
+
+   **Never bake a count into an entry.** "All 288 updates" is wrong the moment
+   the next release lands, and the changelog is shipped inside the build, so the
+   number has to be rebuilt to be corrected. Say "every update ever shipped" and
+   let the panel show the count itself.
 5. **Write features for the player, not the diff.** Name the screen or system,
    say what was wrong before when it helps, and give the concrete numbers or
    behaviour they will notice. Existing entries are the house style: a full

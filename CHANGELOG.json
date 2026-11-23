@@ -6,12 +6,12 @@
       "title": "The news, at a glance",
       "highlights": [
         "What's New opens on the release's headlines: three lines for 0.86.0 instead of four paragraphs, with every older update a single dated row underneath instead of an expanded essay.",
-        "View full changelog opens the whole history — all 288 updates, every item, down to the extra ledger line and the sales tax note — and Back to highlights returns to the short list.",
+        "View full changelog opens the whole history — every update ever shipped, every item, down to the extra ledger line and the sales tax note — and Back to highlights returns to the short list.",
         "The 0.86.0 notes are rewritten to match: three headlines for the lending desk, the repacks and the day-key interest fix, with all twelve details kept in the full changelog."
       ],
       "features": [
         "The What's New panel is a list now. The newest release shows its highlights only — the major changes, one plain sentence each — and the versions below it are one dated row apiece rather than fully expanded text. The bell badge still counts what you have not seen.",
-        "View full changelog, at the bottom of the panel, opens every entry ever shipped with all of its items: 288 updates to date, small print included. There is a Back to highlights button at the top and at the bottom, so returning from the end of the history is one click.",
+        "View full changelog, at the bottom of the panel, opens every entry ever shipped with all of its items — small print included. There is a Back to highlights button at the top and at the bottom, so returning from the end of the history is one click.",
         "The 0.86.0 notes are written in the same two levels: three highlights for the lending desk, the repacks and the day-key interest fix, and its twelve detailed items kept in full behind View full changelog."
       ]
     },
