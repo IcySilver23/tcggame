@@ -113,8 +113,16 @@ export function ChangelogModal({ onClose }: { onClose: () => void }) {
                         textAlign: 'left',
                       }}
                     >
-                      <span className="small" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <b>v{e.version}</b> — {e.title}
+                      <span style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <span className="small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <b>v{e.version}</b> — {e.title}
+                        </span>
+                        {/* One line of what that release was about, so a row is not just a label. */}
+                        {e.highlights?.[0] && (
+                          <span className="faint small" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {e.highlights[0]}
+                          </span>
+                        )}
                       </span>
                       <span className="faint small">{e.date} ›</span>
                     </button>
