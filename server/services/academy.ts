@@ -133,11 +133,18 @@ export const ACADEMY_BONUS = 50
 const STEPS: Record<string, Step[]> = {
   economy: [
     {
-      id: 'clock',
+      // The clock is the chapter's subject, so the step moves it rather than
+      // watching it. Two real hours of waiting is not a step anyone can do now,
+      // so the day pass is the way in — and the boundary it opens settles rent,
+      // wages, the deals board and the market, which is the whole lesson. Catching
+      // the clock turning on its own still counts, so a player with no fee in the
+      // drawer is never locked out; nobody has to sit and watch a timer either.
+      id: 'pass',
       kind: 'act',
-      label: 'Let one game day run',
-      how: 'Two real hours a day, or a day pass from the header clock. Rent, wages and wear settle on that beat — come back after it turns.',
+      label: 'Move the clock — buy the day pass',
+      how: 'The clock in the top bar sells a day pass: it skips the wait to the next game day at the fee printed there, and the boundary settles rent, wages, the deals board and the market. Being there when the clock turns by itself counts too — the pass is just how you do it now.',
       check: (since) =>
+        count("SELECT COUNT(*) c FROM activity_log WHERE datetime(created_at) > datetime(?) AND message LIKE '%Day pass%'", [since]) > 0 ||
         count('SELECT COUNT(*) c FROM game_state WHERE id = 1 AND datetime(last_tick_at) > datetime(?)', [since]) > 0,
     },
     {

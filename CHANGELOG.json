@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.86.6",
+      "date": "2026-11-23",
+      "title": "The clock has a lever now",
+      "highlights": [
+        "The Academy’s economy chapter no longer asks you to wait two real hours for a day to pass: buy the day pass from the header clock and the step ticks at once.",
+        "It still teaches the same thing, because the pass is what opens a day boundary — rent, wages, the deals board and the market all settle the moment it lands.",
+        "Catching the clock turning by itself still counts, so a drawer without the fee is never stuck; nobody has to sit and watch a timer to finish a chapter."
+      ],
+      "features": [
+        "The first chapter’s action step was \"let one game day run\", which could mean two real hours of waiting or buying a day pass — a step that teaches the clock by making you stare at it. It is now \"move the clock — buy the day pass\": the ticket in the top bar skips the wait at the fee printed there, and its boundary is exactly the beat the chapter is about, since rent, wages, the deals board and the market all roll when it lands. The step ticks as soon as the pass does.",
+        "Waiting is still allowed but no longer required: a day that turns over on its own between the moment you started the course and now ticks the step too, so a player whose cash will not cover the fee can still finish the chapter by playing. What changed is that there is now a way to do it immediately, on the page, with something to watch happen.",
+        "Honestly: the step reads the day-pass line in your activity feed, so it is the ticket that counts rather than a click. Buying a pass to pass a $25 chapter costs the fee, which the reward covers; the chapter is optional, and nothing else in the game depends on it."
+      ]
+    },
+    {
       "version": "0.86.5",
       "date": "2026-11-23",
       "title": "Live, but only while it is watching",
       "highlights": [
-        "The Academy only re-reads your save while the chapter you are reading has an action left to do — a finished chapter, or one waiting on its question, stops the timer completely.",
-        "When it does watch, the beat is fifteen seconds instead of five, and it still checks the instant the window regains focus or you come back to the page.",
-        "The green live dot now means the timer is actually running, so it is gone on any chapter that has nothing left for the save to prove."
+        "The Academy only re-reads your save while the chapter you are reading has an action left to do — a finished chapter, or one waiting on its question, stops the timer completely."
       ],
       "features": [
         "The live checklist was polling every five seconds on every chapter, including chapters that were finished, questions that were waiting on the player, and someone simply reading. It now runs only while the OPEN chapter still has an action waiting on the save. A chapter whose actions are ticked — or one where only the question is left — has nothing for a timer to find, so there is no timer at all, and the green live dot beside the step count disappears with it rather than claiming a check that is not happening.",
