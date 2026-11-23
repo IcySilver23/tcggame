@@ -1,81 +1,24 @@
 {
   "entries": [
     {
-      "version": "0.89.4",
+      "version": "0.90.0",
       "date": "2026-11-23",
-      "title": "Rip by the handful",
+      "title": "The course, the armful and the receipt",
       "highlights": [
-        "The sealed shelf opens by quantity now: 1, 5, 10 or all, so tearing a dozen boosters no longer means tearing every last one.",
-        "The shelf label says what one unit tears — “OPEN · 6pk each” for a bundle — and each button names the packs it will open before you press it.",
-        "One still opens the box the long way with its promo up front; 5, 10 and all rip in a single action, promos first."
+        "The Academy checks its receipts now: a chapter from before the checklist is waived only when its stamp is genuinely older than the course, and one ticked step outranks any flag.",
+        "Buy an armful from any shop bay, and open 1, 5, 10 or all from the sealed shelf — each button naming the packs it will tear before you press it.",
+        "Open three boxes at once and the promos arrive first, so nothing reaches your binder unannounced; a promo out of every unit is drawn once, with its count.",
+        "The Mega Evolution promos have faces again — most of them had been a card back — matched on the printed number and photographed from TCGplayer’s own product images.",
+        "Two checks instead of two promises: a script finishes a chapter the way a fresh install does to prove the waiver, and npm run check:changelog lints these notes."
       ],
       "features": [
-        "Inventory’s sealed rows offered two doors: one, or every free unit of that product. That is fine for a pair of boosters and useless for a dozen — you either clicked twelve times or ripped the whole shelf. Each row now carries a quantity: 1, 5 and 10 when you hold that many, plus an ALL button that names the count it will take (whatever is free, still capped at the 36-per-request ceiling the server enforces). The label in front of them states what a single unit tears — “OPEN · 6pk each” for a bundle, plain “OPEN” for a booster — and every button’s tooltip spells out the packs: “Rip 5 of your 12 wrappers in one action — 5 packs, promos first, then the lot on one stage”. Counts you cannot reach are not shown rather than shown greyed, so the row never offers a 10 you do not have.",
-        "The two kinds of rip stay different, and the tooltips say so rather than pretending otherwise: 1 opens the box the long way — pack by pack, its promo handed over before the first wrapper — while 5, 10 and ALL open every chosen unit in one action and put the lot on one stage, with the promos introduced first. Loan collateral still sits out of reach, and the count in the row is what “all” reads from."
-      ]
-    },
-    {
-      "version": "0.89.3",
-      "date": "2026-11-23",
-      "title": "Legacy means older",
-      "highlights": [
-        "A chapter finished before the checklist is still waived, but only when it is genuinely older than the checklist — not merely missing its step flags."
-      ],
-      "features": [
-        "The waiver used to read “completion flag and no step evidence” as proof a chapter was finished before the checklist existed. That inference had a hole: a chapter completed on a fresh install could carry exactly that shape before the upgrade flag was ever written, and would have been waived with its steps handed to you. The rule is explicit now — a chapter is waved only when it carries a completion stamp, has no step evidence at all, and that stamp predates this build’s checklist. The course records the instant it first laid eyes on a save (written before any claim can run, so a fresh save’s first completion is always newer than its own boundary), and a completion stores the date it happened rather than a bare flag. Every screen reads both forms, so a save from the read-and-claim build keeps its waived chapters and its paid amounts.",
-        "The edge is proved rather than argued: tmp/check-academy-steps.ts now finishes a chapter the way a fresh install does — stamp after the baseline, no step flags, upgrade flag deleted — and asserts it is not waived, that a single ticked step outweighs even the old bare flag, that a stamp genuinely older than the baseline still is waived, that the baseline never moves once written, and that a claim writes a date and pays exactly once. Honest about the past: a save that already ran the waiver is not re-judged, because closing a hole is not a reason to take a chapter back off someone."
-      ]
-    },
-    {
-      "version": "0.89.2",
-      "date": "2026-11-23",
-      "title": "Nothing lands unannounced",
-      "highlights": [
-        "Bulk-ripping boxes now introduces the promos that came with them before the cards, so nothing lands in your binder without being shown."
-      ],
-      "features": [
-        "Open three Elite Trainer Boxes at once and the stage went straight to the cards: the three promos were in your binder before you ever saw them, because the promo screen only existed for the box ceremony and a bulk batch has no box record to hang it on. The reveal now checks the handoff for promos first, batch or box, and puts them on screen before the first wrapper is shown. The banner, the product and its count, and each promo card's own value are all there; when the same promo came out of every unit it is drawn once with ×N and the group's total value, because three identical cards side by side was telling you less than one card with a number.",
-        "The wording follows what actually happened. A box still says the promo is sealed in the box beside the packs and that the wrappers come next, then opens pack one; a bulk rip says the batch is already in your binder, because its wrappers were torn server-side in the same action, and its button reads SHOW THE CARDS with the number of packs the batch opened. One honest limit: a promo is granted per unit, so a batch of three boxes carrying the same promo shows one card tagged ×3 rather than three separate frames — the binder still holds three copies, and the promo screen's value is the three together."
-      ]
-    },
-    {
-      "version": "0.89.1",
-      "date": "2026-11-23",
-      "title": "Every promo gets a face",
-      "highlights": [
-        "The MEP Black Star Promos show their own cards now instead of a card back — the promos a box can hand you take their artwork from TCGplayer’s photographs."
-      ],
-      "features": [
-        "Pulling a Mega Evolution promo handed you a card back. A hundred of the set’s 117 cards were all pointing at the same 45 KB placeholder from the image service the catalogue uses — and pokemontcg.io behind it answers the same way — so the binder, the till’s promo shelf and the reveal all showed a card with no face. Each promo the game can hand out now takes its photograph from TCGplayer’s own product images for the MEP group, matched on the printed number rather than the name so a reprint cannot steal another card’s art: the thumbnail in a list and the large image in the card view are the same picture at two sizes. The catalogue note says where the art comes from, and tmp/fill-mep-art.mjs re-runs the match when the set grows.",
-        "Two honest limits. The replacement is a retail photograph, not an archival scan, so a corner can catch a flash the printed card does not have; the paper a promo wears is still decided by the printing database, and because the foil layer reads whatever image the card row holds, a Cosmos promo composites its foil over the photograph exactly as it did over a scan. And Pikachu at the Museum — the one MEP card TCGplayer does not sell — has no photograph anywhere, so it carries no image at all and draws the game’s own empty frame instead of a card back. The other local release, Delta Reign, was checked card by card and every one of its images is its own."
-      ]
-    },
-    {
-      "version": "0.89.0",
-      "date": "2026-11-23",
-      "title": "An armful at a time",
-      "highlights": [
-        "The Pack Shop sells by quantity now: a − / + stepper by the price sets how many wrappers or boxes you take, and one PURCHASE button pays for the lot."
-      ],
-      "features": [
-        "The shelf felt like a vending machine that only took one coin. Each bay now carries a small stepper beside the price sticker: − and + move the order between one and whatever the cash on hand actually buys (up to 36), the PURCHASE button names the count and pays the total in one request, and the stepper snaps back to one after the sale. A daily deal is still a single discounted unit per game day, so its stepper stays at one and the server keeps that rule even if a request asks for more.",
-        "Ripping ten boosters one at a time was ten clicks and ten ceremonies. Inventory now offers OPEN ×N beside the ordinary OPEN, which tears every unit of that product in one action — oldest free stock first, loan collateral still untouched — and stages the lot as one reveal. Each unit is a real rip underneath: its own session, its own pulls, its own cost basis and storage check, and the summary still groups the result wrapper by wrapper. If the rip stops partway (a missing pull table on a later product), the packs already torn open are still reported and shown rather than being lost with the error, and a bulk rip of boxes opens each box whole rather than pack by pack, since the point of the button is speed."
-      ]
-    },
-    {
-      "version": "0.88.0",
-      "date": "2026-11-23",
-      "title": "What the course already knew",
-      "highlights": [
-        "Chapters finished before the checklist existed keep their steps ticked and say so, instead of leaving a veteran save with a half-done course it can never satisfy."
-      ],
-      "features": [
-        "Every chapter finished under the read-and-claim build has a completion flag and no step evidence, and it never will — those steps did not exist when it was read. The Academy now waives such a chapter once: its steps are kept as done, the card says it was finished before the checklist landed, and its reward is not paid twice. The waiver runs a single time per save and records that it ran, so a chapter completed from now on must have been earned through its steps, because the claim refuses otherwise.",
-        "“Not quite” was teaching nothing. Each question now carries a reason — why two hours is a day, why the wrapper’s price is not its contents, why the venue gates run 3, 3, 5, 6, 8, 10 and 12 — and the server sends it with a wrong verdict, never before it. The reason sits under the question until it is answered right, so the correction is in the same place as the mistake.",
-        "A chapter you already know can be skipped: it pays nothing, counts for nothing (so it cannot shortcut the graduation bonus) and stops the page asking, and the skip can be taken back at any time. The sidebar now badges the Academy with the number of chapters whose steps are all ticked and whose money is unclaimed, read from the state poll the game already makes, so a finished chapter is visible from any screen.",
-        "The course can grow without anyone missing it. Every chapter carries the version that added it and a graduate is stamped with the course version they finished; a chapter added later is marked new in the list, with a banner above it. Honest about the present: no chapter is newer than 0.87.0 yet, so the mark is idle until the next system lands, and the note in the code says to add its chapter in the same release.",
-        "The changelog rules are a script: npm run check:changelog checks that the newest entry has three to five highlights of 200 characters or less, that every older entry has exactly one, that dates are ISO and run newest-first with the versions, that the newest version matches package.json, and that no entry bakes in a count it cannot keep. It exits non-zero with one line per problem, so it belongs in a release before the installer is compiled rather than after.",
-        "And the checklist itself has a proof: tmp/check-academy-steps.ts writes the rows the ten features write — a day pass, a wrapper, a protected copy, a purchase, a sale, a storage job, a wishlist target, a convention, a shop job, a community post — then asserts every action step ticks, that the question stays the player’s to answer, that a wrong answer carries its reason, that a skip blocks the claim and is not counted as progress, and that a legacy chapter is waived exactly once."
+        "The Academy used to read “completion flag and no step evidence” as proof a chapter was finished before the checklist existed. That shape can be manufactured by a fresh install, so the rule is explicit: a chapter is waived only when it carries a completion stamp, has no step evidence at all, and that stamp predates the instant this build first looked at the save. Completions store the date they happened rather than a bare flag, the baseline is written before any claim can run, and every screen still reads the old form — a save from the read-and-claim build keeps its waived chapters and its paid amounts. A save that already ran the waiver is not re-judged: closing a hole is no reason to take a chapter back off someone.",
+        "“Not quite” was teaching nothing. Every question carries a reason — why two hours is a day, why the wrapper is worth more than it looks, why the branch is not the box — shown once the answer is wrong, never before it, so the pass counter still means you knew the answer rather than read it. A chapter you already know can be skipped: it pays nothing, counts for nothing, and can be un-skipped. The course can also grow without anyone missing it, because every chapter carries the version that added it and a graduate sees new chapters marked as new.",
+        "The shelf felt like a vending machine that only took one coin. Each bay now carries a stepper beside the price sticker: − and + move the order between one and whatever the cash on hand actually buys (up to the server’s own ceiling), PURCHASE names the count and pays the total in one request, and the stepper snaps back to one after the sale. A daily deal is still a single discounted unit per game day, and its stepper stays at one because the server keeps that rule regardless of what a request asks for.",
+        "Ripping ten boosters one at a time was ten clicks and ten ceremonies. The sealed shelf opens by quantity: 1, 5 and 10 when you hold that many, plus an ALL button that names the count it will take (whatever is free, capped at the 36-per-request ceiling the server enforces). The label states what a single unit tears — “OPEN · 6pk each” for a bundle, plain “OPEN” for a booster — and every button’s tooltip spells out the packs before you press it. Counts you cannot reach are not shown rather than greyed, so a row never offers a 10 you do not have. Each unit underneath is a real rip: its own session, pulls, cost basis and storage check, oldest free stock first and loan collateral untouched. If the rip stops partway, the packs already torn are still reported and shown instead of being lost with the error. One still opens a box the long way, pack by pack, with its promo up front; 5, 10 and all open whole units in one action, since the point of the button is speed.",
+        "Open three Elite Trainer Boxes at once and the stage used to go straight to the cards: the promos were in your binder before you saw them, because the promo screen only existed for the box ceremony and a bulk batch has no box to hang it on. The reveal now checks the handoff for promos first, batch or box, and puts them on screen before the first wrapper. The banner, the product and its count, and each promo’s own value are all there; when the same promo came out of every unit it is drawn once with ×N and the group’s total value, because three identical cards side by side said less than one card with a number. A box still says its promo is sealed in the box beside the packs and that the wrappers come next; a bulk rip says the batch is already in your binder and its button reads SHOW THE CARDS.",
+        "Pulling a Mega Evolution promo handed you a card back: most of the set’s promos pointed at the same 45 KB placeholder from the image service the catalogue uses, so the binder, the till’s promo shelf and the reveal all showed a card with no face. Each promo the game can hand out now takes its photograph from TCGplayer’s product images for the MEP group, matched on the printed number rather than the name so a reprint cannot steal another card’s art, and tmp/fill-mep-art.mjs re-runs the match when the set grows. Two honest limits: it is a retail photograph rather than an archival scan, so a corner can catch a flash the printed card does not have; and Pikachu at the Museum is not sold by TCGplayer, so it carries no image and draws the game’s own empty frame instead of a card back.",
+        "The rules of this file are a script rather than a habit: npm run check:changelog enforces the shape of a release entry, refuses a count baked into prose, and keeps the newest version in step with package.json. It is strict only for the release being written — two entries have been called 0.52.0 since before the linter existed, and a label players have already seen is not the linter’s to rewrite, so the old duplicate is reported as history and allowed. The Academy has its own proof: tmp/check-academy-steps.ts finishes a chapter the way a fresh install does and asserts it is not waived, that one step outranks the old flag, that a genuinely older stamp still is waived, that the baseline never moves, and that a claim writes a date and pays exactly once."
       ]
     },
     {
