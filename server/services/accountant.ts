@@ -105,7 +105,7 @@ function weekTotals(week: string): LedgerTotals {
   const rows = db
     .prepare(`SELECT line, SUM(amount) AS total FROM shop_ledger WHERE week = ? GROUP BY line`)
     .all(week) as { line: pnl.LedgerLine; total: number }[]
-  const revenue = round2(rows.filter((r) => ['cases', 'bulk', 'bags', 'consignment', 'shows'].includes(r.line)).reduce((a, r) => a + r.total, 0))
+  const revenue = round2(rows.filter((r) => ['cases', 'bulk', 'bags', 'repacks', 'consignment', 'shows'].includes(r.line)).reduce((a, r) => a + r.total, 0))
   const costs = round2(Math.abs(rows.filter((r) => ['rent', 'mortgage', 'payroll', 'interest', 'overhead', 'sales_tax'].includes(r.line)).reduce((a, r) => a + r.total, 0)))
   return { revenue, costs, net: round2(revenue - costs) }
 }

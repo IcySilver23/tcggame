@@ -1,5 +1,5 @@
 import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
-import { gameDayMs, gameDayKey, gameDayKeyStartMs } from '../lib/gameday'
+import { gameDayMs, gameDayKey, gameDayKeyStartMs, accrualStamp } from '../lib/gameday'
 import { round2, valueOf, gradedPriceOf, type Condition } from './market'
 import { factor as regimeFactor } from './regimes'
 import { presentationFactor } from './supplies'
@@ -148,7 +148,9 @@ export function hock(inventoryId: number, amount?: number): { ok: true; principa
   db.prepare(`UPDATE inventory SET status = 'pawned' WHERE id = ?`).run(inventoryId)
   db.prepare(`DELETE FROM binder_slots WHERE inventory_id = ?`).run(inventoryId)
   db.prepare(`INSERT INTO pawn_loans (inventory_id, card_id, principal, rate_daily, issued_at, due_at, last_accrual_day) VALUES (?, ?, ?, ?, ?, ?, ?)`)
-    .run(inventoryId, row.card_id, principal, TERMS.rateDaily, now, due, now.slice(0, 10))
+    // The day KEY, not a date: a date-only stamp parses to midnight, so the
+    // first accrual billed every game-day since then (up to 12 on 2-hour days).
+    .run(inventoryId, row.card_id, principal, TERMS.rateDaily, now, due, gameDayKey())
   db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(principal)
   logActivity('pawn', `Hocked ${cardName(row.card_id)} for a $${principal.toFixed(2)} loan — 30 game-days, 0.75%/day. The ticket is in your pocket, not the books.`)
   if (getMeta('tut:pawn') !== '1') setMeta('tut:pawn', '1')
@@ -184,8 +186,17 @@ export function payoff(loanId: number): { ok: true; paid: number } | { ok: false
 
 function accrueLoan(l: PawnLoan): number {
   const today = gameDayKey()
-  if (l.last_accrual_day === today) return 0
-  const days = Math.min(60, Math.max(1, Math.round((Date.now() - gameDayKeyStartMs(l.last_accrual_day)) / gameDayMs())))
+  // A ticket written before the day-key fix carries a bare date; read it as the
+  // day the ticket was issued so the first tick bills the days it ran.
+  const stamp = accrualStamp(l.last_accrual_day, l.issued_at)
+  if (stamp === today) return 0
+  // Whole game-days between the two KEYS. Measuring from the previous key's
+  // start to `now` added the fraction of the current day already gone, so one
+  // day could be billed as two.
+  const days = Math.min(
+    60,
+    Math.max(1, Math.round((gameDayKeyStartMs(today) - gameDayKeyStartMs(stamp)) / gameDayMs())),
+  )
   const interest = round2(l.principal * (Math.pow(1 + l.rate_daily, days) - 1))
   db.prepare(`UPDATE pawn_loans SET interest_paid = interest_paid + ?, last_accrual_day = ? WHERE id = ?`).run(interest, today, l.id)
   l.interest_paid += interest

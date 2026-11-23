@@ -35,6 +35,8 @@ import * as finance from './services/finance'
 import * as staff from './services/staff'
 import * as bulk from './services/bulk'
 import * as grabbags from './services/grabbags'
+import * as repacks from './services/repacks'
+import * as lending from './services/lending'
 import * as pnl from './services/pnl'
 import * as shopstats from './services/shopstats'
 import * as polish from './services/polish'
@@ -1938,6 +1940,48 @@ app.post('/api/shop/bags/open', async (c) => {
 app.post('/api/shop/bags/stock-back', async (c) => {
   const body = await c.req.json<{ bagId: number }>()
   const r = grabbags.stockBack(body.bagId)
+  return c.json(r, r.ok ? 200 : 400)
+})
+
+// ---------------------------------------------------------------------------
+// 🏦 The lending desk — the other side of the pawn counter. The town borrows
+// from you against a card; you set the rate, and either take the interest or
+// the collateral.
+// ---------------------------------------------------------------------------
+
+app.get('/api/lending', (c) => c.json(lending.desk()))
+
+app.post('/api/lending/lend', async (c) => {
+  const body = await c.req.json<{ offerId: number; rate: number }>()
+  const r = lending.lend(body.offerId, body.rate)
+  return c.json(r, r.ok ? 200 : 400)
+})
+
+// ---------------------------------------------------------------------------
+// 🎁 Your own repacks — a product line you design from bulk. The printed odds
+// are a claim: advertise better than the truth and it sells fast until the
+// complaints land.
+// ---------------------------------------------------------------------------
+
+app.get('/api/shop/repacks', (c) => c.json(repacks.status()))
+
+app.get('/api/shop/repacks/stockable', (c) => c.json(repacks.stockable()))
+
+app.post('/api/shop/repacks/assemble', async (c) => {
+  const body = await c.req.json<{ price: number; chaseInventoryId: number; publishedOdds: number }>()
+  const r = repacks.assemble(body)
+  return c.json(r, r.ok ? 200 : 400)
+})
+
+app.post('/api/shop/repacks/buy', async (c) => {
+  const body = await c.req.json<{ repackId: number }>()
+  const r = repacks.buyOwn(body.repackId)
+  return c.json(r, r.ok ? 200 : 400)
+})
+
+app.post('/api/shop/repacks/stock-back', async (c) => {
+  const body = await c.req.json<{ repackId: number }>()
+  const r = repacks.stockBack(body.repackId)
   return c.json(r, r.ok ? 200 : 400)
 })
 

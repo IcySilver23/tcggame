@@ -1,5 +1,5 @@
 import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
-import { gameDayKey, gameDayKeyStartMs, gameDayMs } from '../lib/gameday'
+import { gameDayKey, gameDayKeyStartMs, gameDayMs, accrualStamp } from '../lib/gameday'
 import { round2 } from './market'
 import * as sealed from './sealed'
 import * as pnl from './pnl'
@@ -569,8 +569,17 @@ function collateralValueOf(loanId: number): { value: number; units: number; prod
 
 function accrueLoan(l: SealedLoan): number {
   const today = gameDayKey()
-  if (l.last_accrual_day === today) return 0
-  const days = Math.min(60, Math.max(1, Math.round((Date.now() - gameDayKeyStartMs(l.last_accrual_day)) / gameDayMs())))
+  // A loan written before the day-key fix carries a bare date; read it as the
+  // day the loan was issued so the first tick bills the days it ran.
+  const stamp = accrualStamp(l.last_accrual_day, l.issued_at)
+  if (stamp === today) return 0
+  // Whole game-days between the two KEYS. Measuring from the previous key's
+  // start to `now` added the fraction of the current day already gone, so one
+  // day could be billed as two.
+  const days = Math.min(
+    60,
+    Math.max(1, Math.round((gameDayKeyStartMs(today) - gameDayKeyStartMs(stamp)) / gameDayMs())),
+  )
   const col = collateralValueOf(l.id)
   const overhanging = col.value > 0 && l.balance > col.value * OVERHANG_RATIO
   const rate = overhanging ? LOAN_RATE_DAILY * OVERHANG_RATE_MULT : l.rate_daily

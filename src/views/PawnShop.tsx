@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { gameDayMsFor } from '../lib/gameday'
-import type { PawnSection, PawnQuoteRow } from '../api'
+import type { LendingDesk as LendingDeskData, PawnSection, PawnQuoteRow } from '../api'
 import { useStore } from '../store'
 import { CardImg, EmptyState, FirstUseTip, fmtUsd, LoadFailure, TipList } from '../components'
 
@@ -361,6 +361,136 @@ export function PawnShopView() {
           )}
         </section>
       )}
+
+      <LendingCounter />
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// 🏦 THE DESK — the same counter, from behind it. The town borrows against a
+// card; you set the rate and either collect the interest or the collateral.
+// ---------------------------------------------------------------------------
+
+function money2(n: number) {
+  return n > 0 && n < 0.01 ? '<$0.01' : fmtUsd(n)
+}
+
+function LendingCounter() {
+  const { toast, refreshState } = useStore()
+  const [data, setData] = useState<LendingDeskData | null>(null)
+  const [rate, setRate] = useState(0.01)
+  const [busy, setBusy] = useState(false)
+
+  const load = () => { api.lending().then(setData).catch(() => {}) }
+  useEffect(() => { load() }, [])
+
+  const write = async (offerId: number) => {
+    setBusy(true)
+    try {
+      const r = await api.lend(offerId, rate)
+      if (r.ok) {
+        toast(`Ticket written for ${fmtUsd(r.principal ?? 0)} — due in ${data?.terms.days ?? 14} game-days.`, 'good')
+        refreshState()
+        load()
+      } else toast(r.error ?? 'Rejected', 'bad')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Failed', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!data) {
+    return (
+      <section className="panel mb14" aria-label="Lending desk">
+        <b>🏦 The desk</b>
+        <div className="faint small">Reading the walk-in queue…</div>
+      </section>
+    )
+  }
+
+  const s = data.stats
+  return (
+    <section className="panel mb14" aria-label="Lending desk">
+      <div className="row" style={{ justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ minWidth: 0 }}>
+          <b>🏦 The desk — lend against collateral</b>
+          <div className="faint small">
+            {data.terms.days} game-days · up to {Math.round(data.terms.maxLtv * 100)}% of market · interest compounds every game-day
+          </div>
+        </div>
+        <div className="row" style={{ gap: 14, flexWrap: 'wrap' }}>
+          <span className="small">lent out <b>{fmtUsd(s.lentOut)}</b></span>
+          <span className="small">interest earned <b>{fmtUsd(s.interestEarned)}</b></span>
+          <span className="small">collateral <b>{fmtUsd(s.collateralValue)}</b></span>
+          <span className="small">defaults <b>{s.defaulted}</b>{s.defaultRate != null && <em className="faint"> ({Math.round(s.defaultRate * 100)}%)</em>}</span>
+        </div>
+      </div>
+
+      {data.offers.length === 0 ? (
+        <div className="faint small" style={{ marginTop: 10 }}>
+          Nobody is at the desk right now. Walk-ins arrive on the game-day roll — a borrower with a card worth lending against.
+        </div>
+      ) : (
+        <div style={{ marginTop: 10 }}>
+          <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="small faint">Your rate</span>
+            {data.terms.rates.map((r) => (
+              <button
+                key={r}
+                className={`small ${Math.abs(rate - r) < 1e-9 ? 'primary' : 'ghost'}`}
+                onClick={() => setRate(r)}
+                title="The rate you charge per game-day. Higher rates pay more and get walked away from more often."
+              >
+                {(r * 100).toFixed(1)}%/day
+              </button>
+            ))}
+          </div>
+
+          {data.offers.map((o) => {
+            const interest = o.interest[String(rate)] ?? 0
+            return (
+              <div key={o.id} className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '7px 0', borderTop: '1px solid var(--line, #2a2a2a)' }}>
+                <span style={{ minWidth: 0, flex: 1 }}>
+                  <b className="small">{o.card}</b>
+                  <span className="faint small"> · {o.borrower} · {o.condition} · mkt {money2(o.market)}</span>
+                </span>
+                <span className="small">asks <b>{money2(o.ask)}</b></span>
+                <span className="small faint">returns {money2(o.ask + interest)} in {data.terms.days}d</span>
+                <button className="primary small" disabled={busy} onClick={() => write(o.id)} title="Cash leaves the till now; the card is theirs until the loan is not repaid">
+                  Write ticket
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {data.loans.length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <b className="small">Tickets in the street</b>
+          {data.loans.map((l) => (
+            <div key={l.id} className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0' }}>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <b className="small">{l.card}</b>
+                <span className="faint small"> · {l.borrower} · {(l.rate_daily * 100).toFixed(2)}%/day</span>
+              </span>
+              <span className="small">owed <b>{money2(l.payoff)}</b></span>
+              <span className="small faint">mkt {money2(l.worth)}{l.worth < l.payoff ? ' — underwater' : ''}</span>
+              <span className={`small ${l.daysLeft <= 2 ? 'pw-bad' : 'faint'}`}>{l.daysLeft}d left</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.history.length > 0 && (
+        <div className="faint small" style={{ marginTop: 10 }}>
+          Last {data.history.length}: {data.history.filter((h) => h.status === 'repaid').length} repaid,{' '}
+          {data.history.filter((h) => h.status === 'defaulted').length} defaulted
+          {s.defaultedValue > 0 && <> · collateral kept, worth {money2(s.defaultedValue)} today</>}.
+        </div>
+      )}
+    </section>
   )
 }

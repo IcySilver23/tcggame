@@ -267,6 +267,27 @@ export const api = {
   bagsBuy: (bagId: number) => post<{ ok: boolean; price?: number; error?: string }>('/api/shop/bags/buy', { bagId }),
   bagsOpen: (bagId: number) => post<BagRevealResult>('/api/shop/bags/open', { bagId }),
   bagsStockBack: (bagId: number) => post<{ ok: boolean; returned?: number; error?: string }>('/api/shop/bags/stock-back', { bagId }),
+
+  // ------------------------------------------------------------- lending desk
+  lending: () => req<LendingDesk>('/api/lending'),
+  lend: (offerId: number, rate: number) =>
+    post<{ ok: boolean; principal?: number; dueAt?: string; interest?: number; error?: string }>('/api/lending/lend', { offerId, rate }),
+
+  // ----------------------------------------------------------------- repacks
+  repacks: () => req<RepackStatus>('/api/shop/repacks'),
+  repacksStockable: () => req<RepackStockable>('/api/shop/repacks/stockable'),
+  repacksAssemble: (price: number, chaseInventoryId: number, publishedOdds: number) =>
+    post<{ ok: boolean; repackId?: number; chaseValue?: number; printedOdds?: number; actualOdds?: number; error?: string }>(
+      '/api/shop/repacks/assemble',
+      { price, chaseInventoryId, publishedOdds },
+    ),
+  repacksBuy: (repackId: number) =>
+    post<{ ok: boolean; reveal?: { cardId: string; name: string; value: number }[]; totalValue?: number; price?: number; chase?: boolean; error?: string }>(
+      '/api/shop/repacks/buy',
+      { repackId },
+    ),
+  repacksStockBack: (repackId: number) =>
+    post<{ ok: boolean; returned?: number; error?: string }>('/api/shop/repacks/stock-back', { repackId }),
   pnl: () => req<PnlResponse>('/api/shop/pnl'),
   shopStats: () => req<ShopStatsResponse>('/api/shop/stats'),
   today: () => req<TodayResponse>('/api/today'),
@@ -1772,6 +1793,120 @@ export type BagStockableResponse = {
   price: number
 }
 
+// ------------------------------------------------------------- lending desk
+
+export type LendingOffer = {
+  id: number
+  borrower: string
+  card_id: string
+  card: string
+  condition: string
+  market: number
+  ask: number
+  created_at: string
+  expires_at: string
+  status: string
+  principal: number
+  /** One entry per offered rate, keyed by the rate as a string ('0.005'). */
+  interest: Record<string, number>
+}
+
+export type LendingLoan = {
+  id: number
+  borrower: string
+  card: string
+  card_id: string
+  condition: string
+  principal: number
+  rate_daily: number
+  interest: number
+  payoff: number
+  worth: number
+  daysLeft: number
+  issued_at: string
+  due_at: string
+}
+
+export type LendingHistoryRow = {
+  id: number
+  card: string
+  borrower: string
+  principal: number
+  interest: number
+  total: number
+  status: 'repaid' | 'defaulted'
+  issued_at: string
+  due_at: string
+  repaid_amount: number | null
+}
+
+export type LendingDesk = {
+  terms: { days: number; maxLtv: number; rates: number[]; offerTtlDays: number; openOffers: number }
+  offers: LendingOffer[]
+  loans: LendingLoan[]
+  history: LendingHistoryRow[]
+  stats: {
+    lentOut: number
+    openLoans: number
+    interestEarned: number
+    repaid: number
+    defaulted: number
+    defaultRate: number | null
+    collateralValue: number
+    defaultedValue: number
+  }
+}
+
+// ------------------------------------------------------------------ repacks
+
+export type RepackShelf = {
+  id: number
+  label: string
+  price: number
+  cards_per_pack: number
+  pack_count: number
+  published_odds: number
+  actual_odds: number
+  chase_card_id: string
+  card: string
+  chase_value: number
+  cost_basis: number
+  sold: number
+  revenue: number
+  complaints: number
+  status: string
+  created_at: string
+  remaining: number
+  margin: number
+  honest: boolean
+}
+
+export type RepackHistory = Omit<RepackShelf, 'remaining' | 'margin' | 'honest'> & { resolved_at: string | null }
+
+export type RepackTerms = {
+  prices: number[]
+  packCount: number
+  cardsPerPack: number
+  publishedOdds: number[]
+  minChaseMultiple: number
+  fillerCeiling: number
+}
+
+export type RepackStatus = {
+  batches: RepackShelf[]
+  history: RepackHistory[]
+  reputation: number
+  terms: RepackTerms
+}
+
+export type RepackStockable = {
+  ok: true
+  rows: { id: number; card_id: string; name: string; anchor: number; condition: string; set_name: string; rarity: string | null }[]
+  fillerCount: number
+  need: number
+  terms: RepackTerms
+}
+
 export type BagRevealCard = {
   inventoryId: number
   cardId: string
@@ -1798,7 +1933,7 @@ export type PnlOverheadLine = { amount: number; entries: number }
 
 export type PnlStatement = {
   week: string
-  lines: { cases: PnlLine; bulk: PnlLine; bags: PnlLine; consignment: PnlLine }
+  lines: { cases: PnlLine; bulk: PnlLine; bags: PnlLine; repacks: PnlLine; lending: PnlLine; consignment: PnlLine }
   salesTaxCollected: PnlLine
   overhead: { rent: PnlOverheadLine; mortgage: PnlOverheadLine; payroll: PnlOverheadLine; interest: PnlOverheadLine; other: PnlOverheadLine }
   shows: { amount: number; entries: number }
@@ -1808,7 +1943,7 @@ export type PnlStatement = {
   margin: number | null
 }
 
-export type PnlWeekRow = { week: string; revenue: number; costs: number; shows?: number; net: number }
+export type PnlWeekRow = { week: string; revenue: number; costs: number; shows?: number; lending?: number; net: number }
 
 export type PnlResponse = { current: PnlStatement; history: PnlWeekRow[]; protection: ProtectionCosts }
 

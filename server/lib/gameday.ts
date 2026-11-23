@@ -89,6 +89,19 @@ export function gameDaysAgoMs(n: number, at: number | string | Date = Date.now()
   return msOf(at) - n * gameDayMs()
 }
 
+/**
+ * Resolve a `last_accrual_day` stamp to a real game-day key. Builds before the
+ * day-key fix wrote a bare date ('2026-11-23'), which parses as MIDNIGHT: billed
+ * between keys, such a stamp charges every two-hour bucket since midnight on the
+ * first tick after an upgrade instead of the days the loan actually ran. Such a
+ * stamp is read as the key the loan was issued in.
+ */
+export function accrualStamp(stamp: string, issuedAt: string, fallback = Date.now()): string {
+  if (stamp && stamp.length > 10) return stamp
+  const ms = Date.parse(issuedAt)
+  return gameDayKey(Number.isFinite(ms) ? ms : fallback)
+}
+
 /** Parse a day key ('2026-09-30-am' / '-pm' / '-14' / plain date) to its boundary instant. */
 export function gameDayKeyStartMs(key: string): number {
   const datePart = key.slice(0, 10)

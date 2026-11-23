@@ -7,7 +7,7 @@ import { round2 } from './market'
 // weekly statement is then a plain GROUP BY.
 // ---------------------------------------------------------------------------
 
-export type LedgerLine = 'cases' | 'bulk' | 'bags' | 'consignment' | 'sales_tax' | 'rent' | 'mortgage' | 'payroll' | 'interest' | 'overhead' | 'shows'
+export type LedgerLine = 'cases' | 'bulk' | 'bags' | 'consignment' | 'repacks' | 'lending' | 'sales_tax' | 'rent' | 'mortgage' | 'payroll' | 'interest' | 'overhead' | 'shows'
 
 // Migration: exact timestamps for the tax window (existing DBs predate the column).
 {
@@ -48,6 +48,10 @@ export function weekStatement(week = weekKey()) {
   const caseRevenue = get('cases')
   const bulkRevenue = get('bulk')
   const bagRevenue = get('bags')
+  const repackRevenue = get('repacks')
+  // Lending is net, not gross: the principal leaves the till when the ticket is
+  // written, so a default week shows a negative line until the collateral sells.
+  const lendingNet = get('lending')
   const consignmentRevenue = get('consignment') // the counter's 20% cut — commission, not gross
   const salesTax = get('sales_tax')
   const rent = get('rent')
@@ -61,9 +65,9 @@ export function weekStatement(week = weekKey()) {
   // Sales tax is trust money passing through, never income: shown alongside
   // revenue but excluded from product revenue, net, and margin. Consignment
   // commission is your own income but is not product revenue (no goods sold).
-  const productRevenue = round2(caseRevenue + bulkRevenue + bagRevenue)
+  const productRevenue = round2(caseRevenue + bulkRevenue + bagRevenue + repackRevenue)
   const totalCosts = round2(Math.abs(rent) + Math.abs(mortgage) + Math.abs(payroll) + Math.abs(interest) + Math.abs(overhead))
-  const net = round2(productRevenue + consignmentRevenue + shows + rent + mortgage + payroll + interest + overhead) // rent etc. are already negative
+  const net = round2(productRevenue + consignmentRevenue + lendingNet + shows + rent + mortgage + payroll + interest + overhead) // rent etc. are already negative
 
   return {
     week,
@@ -71,6 +75,8 @@ export function weekStatement(week = weekKey()) {
       cases: { revenue: caseRevenue, entries: count('cases') },
       bulk: { revenue: bulkRevenue, entries: count('bulk') },
       bags: { revenue: bagRevenue, entries: count('bags') },
+      repacks: { revenue: repackRevenue, entries: count('repacks') },
+      lending: { revenue: lendingNet, entries: count('lending') },
       consignment: { revenue: consignmentRevenue, entries: count('consignment') },
     },
     salesTaxCollected: { amount: salesTax, entries: count('sales_tax') },
@@ -134,17 +140,19 @@ export function history(weeks = 6) {
   const rows = db
     .prepare(
       `SELECT week,
-              SUM(CASE WHEN line IN ('cases','bulk','bags','consignment') THEN amount ELSE 0 END) AS revenue,
+              SUM(CASE WHEN line IN ('cases','bulk','bags','consignment','repacks') THEN amount ELSE 0 END) AS revenue,
               SUM(CASE WHEN line IN ('rent','mortgage','payroll','interest','overhead') THEN amount ELSE 0 END) AS costs,
-              SUM(CASE WHEN line = 'shows' THEN amount ELSE 0 END) AS shows
+              SUM(CASE WHEN line = 'shows' THEN amount ELSE 0 END) AS shows,
+              SUM(CASE WHEN line = 'lending' THEN amount ELSE 0 END) AS lending
        FROM shop_ledger GROUP BY week ORDER BY week DESC LIMIT ?`,
     )
-    .all(weeks) as { week: string; revenue: number; costs: number; shows: number }[]
+    .all(weeks) as { week: string; revenue: number; costs: number; shows: number; lending: number }[]
   return rows.map((r) => ({
     week: r.week,
     revenue: round2(r.revenue),
     costs: round2(r.costs),
     shows: round2(r.shows),
-    net: round2(r.revenue + r.costs + r.shows),
+    lending: round2(r.lending),
+    net: round2(r.revenue + r.costs + r.shows + r.lending),
   }))
 }

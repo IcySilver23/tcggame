@@ -6,6 +6,7 @@ import * as finance from './finance'
 import * as staff from './staff'
 import * as bulk from './bulk'
 import * as grabbags from './grabbags'
+import * as repacks from './repacks'
 import { shopTrafficFactor } from './ebay'
 import * as pnl from './pnl'
 import * as salesTax from './salestax'
@@ -495,6 +496,8 @@ export function shopTick() {
   // Dollar-bin pickers dig between the case browsers; gamblers eye the bags.
   try { bulk.bulkTick() } catch { /* non-fatal */ }
   try { grabbags.bagTick() } catch { /* non-fatal */ }
+  // Repacks sit on the same shelf: one pack leaves the run when a walk-in bites.
+  try { repacks.repackTick() } catch { /* non-fatal */ }
   // Daily rollup for the dashboard captures after the day's money events.
   try { shopstats.captureDaily() } catch { /* non-fatal */ }
   // The consignment counter: NPC offers trickle in, walk-ins buy their stock.

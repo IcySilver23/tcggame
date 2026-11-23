@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, type BagRevealResult, type BagRow, type BulkBoxRow, type ConsignmentStatus, type FinanceStatus, type FranchiseDm, type FranchiseInternalCandidate, type FranchiseManagerCandidate, type FranchiseShelfRow, type FranchiseSlot, type FranchiseStore, type IntelCard, type IntelStatus, type LoyaltyView, type PnlStatement, type ProtectionCosts, type RivalStatus, type PnlWeekRow, type ShopBagRow, type ShopBulkRow, type ShopCaseRow, type ShopProperty, type ShopStatus, type ShopStockRow, type StockableRow, type StaffCandidate, type StaffMember } from '../api'
+import { api, type BagRevealResult, type BagRow, type BulkBoxRow, type ConsignmentStatus, type FinanceStatus, type FranchiseDm, type FranchiseInternalCandidate, type FranchiseManagerCandidate, type FranchiseShelfRow, type FranchiseSlot, type FranchiseStore, type IntelCard, type IntelStatus, type LoyaltyView, type PnlStatement, type ProtectionCosts, type RivalStatus, type PnlWeekRow, type ShopBagRow, type ShopBulkRow, type ShopCaseRow, type ShopProperty, type ShopStatus, type ShopStockRow, type StockableRow, type StaffCandidate, type StaffMember, type RepackStatus, type RepackStockable } from '../api'
 import { useStore } from '../store'
 import { gameDayMsFor } from '../lib/gameday'
 import { fmtUsd, LoadFailure, matchesQuery, OverflowMenu, TipList } from '../components'
@@ -1206,6 +1206,155 @@ function BagAssembler({ price, onClose, onAssembled }: { price: number; onClose:
   )
 }
 
+// ---------------------------------------------------------------------------
+// 🃏 YOUR OWN REPACKS — five sealed five-card packs, one chase, printed odds.
+// The odds are a claim you make on the wrapper: better than the truth sells
+// faster until the complaints land.
+// ---------------------------------------------------------------------------
+
+function RepacksPanel({ onChange }: { onChange: () => void }) {
+  const { toast, refreshState } = useStore()
+  const [data, setData] = useState<RepackStatus | null>(null)
+  const [stock, setStock] = useState<RepackStockable | null>(null)
+  const [price, setPrice] = useState(12)
+  const [printed, setPrinted] = useState(5)
+  const [chase, setChase] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [reveal, setReveal] = useState<{ name: string; value: number }[] | null>(null)
+
+  const load = () => {
+    api.repacks().then(setData).catch(() => setData(null))
+    api.repacksStockable().then(setStock).catch(() => setStock(null))
+  }
+  useEffect(() => { load() }, [])
+  const refresh = () => { load(); onChange(); refreshState() }
+
+  const multiple = stock?.terms.minChaseMultiple ?? 4
+  const eligible = (stock?.rows ?? []).filter((r) => r.anchor >= price * multiple).slice(0, 60)
+  const filler = stock?.fillerCount ?? 0
+  const need = stock?.need ?? 24
+
+  const seal = async () => {
+    if (!chase) { toast('Pick the chase card that goes in the run', 'bad'); return }
+    setBusy(true)
+    try {
+      const r = await api.repacksAssemble(price, Number(chase), printed)
+      if (r.ok) {
+        toast(`Sealed five repacks at $${price} — chase ~$${(r.chaseValue ?? 0).toFixed(2)}, printed 1 in ${printed}, truth 1 in ${r.actualOdds ?? 5}.`, 'good')
+        setChase('')
+        refresh()
+      } else toast(r.error ?? 'Rejected', 'bad')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Failed', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const rip = async (id: number) => {
+    setBusy(true)
+    try {
+      const r = await api.repacksBuy(id)
+      if (r.ok) {
+        setReveal((r.reveal ?? []).map((c) => ({ name: c.name, value: c.value })))
+        toast(`Ripped one: ${fmtUsd(r.totalValue ?? 0)} of cards${r.chase ? ' — the chase was inside' : ''}.`, 'good')
+        refresh()
+      } else toast(r.error ?? 'Rejected', 'bad')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Failed', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const unseal = async (id: number) => {
+    setBusy(true)
+    try {
+      const r = await api.repacksStockBack(id)
+      if (r.ok) {
+        toast(`Pulled the run apart — ${r.returned ?? 0} cards back in the collection.`, 'good')
+        refresh()
+      } else toast(r.error ?? 'Rejected', 'bad')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Failed', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const rep = data?.reputation ?? 50
+  return (
+    <div className="panel" style={{ padding: '13px 14px', marginTop: 12 }}>
+      <div className="row" style={{ justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ minWidth: 0 }}>
+          <b className="small">🃏 Your own repacks</b>
+          <div className="faint small">
+            Five sealed five-card packs per run · one chase worth {multiple}× the price · filler comes from your cheapest stock
+          </div>
+        </div>
+        <span className="small" title="Buyers remember what they pulled. Honest odds build it, complaints cut it, a posted hit pays it back.">
+          rep <b>{rep}</b>/100
+        </span>
+      </div>
+
+      <div className="row" style={{ gap: 10, alignItems: 'flex-end', flexWrap: 'wrap', marginTop: 10 }}>
+        <label className="small">
+          <span className="faint">Price</span>
+          <select className="input" value={price} onChange={(e) => { setPrice(Number(e.target.value)); setChase('') }}>
+            {(data?.terms.prices ?? [8, 12, 20]).map((p) => <option key={p} value={p}>${p}</option>)}
+          </select>
+        </label>
+        <label className="small">
+          <span className="faint">Printed odds</span>
+          <select className="input" value={printed} onChange={(e) => setPrinted(Number(e.target.value))}>
+            {(data?.terms.publishedOdds ?? [3, 5, 10]).map((o) => <option key={o} value={o}>1 in {o}{o < 5 ? ' — a claim' : o === 5 ? ' — the truth' : ' — understated'}</option>)}
+          </select>
+        </label>
+        <label className="small" style={{ minWidth: 0, flex: 1 }}>
+          <span className="faint">Chase card (needs ~${(price * multiple).toFixed(0)}+)</span>
+          <select className="input" value={chase} onChange={(e) => setChase(e.target.value)}>
+            <option value="">Pick a card…</option>
+            {eligible.map((r) => <option key={r.id} value={r.id}>{r.name} — {fmtUsd(r.anchor)}</option>)}
+          </select>
+        </label>
+        <button className="primary small" disabled={busy} onClick={seal}>Seal a run</button>
+      </div>
+
+      <div className="faint small" style={{ marginTop: 6 }}>
+        Filler on hand: <b>{filler}</b> cards at or under ${stock?.terms.fillerCeiling ?? 2} · a run eats {need}
+        {filler < need ? ' — not enough left to seal a batch.' : '.'}
+      </div>
+
+      {(data?.batches.length ?? 0) > 0 && (
+        <div style={{ marginTop: 10 }}>
+          {data!.batches.map((b) => (
+            <div key={b.id} className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '7px 0', borderTop: '1px solid var(--line, #2a2a2a)' }}>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <b className="small">{b.card} chase</b>
+                <span className="faint small"> · {fmtUsd(b.price)} · printed 1 in {b.published_odds} · truth 1 in {b.actual_odds} · {b.remaining}/{b.pack_count} left</span>
+              </span>
+              {!b.honest && <span className="badge hit" title="You are promising better odds than the run can deliver — each sale can earn a complaint">hype</span>}
+              {b.complaints > 0 && <span className="small pw-bad">{b.complaints} complaint{b.complaints === 1 ? '' : 's'}</span>}
+              <span className="small faint">margin {fmtUsd(b.margin)}/pack</span>
+              <button className="small" disabled={busy} onClick={() => rip(b.id)} title="Buy one of your own packs and open it">Rip one</button>
+              <button className="small ghost" disabled={busy} onClick={() => unseal(b.id)} title="Unseal the run and put the cards back">Unseal</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {reveal && reveal.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          <div className="faint small">Last rip — {fmtUsd(reveal.reduce((a, c) => a + c.value, 0))} of cards:</div>
+          <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+            {reveal.map((c, i) => <span key={i} className="small">{c.name} <b>{fmtUsd(c.value)}</b></span>)}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function GrabBagsPanel({ bags = [], history = [], prices = [], onChange }: {
   bags?: BagRow[]
   history?: import('../api').BagHistoryRow[]
@@ -1316,6 +1465,8 @@ function PnlPanel() {
     { label: '🪞 Case sales', revenue: s.lines.cases.revenue, entries: s.lines.cases.entries },
     { label: '🗑️ Dollar bins', revenue: s.lines.bulk.revenue, entries: s.lines.bulk.entries },
     { label: '🎁 Grab bags', revenue: s.lines.bags.revenue, entries: s.lines.bags.entries },
+    { label: '🃏 Your repacks', revenue: s.lines.repacks.revenue, entries: s.lines.repacks.entries },
+    { label: '🏦 Lending desk', revenue: s.lines.lending.revenue, entries: s.lines.lending.entries },
     { label: '🤝 Consignment cut', revenue: s.lines.consignment.revenue, entries: s.lines.consignment.entries },
   ]
   const costs = [
@@ -2907,6 +3058,7 @@ export function ShopView() {
         <>
           <BulkPanel boxes={data.boxes} onChange={load} />
           <GrabBagsPanel bags={data.bags} history={data.bagHistory} prices={data.bagPrices} onChange={load} />
+          <RepacksPanel onChange={load} />
         </>
       )}
 

@@ -952,6 +952,8 @@ export function tick() {
   import('./buylist').then((b) => b.buylistTick()).catch(() => {})
   // Pawn — daily interest accrual, due-date warnings, defaults to the case
   import('./pawn').then((p) => p.pawnTick()).catch(() => {})
+  // The lending desk — walk-in offers, interest, repayments and collateral
+  import('./lending').then((l) => l.lendingTick()).catch(() => {})
   // Sealed futures desk — daily interest accrual on sealed-asset loans
   import('./sealedfutures').then((f) => f.sealedLoanTick()).catch(() => {})
   // Yard sales — weekend driveways spawn and pack up
