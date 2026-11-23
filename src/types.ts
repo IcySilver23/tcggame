@@ -345,6 +345,9 @@ export type AcademyStep = {
   label: string
   /** Where to do it, or why it is still open. */
   how: string
+  /** The screen the step names, as a hash route, and its label for the button. */
+  route?: string
+  where?: string
   done: boolean
   /** Only on answer steps: the question and its choices. */
   question?: string

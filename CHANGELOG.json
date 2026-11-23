@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.86.7",
+      "date": "2026-11-23",
+      "title": "Every step has a door",
+      "highlights": [
+        "Each Academy action step now has a button that opens the screen it names — Pack Shop, Buylist, Wishlist, Grading, Calendar — so you are not navigating from memory.",
+        "The step’s own wording stays as the hint underneath, so the instruction and the door are in the same place rather than one replacing the other.",
+        "Locked screens still explain themselves: the button uses the game’s own routing, so a shop you have not earned yet says why instead of opening an empty room."
+      ],
+      "features": [
+        "Ten action steps, ten doors. Each one now carries a Go to … button that jumps straight to the screen it names: the Pack Shop for opening a wrapper, Grading for protecting a card, the Market feed for a purchase, the Buylist for a sale, Storage & Auctions for the shelf and lockers, Wishlist for a target, the Calendar for an event, the Card Shop for a counter job and Community for an audience. The economy step points at the Home dashboard, where the TODAY panel prints what rolls at the next boundary.",
+        "The hint is unchanged. The step still explains what to do in its own words underneath the label, so the button is an addition — a door beside the instruction, not a replacement for it. A finished step drops its button and keeps its tick.",
+        "The routes come from the server, next to the check that proves each step, so a button cannot point at a screen where the work is not. Navigation uses the same hash routing as the sidebar, which means a locked screen — the Card Shop under $500, Deals under three sales — still shows its own explanation and gate rather than a dead end."
+      ]
+    },
+    {
       "version": "0.86.6",
       "date": "2026-11-23",
       "title": "The clock has a lever now",
       "highlights": [
-        "The Academy’s economy chapter no longer asks you to wait two real hours for a day to pass: buy the day pass from the header clock and the step ticks at once.",
-        "It still teaches the same thing, because the pass is what opens a day boundary — rent, wages, the deals board and the market all settle the moment it lands.",
-        "Catching the clock turning by itself still counts, so a drawer without the fee is never stuck; nobody has to sit and watch a timer to finish a chapter."
+        "The Academy’s economy chapter no longer asks you to wait two real hours for a day to pass: buy the day pass from the header clock and the step ticks at once."
       ],
       "features": [
         "The first chapter’s action step was \"let one game day run\", which could mean two real hours of waiting or buying a day pass — a step that teaches the clock by making you stare at it. It is now \"move the clock — buy the day pass\": the ticket in the top bar skips the wait at the fee printed there, and its boundary is exactly the beat the chapter is about, since rent, wages, the deals board and the market all roll when it lands. The step ticks as soon as the pass does.",

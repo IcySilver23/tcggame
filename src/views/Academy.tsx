@@ -20,6 +20,12 @@ import type { AcademyState } from '../types'
  * disappearing; prose for an id the server no longer lists is not rendered at
  * all. Never add a title or a dollar figure to this file.
  *
+ * EVERY ACTION STEP CARRIES ITS OWN DOOR. The step names a screen, so it also
+ * carries that screen's hash and a one-click button to it — the player should
+ * not have to remember that the sleeve lives in Inventory and the wishlist in
+ * Collection. The route comes from the server beside the check that proves the
+ * step, so the button cannot point somewhere the work is not.
+ *
  * THE CHECKLIST CHECKS ITSELF. Action steps are proved against the save on every
  * read, so this screen re-reads `/api/academy` and ticks land on their own — a
  * player who opens a pack on another screen comes back to a ticked step, not to
@@ -451,6 +457,20 @@ export function AcademyView() {
                   <div className="grow" style={{ minWidth: 0 }}>
                     <div className="academy-step-label">{s.label}</div>
                     {!s.done && <div className="faint small academy-step-how">{s.how}</div>}
+                    {s.kind === 'act' && !s.done && s.route && s.where && (
+                      <button
+                        className="ghost small academy-step-go"
+                        onClick={() => {
+                          // The shell routes on the hash, so this is the same door
+                          // the sidebar uses — including its gates, which toast
+                          // and explain rather than opening a screen you cannot
+                          // use yet.
+                          window.location.hash = `#/${s.route}`
+                        }}
+                      >
+                        Go to {s.where} →
+                      </button>
+                    )}
                     {s.kind === 'answer' && !s.done && s.options && (
                       <div className="academy-choices">
                         {s.options.map((o, k) => (

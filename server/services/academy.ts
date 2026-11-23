@@ -21,6 +21,10 @@ export type AcademyStepState = {
   label: string
   /** Where to do it, or why the step is not ticked yet. */
   how: string
+  /** The screen this step names, as a hash route the app already serves. */
+  route?: string
+  /** What to call that screen on the button ("Pack Shop", "Buylist"). */
+  where?: string
   done: boolean
   /** Only for answer steps. */
   question?: string
@@ -63,6 +67,17 @@ type ActStep = {
   kind: 'act'
   label: string
   how: string
+  /**
+   * Where the work is done, as a hash route the app shell already serves
+   * (`market/buylist`, `collection/wishlist`, …). The screen puts a one-click
+   * button on the step rather than making the player hold the route in their
+   * head between the checklist and the game. Kept here, beside the check that
+   * proves the step, so the button and the proof cannot point at different
+   * screens.
+   */
+  route: string
+  /** The screen's own name, for the button's label. */
+  where: string
   /** True once the save shows this was actually done after the course started. */
   check: (since: string) => boolean
 }
@@ -142,6 +157,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'pass',
       kind: 'act',
       label: 'Move the clock — buy the day pass',
+      route: 'home',
+      where: 'Home dashboard',
       how: 'The clock in the top bar sells a day pass: it skips the wait to the next game day at the fee printed there, and the boundary settles rent, wages, the deals board and the market. Being there when the clock turns by itself counts too — the pass is just how you do it now.',
       check: (since) =>
         count("SELECT COUNT(*) c FROM activity_log WHERE datetime(created_at) > datetime(?) AND message LIKE '%Day pass%'", [since]) > 0 ||
@@ -162,6 +179,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'rip',
       kind: 'act',
       label: 'Open a sealed pack',
+      route: 'packs',
+      where: 'Pack Shop',
       how: 'Pack Shop → any product (it rings up sealed), then Inventory → Sealed → OPEN 1.',
       check: (since) => wroteSince('pull_history', 'opened_at', since),
     },
@@ -180,6 +199,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'protect',
       kind: 'act',
       label: 'Protect or grade one copy',
+      route: 'grading',
+      where: 'Grading',
       how: 'Inventory → any row → sleeve or toploader it, or send a card to Grading. Bare cards wear while they sit.',
       check: (since) => wroteSince('inventory', 'protected_at', since) || sawActivity(['grading'], since),
     },
@@ -202,6 +223,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'buy',
       kind: 'act',
       label: 'Buy something at one of the venues',
+      route: 'market',
+      where: 'Market',
       how: 'Market (feed, auction, buylist shelves), a Deals venue, or a convention booth — any purchase counts.',
       check: (since) => sawActivity(['market', 'buy', 'ebay', 'auction', 'pawn', 'local', 'flea', 'estate', 'live'], since),
     },
@@ -220,6 +243,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'sell',
       kind: 'act',
       label: 'Sell one card',
+      route: 'market/buylist',
+      where: 'Buylist',
       how: 'Buylist pays now, a market listing pays later at your ask, a trading post pays in cards. Any of them counts.',
       check: (since) => wroteSince('sale_history', 'sold_at', since) || sawActivity(['sale'], since),
     },
@@ -238,6 +263,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'space',
       kind: 'act',
       label: 'Do one storage job',
+      route: 'inventory/storage',
+      where: 'Storage & Auctions',
       how: 'Rent a locker, move cards into a bulk box, or buy sleeves and toploaders. The storage and supplies counters both count.',
       check: (since) => sawActivity(['storage', 'supplies'], since),
     },
@@ -256,6 +283,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'watch',
       kind: 'act',
       label: 'Put one card on your wishlist',
+      route: 'collection/wishlist',
+      where: 'Wishlist',
       how: 'Collection → Wishlist → add a target price. The agent watches the market for you.',
       check: (since) => wroteSince('wishlist', 'added_at', since),
     },
@@ -278,6 +307,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'venue',
       kind: 'act',
       label: 'Work one event or venue',
+      route: 'events/calendar',
+      where: 'Calendar',
       how: 'Attend a convention, host a card show, or trade at a local meetup or flea bin. Entry and hall fees are real, so pick the one your cash covers.',
       check: (since) => sawActivity(['convention', 'show', 'local', 'flea'], since),
     },
@@ -296,6 +327,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'counter',
       kind: 'act',
       label: 'Do one business job',
+      route: 'shop',
+      where: 'Card Shop',
       how: 'Ring a shop sale or stock a case, run a repack, lend at the desk, or open the books and file tax. Any one counts.',
       check: (since) => sawActivity(['shop', 'finance', 'tax', 'loan', 'repack', 'lending', 'resale'], since),
     },
@@ -314,6 +347,8 @@ const STEPS: Record<string, Step[]> = {
       id: 'audience',
       kind: 'act',
       label: 'Do one audience action',
+      route: 'forum',
+      where: 'Community',
       how: 'Post in Community, run a stream, play a pack battle, or submit a suspect card for authentication.',
       check: (since) => sawActivity(['forum', 'stream', 'battle', 'auth'], since),
     },
@@ -379,7 +414,7 @@ function stepStates(chapterId: string, since: string): AcademyStepState[] {
     if (s.kind === 'act') {
       const done = getMeta(STEP_KEY(chapterId, s.id)) === '1' ? true : s.check(since)
       if (done) setMeta(STEP_KEY(chapterId, s.id), '1')
-      return { id: s.id, kind: s.kind, label: s.label, how: s.how, done }
+      return { id: s.id, kind: s.kind, label: s.label, how: s.how, route: s.route, where: s.where, done }
     }
     return {
       id: s.id,
