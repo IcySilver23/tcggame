@@ -473,8 +473,19 @@ export function priceDetail(productId: string): {
   if (shelf) {
     const rel = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(row.set_id) as { release_date: string } | undefined
     const s = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
+    // A DISPLAY is the one real quote that still gets the floor, because a
+    // display is thirty-six wrappers and nothing else — no sleeves, dice, binder
+    // or promo to justify a price under its contents. The marketplace discounts
+    // boxes, and in a game where the box can be ripped that discount is a
+    // guaranteed margin: Delta Reign's box traded at $187.23 ($5.20 a pack)
+    // while the same set's packs cost $5.91 each and the cards they deal are
+    // modelled at $6.88, so ripping it paid about 32% every time — and the bulk
+    // rip made that arithmetic repeatable at scale. Single wrappers keep their
+    // quote (that IS what a wrapper costs) and collections keep theirs (the
+    // extras and the promo inside them are part of the price).
+    const quoted = row.kind === 'display' ? atLeastPackEv(row.set_id, row.packs, round2(shelf.market)) : round2(shelf.market)
     return {
-      market: round2(shelf.market),
+      market: quoted,
       source: shelf.kind ?? 'tcgplayer',
       oopMonths: Math.round(s),
       oop: s > 0,

@@ -9,29 +9,15 @@ Swept 536 sealed products across 133 sets; 529 offered for sale, 4 hidden pull-t
 | Offered for sale | 529 |
 | Hidden (pull-table hosts) | 4 |
 | Mini packs (own composition) | 3 |
-| Failures | 5 |
+| Failures | 0 |
 
 ## Failures
 
-| Product | Set | Kind | Declared | Blueprint | Dealt | Issues |
-|---|---|---|---:|---:|---:|---|
-| me6-display | Delta Reign | display | 10 | 10 | 10 (avg 10.00) | rip-positive |
-| me5-display | Pitch Black | display | 10 | 10 | 10 (avg 10.00) | rip-positive |
-| me6-booster | Delta Reign | booster | 10 | 10 | 10 (avg 10.00) | rip-positive |
-| sv6pt5-bundle | Shrouded Fable | bundle | 10 | 10 | 10 (avg 10.00) | rip-positive |
-| me6-bundle | Delta Reign | bundle | 10 | 10 | 10 (avg 10.00) | rip-positive |
+None: every offered product deals its declared pack and clears its expected-value floor.
 
 ## Rip-positive products (pricing failures)
 
-These are failures: the audit exits non-zero until the product is priced at or above its expected pull value.
-
-| Product | Set | Kind | EV/product | Shelf price | EV ÷ price |
-|---|---|---|---:|---:|---:|
-| me6-display | Delta Reign | display | $285.84 | $187.23 | 1.53× |
-| me5-display | Pitch Black | display | $234.00 | $173.83 | 1.35× |
-| me6-booster | Delta Reign | booster | $7.94 | $5.91 | 1.34× |
-| sv6pt5-bundle | Shrouded Fable | bundle | $72.36 | $56.49 | 1.28× |
-| me6-bundle | Delta Reign | bundle | $47.64 | $38.10 | 1.25× |
+None: no offered product has an expected value more than 1.25× its shelf price.
 
 ## Pull-table hosts (not sold)
 

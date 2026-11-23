@@ -1,15 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.90.1",
+      "date": "2026-11-23",
+      "title": "A box is worth its packs",
+      "highlights": [
+        "A booster display can no longer cost less than the cards its own packs are expected to deal, so ripping a box is a small loss again instead of a guaranteed margin.",
+        "Delta Reign’s box sold at $187 against $248 of pull value, a 32% profit every time — and the bulk rip made repeating it two clicks. It now prices with its contents.",
+        "Single packs and collections keep their marketplace quotes untouched; only a display, which holds thirty-six wrappers and nothing else, is floored."
+      ],
+      "features": [
+        "The sealed audit found one product in the shop paying out more than it charged: the Delta Reign Booster Display at $187.23 for thirty-six packs, whose cards the game values at $248. Ripping it and selling the pulls was a reliable thirty-two percent, and the bulk rip added this release turned that from a curiosity into two clicks. A display holds thirty-six wrappers and nothing else — no sleeves, dice, binder or promo to justify selling under its contents — so its marketplace quote now goes through the same pull-value floor every modelled product already obeys: it costs the greater of the quote and ninety-two percent of what its packs deal, which puts this box at $227.87. The Pitch Black display was quietly under the same floor and moved with it.",
+        "What did not move is the point. Single wrappers keep their real quotes, because a wrapper’s quote is exactly what that wrapper costs, and collections keep theirs, because the extras and the promo sealed inside them are part of the price — flooring those would replace a marketplace figure with this build’s estimate. The honest limit: the floor is a model, at ninety-two percent realization, so the box now costs about twenty percent more than the same box does on TCGplayer today. That is the game choosing a small guaranteed loss on ripping over a guaranteed profit, not a claim about the market. The bulk buy and bulk rip were re-checked against the same audit and changed nothing underneath — pack odds, hit rates, the per-wrapper pull tables, the storage check and the cost basis are all where the single-unit path left them."
+      ]
+    },
+    {
       "version": "0.90.0",
       "date": "2026-11-23",
       "title": "The course, the armful and the receipt",
       "highlights": [
-        "The Academy checks its receipts now: a chapter from before the checklist is waived only when its stamp is genuinely older than the course, and one ticked step outranks any flag.",
-        "Buy an armful from any shop bay, and open 1, 5, 10 or all from the sealed shelf — each button naming the packs it will tear before you press it.",
-        "Open three boxes at once and the promos arrive first, so nothing reaches your binder unannounced; a promo out of every unit is drawn once, with its count.",
-        "The Mega Evolution promos have faces again — most of them had been a card back — matched on the printed number and photographed from TCGplayer’s own product images.",
-        "Two checks instead of two promises: a script finishes a chapter the way a fresh install does to prove the waiver, and npm run check:changelog lints these notes."
+        "The Academy checks its receipts now: a chapter from before the checklist is waived only when its stamp is genuinely older than the course, and one ticked step outranks any flag."
       ],
       "features": [
         "The Academy used to read “completion flag and no step evidence” as proof a chapter was finished before the checklist existed. That shape can be manufactured by a fresh install, so the rule is explicit: a chapter is waived only when it carries a completion stamp, has no step evidence at all, and that stamp predates the instant this build first looked at the save. Completions store the date they happened rather than a bare flag, the baseline is written before any claim can run, and every screen still reads the old form — a save from the read-and-claim build keeps its waived chapters and its paid amounts. A save that already ran the waiver is not re-judged: closing a hole is no reason to take a chapter back off someone.",
