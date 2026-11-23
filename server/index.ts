@@ -2499,6 +2499,11 @@ app.post('/api/stream/breaks/:id/buy', async (c) => {
   const body = await c.req.json<{ team: string }>()
   return c.json(breaks.buySpot(Number(c.req.param('id')), body.team))
 })
+// Drop the ask while the break is live — the room's ceiling still decides.
+app.post('/api/stream/breaks/:id/price', async (c) => {
+  const body = await c.req.json<{ price: number }>()
+  return c.json(breaks.lowerSpotPrice(Number(c.req.param('id')), Number(body.price)))
+})
 app.post('/api/stream/break/rip', (c) => c.json(breaks.ripBreak()))
 
 app.get('/api/sealed/status', (c) => {

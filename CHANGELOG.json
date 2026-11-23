@@ -1,17 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.93.1",
+      "date": "2026-11-23",
+      "title": "Cut the ask",
+      "highlights": [
+        "A break priced past the room is not dead any more: drop the spot price while you are live and the board can move again.",
+        "The room still decides — cutting a $500 ask to $0.25 sold a spot immediately, and cutting it to $40 still sold none.",
+        "Spots already sold keep the price those buyers paid, and a live ask can only go down, never up."
+      ],
+      "features": [
+        "Once the ceiling went in, an over-priced break had no way back: the spots never sold, the product was already paid for, and the rest of the stream was dead air. The spots panel now has a price box under the team buttons. Type a lower number, press Cut the ask, and the board is on sale at the new price for everyone still watching. Real hosts do exactly this — the price drop is the move that saves a cold break.",
+        "The ceiling has not moved: a cut only opens the board, it never guarantees a sale. Ask $40 for a spot in a $3 pack and the room still passes; ask $0.25 and buyers take them. A cut applies to spots not yet claimed, because the ones already sold were paid at the number those buyers agreed to — the panel says so next to the box. Raising a live ask is refused outright rather than modelled, and the price bottoms out at $0.25. Whatever the cut still fails to sell goes home with the house, pulls and all."
+      ]
+    },
+    {
       "version": "0.93.0",
       "date": "2026-11-23",
       "title": "The room decides",
       "highlights": [
-        "A lot no longer sells at whatever you type — open a card above what your room will pay and it sits for the whole clock with zero bids.",
-        "Break spots are bought by the room, not by your price tag: ask $500 a spot for a $20 case and every buyer passes.",
-        "Each break draws its own appetite when you open it, and the spot panel says what this room will pay before you push teams.",
-        "Bad pricing costs you: unsold spots mean you ate the product, and a cold board leaves you only the house pulls."
+        "A lot no longer sells at whatever you type — open a card above what your room will pay and it sits for the whole clock with zero bids."
       ],
       "features": [
-        "Two numbers were being treated as if the host wrote them. A lot got bid to its own opening price whatever the card was worth, so you could open a 9¢ common at $500 and the chat bought it at $500. Break spots were sold to whoever you clicked, for exactly the price written on the break, so a $20 case with $500 spots paid $4,000. Neither works any more: the room prices the room.",
+        "Two numbers were being treated as if the host wrote them. A lot got bid to its own opening price whatever the card was worth, so you could open a 9¢ common at $500 and the chat bought it at $500. Break spots were sold to whoever you clicked, for exactly the price written on the break, so a $20 case with $500 spots paid $4,000. Neither works any more: the room prices the room. Break spots are bought by the room, not by your price tag: ask $500 a spot for a $20 case and every buyer passes. Each break draws its own appetite when you open it, and the spot panel says what this room will pay before you push teams. Bad pricing costs you: unsold spots mean you ate the product, and a cold board leaves you only the house pulls.",
         "On the block, the ceiling is the card's market value times the room's heat — 35–95% of market, plus up to another 35% for a big crowd. Open above that ceiling and nobody bids: the card passes, goes back to the binder, and the listing chat tells you the room was never going there. For breaks, a spot is worth the product split across the board, and each break draws an appetite of 1.05–1.6× that split the moment you open it. That appetite is stored with the break, so every team is judged by the same room, with a small lift for a big audience and 0.85–1.2× per team depending on who is on the board. The suggested ask is split +10%, so most boards clear and a cold one does not; ask past the ceiling and the buyer tells you the number it would have paid. Three test breaks at the suggested price sold out, sold out, and half sold — thin margin when you price well, a loss when you do not. This is a model of a room, not a simulation of individual buyers: viewers share a ceiling rather than carrying their own budgets. A break whose stream dies mid-flight — a crash, a closed tab, a stuck server — now settles on the next boot, so the house still gets its pulls instead of the product vanishing."
       ]
     },

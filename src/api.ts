@@ -333,6 +333,8 @@ export const api = {
   breakCancel: (id: number) => post<{ ok: boolean; error?: string }>(`/api/stream/breaks/${id}/cancel`, {}),
   breakBuy: (id: number, team: string) =>
     post<{ ok: boolean; error?: string; holder?: string; spotsSold?: number; spotsTotal?: number; chat?: { who: string; avatar: string; text: string } }>(`/api/stream/breaks/${id}/buy`, { team }),
+  breakReprice: (id: number, price: number) =>
+    post<{ ok: boolean; error?: string; spotPrice?: number; roomMax?: number; previousPrice?: number; sold?: number }>(`/api/stream/breaks/${id}/price`, { price }),
   breakRip: () => post<BreakRipResult>('/api/stream/break/rip'),
   streamHistory: () => req<StreamHistoryRow[]>('/api/stream/history'),
   streamAnalytics: () => req<StreamAnalytics>('/api/stream/analytics'),

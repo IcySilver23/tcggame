@@ -431,6 +431,40 @@ export function settleBreak(streamId: number) {
 }
 
 /**
+ * Cut the ask on a live break. A host who priced past the room is not stuck for
+ * the rest of the stream — drop the price and buyers come back. The ceiling
+ * still decides every sale, so a cut only opens the board, it never guarantees
+ * one; and spots already sold keep the number those buyers agreed to.
+ */
+export function lowerSpotPrice(breakId: number, price: number) {
+  const b = db.prepare(`SELECT * FROM stream_breaks WHERE id = ?`).get(breakId) as BreakRow | undefined
+  if (!b) return { ok: false as const, error: 'Break not found' }
+  if (b.status !== 'selling') return { ok: false as const, error: 'This break is already settled' }
+  if (!Number.isFinite(price) || price <= 0) return { ok: false as const, error: 'Give the spots a price' }
+  const next = round2(Math.max(0.25, price))
+  if (next >= b.spot_price) {
+    const atFloor = b.spot_price <= 0.25
+    return {
+      ok: false as const,
+      error: atFloor
+        ? 'Spots are already at the $0.25 floor — there is nothing left to cut.'
+        : `You can cut the ask, not raise it — spots are at $${b.spot_price.toFixed(2)}.`,
+    }
+  }
+  db.prepare('UPDATE stream_breaks SET spot_price = ? WHERE id = ?').run(next, b.id)
+
+  const claimed = db.prepare(`SELECT team FROM stream_break_spots WHERE break_id = ?`).all(b.id) as { team: string }[]
+  const open = (JSON.parse(b.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team).filter((t) => !claimed.some((c) => c.team === t))
+  const roomMax = bestCeiling(b, open.length > 0 ? open : [''], liveStream()?.peak_viewers ?? 0)
+  const still = next > roomMax ? ` Still above what this room will pay (about $${roomMax.toFixed(2)}).` : ''
+  logActivity(
+    'stream',
+    `Spot price cut to $${next.toFixed(2)} from $${b.spot_price.toFixed(2)} on the ${b.product_name} break — ${b.spots_sold}/${b.spots_total} already sold at the old price.${still}`,
+  )
+  return { ok: true as const, spotPrice: next, roomMax, previousPrice: b.spot_price, sold: b.spots_sold }
+}
+
+/**
  * Any break still 'selling' on a stream that is no longer live never got its
  * settlement — a crash or a closed tab can leave one behind. Settle it so the
  * host gets the house pulls and the ledger shows the result.

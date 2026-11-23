@@ -38,6 +38,9 @@ export function StreamView() {
   const [lastBreakRip, setLastBreakRip] = useState<BreakRipResult | null>(null)
   const [spotsInput, setSpotsInput] = useState(8)
   const [priceInput, setPriceInput] = useState('')
+  // A live break priced past the room used to be dead for the rest of the
+  // stream. Cutting the ask is the move a real host makes.
+  const [cutInput, setCutInput] = useState('')
   // Selling on stream: one card on the block at a time, and the room is free to
   // say no. The picker is the cheapest honest interface — a card, a start, a
   // reserve — because that is the whole decision a real seller makes.
@@ -151,6 +154,27 @@ export function StreamView() {
         loadBreak()
       } else {
         toast(res.error ?? 'Spot sale failed', 'bad')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const cutPrice = async () => {
+    if (!breakState) return
+    const v = Number(cutInput)
+    if (!Number.isFinite(v) || v <= 0) return
+    setBusy(true)
+    try {
+      const res = await api.breakReprice(breakState.id, v)
+      if (res.ok) {
+        const room = res.roomMax != null ? ` · the room is good for about ${fmtUsd(res.roomMax)}` : ''
+        toast(`Spots cut to ${fmtUsd(res.spotPrice ?? v)}${room}`, 'good')
+        setCutInput('')
+        refreshState()
+        loadBreak()
+      } else {
+        toast(res.error ?? 'Could not cut the price', 'bad')
       }
     } finally {
       setBusy(false)
@@ -363,6 +387,27 @@ export function StreamView() {
                   {liveBreak.openTeams.map((t) => (
                     <button key={t} className="small" disabled={busy} onClick={() => sellSpot(t)}>+ {t}</button>
                   ))}
+                </div>
+                <div className="row mt10" style={{ gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    min="0.25"
+                    step="0.25"
+                    aria-label="New spot price"
+                    value={cutInput}
+                    onChange={(e) => setCutInput(e.target.value)}
+                    placeholder={liveBreak.spotPrice.toFixed(2)}
+                    disabled={busy}
+                    style={{ width: 92, padding: '5px 8px', fontSize: 12 }}
+                  />
+                  <button
+                    className="small"
+                    disabled={busy || !cutInput || Number(cutInput) <= 0 || Number(cutInput) >= liveBreak.spotPrice}
+                    onClick={cutPrice}
+                  >
+                    Cut the ask
+                  </button>
+                  <span className="faint small">spots already sold keep the price they paid</span>
                 </div>
               </div>
             )}
