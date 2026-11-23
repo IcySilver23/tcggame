@@ -7,7 +7,7 @@
 // Use a scratch home: it BUYS and RIPS sealed stock (a few dollars' worth) and
 // leaves the cards in the binder.
 import { buySealed, openSealedMany } from '../server/services/packs'
-import { sellsProduct } from '../server/services/sealed'
+import { priceOf as sealedPriceOf, sellsProduct } from '../server/services/sealed'
 import { db } from '../server/lib/db'
 
 let fails = 0
@@ -15,8 +15,18 @@ const ok = (cond: boolean, label: string) => { console.log(cond ? 'ok  ' : 'FAIL
 const qtyOf = (id: string) =>
   (db.prepare('SELECT COALESCE(SUM(quantity),0) AS n FROM sealed_inventory WHERE product_id = ? AND escrow_loan IS NULL').get(id) as { n: number }).n
 
+// The CHEAPEST booster the shop sells, at its actual shelf price and not in
+// stock already: this check buys four units and asserts the shelf starts at
+// four. Table order handed it a vintage box ($531 a pack) that no ordinary save
+// can afford, so a release gate would fail for want of cash rather than for
+// anything to do with the bulk path.
+const owned = new Set((db.prepare('SELECT DISTINCT product_id FROM sealed_inventory').all() as { product_id: string }[]).map((r) => r.product_id))
 const rows = db.prepare("SELECT id, set_id FROM pack_products WHERE kind = 'booster'").all() as { id: string; set_id: string }[]
-const product = rows.find((r) => sellsProduct(r.id, r.set_id))
+const sellable = rows
+  .filter((r) => sellsProduct(r.id, r.set_id))
+  .map((r) => ({ ...r, price: sealedPriceOf(r.id).market }))
+  .sort((a, b) => a.price - b.price)
+const product = sellable.find((r) => !owned.has(r.id)) ?? sellable[0]
 ok(!!product, 'found a booster the shop sells')
 const id = product!.id
 const cashBefore = (db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }).cash
