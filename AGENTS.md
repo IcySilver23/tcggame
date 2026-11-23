@@ -7,6 +7,9 @@
 same piece of work that made the change — never leave it for later, and never
 ship a build whose changelog is older than the code.
 
+The panel leads with the newest release's `highlights`; **View full changelog**
+opens every entry ever shipped, in full.
+
 For each update:
 
 1. **Add one entry at the top of `entries`** (newest first — the panel walks the
@@ -16,18 +19,30 @@ For each update:
    `package.json`; `changelog:seenVersion` is per-save, so a version bump is what
    makes the badge light up.
 3. **Fill in the schema** exactly: `version`, `date` (`YYYY-MM-DD`), `title`
-   (short, evocative — "Real prices, real packs"), and `features` (an array of
-   one-string entries).
-4. **Write features for the player, not the diff.** Name the screen or system,
+   (short, evocative — "Real prices, real packs"), `highlights` (three to five
+   one-string headlines) and `features` (every item, in full).
+4. **Two levels, two audiences — `highlights` vs `features`.** `highlights` is
+   what the ✨ What's New panel shows for that release: the major changes only,
+   one plain sentence each, about 200 characters at most, with just the numbers
+   a player needs. `features` is the complete record that **View full changelog**
+   renders and that the release notes are generated from, so it keeps the small
+   print too — the extra line in the P&L, the sales tax, the copy that moved. The
+   slim panel falls back to `features` when an entry has no `highlights`, so
+   every new release ships with them; entries written before the split show their
+   `features` in the full view only. If in doubt, write the highlight first and
+   move the detail down into `features` — it is the panel, not the release, that
+   has to stay short.
+5. **Write features for the player, not the diff.** Name the screen or system,
    say what was wrong before when it helps, and give the concrete numbers or
    behaviour they will notice. Existing entries are the house style: a full
    sentence or three each, no file names, no commit talk.
-5. **Say so honestly.** If part of a change is a simplification (pack odds
+6. **Say so honestly.** If part of a change is a simplification (pack odds
    scaled to the game's ten-card packs, a researched price that is a range being
    treated as a point, unknown data left alone), the entry should admit it
-   rather than implying perfect fidelity.
+   rather than implying perfect fidelity. Both levels carry that honesty: a
+   highlight says what is modelled, the matching feature says which part.
 
-Run `node ./node_modules/typescript/bin/tsc --noEmit` and `npm run build` before
+Run `npm run typecheck` (the script pins the 4 GB heap tsc needs) and `npm run build` before
 calling the update done; the changelog is bundled into the server at build time.
 
 ### Phase 5 revision: colour may be dimmer than white, never brighter

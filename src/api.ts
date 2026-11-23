@@ -542,7 +542,14 @@ export const api = {
     post<{ ok: boolean; error?: string; outcome?: 'won' | 'lost'; message?: string }>('/api/shipments/dispute', { kind, id }),
 }
 
-export type ChangelogEntry = { version: string; date: string; title: string; features: string[] }
+export type ChangelogEntry = {
+  version: string
+  date: string
+  title: string
+  /** Short headline items for the What's New panel; features stays the full record. */
+  highlights?: string[]
+  features: string[]
+}
 export type ChangelogResponse = { current: string; entries: ChangelogEntry[] }
 export type UpdateStatus = {
   currentVersion: string
