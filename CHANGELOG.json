@@ -1,14 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.89.2",
+      "date": "2026-11-23",
+      "title": "Nothing lands unannounced",
+      "highlights": [
+        "Bulk-ripping boxes now introduces the promos that came with them before the cards, so nothing lands in your binder without being shown.",
+        "The screen counts copies when the same promo came out of every box, and says plainly that the batch is already in your binder because its wrappers are already open.",
+        "A single OPEN BOX hands its promo over before pack one exactly as it always did."
+      ],
+      "features": [
+        "Open three Elite Trainer Boxes at once and the stage went straight to the cards: the three promos were in your binder before you ever saw them, because the promo screen only existed for the box ceremony and a bulk batch has no box record to hang it on. The reveal now checks the handoff for promos first, batch or box, and puts them on screen before the first wrapper is shown. The banner, the product and its count, and each promo card's own value are all there; when the same promo came out of every unit it is drawn once with ×N and the group's total value, because three identical cards side by side was telling you less than one card with a number.",
+        "The wording follows what actually happened. A box still says the promo is sealed in the box beside the packs and that the wrappers come next, then opens pack one; a bulk rip says the batch is already in your binder, because its wrappers were torn server-side in the same action, and its button reads SHOW THE CARDS with the number of packs the batch opened. One honest limit: a promo is granted per unit, so a batch of three boxes carrying the same promo shows one card tagged ×3 rather than three separate frames — the binder still holds three copies, and the promo screen's value is the three together."
+      ]
+    },
+    {
       "version": "0.89.1",
       "date": "2026-11-23",
       "title": "Every promo gets a face",
       "highlights": [
-        "The MEP Black Star Promos show their own cards now instead of a card back — the promos a box can hand you take their artwork from TCGplayer’s photographs.",
-        "It was a gap in the data, not the drawing: the image service the catalogue uses had no scan for those promos and answered every one of them with the same placeholder.",
-        "The one MEP card no shop sells, Pikachu at the Museum, shows an empty frame rather than a card back pretending to be art.",
-        "Art refreshes on launch, so a save that already holds one of these promos gets the face without being reset."
+        "The MEP Black Star Promos show their own cards now instead of a card back — the promos a box can hand you take their artwork from TCGplayer’s photographs."
       ],
       "features": [
         "Pulling a Mega Evolution promo handed you a card back. A hundred of the set’s 117 cards were all pointing at the same 45 KB placeholder from the image service the catalogue uses — and pokemontcg.io behind it answers the same way — so the binder, the till’s promo shelf and the reveal all showed a card with no face. Each promo the game can hand out now takes its photograph from TCGplayer’s own product images for the MEP group, matched on the printed number rather than the name so a reprint cannot steal another card’s art: the thumbnail in a list and the large image in the card view are the same picture at two sizes. The catalogue note says where the art comes from, and tmp/fill-mep-art.mjs re-runs the match when the set grows.",

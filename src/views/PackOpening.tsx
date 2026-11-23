@@ -250,8 +250,20 @@ export function PackOpeningView() {
         const asBox = s as OpenSession & Partial<BoxOpen>
         // A handoff from the Pack Shop or Inventory is a whole box with
         // wrappers still inside it — open it pack by pack.
-        if (asBox.boxId && asBox.packsTotal) beginBox(asBox as BoxOpen, product, prevBest, prevPack)
-        else runCeremony(s, product, prevBest, prevPack)
+        if (asBox.boxId && asBox.packsTotal) { beginBox(asBox as BoxOpen, product, prevBest, prevPack); return }
+        // A bulk rip has no box record, but it still hands out the promos every
+        // unit came with. They are already in the binder by now, so the stage
+        // says so before the cards: a promo must never land unannounced.
+        const boxPromos = asBox.promos?.length ? asBox.promos : asBox.promo ? [asBox.promo] : []
+        if (boxPromos.length > 0) {
+          setPreviousBest(prevBest)
+          setPrevBestPack(prevPack ?? 0)
+          setPromo(boxPromos)
+          setPromoThen({ s, product, prevBest, prevPack })
+          setPhase('promo')
+          return
+        }
+        runCeremony(s, product, prevBest, prevPack)
       })
   }
 
@@ -478,6 +490,25 @@ export function PackOpeningView() {
     setPromoThen(null)
     if (p) runCeremony(p.s, p.product, p.prevBest, p.prevPack)
   }
+
+  // A bulk rip can hand the same promo out of every unit, so the screen counts
+  // copies instead of stacking identical cards side by side; the value is the
+  // whole group's, which is what actually landed in the binder.
+  const promoGroups = useMemo(() => {
+    const out: { cardId: string; name: string; value: number; count: number }[] = []
+    for (const p of promo) {
+      const hit = out.find((g) => g.cardId === p.cardId)
+      if (hit) { hit.count += 1; hit.value += p.value }
+      else out.push({ cardId: p.cardId, name: p.name, value: p.value, count: 1 })
+    }
+    return out
+  }, [promo])
+  // What a bulk rip reports about itself: how many units it ripped and how many
+  // wrappers came out of them, so the promo screen can name the batch.
+  const bulk = box ? null : (promoThen?.s as (OpenSession & { units?: number; packsOpened?: number }) | null)
+  const promoUnits = Math.max(1, bulk?.units ?? 1)
+  const bulkPacks = bulk?.packsOpened ?? 0
+  const bulkName = promoThen?.product?.name ?? 'That product'
 
   // Did this session's best beat the pre-session record?
   const sessionBest = useMemo(() => session?.cards.reduce((a, c) => (c.value > a.value ? c : a), session.cards[0]) ?? null, [session])
@@ -812,19 +843,40 @@ export function PackOpeningView() {
 
       {phase === 'promo' && promo.length > 0 && (
         <div className="po-stage po-stage-summary">
-          <div className="po-banner">★ PROMO — SEALED IN THE BOX</div>
+          {/* A box hands its promo over before the first wrapper; a bulk rip has
+              already opened every wrapper, so the same screen has to say that
+              instead of promising packs that are already torn. */}
+          <div className="po-banner">
+            {box
+              ? '★ PROMO — SEALED IN THE BOX'
+              : `★ ${promo.length > 1 ? 'PROMOS' : 'PROMO'} — ALREADY IN YOUR BINDER`}
+          </div>
           <div className="faint small" style={{ maxWidth: 330, margin: '2px auto 12px', lineHeight: 1.5 }}>
-            {box?.productName ?? 'This product'} ships with{' '}
-            {promo.map((p) => p.name).join(promo.length === 2 ? ' and ' : ', ')} in the box beside the packs.{
-              promo.length === 1 ? ' It is already in your binder — the wrappers come next.' : ' They are already in your binder — the wrappers come next.'
-            }
+            {box ? (
+              <>
+                {box.productName} ships with{' '}
+                {promo.map((p) => p.name).join(promo.length === 2 ? ' and ' : ', ')} in the box beside the packs.{
+                  promo.length === 1 ? ' It is already in your binder — the wrappers come next.' : ' They are already in your binder — the wrappers come next.'
+                }
+              </>
+            ) : (
+              <>
+                {promoUnits > 1 ? `${bulkName} ×${promoUnits}` : bulkName} came with{' '}
+                {promoGroups.map((g) => (g.count > 1 ? `${g.name} ×${g.count}` : g.name)).join(promoGroups.length === 2 ? ' and ' : ', ')}{' '}
+                — {promo.length === 1 ? 'it is' : 'they are'} already in your binder. The cards come next.
+              </>
+            )}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 14 }}>
-            {promo.map((p) => <PromoCell key={p.cardId} cardId={p.cardId} value={p.value} />)}
+            {promoGroups.map((g) => (
+              <PromoCell key={g.cardId} cardId={g.cardId} value={g.value} count={g.count} />
+            ))}
           </div>
           <div className="po-actions">
             <button className="primary" onClick={dismissPromo}>
-              OPEN PACK 1 OF {box?.packsTotal ?? 1}
+              {box
+                ? `OPEN PACK 1 OF ${box.packsTotal}`
+                : `SHOW THE CARDS${bulkPacks > 0 ? ` · ${bulkPacks} PACKS` : ''}`}
             </button>
             {box && box.packsLeft > 0 && (
               <button className="ghost" disabled={busy === 'skip'} onClick={skipRemainingPacks}>
@@ -1125,11 +1177,11 @@ export function PackOpeningView() {
   )
 }
 
-function PromoCell({ cardId, value }: { cardId: string; value: number }) {
+function PromoCell({ cardId, value, count = 1 }: { cardId: string; value: number; count?: number }) {
   const src = useCardImage(cardId)
   return (
     <div className="po-summary-cell promo-cell">
-      <span className="promo-tag">★ PROMO</span>
+      <span className="promo-tag">★ PROMO{count > 1 ? ` ×${count}` : ''}</span>
       <CardImg src={src} alt={cardId} cardId={cardId} />
       <div className="val">{fmtUsd(value)}</div>
     </div>
