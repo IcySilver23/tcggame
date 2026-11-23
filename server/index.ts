@@ -350,6 +350,32 @@ app.get('/api/art/:setId/:file', async (c) => {
   })
 })
 
+// Sealed-product art on the app's own origin, for the same reason as card art:
+// something has to READ the pixels.
+//
+// TCGplayer normalises a wrapper photo onto a padded canvas — a Celestial Storm
+// booster arrives as 356×400 with the pack itself only at x 86–270, y 34–368, so
+// 24% of the width is white margin down each side. The tear screen used to size
+// itself to that photo, which drew the pack as a small island in a white card and
+// left the SWIPE handle sitting on the margin instead of the crimped edge. The
+// CDN sends no Access-Control-Allow-Origin, so the browser can show the image but
+// cannot measure the printed edge; through here it can. Read-only, one upstream
+// image per request, restricted to the CDN that serves every product photo.
+app.get('/api/packart', async (c) => {
+  const raw = c.req.query('u')
+  if (!raw) return c.text('bad request', 400)
+  let url: URL
+  try { url = new URL(raw) } catch { return c.text('bad request', 400) }
+  if (url.protocol !== 'https:' || url.hostname !== 'tcgplayer-cdn.tcgplayer.com') return c.text('host not allowed', 403)
+  const image = await fetch(url.toString()).catch(() => null)
+  if (!image || !image.ok) return c.text('not found', 404)
+  const bytes = new Uint8Array(await image.arrayBuffer())
+  return c.body(bytes, 200, {
+    'content-type': image.headers.get('content-type') ?? 'image/jpeg',
+    'cache-control': 'public, max-age=86400',
+  })
+})
+
 app.get('/api/changelog', (c) => c.json({ current: APP_VERSION, entries: CHANGELOG }))
 
 // In-place updates from the GitHub release page (or a newer setup in

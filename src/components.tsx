@@ -1186,6 +1186,54 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
   // cards" strip — and the rip read as a crop of some artwork instead of a
   // pack. Sizing the box to the photo means cover crops nothing.
   const [artRatio, setArtRatio] = useState<number | null>(null)
+  // Where the printed wrapper sits inside the photo. TCGplayer normalises its
+  // product shots onto a padded canvas, so a Celestial Storm booster is a 356×400
+  // image whose pack occupies only x 86–270, y 34–368: sizing the tear box to the
+  // photo drew the wrapper at half width in a white card, with the SWIPE handle
+  // out on the margin. Measure the printed edge and crop to it instead.
+  const [crop, setCrop] = useState<{ cl: number; ct: number; cw: number; ch: number } | null>(null)
+  // The photo comes through /api/packart so the canvas may read it (the CDN sends
+  // no CORS headers). Direct is the fallback if that route is unavailable.
+  const [directArt, setDirectArt] = useState(false)
+  const artSrc = !imageUrl ? undefined : directArt ? imageUrl : `/api/packart?u=${encodeURIComponent(imageUrl)}`
+  const measureArt = (img: HTMLImageElement) => {
+    const nw = img.naturalWidth
+    const nh = img.naturalHeight
+    if (!nw || !nh) return
+    const scale = Math.min(1, 160 / Math.max(nw, nh))
+    const w = Math.max(1, Math.round(nw * scale))
+    const h = Math.max(1, Math.round(nh * scale))
+    try {
+      const cv = document.createElement('canvas')
+      cv.width = w
+      cv.height = h
+      const ctx = cv.getContext('2d', { willReadFrequently: true })
+      if (!ctx) return
+      ctx.drawImage(img, 0, 0, w, h)
+      const px = ctx.getImageData(0, 0, w, h).data
+      let left = w, top = h, right = -1, bottom = -1
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4
+          const empty = px[i + 3] < 8 || (px[i] > 244 && px[i + 1] > 244 && px[i + 2] > 244)
+          if (empty) continue
+          if (x < left) left = x
+          if (x > right) right = x
+          if (y < top) top = y
+          if (y > bottom) bottom = y
+        }
+      }
+      if (right < 0) return
+      const box = { cl: left / w, ct: top / h, cw: (right - left + 1) / w, ch: (bottom - top + 1) / h }
+      // A photo that is already tight needs no crop; keep its own shape. Only a
+      // real margin is worth moving (and only ~3% or more of one).
+      if (box.cw > 0.97 && box.ch > 0.97) return
+      setCrop(box)
+      setArtRatio((nw / nh) * (box.cw / box.ch))
+    } catch {
+      // Cross-origin or an unreadable canvas: keep the photo's own shape.
+    }
+  }
   const tearRef = useRef(0)
   const autoRipRef = useRef<number | null>(null)
   const doneRef = useRef(false)
@@ -1250,7 +1298,7 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
     <div className="po-reveal" style={compact ? { transform: 'scale(.78)', margin: '-26px 0' } : undefined}>
       <div className={`po-pack-shell ${ripping || torn ? 'held' : ''}`}>
       <div
-        className={`po-pack ${imageUrl ? 'has-art' : ''} ${torn ? 'po-pack-torn' : ''} ${ripping && !torn ? 'ripping' : ''}`}
+        className={`po-pack ${imageUrl ? 'has-art' : ''} ${crop ? 'cropped' : ''} ${torn ? 'po-pack-torn' : ''} ${ripping && !torn ? 'ripping' : ''}`}
         style={{
           boxShadow: `0 18px 50px #00000080, 0 0 90px hsl(${hue} 80% 60% / 0.22)`,
           '--rx': `${tilt.x}deg`,
@@ -1258,6 +1306,7 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
           '--tn': (tear / 100).toFixed(3),
           '--pull': tear,
           '--bh': hue,
+          ...(crop ? { '--cl': String(crop.cl), '--ct': String(crop.ct), '--cw': String(crop.cw), '--ch': String(crop.ch) } : null),
           ...(imageUrl && artRatio ? { aspectRatio: String(artRatio), '--art-ar': String(artRatio) } : null),
         } as React.CSSProperties}
         tabIndex={0}
@@ -1280,15 +1329,17 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
             <div className="rip-body" aria-hidden>
               <img
                 className="rip-img"
-                src={imageUrl}
+                src={artSrc}
                 alt=""
                 draggable={false}
+                onError={() => { if (!directArt) setDirectArt(true) }}
                 onLoad={(e) => {
                   const img = e.currentTarget
                   const r = img.naturalWidth / img.naturalHeight
                   // A sane range only: a broken/placeholder image must not
                   // stretch the wrapper into a sliver or a letterbox.
                   if (r > 0.2 && r < 3) setArtRatio((prev) => (prev === r ? prev : r))
+                  measureArt(img)
                 }}
               />
             </div>
@@ -1296,7 +1347,7 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
                 opens from the left edge to the right along the swipe. */}
             <div className="rip-lift" aria-hidden>
               <div className="rip-tail" aria-hidden>
-                <img className="rip-img" src={imageUrl} alt="" draggable={false} />
+                <img className="rip-img" src={artSrc} alt="" draggable={false} />
                 <span className="rip-backing" />
               </div>
             </div>
