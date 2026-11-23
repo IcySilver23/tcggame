@@ -21,11 +21,18 @@ import type { AcademyState } from '../types'
  * all. Never add a title or a dollar figure to this file.
  *
  * THE CHECKLIST CHECKS ITSELF. Action steps are proved against the save on every
- * read, so this screen re-reads `/api/academy` while it is open (and the moment
- * the window regains focus) and ticks land on their own — a player who opens a
- * pack on another screen comes back to a ticked step, not to a button. Nothing
- * about that is client-side trust: the tick only appears because the server
- * found the work in the save.
+ * read, so this screen re-reads `/api/academy` and ticks land on their own — a
+ * player who opens a pack on another screen comes back to a ticked step, not to
+ * a button. Nothing about that is client-side trust: the tick only appears
+ * because the server found the work in the save.
+ *
+ * The re-read is deliberately NOT a constant pulse. Coming back from another
+ * screen is a mount, and the panel re-reads on mount and on window focus, which
+ * covers the normal case for free. The timer only exists for the odd cases — a
+ * second window, or a day boundary settling a step while the page sits open — so
+ * it runs only while the OPEN chapter has an action still waiting on the save,
+ * and on a slow beat. A chapter whose actions are all ticked, or one where only
+ * the question is left, costs nothing: there is nothing for a timer to find.
  */
 
 type Prose = {
@@ -239,25 +246,6 @@ export function AcademyView() {
     if (fresh.length > 0) toast(`${fresh.length === 1 ? 'Step ticked' : 'Steps ticked'} — ${fresh.join(', ')}`, 'good')
   }, [toast])
 
-  // Five seconds is the beat: fast enough to feel like the panel noticed you, slow
-  // enough that reading a chapter is not a request every frame. It pauses in a
-  // hidden tab and fires immediately when the window comes back, which is exactly
-  // when a returning player looks at the list.
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      if (document.visibilityState === 'visible') void autoCheck()
-    }, 5000)
-    const wake = () => {
-      if (document.visibilityState === 'visible') void autoCheck()
-    }
-    window.addEventListener('focus', wake)
-    document.addEventListener('visibilitychange', wake)
-    return () => {
-      window.clearInterval(id)
-      window.removeEventListener('focus', wake)
-      document.removeEventListener('visibilitychange', wake)
-    }
-  }, [autoCheck])
 
   useEffect(() => {
     if (open) localStorage.setItem(CHAPTER_KEY, open)
@@ -268,6 +256,33 @@ export function AcademyView() {
   const index = chapters.findIndex((c) => c.id === open)
   const chapter = chapters[index] ?? chapters[0]
   const prose = chapter ? PROSE[chapter.id] ?? FALLBACK : null
+
+  // Is there anything for a timer to actually find? Only an action step in the
+  // chapter being read can be proved by the save; a question is answered by the
+  // player, and a done chapter is done.
+  const watching = Boolean(chapter && chapter.steps.some((s) => s.kind === 'act' && !s.done))
+
+  // Fifteen seconds while watching, nothing at all otherwise. The gap the timer
+  // covers is narrow on purpose: leaving this screen unmounts it (the return
+  // re-reads), and coming back to the window fires `focus` (instant). What is
+  // left is a second window or a day boundary settling a step under a page that
+  // is already open, and fifteen seconds is quick enough to feel noticed there
+  // while costing four requests a minute at most — against twelve, on every
+  // chapter, at the old five-second beat.
+  useEffect(() => {
+    if (!watching) return
+    const beat = () => {
+      if (document.visibilityState === 'visible') void autoCheck()
+    }
+    const id = window.setInterval(beat, 15000)
+    window.addEventListener('focus', beat)
+    document.addEventListener('visibilitychange', beat)
+    return () => {
+      window.clearInterval(id)
+      window.removeEventListener('focus', beat)
+      document.removeEventListener('visibilitychange', beat)
+    }
+  }, [watching, autoCheck])
 
   const learn = async () => {
     if (!chapter) return
@@ -420,9 +435,14 @@ export function AcademyView() {
                 <b>Your work in this chapter</b>
                 <span className="faint small">
                   {chapter.stepsDone}/{chapter.steps.length} done{chapter.ready ? ' — the reward is unlocked' : ''}{' '}
-                  <span className="academy-live" title="The save is re-read while this page is open, so a step ticks on its own">
-                    live
-                  </span>
+                  {watching && (
+                    <span
+                      className="academy-live"
+                      title="This chapter is waiting on an action, so the save is re-read every fifteen seconds while the page is open — and the moment the window comes back."
+                    >
+                      live
+                    </span>
+                  )}
                 </span>
               </div>
               {chapter.steps.map((s, i) => (

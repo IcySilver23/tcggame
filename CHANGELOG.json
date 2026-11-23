@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.86.5",
+      "date": "2026-11-23",
+      "title": "Live, but only while it is watching",
+      "highlights": [
+        "The Academy only re-reads your save while the chapter you are reading has an action left to do — a finished chapter, or one waiting on its question, stops the timer completely.",
+        "When it does watch, the beat is fifteen seconds instead of five, and it still checks the instant the window regains focus or you come back to the page.",
+        "The green live dot now means the timer is actually running, so it is gone on any chapter that has nothing left for the save to prove."
+      ],
+      "features": [
+        "The live checklist was polling every five seconds on every chapter, including chapters that were finished, questions that were waiting on the player, and someone simply reading. It now runs only while the OPEN chapter still has an action waiting on the save. A chapter whose actions are ticked — or one where only the question is left — has nothing for a timer to find, so there is no timer at all, and the green live dot beside the step count disappears with it rather than claiming a check that is not happening.",
+        "When a chapter is waiting, the beat is fifteen seconds rather than five: at most four requests a minute instead of twelve, and only under a page that is genuinely expecting something. The narrow gap that a timer still covers is a second window open on the same save, or a day boundary settling a step under a page that is already open — both tolerate fifteen seconds, and neither is the normal case.",
+        "Nothing is lost for coming and going. Leaving the screen unmounts it and returning re-reads the save straight away, and the panel still checks the moment the window regains focus or the tab becomes visible again. The timer pauses in a hidden tab. What changed is that a player who is simply reading is no longer paying for a request every five seconds."
+      ]
+    },
+    {
       "version": "0.86.4",
       "date": "2026-11-23",
       "title": "The checklist checks itself",
       "highlights": [
-        "Academy steps tick on their own: the page re-reads your save while it is open, so the thing you just did in the game is already marked when you come back.",
-        "A tick that lands while you are reading is announced by name at the top of the screen, so you know which action counted.",
-        "The Check the save again button is gone — a live dot sits beside the count, and the panel looks the moment the window regains focus."
+        "Academy steps tick on their own: the page re-reads your save while it is open, so the thing you just did in the game is already marked when you come back."
       ],
       "features": [
         "The Academy checklist now watches the save instead of waiting to be asked. While the page is open it re-reads /api/academy every five seconds, so a step proved by the game — a wrapper in Pull History, a sale, a protected copy, a wishlist target — ticks by itself and the chapter’s Claim button unlocks without a click in between. The manual Check the save again button is gone; a small green live dot beside the step count is the only sign it is happening.",
