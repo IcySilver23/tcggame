@@ -1,16 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.93.5",
+      "date": "2026-11-23",
+      "title": "The number you clicked is the number you pay",
+      "highlights": [
+        "The confirm bar stops freezing its total: what it shows is always what the click would charge, never the number it was opened with.",
+        "Change the packs, the product or the stream size and the question is dismissed, so no charge goes through without a fresh click.",
+        "A live break now says how many packs are left in its header, beside the spots sold and the gross."
+      ],
+      "features": [
+        "The first version of the confirm bar remembered the amount it was opened with, so picking ten packs, then changing to six, then pressing yes charged the six — a total the bar never showed. It now stores only which action it is asking about and reads the amount from your current packs and product every time it draws, and changing the packs, the product or the stream size dismisses the question entirely so it has to be asked again. The same applies to a normal stream’s go-live confirm.",
+        "The break header on a live stream also carries the pack count now — \"1/8 spots sold · 4 of 5 packs left · $2.50 each · gross $2.50\" — which is the number that decides when the break can be wrapped: a break with sold spots will not close until the remaining packs are ripped. Nothing else about the break flow changed."
+      ]
+    },
+    {
       "version": "0.93.4",
       "date": "2026-11-23",
       "title": "Buy the packs, then price the spots",
       "highlights": [
-        "The pack count is part of opening the break now, so a ten-pack break shows an even split and a suggested ask measured on the whole product instead of one pack.",
-        "You pay for those packs when you open the break and going live is free for a break, so the spots are priced against what you actually spent.",
-        "Any charge of $20 or 10% of your cash now asks first, naming the amount and the share of your wallet it takes."
+        "The pack count is part of opening the break now, so a ten-pack break shows an even split and a suggested ask measured on the whole product instead of one pack."
       ],
       "features": [
-        "Picking packs at go-live made the break lie to itself: the suggested ask and the even split were worked out on one pack, then six packs went out at that price, and a live ask cannot be raised. Packs now live in the Open a case break panel next to spots and price. Everything is measured on that real total — a ten-pack break on a $3.06 pack is $30.60 out of pocket, an even split of $3.83 across eight spots, and a suggested ask of $4.50 — and the go-live panel shows the pack count as bought, with a cost of $0.00.",
+        "Picking packs at go-live made the break lie to itself: the suggested ask and the even split were worked out on one pack, then six packs went out at that price, and a live ask cannot be raised. Packs now live in the Open a case break panel next to spots and price. Everything is measured on that real total — a ten-pack break on a $3.06 pack is $30.60 out of pocket, an even split of $3.83 across eight spots, and a suggested ask of $4.50 — and the go-live panel shows the pack count as bought, with a cost of $0.00. You pay for those packs when you open the break and going live is free for a break, so the spots are priced against what you actually spent. Any charge of $20 or 10% of your cash now asks first, naming the amount and the share of your wallet it takes.",
         "Charges that eat a big slice of the wallet now ask before they take it. Opening a break or going live with a stream that costs $20 or more, or 10% of your cash, shows the amount and the percentage and waits for a second click; smaller charges go through as before. The confirm appears at whichever action spends the money, since a break now pays at opening time rather than at go-live. Cancelling a pending break still refunds the whole product including its packs."
       ]
     },

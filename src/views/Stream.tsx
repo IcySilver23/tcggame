@@ -41,8 +41,10 @@ export function StreamView() {
   // measured on the whole product, not one pack.
   const [breakPacks, setBreakPacks] = useState(1)
   const [priceInput, setPriceInput] = useState('')
-  // A charge that eats a big slice of the wallet asks first.
-  const [confirm, setConfirm] = useState<{ kind: 'live' | 'break'; amount: number } | null>(null)
+  // A charge that eats a big slice of the wallet asks first. Only the KIND is
+  // stored: the amount is read from the current packs and product, so the bar
+  // can never show a total the click would not charge.
+  const [confirm, setConfirm] = useState<'live' | 'break' | null>(null)
   // A live break priced past the room used to be dead for the rest of the
   // stream. Cutting the ask is the move a real host makes.
   const [cutInput, setCutInput] = useState('')
@@ -97,6 +99,12 @@ export function StreamView() {
   const bigCharge = (amount: number) => amount > 0 && (amount >= 20 || amount >= cashOnHand * 0.1)
   const pctOfCash = (amount: number) => Math.round((amount / Math.max(1, cashOnHand)) * 100)
 
+  // Changing the thing being bought throws the question away — the amount on the
+  // bar is re-read every render anyway, but the click has to be asked afresh.
+  useEffect(() => {
+    setConfirm(null)
+  }, [selProduct, breakPacks, packs])
+
   const goLive = async (force = false) => {
     if (!selProduct) return
     const prod = products.find((p) => p.id === selProduct)
@@ -104,7 +112,7 @@ export function StreamView() {
     const breakWaiting = breakState && breakState.status === 'selling' && !breakState.live
     const liveCost = breakWaiting ? 0 : Math.round(unit * packs * 100) / 100
     if (!force && bigCharge(liveCost)) {
-      setConfirm({ kind: 'live', amount: liveCost })
+      setConfirm('live')
       return
     }
     setConfirm(null)
@@ -132,7 +140,7 @@ export function StreamView() {
     const unit = prod ? prod.market_price ?? prod.msrp : 0
     const breakCost = Math.round(unit * breakPacks * 100) / 100
     if (!force && bigCharge(breakCost)) {
-      setConfirm({ kind: 'break', amount: breakCost })
+      setConfirm('break')
       return
     }
     setConfirm(null)
@@ -375,7 +383,9 @@ export function StreamView() {
               <div>
                 <b>📦 BREAK · {liveBreak.productName}</b>
                 <div className="faint small">
-                  {liveBreak.spotsSold}/{liveBreak.spotsTotal} spots sold · {fmtUsd(liveBreak.spotPrice)} each · gross {fmtUsd(liveBreak.gross)}
+                  {liveBreak.spotsSold}/{liveBreak.spotsTotal} spots sold · {Math.max(0, live.packsPlanned - live.packsOpened)} of{' '}
+                  {live.packsPlanned} pack{live.packsPlanned === 1 ? '' : 's'} left · {fmtUsd(liveBreak.spotPrice)} each · gross{' '}
+                  {fmtUsd(liveBreak.gross)}
                 </div>
               </div>
             </div>
@@ -580,6 +590,7 @@ export function StreamView() {
   // it; a normal stream buys its packs here.
   const breakWaiting = breakState && breakState.status === 'selling' && !breakState.live
   const cost = breakWaiting ? 0 : Math.round(price * packs * 100) / 100
+  const breakCost = Math.round(price * breakPacks * 100) / 100
 
   return (
     <div>
@@ -719,11 +730,10 @@ export function StreamView() {
             </span>
           </div>
         )}
-        {confirm?.kind === 'break' && (
+        {confirm === 'break' && (
           <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span className="small">
-              This spends <b>{fmtUsd(confirm.amount)}</b> on {breakPacks} pack{breakPacks === 1 ? '' : 's'} — {pctOfCash(confirm.amount)}% of your
-              cash.
+              This spends <b>{fmtUsd(breakCost)}</b> on {breakPacks} pack{breakPacks === 1 ? '' : 's'} — {pctOfCash(breakCost)}% of your cash.
             </span>
             <button className="primary small" disabled={busy} onClick={() => { void createBreak(true) }}>Yes, buy the packs</button>
             <button className="small" onClick={() => setConfirm(null)}>Not now</button>
@@ -771,10 +781,10 @@ export function StreamView() {
             )}
           </div>
         )}
-        {confirm?.kind === 'live' && (
+        {confirm === 'live' && (
           <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span className="small">
-              Going live spends <b>{fmtUsd(confirm.amount)}</b> on {packs} packs — {pctOfCash(confirm.amount)}% of your cash.
+              Going live spends <b>{fmtUsd(cost)}</b> on {packs} packs — {pctOfCash(cost)}% of your cash.
             </span>
             <button className="primary small" disabled={busy} onClick={() => { void goLive(true) }}>Yes, go live</button>
             <button className="small" onClick={() => setConfirm(null)}>Not now</button>
