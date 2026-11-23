@@ -649,6 +649,9 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   // a thin one stalls well under it, which is exactly how a real lot passes.
   const heat = 0.35 + Math.random() * 0.6 + Math.min(0.35, st.peak_viewers / 900)
   const ceiling = round2(market * heat)
+  // Say it up front when the ask is already past the room: the card will sit
+  // for its whole clock and nobody will touch it.
+  const overAsk = start > ceiling
   const info = db
     .prepare(
       `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, created_at, ends_at)
@@ -658,10 +661,13 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   const lotId = Number(info.lastInsertRowid)
   pushLotChat(lotId, [
     { who: 'STREAM', avatar: '📣', text: `${cardName(inv.card_id)} is ON CAMERA — opens at $${start.toFixed(2)}, reserve $${floor.toFixed(2)}` },
+    ...(overAsk
+      ? [{ who: 'STREAM', avatar: '🤔', text: `Opening at $${start.toFixed(2)}? This room was only ever going to go to about $${ceiling.toFixed(2)} — it may just sit.` }]
+      : []),
   ])
   forgetSellable()
   logActivity('stream', `Went on the block: ${cardName(inv.card_id)} — opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`)
-  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceiling }
+  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceiling, overAsk }
 }
 
 /** Hammer one lot: sold if the room reached the reserve, otherwise it goes home. */
@@ -707,14 +713,17 @@ export function streamLotTick(): void {
     // The room needs a beat to see the card before anyone opens it.
     if (now - new Date(l.created_at).getTime() < LOT_BID_EVERY_MS) continue
     if (Math.random() > 0.55) continue
-    const target = l.ceiling ?? l.start_price
+    const target = round2(l.ceiling ?? l.start_price)
     const bid = l.current_bid ?? 0
     if (bid >= target) continue // the room is at its ceiling; it just watches now
+    // Nobody opens a lot above what the room will pay for it. Without this the
+    // opening bid walked straight past the ceiling and every over-ask sold.
+    if (bid === 0 && l.start_price > target) continue
     // Bidding is not linear: a cold lot sits on one low bid, a contested one
     // climbs fast toward whatever the room is actually willing to pay.
     const next =
       bid === 0
-        ? round2(l.start_price)
+        ? round2(Math.min(l.start_price, target))
         : round2(Math.min(target, bid + Math.max(1, (target - bid) * (0.25 + Math.random() * 0.4))))
     db.prepare('UPDATE stream_lots SET current_bid = ?, bids = bids + 1 WHERE id = ?').run(next, l.id)
     if (Math.random() < 0.45) pushLotChat(l.id, [{ who: pick(BIDDER_HANDLES), avatar: pick(VIEWER_AVATARS), text: pick([`$${next.toFixed(2)}`, `I'm in at $${next.toFixed(2)}`, `$${next.toFixed(2)} — that's my ceiling`, `let me have it at $${next.toFixed(2)}`]) }])
@@ -853,6 +862,9 @@ export function listStreamProducts() {
 export function recoverOrphanStreams() {
   const st = liveStream()
   if (st) {
+    // A break attached to the dead stream would otherwise never settle: the
+    // product is paid for and the pulls never land anywhere.
+    settleBreakFor(st.id)
     returnOpenLots(st.id)
     if (st.donations_total > 0) {
       db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(round2(st.donations_total))

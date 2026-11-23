@@ -105,6 +105,9 @@ try { db.exec("ALTER TABLE franchise ADD COLUMN wage_start REAL") } catch { /* e
 try { db.exec("ALTER TABLE franchise ADD COLUMN manager_since TEXT") } catch { /* exists */ }
 try { db.exec("ALTER TABLE franchise ADD COLUMN raise_demand TEXT") } catch { /* exists */ }
 try { db.exec('ALTER TABLE stream_breaks ADD COLUMN teams_json TEXT') } catch { /* exists */ }
+// What the room will pay for a spot, drawn when the break opens (old rows fall
+// back to a neutral appetite).
+try { db.exec('ALTER TABLE stream_breaks ADD COLUMN heat REAL') } catch { /* exists */ }
 try { db.exec('ALTER TABLE stream_break_spots ADD COLUMN team_dex INTEGER') } catch { /* exists */ }
 try { db.exec('ALTER TABLE shop_sales ADD COLUMN roundup REAL NOT NULL DEFAULT 0') } catch { /* exists */ }
 // Employees with lives: mood drifts with fair pay, xp trains quality stars up,

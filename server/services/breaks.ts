@@ -30,6 +30,7 @@ type BreakRow = {
   spots_total: number
   spots_sold: number
   teams_json: string | null
+  heat: number | null
   gross: number
   status: string
   created_at: string
@@ -44,6 +45,27 @@ const SPOT_MIN = 4
 const SPOT_MAX = 16
 
 const r2 = (n: number) => Math.round(n * 100) / 100
+
+/**
+ * What the room will pay for one spot. A spot is worth the product split across
+ * the board; appetite is drawn once per break and stored, so every team is
+ * judged against the same room. Teams also carry their own following — the
+ * marquee species sell above a filler team on the same board. Above this, the
+ * chat simply doesn't buy: a host who asks $500 for a $20 case sells nothing.
+ */
+function spotCeiling(b: BreakRow, team: string, viewers: number): number {
+  const evenSplit = b.product_cost / Math.max(1, b.spots_total)
+  const appetite = (b.heat ?? 1) + Math.min(0.2, viewers / 1000)
+  let h = 0
+  for (let i = 0; i < team.length; i++) h = (h * 31 + team.charCodeAt(i)) % 997
+  const appeal = 0.85 + (h % 36) / 100
+  return r2(evenSplit * appetite * appeal)
+}
+
+/** The best offer the room will make across a set of teams. */
+function bestCeiling(b: BreakRow, teams: string[], viewers: number): number {
+  return r2(Math.max(0, ...teams.map((t) => spotCeiling(b, t, viewers))))
+}
 
 /** "Mega Darkrai ex" → "Darkrai" — spots are named for the species, not the printing. */
 function baseSpecies(name: string): string {
@@ -109,8 +131,13 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
   if (roster.length < SPOT_MIN) return { ok: false as const, error: 'Not enough different Pokémon in this set to run a break' }
   const spotsTotal = Math.min(total, roster.length)
 
-  // Suggested ask: even split + 25% house margin, rounded to a clean .50.
-  const suggested = Math.max(0.5, Math.ceil((cost * 1.25) / spotsTotal * 2) / 2)
+  // A spot's worth is the product split across the board. Suggested ask is that
+  // split +10%, rounded to a clean .50 — the margin you're actually playing for.
+  const evenSplit = cost / spotsTotal
+  // Buyers pay over the even split — that overpay is the host's margin. 1.05–1.6
+  // means the suggested ask clears most boards and eats the cost on a cold one.
+  const heat = 1.05 + Math.random() * 0.55
+  const suggested = Math.max(0.5, Math.ceil(evenSplit * 1.1 * 2) / 2)
   const spotPrice = spotPriceInput != null ? round2(Math.max(0.25, spotPriceInput)) : suggested
 
   // Money and break row move together — a failed insert must not eat the cash.
@@ -118,10 +145,10 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
     db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
     const info = db
       .prepare(
-        `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'selling', ?)`,
+        `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, heat, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'selling', ?)`,
       )
-      .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), nowIso())
+      .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), heat, nowIso())
     return Number(info.lastInsertRowid)
   })()
 
@@ -131,7 +158,7 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
     -cost,
   )
 
-  return { ok: true as const, breakId, suggested, spotPrice, spotsTotal, productCost: cost }
+  return { ok: true as const, breakId, suggested, spotPrice, spotsTotal, productCost: cost, evenSplit: r2(evenSplit) }
 }
 
 /** The pending break (created, stream not started yet). */
@@ -171,6 +198,16 @@ export function buySpot(breakId: number, team: string) {
   const roster = JSON.parse(b.teams_json ?? '[]') as TeamEntry[]
   const entry = roster.find((r) => r.team === team)
   if (!entry) return { ok: false as const, error: 'That team is not on the board for this break' }
+
+  // The room decides, not the host. A spot priced past what these viewers will
+  // pay goes unsold — that is the whole risk of running a break.
+  const ceiling = spotCeiling(b, team, st.peak_viewers ?? 0)
+  if (b.spot_price > ceiling) {
+    return {
+      ok: false as const,
+      error: `${team} is a pass at $${b.spot_price.toFixed(2)} — the ${st.peak_viewers ?? 0} in the room will pay about $${ceiling.toFixed(2)} for that spot.`,
+    }
+  }
 
   const who = pick(handlesFor(st.id))
   db.prepare(
@@ -393,6 +430,22 @@ export function settleBreak(streamId: number) {
   }
 }
 
+/**
+ * Any break still 'selling' on a stream that is no longer live never got its
+ * settlement — a crash or a closed tab can leave one behind. Settle it so the
+ * host gets the house pulls and the ledger shows the result.
+ */
+export function settleOrphanBreaks(): number {
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT b.stream_id AS id FROM stream_breaks b JOIN streams s ON s.id = b.stream_id
+       WHERE b.status = 'selling' AND s.status != 'live'`,
+    )
+    .all() as { id: number }[]
+  for (const r of rows) settleBreak(r.id)
+  return rows.length
+}
+
 /** Read model for the Stream view's break panel. */
 export function breakForStream(streamId: number) {
   const b = db
@@ -400,7 +453,9 @@ export function breakForStream(streamId: number) {
     .get(streamId) as BreakRow | undefined
   const row = b ?? pendingBreak()
   if (!row) return null
-  const spots = db.prepare(`SELECT * FROM stream_break_spots WHERE break_id = ? ORDER BY spot_no`).all(row.id) as SpotRow[]
+  const raw = db.prepare(`SELECT * FROM stream_break_spots WHERE break_id = ? ORDER BY spot_no`).all(row.id) as SpotRow[]
+  const viewers = liveStream()?.peak_viewers ?? 0
+  const open = (JSON.parse(row.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team).filter((t) => !raw.some((s) => s.team === t))
   return {
     id: row.id,
     productId: row.product_id,
@@ -410,10 +465,12 @@ export function breakForStream(streamId: number) {
     spotsSold: row.spots_sold,
     gross: round2(row.gross),
     productCost: row.product_cost,
+    evenSplit: r2(row.product_cost / Math.max(1, row.spots_total)),
+    roomMax: bestCeiling(row, open.length > 0 ? open : (JSON.parse(row.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team), viewers),
     housePot: round2(row.spot_price * (row.spots_total - row.spots_sold)),
     status: row.status,
     live: row.stream_id != null,
-    spots: spots.map((s) => ({ id: s.id, spotNo: s.spot_no, team: s.team, holder: s.holder, payout: round2(s.payout), pulls: s.pulls })),
-    openTeams: (JSON.parse(row.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team).filter((t) => !spots.some((s) => s.team === t)),
+    spots: raw.map((s) => ({ id: s.id, spotNo: s.spot_no, team: s.team, holder: s.holder, payout: round2(s.payout), pulls: s.pulls })),
+    openTeams: open,
   }
 }

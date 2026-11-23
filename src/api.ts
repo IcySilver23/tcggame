@@ -329,7 +329,7 @@ export const api = {
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
   breakStatus: () => req<BreakStatus>('/api/stream/break'),
   breakCreate: (productId: string, spots: number, spotPrice: number | null) =>
-    post<{ ok: boolean; error?: string; breakId?: number; suggested?: number; spotPrice?: number; spotsTotal?: number; productCost?: number }>('/api/stream/breaks', { productId, spots, spotPrice }),
+    post<{ ok: boolean; error?: string; breakId?: number; suggested?: number; spotPrice?: number; spotsTotal?: number; productCost?: number; evenSplit?: number }>('/api/stream/breaks', { productId, spots, spotPrice }),
   breakCancel: (id: number) => post<{ ok: boolean; error?: string }>(`/api/stream/breaks/${id}/cancel`, {}),
   breakBuy: (id: number, team: string) =>
     post<{ ok: boolean; error?: string; holder?: string; spotsSold?: number; spotsTotal?: number; chat?: { who: string; avatar: string; text: string } }>(`/api/stream/breaks/${id}/buy`, { team }),
@@ -2762,6 +2762,8 @@ export type BreakStatus = {
   spotsSold: number
   gross: number
   productCost: number
+  evenSplit: number
+  roomMax: number
   housePot: number
   status: string
   live: boolean

@@ -1,17 +1,29 @@
 {
   "entries": [
     {
+      "version": "0.93.0",
+      "date": "2026-11-23",
+      "title": "The room decides",
+      "highlights": [
+        "A lot no longer sells at whatever you type — open a card above what your room will pay and it sits for the whole clock with zero bids.",
+        "Break spots are bought by the room, not by your price tag: ask $500 a spot for a $20 case and every buyer passes.",
+        "Each break draws its own appetite when you open it, and the spot panel says what this room will pay before you push teams.",
+        "Bad pricing costs you: unsold spots mean you ate the product, and a cold board leaves you only the house pulls."
+      ],
+      "features": [
+        "Two numbers were being treated as if the host wrote them. A lot got bid to its own opening price whatever the card was worth, so you could open a 9¢ common at $500 and the chat bought it at $500. Break spots were sold to whoever you clicked, for exactly the price written on the break, so a $20 case with $500 spots paid $4,000. Neither works any more: the room prices the room.",
+        "On the block, the ceiling is the card's market value times the room's heat — 35–95% of market, plus up to another 35% for a big crowd. Open above that ceiling and nobody bids: the card passes, goes back to the binder, and the listing chat tells you the room was never going there. For breaks, a spot is worth the product split across the board, and each break draws an appetite of 1.05–1.6× that split the moment you open it. That appetite is stored with the break, so every team is judged by the same room, with a small lift for a big audience and 0.85–1.2× per team depending on who is on the board. The suggested ask is split +10%, so most boards clear and a cold one does not; ask past the ceiling and the buyer tells you the number it would have paid. Three test breaks at the suggested price sold out, sold out, and half sold — thin margin when you price well, a loss when you do not. This is a model of a room, not a simulation of individual buyers: viewers share a ceiling rather than carrying their own budgets. A break whose stream dies mid-flight — a crash, a closed tab, a stuck server — now settles on the next boot, so the house still gets its pulls instead of the product vanishing."
+      ]
+    },
+    {
       "version": "0.92.3",
       "date": "2026-11-23",
       "title": "Every card in the binder",
       "highlights": [
-        "The Sell live picker now searches your whole binder instead of the newest few hundred rows, so the oldest and cheapest card you own can go on the block.",
-        "Type a card name, a set or a card id and the list narrows as you type — every result shows its art, set and number, and how many copies you hold.",
-        "The list reports how many ungraded copies you have, and says so plainly when it is showing only the most valuable page — no silent cutoff.",
-        "Graded slabs still cannot be listed, and a daily deal is still one unit per game day."
+        "The Sell live picker now searches your whole binder instead of the newest few hundred rows, so the oldest and cheapest card you own can go on the block."
       ],
       "features": [
-        "Selling on stream used to offer the most valuable sixty cards out of the newest three hundred binder rows. In a big collection that quietly excluded most of the binder: a card pulled in an early session never appeared in the picker, and there was nothing to type into, so there was no way to reach it. The picker is a search box over every ungraded copy now. It reads the whole binder, ranks matches by market value, and shows a hundred at a time with the art, the set, the collector number and the copy count. Text matches card names, set names and card ids, so \"grookey\", \"mcd21\" and \"mcd21-8\" all find the same card.",
+        "Selling on stream used to offer the most valuable sixty cards out of the newest three hundred binder rows. In a big collection that quietly excluded most of the binder: a card pulled in an early session never appeared in the picker, and there was nothing to type into, so there was no way to reach it. The picker is a search box over every ungraded copy now. It reads the whole binder, ranks matches by market value, and shows a hundred at a time with the art, the set, the collector number and the copy count. Text matches card names, set names and card ids, so \"grookey\", \"mcd21\" and \"mcd21-8\" all find the same card. Type a card name, a set or a card id and the list narrows as you type — every result shows its art, set and number, and how many copies you hold. The list reports how many ungraded copies you have, and says so plainly when it is showing only the most valuable page — no silent cutoff. Graded slabs still cannot be listed, and a daily deal is still one unit per game day.",
         "The pages are capped, not the population, and the panel says which: \"6,196 ungraded copies in the binder · showing the 100 most valuable — search to narrow it\". A binder of six thousand is priced as one snapshot and reused for ten seconds, so typing stays instant; listing, selling or returning a copy drops the snapshot, and the server re-checks that the copy is still free before it goes on the block. Graded slabs are excluded by the query, because a streamed lot is a raw card."
       ]
     },

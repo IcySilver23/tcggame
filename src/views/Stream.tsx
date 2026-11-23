@@ -358,6 +358,7 @@ export function StreamView() {
             {liveBreak.openTeams.length > 0 && (
               <div className="panel mt8" style={{ padding: 10 }}>
                 <b className="small">Sell a spot</b>
+                <div className="faint small">{fmtUsd(liveBreak.spotPrice)} a spot · this room will pay up to about {fmtUsd(liveBreak.roomMax)}</div>
                 <div className="row mt8" style={{ gap: 6, flexWrap: 'wrap' }}>
                   {liveBreak.openTeams.map((t) => (
                     <button key={t} className="small" disabled={busy} onClick={() => sellSpot(t)}>+ {t}</button>
