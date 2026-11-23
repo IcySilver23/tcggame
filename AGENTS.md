@@ -33,6 +33,12 @@ For each update:
    move the detail down into `features` — it is the panel, not the release, that
    has to stay short.
 
+   **Only the newest entry's highlights are all visible.** The panel prints every
+   highlight of the current release, but an earlier version is a single dated row
+   that shows `highlights[0]` and no more, so give it exactly one line and let the
+   rest of the story live in `features`. Three to five highlights are for the release
+   you are shipping, not for history.
+
    **Never bake a count into an entry.** "All 288 updates" is wrong the moment
    the next release lands, and the changelog is shipped inside the build, so the
    number has to be rebuilt to be corrected. Say "every update ever shipped" and
