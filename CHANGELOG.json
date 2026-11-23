@@ -1,17 +1,29 @@
 {
   "entries": [
     {
+      "version": "0.92.3",
+      "date": "2026-11-23",
+      "title": "Every card in the binder",
+      "highlights": [
+        "The Sell live picker now searches your whole binder instead of the newest few hundred rows, so the oldest and cheapest card you own can go on the block.",
+        "Type a card name, a set or a card id and the list narrows as you type — every result shows its art, set and number, and how many copies you hold.",
+        "The list reports how many ungraded copies you have, and says so plainly when it is showing only the most valuable page — no silent cutoff.",
+        "Graded slabs still cannot be listed, and a daily deal is still one unit per game day."
+      ],
+      "features": [
+        "Selling on stream used to offer the most valuable sixty cards out of the newest three hundred binder rows. In a big collection that quietly excluded most of the binder: a card pulled in an early session never appeared in the picker, and there was nothing to type into, so there was no way to reach it. The picker is a search box over every ungraded copy now. It reads the whole binder, ranks matches by market value, and shows a hundred at a time with the art, the set, the collector number and the copy count. Text matches card names, set names and card ids, so \"grookey\", \"mcd21\" and \"mcd21-8\" all find the same card.",
+        "The pages are capped, not the population, and the panel says which: \"6,196 ungraded copies in the binder · showing the 100 most valuable — search to narrow it\". A binder of six thousand is priced as one snapshot and reused for ten seconds, so typing stays instant; listing, selling or returning a copy drops the snapshot, and the server re-checks that the copy is still free before it goes on the block. Graded slabs are excluded by the query, because a streamed lot is a raw card."
+      ]
+    },
+    {
       "version": "0.92.2",
       "date": "2026-11-23",
       "title": "The lot in the frame",
       "highlights": [
-        "A live room now gives the lot the whole frame: the card or sealed pack sits in the middle with its label above it, clear of the chat, the pinned bar and the host overlay.",
-        "The chat ticker shows two readable lines instead of cutting every message off after a few words, and it no longer runs into the item being sold.",
-        "Just sold names what sold — a sealed pack used to read \"null\" — and Up next counts the lots the rail is actually holding.",
-        "The Sell live picker stacks its card choice, opening bid and reserve on their own lines, and a button you cannot press no longer looks like one you can."
+        "A live room now gives the lot the whole frame: the card or sealed pack sits in the middle with its label above it, clear of the chat, the pinned bar and the host overlay."
       ],
       "features": [
-        "Both new screens were laid out against a stage that had less room than the content wanted. In a live room the item's label sat under the card and landed on top of the chat, the pinned bar's ninety-odd pixels were not accounted for, and the host's LIVE badge was drawn over their avatar and the first letters of their name. The stage is a little taller now (16:11 instead of 16:9), the label is pinned above the item instead of under it, the chat is two clamped lines at the bottom left, and each band has its own space. A room between lots no longer floats a wrapper in the dark with no label: it says BETWEEN LOTS and names the product it is working through.",
+        "Both new screens were laid out against a stage that had less room than the content wanted. In a live room the item's label sat under the card and landed on top of the chat, the pinned bar's ninety-odd pixels were not accounted for, and the host's LIVE badge was drawn over their avatar and the first letters of their name. The stage is a little taller now (16:11 instead of 16:9), the label is pinned above the item instead of under it, the chat is two clamped lines at the bottom left, and each band has its own space. A room between lots no longer floats a wrapper in the dark with no label: it says BETWEEN LOTS and names the product it is working through. The chat ticker shows two readable lines instead of cutting every message off after a few words, and it no longer runs into the item being sold. Just sold names what sold — a sealed pack used to read \"null\" — and Up next counts the lots the rail is actually holding. The Sell live picker stacks its card choice, opening bid and reserve on their own lines, and a button you cannot press no longer looks like one you can.",
         "The data behind the room had two small lies. Just sold built its label from a helper that only knew card lots, so a sealed pick or a bundle printed as \"null\"; it now uses the same naming the stage uses. Up next printed the server's six-item preview as the room's total while the rail listed everything it held, so the count and the list disagreed. Both now count the same way, and the lot on camera is no longer repeated at the top of the rail.",
         "On the stream, the Sell live picker put its label, the card dropdown, both number inputs and the button on one line, which read as a row of empty boxes at narrow widths, and a disabled \"hammer the lot first\" button wore the same gold as an active one. The picker is a stack now and the disabled button is quiet. Separately, at a narrow window the place name in the top bar was being cut off under the day counter — the money keeps its width and the crumb steps aside instead."
       ]

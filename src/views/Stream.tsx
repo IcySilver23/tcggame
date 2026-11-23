@@ -442,7 +442,6 @@ export function StreamView() {
 
         <LotBoard
           lots={channel.lots}
-          sellable={channel.sellable ?? []}
           busy={busy}
           pick={pickInv}
           setPick={setPickInv}
@@ -650,9 +649,8 @@ export function StreamView() {
 // receipts underneath. This is the half of a real channel that ripping never
 // covered: a sale has to be earned, and an unsold lot is a normal night.
 // ---------------------------------------------------------------------------
-function LotBoard({ lots, sellable, busy, pick, setPick, start, setStart, reserve, setReserve, onList, onOpen, now }: {
+function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setReserve, onList, onOpen, now }: {
   lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals } | null
-  sellable: StreamSellable[]
   busy: boolean
   pick: number | null
   setPick: (id: number | null) => void
@@ -667,9 +665,35 @@ function LotBoard({ lots, sellable, busy, pick, setPick, start, setStart, reserv
   const lot = lots?.live ?? null
   const totals = lots?.totals
   const secs = lot ? Math.max(0, Math.ceil((new Date(lot.endsAt).getTime() - now) / 1000)) : 0
-  const picked = sellable.find((s) => s.id === pick) ?? null
   const bid = lot?.currentBid ?? 0
   const met = lot ? bid >= lot.reserve : false
+  // THE WHOLE BINDER IS SELLABLE. The picker used to be handed the most valuable
+  // cards among the newest few hundred rows, so a card that had been in the
+  // collection for months simply could not be listed. It now asks the server for
+  // a page, which reads every ungraded copy and ranks the matches by value; text
+  // is what narrows the list.
+  const [q, setQ] = useState('')
+  const [rows, setRows] = useState<StreamSellable[]>([])
+  const [total, setTotal] = useState(0)
+  const [truncated, setTruncated] = useState(false)
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    let alive = true
+    const t = setTimeout(() => {
+      setLoading(true)
+      api.streamSellable(q, 100)
+        .then((r) => {
+          if (!alive) return
+          setRows(r.items)
+          setTotal(r.total)
+          setTruncated(r.truncated)
+        })
+        .catch(() => { if (alive) { setRows([]); setTotal(0); setTruncated(false) } })
+        .finally(() => { if (alive) setLoading(false) })
+    }, q ? 250 : 0)
+    return () => { alive = false; clearTimeout(t) }
+  }, [q])
+  const picked = rows.find((s) => s.id === pick) ?? null
 
   return (
     <div className="panel mt14">
@@ -720,31 +744,53 @@ function LotBoard({ lots, sellable, busy, pick, setPick, start, setStart, reserv
 
         <div className="grow" style={{ minWidth: 260 }}>
           <b className="small">Put a card up</b>
-          {sellable.length === 0 ? (
-            <div className="faint small mt8">No free cards in the binder — everything is listed, graded or already escrowed.</div>
-          ) : (
-            <select
-              className="lot-select"
-              value={pick ?? ''}
+          <div className="lot-pick">
+            <input
+              className="lot-search"
+              type="search"
+              value={q}
+              placeholder="Search the binder — name, set or card id"
+              aria-label="Search your binder"
               disabled={busy || !!lot}
-              onChange={(e) => {
-                const id = Number(e.target.value) || null
-                setPick(id)
-                const s = sellable.find((x) => x.id === id)
-                if (s) {
-                  setStart(String(Math.round(s.market * 0.25 * 100) / 100))
-                  setReserve(String(Math.round(s.market * 0.65 * 100) / 100))
-                }
-              }}
-            >
-              <option value="">Pick a card from the binder…</option>
-              {sellable.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — {fmtUsd(s.market)}{s.quantity > 1 ? ` ×${s.quantity}` : ''}
-                </option>
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <div className="lot-results" role="listbox" aria-label="Cards you can sell">
+              {loading && rows.length === 0 && <div className="lot-empty faint small">Reading the binder…</div>}
+              {!loading && rows.length === 0 && (
+                <div className="lot-empty faint small">
+                  {q ? `No ungraded card matches “${q}”.` : 'No free cards in the binder — everything is listed, graded or already escrowed.'}
+                </div>
+              )}
+              {rows.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="option"
+                  aria-selected={pick === s.id}
+                  className={`lot-row ${pick === s.id ? 'on' : ''}`}
+                  disabled={busy || !!lot}
+                  onClick={() => {
+                    setPick(s.id)
+                    setStart(String(Math.round(s.market * 0.25 * 100) / 100))
+                    setReserve(String(Math.round(s.market * 0.65 * 100) / 100))
+                  }}
+                >
+                  {s.image ? <img src={s.image} alt="" /> : <span className="lot-row-ph" />}
+                  <span className="lot-row-n">
+                    <b>{s.name}</b>
+                    <em>
+                      {s.set}{s.number ? ` · ${s.number}` : ''}{s.quantity > 1 ? ` · ×${s.quantity}` : ''}
+                    </em>
+                  </span>
+                  <span className="lot-row-p">{fmtUsd(s.market)}</span>
+                </button>
               ))}
-            </select>
-          )}
+            </div>
+            <div className="faint small lot-count">
+              {total} ungraded {total === 1 ? 'copy' : 'copies'} in the binder
+              {truncated ? ` · showing the ${rows.length} most valuable — search to narrow it` : ''}
+            </div>
+          </div>
           <div className="lot-form">
             <label className="lot-field">
               <span>opens at</span>

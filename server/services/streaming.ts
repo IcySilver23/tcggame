@@ -1,5 +1,5 @@
 import { db, nowIso, logActivity } from '../lib/db'
-import { round2, valueOf } from './market'
+import { round2, valueOf, withTcgPriceCache } from './market'
 import { rollPack } from './packs'
 import { listBattlableProducts } from './packbattles'
 import { settleStream, sponsorForKind, maybeGenerateOffer } from './sponsors'
@@ -99,7 +99,9 @@ export function channel() {
     lots: st
       ? streamLotsFor(st.id)
       : { live: null, recent: [], totals: { listed: 0, sold: 0, unsold: 0, gross: 0, fees: 0, net: 0, sellThrough: 0, feePct: Math.round(LOT_FEE * 100) } },
-    sellable: st ? sellableCards(60) : [],
+    // The picker loads its own searchable page from /api/stream/sellable; the
+    // 3-second channel poll only carries how many copies there are to sell.
+    sellableTotal: st ? sellableCount() : 0,
     contract: currentContractSafe(),
     offers: offersSafe(),
   }
@@ -500,20 +502,87 @@ function lotView(l: LotRow) {
   }
 }
 
-/** Cards in the binder you could put up tonight, dearest first. */
-export function sellableCards(limit = 12) {
+export type SellableCard = {
+  id: number
+  cardId: string
+  variant: string
+  quantity: number
+  name: string
+  set: string
+  number: string | null
+  image: string | null
+  market: number
+}
+
+// The binder is priced as one snapshot and reused for a few seconds: a search
+// box that re-priced six thousand cards on every keystroke would feel broken,
+// and the only cost of a stale list is a row the server refuses when you press
+// the button (it re-checks the copy). Anything that moves a copy drops it.
+let sellableCache: { at: number; rows: SellableCard[] } | null = null
+const SELLABLE_TTL_MS = 10_000
+
+function sellableSnapshot(): SellableCard[] {
+  if (sellableCache && Date.now() - sellableCache.at < SELLABLE_TTL_MS) return sellableCache.rows
   const rows = db
     .prepare(
-      `SELECT i.id, i.card_id, i.variant, i.quantity, c.name, c.image_small, c.rarity, c.set_id
-       FROM inventory i JOIN cards c ON c.id = i.card_id
-       WHERE i.status = 'collection' AND i.graded_grade IS NULL AND i.quantity > 0
-       ORDER BY i.id DESC LIMIT 300`,
+      `SELECT i.id, i.card_id, i.variant, i.quantity, c.name, c.image_small, c.number, c.set_id, s.name AS set_name
+       FROM inventory i
+       JOIN cards c ON c.id = i.card_id
+       LEFT JOIN sets s ON s.id = c.set_id
+       WHERE i.status = 'collection' AND i.graded_grade IS NULL AND i.quantity > 0`,
     )
-    .all() as { id: number; card_id: string; variant: string; quantity: number; name: string; image_small: string | null; rarity: string | null; set_id: string }[]
-  return rows
-    .map((r) => ({ ...r, id: r.id, cardId: r.card_id, name: r.name, image: r.image_small, market: round2(valueOf(r.card_id, r.variant)) }))
-    .sort((a, b) => b.market - a.market)
-    .slice(0, limit)
+    .all() as {
+    id: number; card_id: string; variant: string; quantity: number
+    name: string; image_small: string | null; number: string | null; set_id: string; set_name: string | null
+  }[]
+  // One price_records query for the whole shelf, then value them off the cache.
+  const priced = withTcgPriceCache(rows.map((r) => r.card_id), () =>
+    rows.map((r) => ({
+      id: r.id,
+      cardId: r.card_id,
+      variant: r.variant,
+      quantity: r.quantity,
+      name: r.name,
+      set: r.set_name ?? r.set_id,
+      number: r.number,
+      image: r.image_small,
+      market: round2(valueOf(r.card_id, r.variant)),
+    })),
+  )
+  priced.sort((a, b) => b.market - a.market || a.name.localeCompare(b.name))
+  sellableCache = { at: Date.now(), rows: priced }
+  return priced
+}
+
+/** A copy moved (listed, sold or returned) — the next search re-reads the binder. */
+export function forgetSellable(): void {
+  sellableCache = null
+}
+
+/**
+ * Every ungraded copy in the binder, dearest first. There is NO row cap on the
+ * search: a binder holding ten thousand cards has to be able to list its
+ * oldest, cheapest one, so the snapshot reads all of them and the caller pages
+ * by limit. Text is what narrows the list, never a silent cutoff.
+ */
+export function sellableCards(opts: { q?: string; limit?: number } = {}): { total: number; items: SellableCard[]; truncated: boolean } {
+  const limit = Math.max(1, Math.min(500, Math.round(opts.limit ?? 100)))
+  const q = (opts.q ?? '').trim().toLowerCase()
+  const all = sellableSnapshot()
+  const matched = q
+    ? all.filter((r) =>
+        r.name.toLowerCase().includes(q) || r.set.toLowerCase().includes(q) || r.cardId.toLowerCase().includes(q),
+      )
+    : all
+  const items = matched.slice(0, limit)
+  return { total: matched.length, items, truncated: matched.length > items.length }
+}
+
+/** The count only — the channel payload does not need to price the whole binder. */
+export function sellableCount(): number {
+  return (db
+    .prepare(`SELECT COUNT(*) AS n FROM inventory WHERE status = 'collection' AND graded_grade IS NULL AND quantity > 0`)
+    .get() as { n: number }).n
 }
 
 export function streamLotsFor(streamId: number) {
@@ -590,6 +659,7 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   pushLotChat(lotId, [
     { who: 'STREAM', avatar: '📣', text: `${cardName(inv.card_id)} is ON CAMERA — opens at $${start.toFixed(2)}, reserve $${floor.toFixed(2)}` },
   ])
+  forgetSellable()
   logActivity('stream', `Went on the block: ${cardName(inv.card_id)} — opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`)
   return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceiling }
 }
@@ -608,6 +678,7 @@ function settleLot(l: LotRow): void {
       db.prepare(`UPDATE stream_lots SET status = 'sold', sold_price = ?, winner = ? WHERE id = ?`).run(bid, 'the room', l.id)
     })
     tx()
+    forgetSellable()
     pushLotChat(l.id, [{ who: 'STREAM', avatar: '🔨', text: `SOLD — ${name} at $${bid.toFixed(2)} to ${pick(BIDDER_HANDLES)}. You keep $${net.toFixed(2)} after the $${fee.toFixed(2)} fee.` }])
     logActivity('stream', `Sold ${name} on stream for $${bid.toFixed(2)} — $${net.toFixed(2)} after fees.`, net)
     return
@@ -618,6 +689,7 @@ function settleLot(l: LotRow): void {
     db.prepare(`UPDATE stream_lots SET status = 'passed' WHERE id = ?`).run(l.id)
   })
   tx()
+  forgetSellable()
   const why = l.bids === 0 ? 'nobody opened it' : `the room stopped at $${bid.toFixed(2)}`
   pushLotChat(l.id, [{ who: 'STREAM', avatar: '🚫', text: `NO SALE — ${name} went back to the binder: ${why}, under your $${l.reserve.toFixed(2)} reserve.` }])
   logActivity('stream', `No sale on ${name} — ${why}, under the $${l.reserve.toFixed(2)} reserve. Card returned.`)
@@ -652,6 +724,7 @@ export function streamLotTick(): void {
 /** Every live lot returns to the binder when the stream ends. */
 function returnOpenLots(streamId: number): void {
   const lots = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live'`).all(streamId) as LotRow[]
+  if (lots.length > 0) forgetSellable()
   const tx = db.transaction(() => {
     for (const l of lots) {
       if (l.inventory_id) db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(l.inventory_id)

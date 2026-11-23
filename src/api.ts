@@ -324,7 +324,8 @@ export const api = {
   streamRip: () => post<StreamRipResult>('/api/stream/rip'),
   streamLot: (inventoryId: number, start: number | null, reserve: number | null) =>
     post<{ ok: boolean; error?: string; lot?: StreamLot; market?: number }>('/api/stream/lot', { inventoryId, start, reserve }),
-  streamSellable: () => req<StreamSellable[]>('/api/stream/sellable'),
+  streamSellable: (q = '', limit = 100) =>
+    req<StreamSellablePage>(`/api/stream/sellable?q=${encodeURIComponent(q)}&limit=${limit}`),
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
   breakStatus: () => req<BreakStatus>('/api/stream/break'),
   breakCreate: (productId: string, spots: number, spotPrice: number | null) =>
@@ -2642,10 +2643,20 @@ export type StreamSellable = {
   id: number
   cardId: string
   name: string
+  set: string
+  number: string | null
   image: string | null
   variant: string
   quantity: number
   market: number
+}
+
+/** One searchable page of the binder. `total` is every copy that matched, so the
+ *  picker can say how much it is NOT showing. */
+export type StreamSellablePage = {
+  total: number
+  items: StreamSellable[]
+  truncated: boolean
 }
 
 export type StreamChannel = {
@@ -2658,7 +2669,8 @@ export type StreamChannel = {
   live: StreamLive | null
   /** The selling half of the room. */
   lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals }
-  sellable: StreamSellable[]
+  /** How many ungraded copies the binder holds — the picker loads the list itself. */
+  sellableTotal: number
   contract: SponsorContract | null
   offers: SponsorOffer[]
 }

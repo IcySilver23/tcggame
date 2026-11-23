@@ -2456,7 +2456,13 @@ app.post('/api/stream/lot', async (c) => {
   const r = streaming.listStreamLot(Number(body.inventoryId), body.start ?? null, body.reserve ?? null)
   return c.json(r, r.ok ? 200 : 400)
 })
-app.get('/api/stream/sellable', (c) => c.json(streaming.sellableCards(60)))
+// Search the whole binder, not a slice of it: `q` narrows by card name, set or
+// card id, and the page is capped rather than the population.
+app.get('/api/stream/sellable', (c) => {
+  const q = c.req.query('q') ?? ''
+  const limit = Number(c.req.query('limit') ?? 100)
+  return c.json(streaming.sellableCards({ q, limit }))
+})
 app.get('/api/stream/products', (c) =>
   // The stream setup only picks a product and shows its price. Sending the
   // battle product's art, set, pool and release date doubles this payload.
