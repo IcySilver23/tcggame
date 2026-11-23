@@ -334,7 +334,7 @@ export const api = {
   breakBuy: (id: number, team: string) =>
     post<{ ok: boolean; error?: string; holder?: string; spotsSold?: number; spotsTotal?: number; chat?: { who: string; avatar: string; text: string } }>(`/api/stream/breaks/${id}/buy`, { team }),
   breakReprice: (id: number, price: number) =>
-    post<{ ok: boolean; error?: string; spotPrice?: number; roomMax?: number; previousPrice?: number; sold?: number; pending?: boolean }>(`/api/stream/breaks/${id}/price`, { price }),
+    post<{ ok: boolean; error?: string; spotPrice?: number; roomBand?: { low: number; high: number }; previousPrice?: number; sold?: number; pending?: boolean }>(`/api/stream/breaks/${id}/price`, { price }),
   breakRip: () => post<BreakRipResult>('/api/stream/break/rip'),
   streamHistory: () => req<StreamHistoryRow[]>('/api/stream/history'),
   streamAnalytics: () => req<StreamAnalytics>('/api/stream/analytics'),
@@ -2766,7 +2766,8 @@ export type BreakStatus = {
   productCost: number
   evenSplit: number
   packs: number
-  roomMax: number
+  /** Coarse hint at what the room will pay — the exact ceiling stays on the server. */
+  roomBand: { low: number; high: number }
   housePot: number
   status: string
   live: boolean

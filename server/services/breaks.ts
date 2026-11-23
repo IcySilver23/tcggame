@@ -3,6 +3,7 @@ import { round2 } from './market'
 import { listBattlableProducts } from './packbattles'
 import { rollPack } from './packs'
 import { cardName, handlesFor, liveStream, pick, VIEWER_AVATARS } from './streaming'
+import { bandedCeiling, bandText } from './roomband'
 import { registerBreakSettler, registerBreakLinker } from './streamlinks'
 
 // Register the settle/link hooks so streaming.ts can drive breaks without a
@@ -219,9 +220,11 @@ export function buySpot(breakId: number, team: string) {
   // pay goes unsold — that is the whole risk of running a break.
   const ceiling = spotCeiling(b, team, st.peak_viewers ?? 0)
   if (b.spot_price > ceiling) {
+    // No number in the refusal: the ceiling is the room's, and quoting it would
+    // hand the host the answer the band in the panel only hints at.
     return {
       ok: false as const,
-      error: `${team} is a pass at $${b.spot_price.toFixed(2)} — the ${st.peak_viewers ?? 0} in the room will pay about $${ceiling.toFixed(2)} for that spot.`,
+      error: `${team} is a pass at $${b.spot_price.toFixed(2)} — nobody in the ${st.peak_viewers ?? 0} watching will go that high for it.`,
     }
   }
 
@@ -474,20 +477,20 @@ export function setSpotPrice(breakId: number, price: number) {
 
   const claimed = db.prepare(`SELECT team FROM stream_break_spots WHERE break_id = ?`).all(b.id) as { team: string }[]
   const open = (JSON.parse(b.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team).filter((t) => !claimed.some((c) => c.team === t))
-  const roomMax = bestCeiling(b, open.length > 0 ? open : [''], liveStream()?.peak_viewers ?? 0)
+  const room = bandedCeiling(bestCeiling(b, open.length > 0 ? open : [''], liveStream()?.peak_viewers ?? 0))
   if (pending) {
     logActivity(
       'stream',
       `Spot price set to $${next.toFixed(2)} (was $${b.spot_price.toFixed(2)}) on the ${b.product_name} break — nothing on sale yet.`,
     )
   } else {
-    const still = next > roomMax ? ` Still above what this room will pay (about $${roomMax.toFixed(2)}).` : ''
+    const still = next > room.high ? ` Still above what this room will pay (${bandText(room)}).` : ''
     logActivity(
       'stream',
       `Spot price cut to $${next.toFixed(2)} from $${b.spot_price.toFixed(2)} on the ${b.product_name} break — ${b.spots_sold}/${b.spots_total} already sold at the old price.${still}`,
     )
   }
-  return { ok: true as const, spotPrice: next, roomMax, previousPrice: b.spot_price, sold: b.spots_sold, pending }
+  return { ok: true as const, spotPrice: next, roomBand: room, previousPrice: b.spot_price, sold: b.spots_sold, pending }
 }
 
 /**
@@ -527,7 +530,8 @@ export function breakForStream(streamId: number) {
     productCost: row.product_cost,
     evenSplit: r2(row.product_cost / Math.max(1, row.spots_total)),
     packs: row.packs ?? 1,
-    roomMax: bestCeiling(row, open.length > 0 ? open : (JSON.parse(row.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team), viewers),
+    // Coarse on purpose: the exact ceiling never leaves the server.
+    roomBand: bandedCeiling(bestCeiling(row, open.length > 0 ? open : (JSON.parse(row.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team), viewers)),
     housePot: round2(row.spot_price * (row.spots_total - row.spots_sold)),
     status: row.status,
     live: row.stream_id != null,

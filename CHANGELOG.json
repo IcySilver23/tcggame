@@ -1,16 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.93.6",
+      "date": "2026-11-23",
+      "title": "The room keeps its number",
+      "highlights": [
+        "Break spots and lots no longer hand you the room’s exact ceiling — you get a band like $1.50–$3.50 instead.",
+        "An over-priced spot is refused without naming the number, so you find the price the way a host does: cut it and watch.",
+        "The playtest now walks every field the client can read and fails if a bare ceiling ever comes back."
+      ],
+      "features": [
+        "The break panel and the lot listing used to carry the room’s ceiling as a plain number. That number is drawn per break and per lot, and once it is in the payload it is the answer to the only question pricing asks — a host (or a script) could price a spot to the penny and take every sale in the room. Both read models now carry a coarse band instead, roughly three quarters to 120% of the real ceiling, snapped to a step the size of the money involved: a quarter under a dollar, fifty cents under five, then a dollar, five, ten, twenty-five. The band is always at least two steps wide, so it can never collapse onto the number it is hiding.",
+        "The rest of the surface follows the same rule. A refused spot says the team is a pass at your ask and that nobody watching will go that high — no \"the room will pay $X\". The activity line after a cut says the ask is still above the band, not above the exact ceiling, and the lot chat line calls the crowd a \"$1.50–$3.00 crowd\" rather than quoting it. What this costs you: the band is guidance, not a promise, and a patient host can still narrow it by cutting and watching — which is the real skill the numbers were meant to reward. BidBay’s own auctions never exposed their room ceiling and are untouched."
+      ]
+    },
+    {
       "version": "0.93.5",
       "date": "2026-11-23",
       "title": "The number you clicked is the number you pay",
       "highlights": [
-        "The confirm bar stops freezing its total: what it shows is always what the click would charge, never the number it was opened with.",
-        "Change the packs, the product or the stream size and the question is dismissed, so no charge goes through without a fresh click.",
-        "A live break now says how many packs are left in its header, beside the spots sold and the gross."
+        "The confirm bar stops freezing its total: what it shows is always what the click would charge, never the number it was opened with."
       ],
       "features": [
-        "The first version of the confirm bar remembered the amount it was opened with, so picking ten packs, then changing to six, then pressing yes charged the six — a total the bar never showed. It now stores only which action it is asking about and reads the amount from your current packs and product every time it draws, and changing the packs, the product or the stream size dismisses the question entirely so it has to be asked again. The same applies to a normal stream’s go-live confirm.",
+        "The first version of the confirm bar remembered the amount it was opened with, so picking ten packs, then changing to six, then pressing yes charged the six — a total the bar never showed. It now stores only which action it is asking about and reads the amount from your current packs and product every time it draws, and changing the packs, the product or the stream size dismisses the question entirely so it has to be asked again. The same applies to a normal stream’s go-live confirm. Change the packs, the product or the stream size and the question is dismissed, so no charge goes through without a fresh click. A live break now says how many packs are left in its header, beside the spots sold and the gross.",
         "The break header on a live stream also carries the pack count now — \"1/8 spots sold · 4 of 5 packs left · $2.50 each · gross $2.50\" — which is the number that decides when the break can be wrapped: a break with sold spots will not close until the remaining packs are ripped. Nothing else about the break flow changed."
       ]
     },

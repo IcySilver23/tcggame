@@ -202,7 +202,7 @@ export function StreamView() {
     try {
       const res = await api.breakReprice(breakState.id, v)
       if (res.ok) {
-        const room = !res.pending && res.roomMax != null ? ` · the room is good for about ${fmtUsd(res.roomMax)}` : ''
+        const room = !res.pending && res.roomBand ? ` · the room looks like a ${fmtUsd(res.roomBand.low)}–${fmtUsd(res.roomBand.high)} crowd` : ''
         toast(`${res.pending ? 'Spots set to' : 'Spots cut to'} ${fmtUsd(res.spotPrice ?? v)}${room}`, 'good')
         setCutInput('')
         refreshState()
@@ -418,7 +418,7 @@ export function StreamView() {
             {liveBreak.openTeams.length > 0 && (
               <div className="panel mt8" style={{ padding: 10 }}>
                 <b className="small">Sell a spot</b>
-                <div className="faint small">{fmtUsd(liveBreak.spotPrice)} a spot · this room will pay up to about {fmtUsd(liveBreak.roomMax)}</div>
+                <div className="faint small">{fmtUsd(liveBreak.spotPrice)} a spot · this room looks like a {fmtUsd(liveBreak.roomBand.low)}–{fmtUsd(liveBreak.roomBand.high)} crowd</div>
                 {live.packsOpened >= live.packsPlanned && (
                   <div className="small" style={{ color: 'var(--yellow)' }}>
                     The packs are open — spots are closed. Spots buy rips, so a spot sold now would buy nothing.

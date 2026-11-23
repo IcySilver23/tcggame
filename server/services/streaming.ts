@@ -1,5 +1,6 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { round2, valueOf, withTcgPriceCache } from './market'
+import { bandedCeiling, bandText } from './roomband'
 import { rollPack } from './packs'
 import { listBattlableProducts } from './packbattles'
 import { settleStream, sponsorForKind, maybeGenerateOffer } from './sponsors'
@@ -671,8 +672,10 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   // a thin one stalls well under it, which is exactly how a real lot passes.
   const heat = 0.35 + Math.random() * 0.6 + Math.min(0.35, st.peak_viewers / 900)
   const ceiling = round2(market * heat)
-  // Say it up front when the ask is already past the room: the card will sit
-  // for its whole clock and nobody will touch it.
+  // The read model carries the band, not the ceiling — the room's number stays
+  // here. Say it up front when the ask is already past the room: the card will
+  // sit for its whole clock and nobody will touch it.
+  const room = bandedCeiling(ceiling)
   const overAsk = start > ceiling
   const info = db
     .prepare(
@@ -684,12 +687,12 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   pushLotChat(lotId, [
     { who: 'STREAM', avatar: '📣', text: `${cardName(inv.card_id)} is ON CAMERA — opens at $${start.toFixed(2)}, reserve $${floor.toFixed(2)}` },
     ...(overAsk
-      ? [{ who: 'STREAM', avatar: '🤔', text: `Opening at $${start.toFixed(2)}? This room was only ever going to go to about $${ceiling.toFixed(2)} — it may just sit.` }]
+      ? [{ who: 'STREAM', avatar: '🤔', text: `Opening at $${start.toFixed(2)}? This room looks like a ${bandText(room)} crowd tonight — it may just sit.` }]
       : []),
   ])
   forgetSellable()
   logActivity('stream', `Went on the block: ${cardName(inv.card_id)} — opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`)
-  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceiling, overAsk }
+  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceilingBand: room, overAsk }
 }
 
 /** Hammer one lot: sold if the room reached the reserve, otherwise it goes home. */
