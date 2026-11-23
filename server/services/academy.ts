@@ -420,6 +420,14 @@ const SKIP_KEY = (id: string) => `academy:skip:${id}`
 const GRADUATED_KEY = 'academy:graduatedIn'
 const BONUS_KEY = 'academy:bonus'
 const CHECKLIST_MIGRATION = 'academy:migrated:checklist'
+// When this build first laid eyes on the course in this save. The waiver's
+// boundary: a completion older than this instant predates the checklist.
+const CHECKLIST_SINCE = 'academy:checklistSince'
+// The pre-checklist build wrote a bare '1' as a completion flag. It is kept as
+// this marker rather than being read as a date, because that is exactly what it
+// is: proof the flag was written by a build that had no checklist.
+const LEGACY_DONE = 'legacy'
+const isIso = (v: string) => /^\d{4}-\d{2}-\d{2}T/.test(v) && !Number.isNaN(Date.parse(v))
 
 // The flag stores the AMOUNT paid, not a bare 1, so `earned` reports what the
 // save was actually paid even after a retune. The first build wrote a bare '1'
@@ -457,6 +465,40 @@ function compareVersion(a: string, b: string): number {
  * AFTER it, so a long-running save cannot tick the whole course with history it
  * already had — the point is to do the thing, once, now.
  */
+/**
+ * When this build started watching the course in this save. Written once, before
+ * any waiver decision, so "completed before the checklist" has a real boundary
+ * even on a save whose migration flag was never set.
+ */
+function checklistSince(): string {
+  const existing = getMeta(CHECKLIST_SINCE)
+  if (existing) return existing
+  const now = new Date().toISOString()
+  setMeta(CHECKLIST_SINCE, now)
+  return now
+}
+
+/**
+ * When a chapter was completed: an ISO stamp from this build, the legacy marker
+ * left by the pre-checklist build, or null for a chapter that is not done.
+ * Completion is a timestamp now (it used to be a bare '1') so the waiver has
+ * evidence to judge instead of guessing from an absence of step flags.
+ */
+function chapterDoneAt(id: string): string | null {
+  const raw = getMeta(chKey(id))
+  if (!raw) return null
+  return isIso(raw) ? raw : LEGACY_DONE
+}
+
+const chapterDone = (id: string) => chapterDoneAt(id) !== null
+
+/** Any step flag or answered question at all — the checklist's own evidence. */
+function hasStepEvidence(id: string): boolean {
+  return (STEPS[id] ?? []).some((s) =>
+    s.kind === 'answer' ? getMeta(answerKey(id, s.id)) === '1' : getMeta(STEP_KEY(id, s.id)) === '1',
+  )
+}
+
 function courseStart(): string {
   const existing = getMeta(SINCE_KEY)
   if (existing) return existing
@@ -476,14 +518,28 @@ function addCash(amount: number) {
  * would erase their progress to prove it), such a chapter is WAIVED once — its
  * steps are marked kept, with a note on the page saying when they were learned.
  *
- * This runs once per save. Any chapter that gains a completion flag after this
- * build must have earned it through the steps, because completeChapter refuses
- * otherwise, so a valid flag with no step evidence is exactly the legacy case.
+ * The legacy case is explicit, not inferred from a missing flag. A chapter is
+ * waived only when all of these hold:
+ *   1. it carries a completion stamp at all;
+ *   2. it has no step evidence — not one ticked step, not one answer;
+ *   3. that stamp predates this build's checklist: either the bare marker the
+ *      pre-checklist build wrote, or an ISO stamp older than `checklistSince`.
+ * A chapter completed on this build is stamped with the current instant, which
+ * is newer than the baseline written before the claim could run, so it can never
+ * be waved through even if this migration flag is missing.
+ *
+ * This runs once per save, after writing the baseline, so the decision is the
+ * same whichever screen asked first.
  */
 function migrateLegacy(): void {
+  const since = checklistSince()
   if (getMeta(CHECKLIST_MIGRATION) === '1') return
   for (const c of ACADEMY_CHAPTERS) {
-    if (getMeta(chKey(c.id)) !== '1') continue
+    const doneAt = chapterDoneAt(c.id)
+    if (!doneAt) continue
+    if (hasStepEvidence(c.id)) continue
+    const olderThanChecklist = doneAt === LEGACY_DONE || Date.parse(doneAt) < Date.parse(since)
+    if (!olderThanChecklist) continue
     for (const s of STEPS[c.id] ?? []) {
       setMeta(STEP_KEY(c.id, s.id), '1')
       if (s.kind === 'answer') setMeta(answerKey(c.id, s.id), '1')
@@ -525,7 +581,7 @@ export function academyState(): AcademyState {
     const stepsDone = steps.filter((s) => s.done).length
     return {
       ...c,
-      done: getMeta(chKey(c.id)) === '1',
+      done: chapterDone(c.id),
       paid: paidAmount(c.id) > 0,
       steps,
       stepsDone,
@@ -569,7 +625,7 @@ export function academyReadyCount(): number {
   const since = courseStart()
   let n = 0
   for (const c of ACADEMY_CHAPTERS) {
-    if (getMeta(chKey(c.id)) === '1' || getMeta(SKIP_KEY(c.id)) === '1') continue
+    if (chapterDone(c.id) || getMeta(SKIP_KEY(c.id)) === '1') continue
     const steps = stepStates(c.id, since)
     if (steps.length > 0 && steps.every((s) => s.done)) n++
   }
@@ -604,7 +660,7 @@ export function setChapterSkipped(id: string, skipped: boolean):
   | { ok: false; error: string; state: AcademyState } {
   const chapter = ACADEMY_CHAPTERS.find((c) => c.id === id)
   if (!chapter) return { ok: false, error: 'No such chapter', state: academyState() }
-  if (getMeta(chKey(id)) === '1') return { ok: false, error: 'This chapter is already done', state: academyState() }
+  if (chapterDone(id)) return { ok: false, error: 'This chapter is already done', state: academyState() }
   setMeta(SKIP_KEY(id), skipped ? '1' : '')
   readyCache = null
   return { ok: true, state: academyState() }
@@ -619,6 +675,10 @@ export function setChapterSkipped(id: string, skipped: boolean):
 export function completeChapter(id: string):
   | { ok: true; awarded: number; state: AcademyState }
   | { ok: false; error: string; state: AcademyState } {
+  // Write the checklist baseline (and settle any legacy chapter) before this
+  // build can stamp a completion, so a fresh save's first claim is already
+  // newer than the boundary it is judged against.
+  migrateLegacy()
   const chapter = ACADEMY_CHAPTERS.find((c) => c.id === id)
   if (!chapter) return { ok: false, error: 'No such chapter', state: academyState() }
   if (getMeta(SKIP_KEY(id)) === '1') {
@@ -634,15 +694,15 @@ export function completeChapter(id: string):
     }
   }
   let awarded = 0
-  const wasDone = getMeta(chKey(chapter.id)) === '1'
-  if (!wasDone) setMeta(chKey(chapter.id), '1')
+  const wasDone = chapterDone(chapter.id)
+  if (!wasDone) setMeta(chKey(chapter.id), new Date().toISOString())
   if (paidAmount(chapter.id) === 0) {
     setMeta(paidKey(chapter.id), String(chapter.reward))
     addCash(chapter.reward)
     awarded += chapter.reward
     logActivity('academy', `Collector's Academy — ${chapter.title}: $${chapter.reward.toFixed(2)} for the work.`, chapter.reward)
   }
-  const allDone = ACADEMY_CHAPTERS.every((c) => getMeta(chKey(c.id)) === '1')
+  const allDone = ACADEMY_CHAPTERS.every((c) => chapterDone(c.id))
   if (allDone && bonusPaid() === 0) {
     setMeta(BONUS_KEY, String(ACADEMY_BONUS))
     setMeta(GRADUATED_KEY, COURSE_VERSION)

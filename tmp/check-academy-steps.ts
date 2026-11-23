@@ -14,7 +14,7 @@
 //
 // Use a scratch home. It DELETES the save's `academy:*` meta to start clean.
 import { db, logActivity, setMeta, getMeta } from '../server/lib/db'
-import { academyState, academyReadyCount, answerStep, setChapterSkipped } from '../server/services/academy'
+import { academyState, academyReadyCount, answerStep, completeChapter, setChapterSkipped } from '../server/services/academy'
 
 const fails: string[] = []
 const ok = (cond: boolean, what: string) => {
@@ -102,6 +102,65 @@ ok(legacy.waived, 'a chapter finished before the checklist is waived')
 ok(legacy.steps.every((s) => s.done), 'a waived chapter keeps its steps ticked')
 ok(getMeta('academy:migrated:checklist') === '1', 'the waiver migration runs once and records itself')
 ok(chapter('packs').waived === false, 'an unfinished chapter is not waived')
+
+// --- the edge: a completion made on THIS build must never be waived ----------
+// The waiver used to read "flag and no step evidence" as pre-checklist. A fresh
+// install can finish a chapter — stamped with the current instant — before the
+// migration flag is ever written, so that inference was a hole. The rule is now
+// explicit: a completion is legacy only when it predates the checklist baseline
+// this build writes before it can claim anything.
+const baseline = getMeta('academy:checklistSince')
+ok(Boolean(baseline), 'the checklist baseline is written the first time the course is read')
+
+// A clean chapter for the experiment: its own flags, no answers, no ticks.
+const resetCondition = () => {
+  db.prepare("DELETE FROM meta WHERE key LIKE 'academy:step:condition:%'").run()
+  db.prepare("DELETE FROM meta WHERE key LIKE 'academy:ans:condition:%'").run()
+  setMeta('academy:waived:condition', '')
+  setMeta('academy:migrated:checklist', '') // as if the flag had never been written
+}
+resetCondition()
+setMeta('academy:ch:condition', new Date(Date.now() + 60_000).toISOString()) // later than the baseline
+const sameBuild = chapter('condition')
+ok(sameBuild.waived === false, 'a completion stamped after the checklist is not a waiver')
+ok(getMeta('academy:checklistSince') === baseline, 'the baseline does not move once written')
+
+// A bare flag is the pre-checklist build's marker, but step evidence outranks
+// it: a chapter the checklist clearly worked is not waved through.
+resetCondition()
+// Read the chapter before its flag exists: asking afterwards would let the
+// migration decide the case we are about to set up.
+const firstAct = chapter('condition').steps.find((s) => s.kind === 'act')!
+setMeta(`academy:step:condition:${firstAct.id}`, '1')
+setMeta('academy:ch:condition', '1')
+ok(chapter('condition').waived === false, 'step evidence keeps even a bare flag from being waived')
+
+// And an ISO stamp older than the baseline is still the legacy case.
+resetCondition()
+setMeta('academy:ch:condition', '2020-01-01T00:00:00.000Z')
+db.prepare("DELETE FROM meta WHERE key LIKE 'academy:step:condition:%'").run()
+const backdated = chapter('condition')
+ok(backdated.waived, 'a completion stamped before the checklist baseline is waived')
+ok(backdated.steps.every((s) => s.done), 'a waived chapter keeps its steps ticked')
+
+// --- a claim stamps a date, and the page reads it back as done ----------------
+// Completion used to be a bare '1', the same value the pre-checklist build
+// wrote. A stamp is what makes the legacy case decidable, so the claim has to
+// write one and every reader has to keep recognising it.
+db.prepare("DELETE FROM meta WHERE key LIKE 'academy:%'").run()
+const target = academyState().chapters[0]
+for (const s of target.steps) {
+  const key = s.kind === 'answer' ? `academy:ans:${target.id}:${s.id}` : `academy:step:${target.id}:${s.id}`
+  setMeta(key, '1')
+}
+ok(getMeta('academy:checklistSince') !== '', 'the baseline is on disk before any claim can run')
+const claim = completeChapter(target.id)
+ok(claim.ok && claim.awarded > 0, 'a chapter with every step ticked pays out')
+const stamp = getMeta(`academy:ch:${target.id}`)
+ok(/^\d{4}-\d{2}-\d{2}T/.test(stamp), 'a completion is stamped with a date, not a bare flag')
+ok(academyState().chapters[0].done, 'the page reads that stamp as done')
+const again = completeChapter(target.id)
+ok(again.ok && again.awarded === 0, 'claiming the same chapter again pays nothing')
 
 // Put the save back exactly as it was, so a second run sees the same starting
 // state as the first.

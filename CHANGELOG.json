@@ -1,13 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.89.3",
+      "date": "2026-11-23",
+      "title": "Legacy means older",
+      "highlights": [
+        "A chapter finished before the checklist is still waived, but only when it is genuinely older than the checklist — not merely missing its step flags.",
+        "A completion is stamped with a date now, so a chapter you finish on this build can never be mistaken for a pre-checklist one, even if the upgrade bookkeeping never ran.",
+        "The course records when the checklist started watching each save, and any ticked step on a chapter is enough to keep it from being waived."
+      ],
+      "features": [
+        "The waiver used to read “completion flag and no step evidence” as proof a chapter was finished before the checklist existed. That inference had a hole: a chapter completed on a fresh install could carry exactly that shape before the upgrade flag was ever written, and would have been waived with its steps handed to you. The rule is explicit now — a chapter is waved only when it carries a completion stamp, has no step evidence at all, and that stamp predates this build’s checklist. The course records the instant it first laid eyes on a save (written before any claim can run, so a fresh save’s first completion is always newer than its own boundary), and a completion stores the date it happened rather than a bare flag. Every screen reads both forms, so a save from the read-and-claim build keeps its waived chapters and its paid amounts.",
+        "The edge is proved rather than argued: tmp/check-academy-steps.ts now finishes a chapter the way a fresh install does — stamp after the baseline, no step flags, upgrade flag deleted — and asserts it is not waived, that a single ticked step outweighs even the old bare flag, that a stamp genuinely older than the baseline still is waived, that the baseline never moves once written, and that a claim writes a date and pays exactly once. Honest about the past: a save that already ran the waiver is not re-judged, because closing a hole is not a reason to take a chapter back off someone."
+      ]
+    },
+    {
       "version": "0.89.2",
       "date": "2026-11-23",
       "title": "Nothing lands unannounced",
       "highlights": [
-        "Bulk-ripping boxes now introduces the promos that came with them before the cards, so nothing lands in your binder without being shown.",
-        "The screen counts copies when the same promo came out of every box, and says plainly that the batch is already in your binder because its wrappers are already open.",
-        "A single OPEN BOX hands its promo over before pack one exactly as it always did."
+        "Bulk-ripping boxes now introduces the promos that came with them before the cards, so nothing lands in your binder without being shown."
       ],
       "features": [
         "Open three Elite Trainer Boxes at once and the stage went straight to the cards: the three promos were in your binder before you ever saw them, because the promo screen only existed for the box ceremony and a bulk batch has no box record to hang it on. The reveal now checks the handoff for promos first, batch or box, and puts them on screen before the first wrapper is shown. The banner, the product and its count, and each promo card's own value are all there; when the same promo came out of every unit it is drawn once with ×N and the group's total value, because three identical cards side by side was telling you less than one card with a number.",
