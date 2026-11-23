@@ -52,13 +52,18 @@ function pickRoundProduct(kind: string, seed: string): { id: string; set_id: str
     const pick = battlable[fnv1a(seed) % battlable.length]
     return { id: pick.id, set_id: pick.set_id, name: pick.name, kind: pick.kind, packs: pick.packs, msrp: pick.msrp, market_price: sealedPriceOf(pick.id).market || pick.msrp }
   }
-  // Fallback: any synced booster (first row — deterministic).
-  const fb = db
-    .prepare(
-      `SELECT p.id, p.set_id, p.name, p.kind, p.packs, p.msrp, p.market_price
-       FROM pack_products p WHERE p.kind = 'booster' LIMIT 1`,
-    )
-    .get() as { id: string; set_id: string; name: string; kind: string; packs: number | null; msrp: number; market_price: number | null } | undefined
+  // Fallback: any synced booster (first sellable row — deterministic). A
+  // subset-only pull-table host (the Classic Collection wrapper inside the 30th
+  // UPC) is never a round product: the shop would not sell it and it has no
+  // wrapper of its own.
+  const fb = (
+    db
+      .prepare(
+        `SELECT p.id, p.set_id, p.name, p.kind, p.packs, p.msrp, p.market_price
+         FROM pack_products p WHERE p.kind = 'booster' ORDER BY p.id`,
+      )
+      .all() as { id: string; set_id: string; name: string; kind: string; packs: number | null; msrp: number; market_price: number | null }[]
+  ).find((r) => sellsProduct(r.id, r.set_id))
   return fb && fb.id ? { ...fb, market_price: fb.market_price ?? fb.msrp } : { id: '', set_id: '', name: 'Booster Pack', kind: 'booster', packs: null, msrp: 0, market_price: 0 }
 }
 

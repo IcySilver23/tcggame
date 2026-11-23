@@ -35,13 +35,15 @@ const round2 = (n: number) => Math.round(n * 100) / 100
 
 /**
  * What a day pass costs per real hour of wait bought. The ticket's job is to buy
- * the WAIT, so its price has to follow the wait: $25 for a 12-hour day is
- * $2.0833 an hour, and that rate is what keeps a skipped 2-hour day honest at
- * $4.17 and a 24-hour one at $50. A ticket frozen at $25 made skipping a
- * 2-hour day six times dearer per hour saved than the 12-hour day it was priced
- * against, while the rolls it buys arrive either way.
+ * the WAIT, so its price has to follow the wait: $50 for a 12-hour day is
+ * $4.1667 an hour, and that rate is what keeps a skipped 2-hour day honest at
+ * $8.33 and a 24-hour one at $100. The rate doubles the old $25 anchor because
+ * $4.17 a skip came out cheaper than the pack a pass was meant to buy time for —
+ * jumping the clock should be a purchase, not the cheapest thing in the shop.
+ * There is still one rate for every pace, so a longer day costs more only
+ * because it buys a longer wait, and the rolls it buys arrive either way.
  */
-export const PASS_RATE_PER_HOUR = 25 / 12
+export const PASS_RATE_PER_HOUR = 50 / 12
 
 /** Price of one pass at the save's current game-day length (or a given one). */
 export function dayPassFee(hours: number = gameDayHours()): number {

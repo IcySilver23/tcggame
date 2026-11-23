@@ -115,14 +115,19 @@ export function sellsProduct(productId: string, setId: string): boolean {
  * or refunded here, and the prune is idempotent.
  */
 /**
- * The three phantom booster rows that cannot go yet. A set's pull table is
- * keyed `${setId}-booster`, and the real Double Crisis and Dragon Vault
- * blisters and the Generations ETB roll that table. Deleting the parent would
- * either cascade the table away or strand it behind a foreign key, so these
- * rows stay as unsold table hosts. They are the only unsellable rows the prune
- * leaves behind; every other phantom product is deleted.
+ * The phantom booster rows that cannot go yet. A set's pull table is keyed
+ * `${setId}-booster`, and the real Double Crisis and Dragon Vault blisters and
+ * the Generations ETB roll that table. Deleting the parent would either cascade
+ * the table away or strand it behind a foreign key, so these rows stay as
+ * unsold table hosts. They are the only unsellable rows the prune leaves
+ * behind; every other phantom product is deleted.
+ *
+ * me55c-booster is the same shape for a different reason: the 30th Celebration
+ * UPC holds one three-card Classic Collection pack, and those cards never had a
+ * wrapper on a shelf (SUBSET_ONLY_SETS), so the host row exists only so the
+ * box's last wrapper has a table to deal from.
  */
-export const PULL_TABLE_HOSTS: ReadonlySet<string> = new Set(['dc1-booster', 'dv1-booster', 'g1-booster'])
+export const PULL_TABLE_HOSTS: ReadonlySet<string> = new Set(['dc1-booster', 'dv1-booster', 'g1-booster', 'me55c-booster'])
 
 export function pruneNeverShippedProducts(): number {
   const rows = db.prepare('SELECT id, set_id FROM pack_products').all() as { id: string; set_id: string }[]
@@ -822,14 +827,18 @@ export async function backfillSealedPrices(maxProducts = 400): Promise<void> {
   if (!sealedTokenConfigured()) return
   backfillRunning = true
   try {
-    const rows = db
-      .prepare(
-        `SELECT p.id FROM pack_products p
-         LEFT JOIN sealed_prices sp ON sp.product_id = p.id
-         WHERE sp.product_id IS NULL OR sp.retrieved_at < datetime('now', '-30 days')
-         ORDER BY p.release_date DESC LIMIT ?`,
-      )
-      .all(maxProducts) as { id: string }[]
+    const rows = (
+      db
+        .prepare(
+          `SELECT p.id, p.set_id FROM pack_products p
+           LEFT JOIN sealed_prices sp ON sp.product_id = p.id
+           WHERE sp.product_id IS NULL OR sp.retrieved_at < datetime('now', '-30 days')
+           ORDER BY p.release_date DESC LIMIT ?`,
+        )
+        .all(maxProducts) as { id: string; set_id: string }[]
+      // A pull-table host was never sold, so it has no shelf price to fetch —
+      // a lookup would match a different product by name and store its price.
+    ).filter((r) => sellsProduct(r.id, r.set_id))
     backfillProgress = { done: 0, total: rows.length, updated: 0 }
     for (const r of rows) {
       const res = await refreshSealedPrice(r.id)

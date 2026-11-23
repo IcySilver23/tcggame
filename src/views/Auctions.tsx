@@ -98,7 +98,7 @@ function BidDesk({ lot, onBid }: { lot: AuctionLot; onBid: (id: number, max: num
       </div>
       <div className="house-foot small faint">
         {lot.my_escrow > 0
-          ? <>Your max is <b style={{ color: 'var(--yellow)' }}>{fmtUsd(lot.my_escrow)}</b>, escrowed — proxy bids for you only as far as it must, and the whole max comes back if the room beats it.</>
+          ? <>Your max is <b style={{ color: 'var(--gold)' }}>{fmtUsd(lot.my_escrow)}</b>, escrowed — proxy bids for you only as far as it must, and the whole max comes back if the room beats it.</>
           : <>Your bid is a <b>hidden max</b>. The house escrows it and bids for you one increment at a time; nothing above the winning price is spent.</>}
       </div>
     </div>

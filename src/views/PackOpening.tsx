@@ -276,22 +276,37 @@ export function PackOpeningView() {
     // A single-wrapper product (the General Mills mini packs ship one three-card
     // pack) is not a box, so it keeps its own name rather than the booster's.
     const catalog = productsRef.current.length > 0 ? productsRef.current : products
+    const asBox = s as OpenSession & Partial<BoxOpen>
+    // A mixed box can hand out a wrapper from another expansion (the 30th UPC
+    // closes on a Classic Collection pack), so that wrapper's own product — not
+    // the box's anchor set — is the face on the stage.
+    const wrapper = asBox.packSetId
+      ? catalog.find((p) => p.set_id === asBox.packSetId && p.kind === 'booster')
+      : undefined
     const booster = product && product.kind !== 'booster' && product.packs > 1
       ? catalog.find((p) => p.set_id === product.set_id && p.kind === 'booster')
       : undefined
-    const face = booster ?? product
-    setBackArt({ hue: packHue(face?.name ?? setName) })
-    const asBox = s as OpenSession & Partial<BoxOpen>
+    const face = wrapper ?? booster ?? product
+    // An expansion the shop never sells (the Classic Collection pack inside the
+    // 30th UPC) has no row in the product list, so the box reports its name,
+    // symbol and wrapper photo itself.
+    const wrapperName = asBox.packName ?? null
+    const wrapperSymbol = asBox.packSymbol ?? null
+    const wrapperArt = asBox.packArt ?? null
+    setBackArt({ hue: packHue(wrapperName ?? face?.name ?? setName) })
     const packNo = asBox.packIndex ?? 1
     const packTotal = asBox.packsTotal ?? 1
     setPendingPack({
       key: s.sessionId,
-      name: face?.name ?? `${setName} Booster Pack`,
+      name: wrapperName ?? face?.name ?? `${setName} Booster Pack`,
       sub: packTotal > 1 ? `${setName} · pack ${packNo} of ${packTotal} · ${s.cards.length} cards` : `${setName} · ${s.cards.length} cards`,
       cards: s.cards.length,
       spent: s.spent,
-      symbol: face?.set_symbol ?? product?.set_symbol ?? null,
-      image: face?.image_url ?? null,
+      symbol: wrapperSymbol ?? face?.set_symbol ?? product?.set_symbol ?? null,
+      // A wrapper the shop never sold carries its own photo from the box
+      // response; only a wrapper with no photo at all (and no shelf row to look
+      // one up in) falls back to the foil-and-symbol pack, never the box's art.
+      image: wrapperArt ?? (wrapperName ? null : (face?.image_url ?? null)),
     })
     setWantAuto(false)
     setPhase('pack')
@@ -960,20 +975,20 @@ export function PackOpeningView() {
                 </div>
                 <div className="right" title="Average market value of every HIT card in the box so far">
                   <div className="faint small">AVG PER HIT</div>
-                  <div className="po-value" style={{ color: boxAvgHit != null ? 'var(--yellow)' : undefined }}>
+                  <div className="po-value" style={{ color: boxAvgHit != null ? 'var(--gold)' : undefined }}>
                     {boxAvgHit == null ? '—' : fmtUsd(boxAvgHit)}
                   </div>
                 </div>
                 <div className="right" title="Highest-value single wrapper opened in this box so far">
                   <div className="faint small">BEST PACK</div>
-                  <div className="po-value" style={{ color: 'var(--yellow)' }}>{fmtUsd(bestBoxPack)}</div>
+                  <div className="po-value" style={{ color: 'var(--gold)' }}>{fmtUsd(bestBoxPack)}</div>
                 </div>
               </>
             )}
             {newCount > 0 && (
               <div className="right"><div className="faint small">NEW TO BINDER</div><div className="po-value" style={{ color: 'var(--green)' }}>✨ {newCount}</div></div>
             )}
-            <div className="right"><div className="faint small">TOTAL PULL VALUE</div><div className="po-value" style={{ color: 'var(--yellow)' }}><CountUp value={session.totalValue} dur={fast || reduced ? 0 : 900} /></div></div>
+            <div className="right"><div className="faint small">TOTAL PULL VALUE</div><div className="po-value" style={{ color: 'var(--gold)' }}><CountUp value={session.totalValue} dur={fast || reduced ? 0 : 900} /></div></div>
             <div className="right"><div className="faint small">MONEY SPENT</div><div className="po-value">{fmtUsd(session.spent)}</div></div>
             {beatRecord && (
               <div className="right"><div className="faint small">PREVIOUS BEST</div><div className="po-value" style={{ textDecoration: 'line-through', opacity: 0.65 }}>{fmtUsd(previousBest)}</div></div>

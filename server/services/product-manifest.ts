@@ -414,7 +414,6 @@ function buildManifest(row: ProductRow): ProductManifest {
 
   // ---- layout -------------------------------------------------------------
   const omitted: string[] = []
-  if (row.id.startsWith('me55-upc-')) omitted.push('one three-card Classic Collection pack')
   const layoutStatus: ManifestStatus = mini
     ? 'verified'
     : row.set_id === 'me55'
@@ -425,7 +424,7 @@ function buildManifest(row: ProductRow): ProductManifest {
     : row.set_id === 'me55'
       ? 'The physical 30th Celebration wrapper is six cards. The game stretches it to ten, so this is the game layout, not a 1:1 wrapper.'
       : row.id.startsWith('me55-upc-')
-        ? 'The set layout is repeated for the 29 packs. The three-card Classic Collection pack in the UPC is not opened by this build.'
+        ? 'The set layout repeats across the 29 Celebration packs; the box closes with the three-card Classic Collection pack, whose three cards are all from that subset.'
         : row.kind === 'booster'
           ? 'The set-level slot plan; the game deals this exact split.'
           : `The set-level slot plan repeated across ${gamePacks} packs.`

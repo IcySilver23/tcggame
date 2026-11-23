@@ -481,18 +481,19 @@ export function PriceChart({ history, height = 180 }: { history: HistoryPoint[];
     )
   }
   const up = path.last >= path.first
-  const stroke = up ? '#2ee6a8' : '#ff5d5d'
+  // Theme tokens, not fixed mint/red: a mint line vanishes on a light panel.
+  const stroke = up ? 'var(--green)' : 'var(--red)'
   return (
     <div>
       <svg viewBox={`0 0 ${path.w} ${path.h}`} style={{ width: '100%', height: 'auto' }} preserveAspectRatio="none">
         <defs>
           <linearGradient id="pcFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
-            <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+            <stop offset="0%" style={{ stopColor: stroke, stopOpacity: 0.25 }} />
+            <stop offset="100%" style={{ stopColor: stroke, stopOpacity: 0 }} />
           </linearGradient>
         </defs>
         <path d={`${path.d} L${path.w - 4},${path.h - 4} L4,${path.h - 4} Z`} fill="url(#pcFill)" stroke="none" />
-        <path d={path.d} fill="none" stroke={stroke} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        <path d={path.d} fill="none" style={{ stroke }} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
       </svg>
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <span className="faint small">low {fmtUsd(path.min)}</span>
@@ -1054,7 +1055,7 @@ export function CapacityStrip() {
         flexWrap: 'wrap',
         background: full ? 'rgba(220, 60, 60, 0.12)' : 'rgba(230, 180, 40, 0.10)',
         border: `1px solid ${full ? 'rgba(220, 60, 60, 0.45)' : 'rgba(230, 180, 40, 0.4)'}`,
-        color: full ? 'var(--red)' : 'var(--yellow)',
+        color: full ? 'var(--red)' : 'var(--gold)',
       }}
     >
       <span>
@@ -1102,7 +1103,7 @@ export function OverflowHint({ count = 1, align = 'right' }: { count?: number; a
         lineHeight: 1.35,
         textAlign: align,
         marginTop: 3,
-        color: blocked ? 'var(--red, #ef4444)' : 'var(--yellow, #eab308)',
+        color: blocked ? 'var(--red, #ef4444)' : 'var(--gold, #eab308)',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -1178,6 +1179,13 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
   // Parallax tilt: the pack leans toward the cursor like it's being held up
   // for inspection. Frozen the moment the tear starts (and on leave).
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  // The wrapper photo's own proportions, read off the image. TCGplayer's pack
+  // shots are tall (219×400 for the 2026 sets, 291×400 for older ones) and the
+  // tear box used to be card-shaped (245×342), so object-fit:cover cut ~24%
+  // off a modern wrapper — the crimped top and the bottom "additional game
+  // cards" strip — and the rip read as a crop of some artwork instead of a
+  // pack. Sizing the box to the photo means cover crops nothing.
+  const [artRatio, setArtRatio] = useState<number | null>(null)
   const tearRef = useRef(0)
   const autoRipRef = useRef<number | null>(null)
   const doneRef = useRef(false)
@@ -1250,6 +1258,7 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
           '--tn': (tear / 100).toFixed(3),
           '--pull': tear,
           '--bh': hue,
+          ...(imageUrl && artRatio ? { aspectRatio: String(artRatio), '--art-ar': String(artRatio) } : null),
         } as React.CSSProperties}
         tabIndex={0}
         role="button"
@@ -1268,7 +1277,21 @@ export function TearPack({ symbolUrl, imageUrl, name, sub, onTorn, compact = fal
           <>
             {/* The inside of the wrapper, under the crimped strip. */}
             <div className="rip-mouth" aria-hidden />
-            <div className="rip-body" aria-hidden><img className="rip-img" src={imageUrl} alt="" draggable={false} /></div>
+            <div className="rip-body" aria-hidden>
+              <img
+                className="rip-img"
+                src={imageUrl}
+                alt=""
+                draggable={false}
+                onLoad={(e) => {
+                  const img = e.currentTarget
+                  const r = img.naturalWidth / img.naturalHeight
+                  // A sane range only: a broken/placeholder image must not
+                  // stretch the wrapper into a sliver or a letterbox.
+                  if (r > 0.2 && r < 3) setArtRatio((prev) => (prev === r ? prev : r))
+                }}
+              />
+            </div>
             {/* Only the already-cut section of the strip lifts, so the wrapper
                 opens from the left edge to the right along the swipe. */}
             <div className="rip-lift" aria-hidden>

@@ -23,10 +23,13 @@ import { variantTag } from '../variant-label'
 // auction, Local hides it behind a meet-up.
 // ---------------------------------------------------------------------------
 
+// Colours ride the theme tokens rather than fixed greens and oranges: a dark
+// green reads as mud on Forest's or Nebula's panels, and a fixed slate is
+// invisible on a light board.
 const PHASE_META: Record<MarketRegimes['phase'], { icon: string; label: string; color: string; note: string }> = {
-  bull: { icon: '🐂', label: 'BULL', color: '#1a7f37', note: 'Sellers emboldened — your inventory is ripening.' },
-  bear: { icon: '🐻', label: 'BEAR', color: '#b35900', note: 'Wallets closed — a buying season, not a selling one.' },
-  chop: { icon: '↔️', label: 'CHOP', color: '#57606a', note: 'No direction — pickers hunt misprices, deals go fast.' },
+  bull: { icon: '🐂', label: 'BULL', color: 'var(--green)', note: 'Sellers emboldened — your inventory is ripening.' },
+  bear: { icon: '🐻', label: 'BEAR', color: 'var(--amber)', note: 'Wallets closed — a buying season, not a selling one.' },
+  chop: { icon: '↔️', label: 'CHOP', color: 'var(--text-dim)', note: 'No direction — pickers hunt misprices, deals go fast.' },
 }
 
 /** Deal-quality trust line — names the anchor so the comparison is explicit.
@@ -302,7 +305,7 @@ export function MarketView() {
       {seasonal && seasonal.event && (() => {
         const ev = seasonal.event
         const pct = (n: number) => `${n >= 1 ? '+' : ''}${Math.round((n - 1) * 100)}%`
-        const tone = ev.mult.price >= 1 ? '#d4a017' : '#5b8def'
+        const tone = ev.mult.price >= 1 ? 'var(--gold)' : 'var(--blue-text)'
         return (
           <div className="panel" style={{ margin: '0 0 12px', padding: '10px 14px', borderLeft: `4px solid ${tone}` }}>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
@@ -337,7 +340,7 @@ export function MarketView() {
           <div><div className="faint small">CARDS QUOTED</div><div className="radar-num">{radar.cards}</div></div>
           <div><div className="faint small">ASKS SCANNED</div><div className="radar-num">{radar.asks}</div></div>
           <div><div className="faint small">BELOW ANCHOR</div><div className="radar-num" style={{ color: 'var(--green)' }}>{radar.under}</div></div>
-          <div><div className="faint small">STEALS ≤15%</div><div className="radar-num" style={{ color: 'var(--yellow)' }}>{radar.steals}</div></div>
+          <div><div className="faint small">STEALS ≤15%</div><div className="radar-num" style={{ color: 'var(--gold)' }}>{radar.steals}</div></div>
           <div><div className="faint small">BEST SPREAD</div><div className="radar-num" style={{ color: 'var(--green)' }}>{Math.round(radar.best * 100)}%</div></div>
           <div><div className="faint small">MEDIAN SPREAD</div><div className="radar-num">{radar.median > 0 ? '+' : ''}{Math.round(radar.median * 100)}%</div></div>
         </div>

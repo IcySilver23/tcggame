@@ -7,9 +7,9 @@
 // few products include promos this catalogue does not carry (151's Kadabra,
 // Abra, Electabuzz and the Venusaur/Blastoise ex promos, Shrouded Fable's
 // pre-evolutions, Prismatic's Espeon/Umbreon ex and Surprise Box nine,
-// Celebrations' Dragapult Prime, Pikachu V-UNION pieces and metal cards). Those
-// are named in the description and note, never claimed as promo cards, so the
-// opener cannot substitute an unrelated printing.
+// Celebrations' Dragapult Prime and metal cards). Those are named in the
+// description and note, never claimed as promo cards, so the opener cannot
+// substitute an unrelated printing.
 //
 // `market` is TCGplayer's market for that exact listing through the tcgcsv
 // mirror on 9 November 2026; `productId` is the listing, which is also the
@@ -282,9 +282,10 @@ export const COLLECTIONS: CollectionProduct[] = [
   {
     id: 'cel25-pikachu-v-union', setId: 'cel25', name: 'Celebrations Special Collection—Pikachu V-UNION', msrp: 29.99, packs: 4,
     releaseDate: '2021/10/08', productId: 244726, market: 189.08,
-    promos: ['Professor Burnet'], promoIds: ['swshp-SWSH167'], promoPolicy: 'all',
+    promos: ['Pikachu V-UNION', 'Pikachu V-UNION', 'Pikachu V-UNION', 'Pikachu V-UNION', 'Professor Burnet'],
+    promoIds: ['swshp-SWSH139', 'swshp-SWSH140', 'swshp-SWSH141', 'swshp-SWSH142', 'swshp-SWSH167'], promoPolicy: 'all',
     description: 'Four Celebrations packs, two additional booster packs, the four cards that form Pikachu V-UNION, its oversize card, and a Professor Burnet Supporter promo.',
-    note: 'Professor Burnet is handed over. The four Pikachu V-UNION pieces are not catalogued as separate promos here, so they are described but not substituted.',
+    note: 'All four Pikachu V-UNION pieces (SWSH139-142) and Professor Burnet are handed over. The oversize card and the two additional booster packs are not modelled.',
   },
   {
     id: 'cel25-premium-figure', setId: 'cel25', name: 'Celebrations Premium Figure Collection—Pikachu VMAX', msrp: 49.99, packs: 8,

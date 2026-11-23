@@ -24,7 +24,7 @@ import cardBack from '../assets/card-back.png'
 // ---------------------------------------------------------------------------
 
 const MOOD_FACE = (m: number) => (m >= 70 ? '😊' : m >= 40 ? '😐' : '😠')
-const COND_STYLE: Record<string, string> = { NM: 'var(--green)', LP: 'var(--yellow)', MP: 'var(--yellow)', HP: 'var(--orange, var(--yellow))', DM: 'var(--red)' }
+const COND_STYLE: Record<string, string> = { NM: 'var(--green)', LP: 'var(--gold)', MP: 'var(--gold)', HP: 'var(--orange, var(--gold))', DM: 'var(--red)' }
 const COND_COLOR = (c: string) => COND_STYLE[c] ?? 'var(--text-faint)'
 const ROLL_CYCLE = ['NM', 'LP', 'MP', 'HP', 'DM']
 const COUNTER_MAX = 2

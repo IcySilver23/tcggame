@@ -13,12 +13,14 @@ import { variantTag } from '../variant-label'
 // lane, because "am I up?" is the question this screen exists to answer.
 // ---------------------------------------------------------------------------
 
+// Condition colours ride the tokens: a lime '#9acd32' and a bright yellow are
+// unreadable as text on the light palettes.
 const COND_COLOR: Record<string, string> = {
   NM: 'var(--green)',
-  LP: '#9acd32',
-  MP: 'var(--yellow)',
-  HP: '#e08030',
-  DM: 'var(--red)',
+  LP: 'var(--gold)',
+  MP: 'var(--amber)',
+  HP: 'var(--red)',
+  DM: 'var(--text-faint)',
 }
 
 function untilText(iso: string, now: number): string {

@@ -209,6 +209,9 @@ export function applyLocalReleases(): LocalReleaseResult {
       packs.buildPullTable(s.id)
       rebuilt.push(s.id)
     }
+    // The subset wrapper a box holds (the 30th UPC's Classic Collection pack)
+    // has no product row, so the loop above skips it.
+    packs.buildInBoxSubsetTables()
     setMeta(APPLIED_META, data.release)
     logActivity('release', `New release: ${data.sets.map((s) => s.name).join(', ')} — ${data.cards.length} card${data.cards.length === 1 ? '' : 's'} added to the catalog`, undefined, `#/set/${data.sets[0]?.id ?? ''}`)
     const wave = data.products.filter((p) => p.kind === 'special')

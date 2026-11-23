@@ -48,18 +48,18 @@ function BenchmarkChart({ chart, spLabel }: { chart: { week: string; collection:
   ]
   const line = (key: 'collection' | 'sp') =>
     chart.map((p, i) => `${i === 0 ? 'M' : 'L'}${xy(p[key], i)[0].toFixed(1)},${xy(p[key], i)[1].toFixed(1)}`).join(' ')
-  const colStroke = chart[chart.length - 1].collection >= 100 ? '#2ee6a8' : '#ff5d5d'
+  const colStroke = chart[chart.length - 1].collection >= 100 ? 'var(--green)' : 'var(--red)'
   const base = xy(100, 0)[1]
   return (
     <div>
       <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 'auto' }} preserveAspectRatio="none">
         <line x1={4} y1={base} x2={w - 4} y2={base} stroke="var(--muted)" strokeDasharray="3 5" strokeWidth="1" />
-        <path d={line('sp')} fill="none" stroke="#c9a227" strokeWidth="2" strokeDasharray="6 4" strokeLinecap="round" />
+        <path d={line('sp')} fill="none" style={{ stroke: 'var(--gold)' }} strokeWidth="2" strokeDasharray="6 4" strokeLinecap="round" />
         <path d={line('collection')} fill="none" stroke={colStroke} strokeWidth="2.5" strokeLinecap="round" />
       </svg>
       <div className="pf-legend">
         <span className="small" style={{ color: colStroke, fontWeight: 650 }}>▬ Your cardboard</span>
-        <span className="small" style={{ color: '#c9a227', fontWeight: 650 }}>{spLabel}</span>
+        <span className="small" style={{ color: 'var(--gold)', fontWeight: 650 }}>{spLabel}</span>
         <span className="faint small">100 = first snapshot</span>
       </div>
     </div>
@@ -193,11 +193,11 @@ export function PortfolioView() {
         <div className="pf-index">
           <div>
             <span className="faint small">Same {fmtUsd(pf.deployedTotal)}, in the index</span>
-            <b style={{ color: '#c9a227' }}>{fmtUsd(pf.spSameMoney)}</b>
+            <b style={{ color: 'var(--gold)' }}>{fmtUsd(pf.spSameMoney)}</b>
           </div>
           <div>
             <span className="faint small">Index return over your span</span>
-            <b style={{ color: '#c9a227' }}>{pct(pf.spReturnPct)}</b>
+            <b style={{ color: 'var(--gold)' }}>{pct(pf.spReturnPct)}</b>
           </div>
           <div>
             <span className="faint small">Your total return</span>

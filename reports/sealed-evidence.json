@@ -1,10 +1,10 @@
 {
-  "modern": 223,
+  "modern": 224,
   "sold": 223,
-  "hidden": 0,
+  "hidden": 1,
   "evidence": 328,
   "withoutEvidence": 0,
-  "hiddenWithoutEvidence": 0,
+  "hiddenWithoutEvidence": 1,
   "missing": [],
   "mismatches": [],
   "removed": [
@@ -553,6 +553,10 @@
       "kind": "special",
       "packs": 4,
       "promos": [
+        "Pikachu V-UNION",
+        "Pikachu V-UNION",
+        "Pikachu V-UNION",
+        "Pikachu V-UNION",
         "Professor Burnet"
       ],
       "source": {
@@ -1488,7 +1492,7 @@
       "id": "me55-upc-day",
       "set": "me55",
       "kind": "special",
-      "packs": 29,
+      "packs": 30,
       "promos": [
         "Pikachu ex",
         "Espeon ex"
@@ -1502,7 +1506,7 @@
       "id": "me55-upc-night",
       "set": "me55",
       "kind": "special",
-      "packs": 29,
+      "packs": 30,
       "promos": [
         "Pikachu ex",
         "Umbreon ex"

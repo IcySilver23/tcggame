@@ -654,22 +654,22 @@ evidence['me1-etb-gardevoir'] = {
 }
 
 // 30th Celebration's collections are product-level claims from the published
-// copy. The UPC opens 29 Celebration packs and omits the separate three-card
-// Classic Collection pack; its promo pair differs by Day/Night.
+// copy. The UPC holds thirty wrappers — 29 Celebration packs plus the separate
+// three-card Classic Collection pack — and its promo pair differs by Day/Night.
 const THIRTIETH_COLLECTIONS: Record<string, { packs: number; promos: string[]; promoIds?: string[]; promoPolicy?: 'one-of' | 'all'; note: string }> = {
   'me55-upc-day': {
-    packs: 29,
+    packs: 30,
     promos: ['Pikachu ex', 'Espeon ex'],
     promoIds: ['mep-107', 'mep-108'],
     promoPolicy: 'all',
-    note: '29 Celebration packs plus one three-card Classic Collection pack; the game opens the 29 packs and records the Classic pack as omitted.',
+    note: '29 Celebration packs plus one three-card Classic Collection pack. The box deals the Celebration packs first and the Classic Collection wrapper last, three reprints, all from the subset.',
   },
   'me55-upc-night': {
-    packs: 29,
+    packs: 30,
     promos: ['Pikachu ex', 'Umbreon ex'],
     promoIds: ['mep-109', 'mep-110'],
     promoPolicy: 'all',
-    note: '29 Celebration packs plus one three-card Classic Collection pack; the game opens the 29 packs and records the Classic pack as omitted.',
+    note: '29 Celebration packs plus one three-card Classic Collection pack. The box deals the Celebration packs first and the Classic Collection wrapper last, three reprints, all from the subset.',
   },
   'me55-ditto-premium': {
     packs: 8,
@@ -1818,7 +1818,12 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
  * wrapper from the product's anchor set. Segment counts always sum to the
  * product's `packs` count.
  */
-export type PackMix = ReadonlyArray<{ setId: string; packs: number }>
+export type PackMix = ReadonlyArray<{
+  setId: string
+  packs: number
+  /** A wrapper of a different size: the UPC's Classic Collection pack holds three. */
+  cardsPerPack?: number
+}>
 
 export const PACK_MIX: Readonly<Record<string, PackMix>> = {
   'swsh1-etb-plus': [
@@ -1872,6 +1877,19 @@ export const PACK_MIX: Readonly<Record<string, PackMix>> = {
     { setId: 'sv9', packs: 4 },
     { setId: 'sv8', packs: 2 },
   ],
+  // 30th Celebration's Ultra-Premium Collection: the product copy lists 29
+  // Celebration packs plus one three-card Classic Collection pack, so the box
+  // deals those 29 wrappers and then the subset's own three-card wrapper. The
+  // Classic Collection set never had a shelf wrapper (SUBSET_ONLY_SETS), which
+  // is why this is a mix and not a set-level rule.
+  'me55-upc-day': [
+    { setId: 'me55', packs: 29 },
+    { setId: 'me55c', packs: 1, cardsPerPack: 3 },
+  ],
+  'me55-upc-night': [
+    { setId: 'me55', packs: 29 },
+    { setId: 'me55c', packs: 1, cardsPerPack: 3 },
+  ],
   // The box-back pack list. Some write-ups print 3/3/3 for the last three
   // Scarlet & Violet groups, which only totals seventeen; the box back's
   // 2/2/2/2/4/4/2 is the eighteen-pack list used here.
@@ -1891,16 +1909,22 @@ export function packMixFor(productId: string): PackMix | null {
   return PACK_MIX[productId] ?? null
 }
 
-/** Which expansion the Nth wrapper of a mixed box comes from (0-based). */
-export function mixedPackSetId(productId: string, index: number): string | null {
+/** Which expansion — and how many cards — the Nth wrapper of a mixed box holds. */
+export function mixedPackSpec(productId: string, index: number): { setId: string; cardsPerPack?: number } | null {
   const mix = PACK_MIX[productId]
   if (!mix) return null
   let i = Math.max(0, Math.floor(index))
   for (const segment of mix) {
-    if (i < segment.packs) return segment.setId
+    if (i < segment.packs) return { setId: segment.setId, cardsPerPack: segment.cardsPerPack }
     i -= segment.packs
   }
-  return mix[mix.length - 1].setId
+  const last = mix[mix.length - 1]
+  return { setId: last.setId, cardsPerPack: last.cardsPerPack }
+}
+
+/** Which expansion the Nth wrapper of a mixed box comes from (0-based). */
+export function mixedPackSetId(productId: string, index: number): string | null {
+  return mixedPackSpec(productId, index)?.setId ?? null
 }
 
 // ---------------------------------------------------------------------------

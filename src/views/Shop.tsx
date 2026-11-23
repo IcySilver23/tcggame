@@ -1101,7 +1101,7 @@ function BagRevealModal({ result, onClose }: { result: BagRevealResult; onClose:
   if (!r.ok || !r.reveal) return null
   const roi = r.roi ?? 0
   return (
-    <div className="panel" style={{ position: 'fixed', inset: '10% 20%', zIndex: 50, overflowY: 'auto', background: '#12151c', border: '1px solid #2a2f3a', borderRadius: 12, padding: 20 }}>
+    <div className="panel" style={{ position: 'fixed', inset: '10% 20%', zIndex: 50, overflowY: 'auto', borderRadius: 12, padding: 20 }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 34 }}>🎁</div>
         <h2>Bag ripped open!</h2>

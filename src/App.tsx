@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { useStore } from './store'
+import { isLightTheme, THEMES, useStore } from './store'
 import { gameDayMsFor } from './lib/gameday'
 import { fmtUsd } from './format'
 import { api, type TodayResponse, type TodayRoll, type UpdateStatus } from './api'
@@ -288,21 +288,24 @@ function goalProgress(n: NavEntry, s: UnlockState): { cur: number; goal: number 
   return { cur: s.progress.salesCount, goal: n.goal! }
 }
 
-/** Dark ⇄ light chrome. Persisted in localStorage; the store applies the
- *  attribute to <html> so the first paint is already right. */
+const themeLabel = (t: (typeof THEMES)[number]['id']) => THEMES.find((x) => x.id === t)?.label ?? 'Midnight'
+
+/** Cycles the chrome palettes in picker order. Persisted in localStorage; the
+ *  store applies data-theme to <html> so the first paint is already right. */
 function ThemeToggle() {
   const theme = useStore((s) => s.theme)
   const setTheme = useStore((s) => s.setTheme)
-  const dark = theme === 'dark'
+  const idx = Math.max(0, THEMES.findIndex((t) => t.id === theme))
+  const next = THEMES[(idx + 1) % THEMES.length]
   return (
     <button
       className="theme-toggle"
-      title={dark ? 'Switch to the light (paper) theme' : 'Switch to the dark theme'}
-      aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
-      onClick={() => setTheme(dark ? 'light' : 'dark')}
+      title={`${themeLabel(theme)} — click for ${next.label} (${next.blurb})`}
+      aria-label={`Theme: ${themeLabel(theme)}. Switch to ${next.label}`}
+      onClick={() => setTheme(next.id)}
     >
-      <span className="knob" aria-hidden>{dark ? '☾' : '☀'}</span>
-      <span className="lbl">{dark ? 'Dark' : 'Light'}</span>
+      <span className="knob" aria-hidden>{isLightTheme(theme) ? '☀' : '☾'}</span>
+      <span className="lbl">{themeLabel(theme)}</span>
     </button>
   )
 }

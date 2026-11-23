@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { SealedBackfillStatus, SaveBackupRow } from '../api'
-import { useStore } from '../store'
+import { THEMES, useStore } from '../store'
 import { EmptyState, fmtDate, fmtUsd, LoadFailure } from '../components'
 import { soundEnabled, setSoundEnabled } from '../audio'
 
@@ -10,6 +10,7 @@ type SyncInfo = NonNullable<Awaited<ReturnType<typeof api.syncProgress>>>
 
 export function SettingsView() {
   const { toast, refreshState, state: st, theme, setTheme, foil, setFoil } = useStore()
+  const current = THEMES.find((t) => t.id === theme) ?? THEMES[0]
   const replayTutorial = async () => {
     await api.tutorialReplay()
     await refreshState()
@@ -557,16 +558,21 @@ export function SettingsView() {
 
       <div className="panel mt14">
         <h2>Appearance</h2>
-        <div className="row" style={{ alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span className="chip-row">
-            <span className={`chip ${theme === 'dark' ? 'on' : ''}`} onClick={() => setTheme('dark')}>☾ Dark</span>
-            <span className={`chip ${theme === 'light' ? 'on' : ''}`} onClick={() => setTheme('light')}>☀ Light</span>
-          </span>
-          <span className="faint small">
-            {theme === 'dark'
-              ? 'Dark — the night chrome: card art carries the colour.'
-              : 'Light — the paper TCG look: white cards on a blue-checked playmat.'}
-          </span>
+        <div className="row" style={{ alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {THEMES.map((t) => (
+            <span
+              key={t.id}
+              className={`theme-swatch ${theme === t.id ? 'on' : ''}`}
+              onClick={() => setTheme(t.id)}
+              title={`${t.label} — ${t.blurb}`}
+            >
+              {t.swatch.map((c) => <i key={c} style={{ background: c }} />)}
+              <b>{t.label}</b>
+            </span>
+          ))}
+        </div>
+        <div className="faint small" style={{ marginTop: 8 }}>
+          {current.label} — {current.blurb}
         </div>
         <div className="row" style={{ alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
           <button className={foil ? 'ghost' : 'primary'} onClick={() => setFoil(!foil)}>

@@ -219,8 +219,28 @@ function repairPhantomRarities() {
 //    whole set is filed as foil.
 // 10: Prismatic Evolutions, Black Bolt and White Flare moved onto their own
 //    measured tier ladders, so tables built by 9 still deal the era's rates.
+// 11: the 30th Celebration UPC now opens its Classic Collection wrapper too, so
+//    the subset needs the three-card table nothing else built for it.
+// 12: Celebrations deals its Classic Collection reprint in the third slot and its
+//    measured V/VMAX/full-art/secret ladder, so a table built by 11 has no subset
+//    pool (no Celebrations wrapper could produce a reprint) and files the gold
+//    secret Mew in the plain holo pool.
+// 13: every hit tier is resolved through `tierOddsSource`, which matches labels
+//    ignoring case and separators, and the tiers that were falling through to the
+//    legacy table now have researched figures: EX-era ex cards 1 in 18 (was 1 in
+//    17 on the table plus Power Keepers filed under DP), ACE SPEC 1 in 18-24
+//    (was 1 in 50), BREAK 1 in 11 (was 1 in 33), Shining Legends' Shining 1 in
+//    11.3 and its whole ladder, Crown Zenith's full rare-slot ladder, Amazing
+//    Rare 1 in 17.5 and Ascended Heroes' Mega Attack Rare, which arrived labelled
+//    MEGA_ATTACK_RARE and so never matched its 1-in-29 override.
+// 14: Amazing Rare has a row of its own per set (Vivid Voltage 1 in 17.5,
+//    Shining Fates 1 in 17.4) instead of the era profile handing one set the
+//    other's count.
+// 15: Shining Fates' remaining rare-slot rows are its own counts (V 1 in 9.2
+//    against the era's 1 in 5.3, VMAX 1 in 18.4, full art 1 in 30.8, rainbow 1
+//    in 84), so its table no longer deals Sword & Shield's ladder.
 function migratePullTableRarities() {
-  const VERSION = '10'
+  const VERSION = '15'
   if (getMeta('packs:tableVersion') === VERSION) return
   sealed.ensureFullCatalog()
   const ids = db
@@ -235,6 +255,7 @@ function migratePullTableRarities() {
       console.warn('[packs] pull table rebuild failed for', id, err instanceof Error ? err.message : err)
     }
   }
+  packs.buildInBoxSubsetTables()
   setMeta('packs:tableVersion', VERSION)
   console.log(`[packs] rebuilt ${n} pull table(s) on the real rarity ladder`)
 }
@@ -252,6 +273,9 @@ function rebuildPullTables() {
   for (const { id } of setIds) {
     try { packs.buildPullTable(id) } catch (e) { console.error('[packs] pull table failed for', id, e) }
   }
+  // The subset wrappers a box holds have no product row, so the query above
+  // never reaches them; build those tables explicitly.
+  packs.buildInBoxSubsetTables()
   setMeta('pullTablesBuiltAt', nowIso())
 }
 
@@ -1190,8 +1214,21 @@ app.get('/api/shop/products', (c) => {
 // The expensive half of a shelf row: price, EV, Sequin odds and slot plan for
 // one product. The Shop asks for the selected product and for bays as they
 // scroll into view, so the first paint never waits for 500 pack models.
+/**
+ * True for a product row a player is allowed to see. The catalogue keeps a few
+ * pull-table hosts that no shelf carried (the 30th UPC's Classic Collection
+ * wrapper among them); they exist for the opener only, so every shop-facing
+ * endpoint answers "unknown" for them rather than pricing or describing them.
+ */
+function hiddenFromPlayer(productId: string): boolean {
+  const row = db.prepare('SELECT set_id FROM pack_products WHERE id = ?').get(productId) as { set_id: string } | undefined
+  return !row || !sealed.sellsProduct(productId, row.set_id)
+}
+
 app.get('/api/shop/products/:productId/detail', (c) => {
-  const detail = shopCatalog.productDetail(c.req.param('productId'))
+  const productId = c.req.param('productId')
+  if (hiddenFromPlayer(productId)) return c.json({ error: 'Unknown product' }, 404)
+  const detail = shopCatalog.productDetail(productId)
   if (!detail) return c.json({ error: 'Unknown product' }, 404)
   return c.json(detail)
 })
@@ -1201,7 +1238,9 @@ app.get('/api/shop/products/:productId/detail', (c) => {
 app.post('/api/shop/products/details', async (c) => {
   const body = await c.req.json<{ ids?: unknown }>().catch(() => ({}) as { ids?: unknown })
   const ids = Array.isArray(body.ids)
-    ? [...new Set(body.ids.filter((id): id is string => typeof id === 'string' && id.length <= 120))].slice(0, 600)
+    ? [...new Set(body.ids.filter((id): id is string => typeof id === 'string' && id.length <= 120))]
+        .filter((id) => !hiddenFromPlayer(id))
+        .slice(0, 600)
     : []
   return c.json(shopCatalog.productDetails(ids))
 })
@@ -1216,7 +1255,9 @@ app.get('/api/shop/daily-deals/history', (c) => c.json(dailydeals.historyForPlay
 app.get('/api/shop/products/:productId/manifest', (c) => {
   ensurePackCatalog()
   sealed.ensureFullCatalog()
-  const manifest = productManifest.productManifest(c.req.param('productId'))
+  const productId = c.req.param('productId')
+  if (hiddenFromPlayer(productId)) return c.json({ error: 'Unknown product' }, 404)
+  const manifest = productManifest.productManifest(productId)
   if (!manifest) return c.json({ error: 'Unknown product' }, 404)
   return c.json(manifest)
 })
@@ -2859,8 +2900,13 @@ repairPhantomRarities()
 // Black Bolt 171 and White Flare 172 arrived labelled plain "Rare", which filed
 // two ~$700 Black White Rares into the 1-in-18 rare pool and priced each pack at
 // roughly $105. Relabel them and rebuild those two tables before the catalog loads.
-import { repairBlackWhiteRarities } from './catalog/rarity-repairs'
+import { repairBlackWhiteRarities, repairCelebrationsSecrets } from './catalog/rarity-repairs'
 repairBlackWhiteRarities()
+// Celebrations 025/025 Mew is that set's one secret rare (TCGplayer sells it as
+// "Mew (Secret)"), and it shipped labelled "Rare Holo", so a four-card
+// Celebrations wrapper dealt a 1-in-150 card from its holo pool three times per
+// pack. Relabel it before the pack tables are built.
+repairCelebrationsSecrets()
 import { applyPromoCards } from './catalog/promo-cards'
 applyLocalReleases()
 // Two SVP promos the upstream catalogue has not published yet: without rows the

@@ -1,7 +1,8 @@
-// Two secret rares arrived from the upstream catalogue labelled plain "Rare":
-// Black Bolt 171/086 Victini and White Flare 172/086 Victini. Both are the sets'
-// Black White Rare chase cards (TCGdex names both "Black White Rare"), and a
-// secret number cannot be a plain rare.
+// Cards the upstream catalogue files below their real tier, which the pack
+// builder then deals out of the bulk pool. Two secret rares arrived labelled
+// plain "Rare": Black Bolt 171/086 Victini and White Flare 172/086 Victini.
+// Both are the sets' Black White Rare chase cards (TCGdex names both "Black
+// White Rare"), and a secret number cannot be a plain rare.
 //
 // The mislabel was expensive: the pull-table builder files a "Rare" card into the
 // 1-in-18 holo pool, so a $615/$533 card was being dealt as often as a bulk rare.
@@ -19,18 +20,39 @@ const CARDS = [
 ] as const
 
 export function repairBlackWhiteRarities(): { repaired: number } {
-  const update = db.prepare(`UPDATE cards SET rarity = 'Black White Rare' WHERE id = ? AND (rarity IS NULL OR rarity <> 'Black White Rare')`)
+  return relabel(CARDS, 'Black White Rare')
+}
+
+// Celebrations' gold Mew (025/025) arrived labelled "Rare Holo" like the rest of
+// the set. That filed the 1-in-150 secret rare into the holo pool, so a four-card
+// Celebrations wrapper dealt it about three times per pack instead of once in 150
+// packs — the same failure the two Victini rows above had. TCGplayer sells the
+// card as "Mew (Secret)" with Rarity=Secret Rare, and the set's published pull
+// rates list one secret rare at 1 in 150 packs.
+const CELEBRATIONS_SECRETS = [{ id: 'cel25-25', set: 'cel25', name: 'Mew' }] as const
+
+/** Celebrations prints one secret rare: relabel it so the hit pool can hold it. */
+export function repairCelebrationsSecrets(): { repaired: number } {
+  return relabel(CELEBRATIONS_SECRETS, 'Secret Rare', 4)
+}
+
+function relabel(
+  cards: readonly { id: string; set: string; name: string }[],
+  rarity: string,
+  cardsPerPack = 10,
+): { repaired: number } {
+  const update = db.prepare('UPDATE cards SET rarity = ? WHERE id = ? AND (rarity IS NULL OR rarity <> ?)')
   let repaired = 0
   const sets = new Set<string>()
-  for (const c of CARDS) {
-    if (update.run(c.id).changes > 0) {
+  for (const c of cards) {
+    if (update.run(rarity, c.id, rarity).changes > 0) {
       repaired++
       sets.add(c.set)
     }
   }
-  for (const setId of sets) buildPullTable(setId, 10)
+  for (const setId of sets) buildPullTable(setId, cardsPerPack)
   if (repaired > 0) {
-    console.log(`[catalog] relabelled ${repaired} Black White Rare card(s) and rebuilt their pull tables`)
+    console.log(`[catalog] relabelled ${repaired} ${rarity} card(s) and rebuilt their pull tables`)
   }
   return { repaired }
 }

@@ -1,25 +1,24 @@
-// The bonus subsets now ride inside their host set's booster: one subset card in
-// the reverse-holo position, five commons, the rare-or-hit, three uncommons.
-// The subset sets themselves stay unsold (no wrapper existed on a real shelf).
+// The bonus subsets ride inside their host set's booster. Pins, per host: the
+// wrapper's real card count, a subset card only in the subset slot, the subset
+// rate the code claims, and the till printing that slot.
 //
-// Pins, per host: ten cards, exactly one subset card, at position 5, all nine
-// others from the host set, no reverse printing in that slot, and the till
-// showing a "Bonus subset" line. Also pins the eight unsold sets and
-// Celebrations' real four-card pack.
+// The subset sets themselves stay unsold (no wrapper existed on a real shelf).
+// Celebrations is the odd one: its subset shares a four-card foil wrapper with
+// the main set and prints no reverse holo at all.
 //   TCGLIFE_HOME=$PWD/tmp/audit-home node ./node_modules/tsx/dist/cli.mjs tmp/check-subset-packs.ts
 import { productsForSet, sellsOwnPacks } from '../server/services/sealed'
-import { rollPack, estimatePackValue } from '../server/services/packs'
-import { packSlots, HOST_SUBSETS } from '../server/services/packodds'
+import { rollPack, estimatePackValue, buildPullTable } from '../server/services/packs'
+import { packSlots, planFor, subsetChanceFor, HOST_SUBSETS } from '../server/services/packodds'
 import { db } from '../server/lib/db'
 
-const N = Number(process.env.SUBSET_PACKS ?? 200)
+const N = Number(process.env.SUBSET_PACKS ?? 400)
 let fails = 0
 const fail = (msg: string) => {
   fails++
   console.log('FAIL', msg)
 }
 
-const unsold = ['sma', 'swsh45sv', 'swsh9tg', 'swsh10tg', 'swsh11tg', 'swsh12tg', 'swsh12pt5gg', 'sve']
+const unsold = ['sma', 'swsh45sv', 'swsh9tg', 'swsh10tg', 'swsh11tg', 'swsh12tg', 'swsh12pt5gg', 'sve', 'cel25c']
 for (const setId of unsold) {
   const row = db.prepare('SELECT name, series, release_date FROM sets WHERE id = ?').get(setId) as
     | { name: string; series: string; release_date: string }
@@ -33,64 +32,91 @@ for (const setId of unsold) {
 const idsOf = (setId: string) =>
   new Set((db.prepare('SELECT id FROM cards WHERE set_id = ?').all(setId) as { id: string }[]).map((r) => r.id))
 
+/** Where the subset slot sits in the wrapper, counting the cards before it. */
+function subsetIndex(setId: string, cardsPerPack: number): number {
+  let at = 0
+  for (const slot of planFor(setId, cardsPerPack)) {
+    if (slot.slot === 'subset') return at
+    at += slot.count
+  }
+  return -1
+}
+
+// Rebuild each host's table first: this runs on a save copy, and a table built
+// by an older build would test the old shape rather than the shipped one.
+buildPullTable('cel25', 4)
+
 for (const [host, subset] of Object.entries(HOST_SUBSETS)) {
+  const cardsPerPack = host === 'cel25' ? 4 : 10
+  buildPullTable(host, cardsPerPack)
   const hostIds = idsOf(host)
   const subsetIds = idsOf(subset)
-  const slots = packSlots(host, 10)
-  const bonusSlot = slots.find((s) => s.slot === 'subset')
+  const slots = packSlots(host, cardsPerPack)
   const shape = slots.reduce((a, s) => a + s.count, 0)
+  const bonusAt = subsetIndex(host, cardsPerPack)
+  const chance = subsetChanceFor(host)
   const counts = new Map<number, number>()
   let wrongPosition = 0
   let foreign = 0
-  let reverseInSlot = 0
-  let hostCards = 0
   let subsetCards = 0
+  let reverseSubset = 0
   for (let i = 0; i < N; i++) {
-    const pack = rollPack(host, `hostsub-${host}-${i}`, 'booster', 10) ?? []
+    const pack = rollPack(host, `hostsub-${host}-${i}`, 'booster', cardsPerPack) ?? []
     counts.set(pack.length, (counts.get(pack.length) ?? 0) + 1)
-    const at = pack[5]
-    if (!at || !subsetIds.has(at.cardId)) wrongPosition++
-    if (at && hostIds.has(at.cardId)) foreign++
-    if (at && /reverse/i.test(at.variant ?? '')) reverseInSlot++
-    for (const c of pack) {
-      if (hostIds.has(c.cardId)) hostCards++
-      else if (subsetIds.has(c.cardId)) subsetCards++
-      else foreign++
-    }
+    pack.forEach((card, at) => {
+      const isSubset = subsetIds.has(card.cardId)
+      if (isSubset) {
+        subsetCards++
+        if (at !== bonusAt) wrongPosition++
+        if (/reverse/i.test(card.variant ?? '')) reverseSubset++
+      } else if (!hostIds.has(card.cardId)) foreign++
+    })
   }
   db.prepare('DELETE FROM pull_history WHERE session_id LIKE ?').run(`hostsub-${host}-%`)
-  const ten = counts.size === 1 && counts.has(10)
-  const oneSubset = subsetCards === N && hostCards === 9 * N && foreign === 0
-  const tillOk = !!bonusSlot && bonusSlot.count === 1 && bonusSlot.label === 'Bonus subset' && shape === 10
+  const sizeOk = counts.size === 1 && counts.has(cardsPerPack) && shape === cardsPerPack
+  const rate = subsetCards / N
+  const rateOk = chance >= 1 ? Math.abs(rate - 1) < 1e-9 : Math.abs(rate - chance) <= 0.09
+  const bonusSlot = slots.find((s) => s.slot === 'subset')
+  const tillOk = !!bonusSlot && bonusSlot.count === 1
   const est = estimatePackValue(host)
-  const ok = ten && oneSubset && wrongPosition === 0 && reverseInSlot === 0 && tillOk && est.avg > 0
-  if (!ok) fail(`${host}: ten ${ten}, oneSubset ${oneSubset}, wrongPosition ${wrongPosition}, reverseInSlot ${reverseInSlot}, till ${tillOk}`)
+  const ok = sizeOk && rateOk && wrongPosition === 0 && reverseSubset === 0 && foreign === 0 && tillOk && est.avg > 0
+  if (!ok) {
+    fail(`${host}: size ${sizeOk} (${[...counts.entries()].map(([n, c]) => `${n}×${c}`).join(', ')}), subset ${rate.toFixed(2)} vs ${chance}, off-slot ${wrongPosition}, reverse ${reverseSubset}, foreign ${foreign}, till ${tillOk}`)
+  }
   console.log(
-    `${ok ? 'ok  ' : 'FAIL'} ${host} <- ${subset}: ${[...counts.entries()].map(([n, c]) => `${n}×${c}`).join(', ')}`,
-    `| subset ${subsetCards}/${N} at index 5 ${wrongPosition === 0 ? 'ok' : `${wrongPosition} miss`}`,
-    `| host ${hostCards}/${9 * N} | foreign ${foreign} | reverse ${reverseInSlot}`,
-    `| till ${slots.map((s) => `${s.count} ${s.label}`).join(' + ')} | est $${est.avg.toFixed(2)}`,
+    `${ok ? 'ok  ' : 'FAIL'} ${host} <- ${subset}: ${cardsPerPack} cards, subset ${(rate * 100).toFixed(1)}% (want ${(chance * 100).toFixed(1)}%) at card ${bonusAt + 1}`,
+    `| foreign ${foreign} | till ${slots.map((s) => `${s.count} ${s.label}`).join(' + ')} | est $${est.avg.toFixed(2)}`,
   )
 }
 
-// Celebrations: real four-card pack, unchanged.
+// Celebrations: four cards, a Classic Collection reprint in the third slot of
+// about two packs in five, and every card a foil main-set or reprint card.
 {
-  const setId = 'cel25'
-  const want = 4
-  const own = idsOf(setId)
-  const slots = packSlots(setId, 10)
-  const shape = slots.reduce((a, s) => a + s.count, 0)
+  const hostIds = idsOf('cel25')
+  const classic = idsOf('cel25c')
   const counts = new Map<number, number>()
   let foreign = 0
+  let reverse = 0
+  let wrongSlot = 0
+  let classicCards = 0
   for (let i = 0; i < N; i++) {
-    const pack = rollPack(setId, `subsetcheck-${setId}-${i}`, 'booster', 10)
-    counts.set(pack?.length ?? 0, (counts.get(pack?.length ?? 0) ?? 0) + 1)
-    for (const c of pack ?? []) if (!own.has(c.cardId)) foreign++
+    const pack = rollPack('cel25', `subsetcheck-cel25-${i}`, 'booster', 4) ?? []
+    counts.set(pack.length, (counts.get(pack.length) ?? 0) + 1)
+    pack.forEach((c, at) => {
+      if (/reverse/i.test(c.variant ?? '')) reverse++
+      if (classic.has(c.cardId)) {
+        classicCards++
+        if (at !== 2) wrongSlot++
+      } else if (!hostIds.has(c.cardId)) foreign++
+    })
   }
-  db.prepare('DELETE FROM pull_history WHERE session_id LIKE ?').run(`subsetcheck-${setId}-%`)
-  const ok = counts.size === 1 && counts.has(want) && foreign === 0 && shape === want
-  if (!ok) fail(`cel25: dealt ${[...counts.keys()].join('/')} want ${want}, foreign ${foreign}`)
-  console.log(`${ok ? 'ok  ' : 'FAIL'} cel25: dealt ${[...counts.entries()].map(([n, c]) => `${n}×${c}`).join(', ')} | till ${slots.map((s) => `${s.count} ${s.slot}`).join(' + ')}`)
+  db.prepare('DELETE FROM pull_history WHERE session_id LIKE ?').run('subsetcheck-cel25-%')
+  const rate = classicCards / N
+  const ok = counts.size === 1 && counts.has(4) && foreign === 0 && wrongSlot === 0 && reverse === 0 && rate > 0.34 && rate < 0.46
+  if (!ok) fail(`cel25: dealt ${[...counts.keys()].join('/')} cards, foreign ${foreign}, classic ${rate.toFixed(2)} at ${wrongSlot} off-slot, reverse ${reverse}`)
+  console.log(
+    `${ok ? 'ok  ' : 'FAIL'} cel25: four cards, Classic Collection ${(rate * 100).toFixed(1)}% in the third slot | till ${packSlots('cel25', 4).map((s) => `${s.count} ${s.label}`).join(' + ')}`,
+  )
 }
 
 console.log(fails === 0 ? `all ${unsold.length + Object.keys(HOST_SUBSETS).length + 1} subset checks OK` : `${fails} failing`)

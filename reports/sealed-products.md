@@ -1,23 +1,37 @@
 # Sealed products, every product
 
-Swept 535 sealed products across 132 sets; 529 offered for sale, 3 hidden pull-table hosts, 3 mini packs with their own composition. Each set is dealt 40 packs.
+Swept 536 sealed products across 133 sets; 529 offered for sale, 4 hidden pull-table hosts, 3 mini packs with their own composition. Each set is dealt 40 packs.
 
 ## Summary
 
 | | Products |
 |---|---:|
 | Offered for sale | 529 |
-| Hidden (pull-table hosts) | 3 |
+| Hidden (pull-table hosts) | 4 |
 | Mini packs (own composition) | 3 |
-| Failures | 0 |
+| Failures | 5 |
 
 ## Failures
 
-None: every offered product deals its declared pack and clears its expected-value floor.
+| Product | Set | Kind | Declared | Blueprint | Dealt | Issues |
+|---|---|---|---:|---:|---:|---|
+| me6-display | Delta Reign | display | 10 | 10 | 10 (avg 10.00) | rip-positive |
+| me5-display | Pitch Black | display | 10 | 10 | 10 (avg 10.00) | rip-positive |
+| me6-booster | Delta Reign | booster | 10 | 10 | 10 (avg 10.00) | rip-positive |
+| sv6pt5-bundle | Shrouded Fable | bundle | 10 | 10 | 10 (avg 10.00) | rip-positive |
+| me6-bundle | Delta Reign | bundle | 10 | 10 | 10 (avg 10.00) | rip-positive |
 
 ## Rip-positive products (pricing failures)
 
-None: no offered product has an expected value more than 1.25× its shelf price.
+These are failures: the audit exits non-zero until the product is priced at or above its expected pull value.
+
+| Product | Set | Kind | EV/product | Shelf price | EV ÷ price |
+|---|---|---|---:|---:|---:|
+| me6-display | Delta Reign | display | $285.84 | $187.23 | 1.53× |
+| me5-display | Pitch Black | display | $234.00 | $173.83 | 1.35× |
+| me6-booster | Delta Reign | booster | $7.94 | $5.91 | 1.34× |
+| sv6pt5-bundle | Shrouded Fable | bundle | $72.36 | $56.49 | 1.28× |
+| me6-bundle | Delta Reign | bundle | $47.64 | $38.10 | 1.25× |
 
 ## Pull-table hosts (not sold)
 
@@ -28,6 +42,7 @@ These rows are kept only as internal pull-table hosts: the real products for tho
 | dc1 | 1 |
 | dv1 | 1 |
 | g1 | 1 |
+| me55c | 1 |
 
 ## Mini packs
 
@@ -55,23 +70,23 @@ Each set is dealt 40 packs through the same roller the shop uses; the blueprint 
 | me6-etb-pc | Delta Reign | etb | 10 | 10 (avg 10.00) | 141 |
 | me6-single-blister | Delta Reign | special | 10 | 10 (avg 10.00) | 141 |
 | me6-triple-blister | Delta Reign | special | 10 | 10 (avg 10.00) | 141 |
-| me55-2pack-blister | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-binder | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-booster | 30th Celebration | booster | 10 | 10 (avg 10.00) | 161 |
-| me55-bundle | 30th Celebration | bundle | 10 | 10 (avg 10.00) | 161 |
-| me55-ditto-premium | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-etb | 30th Celebration | etb | 10 | 10 (avg 10.00) | 161 |
-| me55-etb-pc | 30th Celebration | etb | 10 | 10 (avg 10.00) | 161 |
-| me55-figure-mew | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-figure-mewtwo | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-greninja-ex-box | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-knockout | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-mini-tin | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-poster | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-sylveon-ex-box | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-tech-sticker | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-upc-day | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
-| me55-upc-night | 30th Celebration | special | 10 | 10 (avg 10.00) | 161 |
+| me55-2pack-blister | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-binder | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-booster | 30th Celebration | booster | 6 | 6 (avg 6.00) | 161 |
+| me55-bundle | 30th Celebration | bundle | 6 | 6 (avg 6.00) | 161 |
+| me55-ditto-premium | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-etb | 30th Celebration | etb | 6 | 6 (avg 6.00) | 161 |
+| me55-etb-pc | 30th Celebration | etb | 6 | 6 (avg 6.00) | 161 |
+| me55-figure-mew | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-figure-mewtwo | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-greninja-ex-box | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-knockout | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-mini-tin | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-poster | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-sylveon-ex-box | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-tech-sticker | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-upc-day | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
+| me55-upc-night | 30th Celebration | special | 6 | 6 (avg 6.00) | 161 |
 | me5-booster | Pitch Black | booster | 10 | 10 (avg 10.00) | 120 |
 | me5-build-battle | Pitch Black | special | 10 | 10 (avg 10.00) | 120 |
 | me5-bundle | Pitch Black | bundle | 10 | 10 (avg 10.00) | 120 |
@@ -303,14 +318,14 @@ Each set is dealt 40 packs through the same roller the shop uses; the blueprint 
 | swsh8-display | Fusion Strike | display | 10 | 10 (avg 10.00) | 284 |
 | swsh8-etb | Fusion Strike | etb | 10 | 10 (avg 10.00) | 284 |
 | swsh8-etb-pc | Fusion Strike | etb | 10 | 10 (avg 10.00) | 284 |
-| cel25-booster | Celebrations | booster | 4 | 4 (avg 4.00) | 25 |
-| cel25-deluxe-pin | Celebrations | special | 4 | 4 (avg 4.00) | 25 |
-| cel25-dragapult-prime | Celebrations | special | 4 | 4 (avg 4.00) | 25 |
-| cel25-etb | Celebrations | etb | 4 | 4 (avg 4.00) | 25 |
-| cel25-pikachu-v-union | Celebrations | special | 4 | 4 (avg 4.00) | 25 |
-| cel25-premium-figure | Celebrations | special | 4 | 4 (avg 4.00) | 25 |
-| cel25-upc | Celebrations | special | 4 | 4 (avg 4.00) | 25 |
-| cel25-v-memories | Celebrations | special | 4 | 4 (avg 4.00) | 25 |
+| cel25-booster | Celebrations | booster | 4 | 4 (avg 4.00) | 50 |
+| cel25-deluxe-pin | Celebrations | special | 4 | 4 (avg 4.00) | 50 |
+| cel25-dragapult-prime | Celebrations | special | 4 | 4 (avg 4.00) | 50 |
+| cel25-etb | Celebrations | etb | 4 | 4 (avg 4.00) | 50 |
+| cel25-pikachu-v-union | Celebrations | special | 4 | 4 (avg 4.00) | 50 |
+| cel25-premium-figure | Celebrations | special | 4 | 4 (avg 4.00) | 50 |
+| cel25-upc | Celebrations | special | 4 | 4 (avg 4.00) | 50 |
+| cel25-v-memories | Celebrations | special | 4 | 4 (avg 4.00) | 50 |
 | swsh7-booster | Evolving Skies | booster | 10 | 10 (avg 10.00) | 237 |
 | swsh7-build-battle | Evolving Skies | special | 10 | 10 (avg 10.00) | 237 |
 | swsh7-display | Evolving Skies | display | 10 | 10 (avg 10.00) | 237 |

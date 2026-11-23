@@ -5,9 +5,11 @@
 // Measured per set, over N packs:
 //
 //   size      cards/pack against the plan after empty-pool slots drop out
-//   rare      exactly one rare-or-hit card where the set prints a rare
+//   rare      the plan's rare slots, plus the one a subset miss deals when the
+//             pack has no reverse printing to fall back to
 //   hit       hit rate against the set's own summed hit weights, within 3σ
-//   reverse   reverse printings against the era's reverse slots
+//   reverse   reverse printings against the era's reverse slots, or the host
+//             subset's miss rate where the subset card sits on that position
 //   energy    Basic Energy against the era profile, never two
 //   order     each position sitting in the slot's own pool
 //   variant   the finish a rare-slot card stores
@@ -15,8 +17,8 @@
 // Writes reports/pack-structure.{json,md}. Run on a copy of the save:
 //   TCGLIFE_HOME=$PWD/tmp/audit-home node ./node_modules/tsx/dist/cli.mjs tmp/check-pack-structure-all.ts
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { rollPack } from '../server/services/packs'
-import { planFor, eraOf, profileFor } from '../server/services/packodds'
+import { rollPack, stadiumHalvesFor, stadiumPairOddsFor } from '../server/services/packs'
+import { planFor, eraOf, profileFor, subsetChanceFor, subsetMissRule } from '../server/services/packodds'
 import { rareVariantFor } from '../server/services/finish-odds'
 import { isSpecialSet } from '../server/services/special-reverse'
 import { sellsOwnPacks } from '../server/services/sealed'
@@ -139,6 +141,25 @@ for (const set of sets) {
   const rareSlots = rareAvailable > 0 ? countOf('hit') + countOf('holo') : 0
   const reverseSlots = countOf('reverse') + countOf('reverse2')
   const energySlots = profile.energyInPack && pools.energy > 0 ? countOf('energy') : 0
+  // The subset rule the roller deals, judged here as it ships: a host set's
+  // missed reprint is a reverse printing (the slot it sits on), while a pack
+  // with no reverse printing at all (Celebrations) deals a plain foil rare
+  // instead — one more rare card than the plan's rare slots.
+  const subsetSlots = countOf('subset')
+  const subsetMiss = subsetMissRule(reversePoolSize > 0)
+  const subsetMissRate = subsetSlots > 0 ? 1 - subsetChanceFor(setId) : 0
+  const rareCeiling = rareSlots + (subsetMiss.pool === 'holo' ? subsetSlots : 0)
+  // A Legendary Stadium half is dealt outside the pools and can stand in for any
+  // non-hit card, the rare slot included, so it can cost the pack its rare and
+  // can sit anywhere in the order.
+  const stadiumIds = new Set(stadiumHalvesFor(setId))
+  const rareFloor = rareSlots - (stadiumIds.size > 0 ? 1 : 0)
+  // A pair is dealt after the pools and its halves are then swapped apart, so a
+  // stadium pack can hold a pool's card out of position and can lose a reverse
+  // slot's card to a half. A pair lands on a reverse slot in about half the
+  // packs it appears in (two halves among the pack's non-hit positions).
+  const stadiumPairOdds = stadiumPairOddsFor(setId)
+  const reverseBySlots = 1 - stadiumPairOdds / 2
 
   const msrp = (db.prepare('SELECT msrp FROM pack_products WHERE id = ?').get(`${setId}-booster`) as { msrp: number | null } | undefined)?.msrp ?? null
   const rareIds = new Set([...list.holo, ...list.hit].map((r) => r.card_id))
@@ -149,6 +170,8 @@ for (const set of sets) {
   const uncommonIds = new Set(list.uncommon.map((r) => r.card_id))
   const subsetIds = new Set(list.subset.map((r) => r.card_id))
   const phantomIds = new Set(list.phantom.map((r) => r.card_id))
+  /** Every card this set's pack may hold, Stadium halves included. */
+  const memberIds = new Set([...commonIds, ...uncommonIds, ...rareIds, ...energyIds, ...subsetIds, ...r2Ids, ...stadiumIds])
   const rarityOf = new Map(
     (db.prepare(`SELECT id, rarity FROM cards WHERE set_id = ?`).all(setId) as { id: string; rarity: string | null }[]).map((r) => [r.id, r.rarity]),
   )
@@ -168,7 +191,7 @@ for (const set of sets) {
     if (!cards) throw new Error(`no pull table for ${setId}`)
     const extra = cards.filter((c) => phantomIds.has(c.cardId)).length
     const pack = extra > 0 ? cards.slice(0, cards.length - extra) : cards
-    observedTotal += cards.length
+    observedTotal += pack.length
 
     const rareCount = pack.filter((c) => rareIds.has(c.cardId)).length
     rareMin = Math.min(rareMin, rareCount)
@@ -180,25 +203,33 @@ for (const set of sets) {
     if (energies > 0) energyPacks++
     energyMax = Math.max(energyMax, energies)
 
-    // Order: walk the plan in card order; every position belongs to its slot.
-    let at = 0
-    for (const s of slots) {
-      if (sourceSize(s.slot) === 0) continue
-      for (let k = 0; k < s.count; k++, at++) {
-        const card = pack[at]
-        if (!card) {
-          orderFail ||= `pack ended before slot ${s.slot}`
-          break
+    // Order. A stadium set is judged on membership alone: its halves are dealt
+    // after the pools and then swapped apart, so position no longer names a slot
+    // (a former half's place can hold any card). Every other set walks the plan
+    // in card order, because every position belongs to the slot it deals for.
+    if (stadiumIds.size > 0) {
+      const stranger = pack.find((c) => !memberIds.has(c.cardId))
+      if (stranger) orderFail ||= `${stranger.cardId} is not in any of ${setId}'s pools`
+    } else {
+      let at = 0
+      for (const s of slots) {
+        if (sourceSize(s.slot) === 0) continue
+        for (let k = 0; k < s.count; k++, at++) {
+          const card = pack[at]
+          if (!card) {
+            orderFail ||= `pack ended before slot ${s.slot}`
+            break
+          }
+          const ok =
+            s.slot === 'common' ? commonIds.has(card.cardId)
+              : s.slot === 'uncommon' ? uncommonIds.has(card.cardId)
+                : s.slot === 'reverse' || s.slot === 'reverse2' ? special || /^reverseHolofoil/.test(card.variant ?? '') || (s.slot === 'reverse2' && r2Ids.has(card.cardId))
+                  : s.slot === 'hit' ? rareAvailable === 0 || rareIds.has(card.cardId)
+                    : s.slot === 'energy' ? energyIds.has(card.cardId)
+                      : s.slot === 'subset' ? subsetIds.has(card.cardId) || (subsetMiss.pool === 'reverse' ? special || /^reverseHolofoil/.test(card.variant ?? '') : rareIds.has(card.cardId))
+                        : true
+          if (!ok) orderFail ||= `slot ${s.slot} position ${at} held ${card.cardId} (${card.variant})`
         }
-        const ok =
-          s.slot === 'common' ? commonIds.has(card.cardId)
-            : s.slot === 'uncommon' ? uncommonIds.has(card.cardId)
-              : s.slot === 'reverse' || s.slot === 'reverse2' ? special || /^reverseHolofoil/.test(card.variant ?? '') || (s.slot === 'reverse2' && r2Ids.has(card.cardId))
-                : s.slot === 'hit' ? rareAvailable === 0 || rareIds.has(card.cardId)
-                  : s.slot === 'energy' ? energyIds.has(card.cardId)
-                    : s.slot === 'subset' ? subsetIds.has(card.cardId)
-                      : true
-        if (!ok) orderFail ||= `slot ${s.slot} position ${at} held ${card.cardId} (${card.variant})`
       }
     }
 
@@ -206,7 +237,7 @@ for (const set of sets) {
     // different slot's card, so it is not counted here.
     if (!special) {
       for (const card of pack) {
-        if (!rareIds.has(card.cardId)) continue
+        if (!rareIds.has(card.cardId) || stadiumIds.has(card.cardId)) continue
         if (/^1stEdition/.test(card.variant ?? '')) continue
         const want = rareVariantFor(setId, rarityOf.get(card.cardId) ?? null)
         if (card.variant !== want) variantFail ||= `${card.cardId} stored ${card.variant}, expected ${want}`
@@ -220,11 +251,18 @@ for (const set of sets) {
   const hitSigma = Math.sqrt((expectedHitRate * (1 - expectedHitRate)) / N)
   const issues: Issue[] = []
   if (Math.abs(observedTotalAvg - expectedTotal) > 0.001) issues.push({ kind: 'size', detail: `${observedTotalAvg.toFixed(2)} cards/pack against the plan's ${expectedTotal}` })
-  if (rareSlots > 0 && !special && (rareMin !== rareSlots || rareMax !== rareSlots)) issues.push({ kind: 'rare', detail: `rare-or-hit per pack ${rareMin}–${rareMax}, expected ${rareSlots}` })
+  if (rareSlots > 0 && !special && (rareMin < rareFloor || rareMax > rareCeiling)) issues.push({ kind: 'rare', detail: `rare-or-hit per pack ${rareMin}–${rareMax}, expected ${rareFloor === rareCeiling ? rareCeiling : `${rareFloor}–${rareCeiling}`}` })
   if (rareSlots === 0 && rareMax > 0) issues.push({ kind: 'rare', detail: `no rare slot, but ${rareMax} rare-or-hit per pack` })
   if (Math.abs(hitObserved - expectedHitRate) > 3 * hitSigma + 1e-9) issues.push({ kind: 'hit', detail: `${(hitObserved * 100).toFixed(1)}% against ${(expectedHitRate * 100).toFixed(1)}% (3σ ${(3 * hitSigma * 100).toFixed(1)}%)` })
-  if (reverseSlots === 0 && reversePacks > 0) issues.push({ kind: 'reverse', detail: `${reversePacks}/${N} packs held a reverse, expected none` })
-  if (reverseSlots > 0 && !special && reversePacks !== N) issues.push({ kind: 'reverse', detail: `${reversePacks}/${N} packs held a reverse` })
+  // A subset miss sits on the reverse position, so packs with no reverse slot
+  // still carry one at exactly the miss rate — the roller's own rule, not a bug.
+  const reverseExpected = reverseSlots > 0 ? reverseBySlots : subsetMiss.pool === 'reverse' ? subsetMissRate * subsetSlots : 0
+  if (reverseSlots === 0 || (!special && reversePacks !== N)) {
+    const reverseSigma = Math.sqrt((reverseExpected * (1 - reverseExpected)) / N)
+    if (Math.abs(reversePacks / N - reverseExpected) > 3 * reverseSigma + 1e-9) {
+      issues.push({ kind: 'reverse', detail: `${reversePacks}/${N} packs held a reverse, expected ${(reverseExpected * 100).toFixed(1)}%` })
+    }
+  }
   if (rareAvailable > 0 && energySlots === 0 && energyPacks > 0) issues.push({ kind: 'energy', detail: `${energyPacks}/${N} packs held a Basic Energy, expected none` })
   if (energySlots > 0 && energyPacks !== N) issues.push({ kind: 'energy', detail: `${energyPacks}/${N} packs held a Basic Energy` })
   if (energyMax > 1) issues.push({ kind: 'energy', detail: `${energyMax} Basic Energies in one pack` })
@@ -233,6 +271,7 @@ for (const set of sets) {
   const notes: string[] = []
   if (rareAvailable === 0 && energyPacks > 0) notes.push('No rare printing in this table: the rare slot fills with a Basic Energy.')
   if (hitOnlyTable) notes.push('The rare slot has no non-hit pool to fall back to, so every card in the pack is a hit (the weights describe a rare slot, not the pack).')
+  if (stadiumIds.size > 0) notes.push('Legendary Stadium halves are dealt after the pools and swapped apart, so this set is checked for pool membership rather than slot order, and its reverse count allows for the pair landing on a reverse slot.')
 
   rows.push({
     setId,
@@ -360,7 +399,7 @@ md.push(`Subset-only sets make no sealed product of their own, so their leftover
 md.push('')
 md.push('## Method')
 md.push('')
-md.push(`Each set is dealt ${N} packs. A wrong card count, a rare-or-hit count other than one, a hit rate outside 3σ, a reverse or Basic Energy that should not be there, a card out of its slot or a wrong finish is an outlier. With ${rows.length} sets, about ${(rows.length * 0.0027).toFixed(1)} three-sigma flags per sweep are expected from chance alone, so a flagged set is re-drawn at a larger N before it is believed.`)
+md.push(`Each set is dealt ${N} packs. A wrong card count, a rare-or-hit count outside the plan's slots (plus the foil rare a subset miss deals where the pack prints no reverse), a hit rate outside 3σ, a reverse or Basic Energy that should not be there, a card out of its slot or a wrong finish is an outlier. A host subset's miss rate is measured where the subset card sits on the reverse position, and a Legendary Stadium half is allowed in any non-hit position because it is dealt outside the pools. With ${rows.length} sets, about ${(rows.length * 0.0027).toFixed(1)} three-sigma flags per sweep are expected from chance alone, so a flagged set is re-drawn at a larger N before it is believed.`)
 md.push('')
 md.push('## Per-set numbers')
 md.push('')

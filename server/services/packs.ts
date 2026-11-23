@@ -2,11 +2,11 @@ import { db, nowIso, logActivity, getMeta, setMeta } from '../lib/db'
 import { markCatalogChanged, onDerivedDataChanged } from '../lib/derived-cache'
 import { valueOf, firstEditionValueOf, round2 } from './market'
 import * as sealed from './sealed'
-import { mixedPackSetId, sealedEvidenceFor } from '../catalog/sealed-evidence'
+import { mixedPackSpec, sealedEvidenceFor } from '../catalog/sealed-evidence'
 import * as dailydeals from './dailydeals'
 import * as vault from './vault'
 import { rollMiniPack } from './gmpacks'
-import { planFor, profileFor, eraOf, upgradeOdds, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, SUBSET_TIER_ODDS, HOST_SUBSETS, type SecondSlotOutcome } from './packodds'
+import { planFor, profileFor, eraOf, SET_UPGRADE_OVERRIDE, SET_SIR_OVERRIDE, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, subsetMiss, SUBSET_TIER_ODDS, HOST_SUBSETS, type SecondSlotOutcome } from './packodds'
 import { rareVariantFor } from './finish-odds'
 import { ascendedVariantFor } from '../../src/foil/ball-stamps'
 import {
@@ -170,7 +170,10 @@ const RARITY_RANK: Record<string, number> = {
   'Rare Shiny': 5, 'Shiny Rare': 5, 'Rare Shining': 5, 'Rare Prism Star': 5,
   'Rare ACE': 5, 'ACE SPEC Rare': 5, 'Amazing Rare': 5, 'Radiant Rare': 5,
   'Trainer Gallery Rare Holo': 5,
-  'Special Illustration Rare': 6, 'Rare SECRET': 6, 'Rare Secret': 6,
+  // TCGplayer spells the same tier "Secret Rare"; Celebrations' gold Mew is
+  // labelled that way, and without this line the label fell through to rank 1
+  // and filed a 1-in-150 card in the common pool.
+  'Special Illustration Rare': 6, 'Rare SECRET': 6, 'Rare Secret': 6, 'Secret Rare': 6,
   'Rare Rainbow': 6, 'Rare Shiny GX': 6, 'Shiny Ultra Rare': 6, 'Rare Holo Star': 6,
   'Hyper Rare': 7, 'Mega Hyper Rare': 7, 'MEGA_ATTACK_RARE': 7, 'Black White Rare': 7,
   'Futuristic Rare': 7,
@@ -192,7 +195,7 @@ const SUBSET_RARITIES = new Set(['Pikachu Rare', 'Classic Collection'])
  */
 export const TIER_ODDS: Record<string, number> = {
   'Double Rare': 0.20, 'Illustration Rare': 0.19, 'Special Illustration Rare': 0.049,
-  'Ultra Rare': 0.06, 'Rare Ultra': 0.05, 'Rare SECRET': 0.02, 'Rare Secret': 0.02,
+  'Ultra Rare': 0.06, 'Rare Ultra': 0.05, 'Rare SECRET': 0.02, 'Rare Secret': 0.02, 'Secret Rare': 0.02,
   'Rare Rainbow': 0.015, 'Hyper Rare': 0.02, 'Mega Hyper Rare': 0.02, 'MEGA_ATTACK_RARE': 0.02,
   'Black White Rare': 0.01, 'Futuristic Rare': 0.008,
   'Rare Holo EX': 0.06, 'Rare Holo GX': 0.06, 'Rare Holo V': 0.06,
@@ -202,6 +205,45 @@ export const TIER_ODDS: Record<string, number> = {
   'Shiny Ultra Rare': 0.02, 'Rare Holo Star': 0.01, 'Rare Prism Star': 0.02,
   'Rare ACE': 0.02, 'ACE SPEC Rare': 0.02, 'Amazing Rare': 0.05, 'Radiant Rare': 0.05,
   'Trainer Gallery Rare Holo': 0.10,
+}
+
+/** A tier name with case and separators flattened, for label matching. */
+const tierKey = (s: string) => s.toLowerCase().replace(/[^a-z]+/g, ' ').trim()
+
+/**
+ * The per-pack odds a set deals a hit tier at, and where the figure comes from.
+ *
+ * `set` is a measured row for this set, `era` its era profile, `table` the
+ * legacy table (real, but not this set's own figure) and `generic` the 1-in-50
+ * last resort. Every caller reads the figure here.
+ *
+ * The labels are written by hand and by the local release files, so exact
+ * matching silently lost researched figures: the catalogue says "Rare Holo EX"
+ * where the era profile said "Rare Holo ex", and Ascended Heroes' new tier
+ * arrives as "MEGA_ATTACK_RARE" against an override that spells it out. Both
+ * were dealt at the legacy table instead of the rate someone had counted, so
+ * matching now ignores case and separators.
+ */
+export type TierOddsKind = 'set' | 'era' | 'table' | 'generic'
+
+export function tierOddsSource(setId: string, rarity: string): { odds: number; kind: TierOddsKind } {
+  const want = tierKey(rarity)
+  // A set's own SIR figure outranks its other rows, which is the order
+  // `upgradeOdds` merges them in.
+  const sir = SET_SIR_OVERRIDE[setId]
+  if (sir !== undefined && want === tierKey('Special Illustration Rare')) return { odds: sir, kind: 'set' }
+  // Highest authority first. The table that names the tier answers with its rate
+  // AND its name in the same step, so the figure cannot be resolved from one
+  // table and attributed to another.
+  const sources: [TierOddsKind, Record<string, number>][] = [
+    ['set', SET_UPGRADE_OVERRIDE[setId] ?? {}],
+    ['era', profileFor(setId).upgrade],
+    ['table', TIER_ODDS],
+  ]
+  for (const [kind, rows] of sources) {
+    for (const [name, odds] of Object.entries(rows)) if (tierKey(name) === want) return { odds, kind }
+  }
+  return { odds: 0.02, kind: 'generic' }
 }
 
 // Structure and hit odds live in packodds.ts, so the roller, the shop's
@@ -294,7 +336,6 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
 
   // The era's real rare split and upgrade odds, for this set.
   const profile = profileFor(setId)
-  const odds = upgradeOdds(setId)
 
   db.transaction(() => {
     // Every set rips from its own booster table — kind products (bundle/ETB/
@@ -321,7 +362,7 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
     for (const c of hits) tierCount.set(c.rarity ?? '', (tierCount.get(c.rarity ?? '') ?? 0) + 1)
     for (const c of hits) {
       const tier = c.rarity ?? ''
-      insert.run(pid, c.id, 'hit', (odds[tier] ?? TIER_ODDS[tier] ?? 0.02) / (tierCount.get(tier) ?? 1))
+      insert.run(pid, c.id, 'hit', tierOddsSource(setId, tier).odds / (tierCount.get(tier) ?? 1))
     }
     // The IR/SIR pool rides in the second reverse slot at that slot's own
     // per-pack rates, so the rare slot's summed weights no longer include them.
@@ -363,6 +404,51 @@ export function buildPullTable(setId: string, cardsPerPack = 10) {
   markCatalogChanged()
 }
 
+/**
+ * Subset-only wrappers that ship INSIDE a box instead of on a shelf: the 30th
+ * Celebration Ultra-Premium Collection holds one three-card Classic Collection
+ * pack. The subset has no product row of its own (SUBSET_ONLY_SETS — it was
+ * never sold alone), so nothing else builds its table, and without one the
+ * box's last wrapper would abort the whole rip as "Pull table missing".
+ */
+export const IN_BOX_SUBSET_PACKS: Readonly<Record<string, number>> = { me55c: 3 }
+
+/**
+ * Those wrappers are real printed packs with real packaging, so the ceremony
+ * wears the photo. TCGplayer lists the 30th Celebration one as its own product
+ * ("30th Celebration Classic Collection Pack", 704192) — gold wrapper, the
+ * Classic Collection pack strip, "3 additional game cards" — even though no shop
+ * sells it alone. Anything not listed here still falls back to foil + symbol.
+ */
+const IN_BOX_SUBSET_ART: Readonly<Record<string, string>> = {
+  me55c: 'https://tcgplayer-cdn.tcgplayer.com/product/704192_in_400x400.jpg',
+}
+
+/** Build the pull table a subset wrapper needs to be dealt. Idempotent. */
+export function buildInBoxSubsetTables(): number {
+  let built = 0
+  // pack_product_cards carries a foreign key to pack_products, so the wrapper
+  // needs a row to point at even though no shelf ever sold it. It stays hidden
+  // (SUBSET_ONLY_SETS) and the prune keeps it as a pull-table host.
+  const host = db.prepare(
+    `INSERT OR IGNORE INTO pack_products (id, set_id, name, kind, msrp, market_price, packs, cards_per_pack, release_date, description, image_url)
+     SELECT ?, s.id, s.name || ' Pack', 'booster', 0, NULL, 1, ?, s.release_date, NULL, ? FROM sets s WHERE s.id = ?`,
+  )
+  // INSERT OR IGNORE leaves an existing host row alone, so art added later has
+  // to be filled in on the rows that are already there.
+  const missingArt = db.prepare("UPDATE pack_products SET image_url = ? WHERE id = ? AND (image_url IS NULL OR image_url = '')")
+  for (const [setId, cards] of Object.entries(IN_BOX_SUBSET_PACKS)) {
+    const have = (db.prepare('SELECT COUNT(*) AS n FROM cards WHERE set_id = ?').get(setId) as { n: number }).n
+    if (have === 0) continue
+    const art = IN_BOX_SUBSET_ART[setId] ?? null
+    host.run(`${setId}-booster`, cards, art, setId)
+    if (art) missingArt.run(art, `${setId}-booster`)
+    buildPullTable(setId, cards)
+    built++
+  }
+  return built
+}
+
 function productId(p: ProductDef): string {
   return `${p.setId}-${p.kind}`
 }
@@ -395,7 +481,10 @@ export function estimatePackValue(setId: string): PackEstimate {
   // The same plan the roll uses: the era's ten game cards — commons, 3
   // uncommons, reverse holo(s), and one rare-or-hit that upgrades at the era's
   // real odds. A subset-only blueprint still adds its subset slot.
-  const slots = planFor(setId, 10)
+  // A wrapper that holds fewer than ten cards is estimated on its own shape: the
+  // Classic Collection pack is three reprints, not ten (ten would price a
+  // three-card wrapper at more than a display box).
+  const slots = planFor(setId, IN_BOX_SUBSET_PACKS[setId] ?? 10)
   if (loadPool('subset').length > 0 && !slots.some((s) => s.slot === 'subset')) slots.push({ slot: 'subset', count: 1 })
   const reverse = [
     ...loadPool('common', 'reverseHolofoil'),
@@ -431,6 +520,9 @@ export function estimatePackValue(setId: string): PackEstimate {
   }
   const avgOr = (rows: { weight: number; v: number }[], fallback: number) => (rows.length > 0 ? weightedAvg(rows) : fallback)
   const reverseValue = weightedAvg(reverse)
+  // What a missed subset card is replaced by, priced by the same rule the
+  // roller deals.
+  const subsetMissValue = subsetMiss(reverse.length > 0, { reverse: reverseValue, holo: weightedAvg(loadPool('holo')) }).pick
   const chance = Math.min(0.85, hitPool.reduce((a, r) => a + Math.max(0, r.weight), 0))
   const draw = (rows: { weight: number; v: number }[]) => {
     let total = 0
@@ -503,10 +595,11 @@ export function estimatePackValue(setId: string): PackEstimate {
     if (slot === 'reverse2') return slotValue('second')
     // The rare slot upgrades at the set's odds, else it is the plain/holo rare.
     if (slot === 'hit') return chance * weightedAvg(hitPool) + (1 - chance) * weightedAvg(loadPool('holo'))
-    // A subset card occupies the reverse-holo position at the set's own rate.
+    // A subset card occupies the reverse-holo position at the set's own rate —
+    // or, in a pack with no reverse printing (Celebrations), the plain foil rare.
     if (slot === 'subset') {
       const p = subsetChanceFor(setId)
-      return p * weightedAvg(loadPool('subset')) + (1 - p) * reverseValue
+      return p * weightedAvg(loadPool('subset')) + (1 - p) * subsetMissValue
     }
     return weightedAvg(loadPool(slot))
   }
@@ -523,6 +616,7 @@ export function estimatePackValue(setId: string): PackEstimate {
     simPools.set(slot, rows)
     return rows
   }
+  const subsetMissRows = subsetMiss(reverse.length > 0, { reverse, holo: simPool('holo') }).pick
 
   // Simulate 300 packs to estimate p50/p90 outcomes.
   const sims: number[] = []
@@ -536,7 +630,7 @@ export function estimatePackValue(setId: string): PackEstimate {
         } else if (s.slot === 'reverse' || s.slot === 'reverse2') {
           v += drawSlot(s.slot === 'reverse2' ? 'second' : 'first')
         } else if (s.slot === 'subset') {
-          v += Math.random() < subsetChanceFor(setId) ? draw(simPool('subset')) : draw(reverse)
+          v += Math.random() < subsetChanceFor(setId) ? draw(simPool('subset')) : draw(subsetMissRows)
         } else {
           const rows = simPool(s.slot)
           if (rows.length > 0) v += draw(rows)
@@ -609,6 +703,16 @@ function cardMeta(cardId: string): { rarity: string | null; supertype: string; s
 // whole — both halves or neither, never the same half twice, and never the two
 // of them side by side, where the shared artwork and shared name read as one
 // card dealt twice.
+/** The Legendary Stadium halves a set's packs can hold; they never enter a pool. */
+export function stadiumHalvesFor(setId: string): string[] {
+  return (LEGENDARY_STADIUMS[setId] ?? []).flat()
+}
+
+/** How many of a set's packs carry a Legendary Stadium pair (0: none do). */
+export function stadiumPairOddsFor(setId: string): number {
+  return LEGENDARY_STADIUM_PACK_ODDS[setId] ?? 0
+}
+
 const LEGENDARY_STADIUMS: Record<string, [string, string][]> = {
   me6: [
     ['me6-94', 'me6-95'],
@@ -864,6 +968,11 @@ export function rollPack(setId: string, sessionId: string, productKind = 'booste
     })
   }
 
+  // A missed subset card is replaced by the slot's ordinary printing, by the
+  // rule packodds names once: a reverse holo in a set that prints them, or the
+  // plain foil rare in a pack with no reverse at all (Celebrations).
+  const subsetFallback = subsetMiss(reversePool.length > 0, { reverse: reversePool, holo: pool('holo') })
+
   for (const { slot, count } of slots) {
     if (slot === 'hit') {
       // The final card: a hit at the era's real odds, otherwise the pack's
@@ -881,9 +990,9 @@ export function rollPack(setId: string, sessionId: string, productKind = 'booste
     // A subset card fills its slot only when the pack prints one: Crown Zenith's
     // Galarian Gallery lands in 35.2% of packs, so a miss deals the ordinary
     // reverse holo rather than a second gallery card.
-    const subsetMiss = slot === 'subset' && Math.random() >= subsetChanceFor(setId)
-    const from = subsetMiss || slot === 'reverse' || slot === 'reverse2' ? reversePool : pool(slot)
-    for (let i = 0; i < count; i++) take(from, subsetMiss ? 'reverse' : slot, slot === 'subset' && !subsetMiss)
+    const missedSubset = slot === 'subset' && Math.random() >= subsetChanceFor(setId)
+    const from = missedSubset ? subsetFallback.pick : slot === 'reverse' || slot === 'reverse2' ? reversePool : pool(slot)
+    for (let i = 0; i < count; i++) take(from, missedSubset ? subsetFallback.slot : slot, slot === 'subset' && !missedSubset)
   }
 
   // Never hand back an empty rip: a gallery-only set has no commons to pad
@@ -1041,8 +1150,12 @@ export function rollProductPack(
   cardsPerPack: number,
   owner: 'player' | 'other' = 'player',
 ) {
-  const setId = mixedPackSetId(product.id, index) ?? product.set_id
-  return rollPack(setId, sessionId, 'booster', cardsPerPack, owner)
+  const spec = mixedPackSpec(product.id, index)
+  const setId = spec?.setId ?? product.set_id
+  // A mixed box can hold a wrapper of a different size: the 30th UPC's last
+  // pack is the three-card Classic Collection pack.
+  const per = spec?.cardsPerPack ?? cardsPerPack
+  return rollPack(setId, sessionId, 'booster', per, owner)
 }
 
 export function openSealed(productId: string) {
@@ -1301,6 +1414,18 @@ function ripNextPack(box: BoxRow) {
   }
 
   const packIndex = box.packs_total - box.packs_left + 1
+  // Which wrapper this is, so the ceremony wears the right name and art: a
+  // mixed box's last pack is a different expansion's wrapper (the 30th UPC's
+  // Classic Collection pack).
+  const packSetId = mixedPackSpec(box.product_id, packIndex - 1)?.setId ?? box.set_id
+  // That wrapper's own row gives the ceremony its name and symbol. It has to
+  // ride along because the shop never lists it (no shelf ever sold it), so the
+  // client's product list cannot look it up.
+  const wrapper = packSetId === box.set_id
+    ? undefined
+    : (db
+        .prepare('SELECT p.name, p.image_url, s.symbol_url FROM pack_products p LEFT JOIN sets s ON s.id = p.set_id WHERE p.id = ?')
+        .get(`${packSetId}-booster`) as { name: string; image_url: string | null; symbol_url: string | null } | undefined)
   const packsLeft = box.packs_left - 1
   if (packsLeft <= 0) db.prepare('DELETE FROM sealed_box_open WHERE id = ?').run(box.id)
   else db.prepare('UPDATE sealed_box_open SET packs_left = ? WHERE id = ?').run(packsLeft, box.id)
@@ -1316,6 +1441,10 @@ function ripNextPack(box: BoxRow) {
     boxId: box.id,
     productId: box.product_id,
     productName: product?.name ?? 'Sealed box',
+    packSetId,
+    packName: wrapper?.name ?? null,
+    packSymbol: wrapper?.symbol_url ?? null,
+    packArt: wrapper?.image_url ?? null,
     packIndex,
     packsTotal: box.packs_total,
     packsLeft,

@@ -1454,7 +1454,7 @@ export function InventoryView() {
                           </div>
                         </td>
                         <td className="num">{freshQty}</td>
-                        <td className="num" style={{ color: wornQty > 0 ? 'var(--yellow)' : undefined }}>{wornQty}</td>
+                        <td className="num" style={{ color: wornQty > 0 ? 'var(--gold)' : undefined }}>{wornQty}</td>
                         <td className="num">{fmtUsd(f?.freshPrice ?? s.market_price)}</td>
                         <td className="num faint">{wornQty > 0 && f ? fmtUsd(f.wornPrice) : '—'}</td>
                         <td className="num" style={{ color: s.unrealized >= 0 ? 'var(--green)' : 'var(--red)' }}>

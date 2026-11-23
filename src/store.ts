@@ -71,17 +71,49 @@ function loadFoil(): boolean {
   return localStorage.getItem(FOIL_KEY) === 'on'
 }
 
-/** Chrome darkness. Dark is the default; light is the paper TCG look. */
-export type Theme = 'dark' | 'light'
+/**
+ * Chrome palettes. Dark is the default; light is the paper TCG look. Ember and
+ * Tide are a warm dark and a deep-sea dark; Forest, Nebula and Graphite are a
+ * green, a violet and a neutral dark. Daylight and Sakura are the paper looks,
+ * with Frost and Parchment beside them. A theme is a colour swap only — the CSS
+ * reads the same tokens for every palette.
+ * `light` marks the palettes that count as light so the handful of light-only
+ * rules (the What's New card) can follow without naming a palette: the store
+ * stamps data-light="1" on <html> alongside data-theme.
+ */
+export type Theme = 'dark' | 'light' | 'ember' | 'tide' | 'sakura' | 'forest' | 'nebula' | 'graphite' | 'frost' | 'parchment'
+export type ThemeInfo = { id: Theme; label: string; blurb: string; light: boolean; swatch: string[] }
+export const THEMES: ThemeInfo[] = [
+  { id: 'dark', label: 'Midnight', blurb: 'the night chrome: card art carries the colour.', light: false, swatch: ['#0d1230', '#1a2247', '#6f9bff'] },
+  { id: 'light', label: 'Daylight', blurb: 'the paper TCG look: white cards on a blue-checked playmat.', light: true, swatch: ['#e8f0fd', '#ffffff', '#2e6ad1'] },
+  { id: 'ember', label: 'Ember', blurb: 'a warm dark: charcoal shelves under amber lamps.', light: false, swatch: ['#1a1110', '#2a1c1a', '#ffb066'] },
+  { id: 'tide', label: 'Tide', blurb: 'a deep-sea dark: teal boards under a cold shop light.', light: false, swatch: ['#071c22', '#0f2c33', '#5fe0cf'] },
+  { id: 'forest', label: 'Forest', blurb: 'a green dark: pine shelves, moss boards, a lantern glow.', light: false, swatch: ['#0b1a12', '#14301f', '#6fe0a0'] },
+  { id: 'nebula', label: 'Nebula', blurb: 'a violet dark: deep-space boards with a lilac shine.', light: false, swatch: ['#120d26', '#1e1740', '#b39dff'] },
+  { id: 'graphite', label: 'Graphite', blurb: 'a neutral dark: gunmetal chrome, no tint in the boards.', light: false, swatch: ['#101012', '#1b1b1f', '#8fa8d8'] },
+  { id: 'sakura', label: 'Sakura', blurb: 'a warm light: pink shelves, plum ink, white cards.', light: true, swatch: ['#fdf1f3', '#ffffff', '#c0437a'] },
+  { id: 'frost', label: 'Frost', blurb: 'a cool light: ice-blue boards, steel ink, white cards.', light: true, swatch: ['#eaf3f7', '#ffffff', '#0f7a9e'] },
+  { id: 'parchment', label: 'Parchment', blurb: 'a warm light: cream paper, sepia ink, an old-shop feel.', light: true, swatch: ['#f6efe2', '#fffdf8', '#a86a12'] },
+]
+export function isLightTheme(t: Theme): boolean {
+  return THEMES.find((x) => x.id === t)?.light ?? false
+}
 const THEME_KEY = 'tcglife.theme'
 function loadTheme(): Theme {
   const v = localStorage.getItem(THEME_KEY)
-  return v === 'light' ? 'light' : 'dark'
+  return THEMES.some((t) => t.id === v) ? (v as Theme) : 'dark'
+}
+/** The palette attribute, plus the light marker some CSS keys off. */
+function applyTheme(t: Theme) {
+  const el = document.documentElement
+  el.dataset.theme = t
+  if (isLightTheme(t)) el.dataset.light = '1'
+  else delete el.dataset.light
 }
 /** Applied at store-creation so the very first paint is already correct. */
 function initTheme(): Theme {
   const t = loadTheme()
-  document.documentElement.dataset.theme = t
+  applyTheme(t)
   return t
 }
 
@@ -119,7 +151,7 @@ export const useStore = create<Store>((set, get) => ({
   theme: initTheme(),
   setTheme: (t) => {
     localStorage.setItem(THEME_KEY, t)
-    document.documentElement.dataset.theme = t
+    applyTheme(t)
     set({ theme: t })
   },
   foil: loadFoil(),

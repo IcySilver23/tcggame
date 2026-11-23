@@ -1,11 +1,13 @@
 # Hit-odds audit
 
-118 sets carry a hit pool; 432 rarity rows sit in a hit slot. Every one is classified by where its odds come from: **set** (a measured row for that set), **era** (the era profile) or **table** (the legacy fallback table, which is real but not this set's own figure).
+118 sets carry a hit pool; 433 rarity rows sit in a hit slot. Every one is classified by where its odds come from: **set** (a measured row for that set), **era** (the era profile) or **table** (the legacy fallback table, which is real but not this set's own figure).
 
 **No rarity falls through to the generic 1-in-50 weight**, which is the defect this check exists to catch: the Mega Hyper Rare tier had no row anywhere, so six sets dealt their gold cards at a flat 1 in 50 — 11x too often at Ascended Heroes, about 20-25x at the one-in-a-thousand sets, and 36x at Perfect Order.
 
-- Sets with a measured per-set row: 25
-- Sets relying on a fallback table row: 35
+**No hit tier rests on the legacy table either**: every rarity is dealt at a figure counted for its set or named for its era, so no set is running on a value someone picked for a different era.
+
+- Sets with a measured per-set row: 31
+- Sets relying on a fallback table row: 0
 - Stored weights that disagree with the current code: 0
 
 ## What this found
@@ -13,6 +15,8 @@
 The Mega Evolution line never had a Mega Hyper Rare tier in the era profile, and the legacy table did not carry one either, so me1 through me6 all dealt it at the 1-in-50 fallback. Each set now uses the TCGplayer Authentication Centre count for it: me1 1 in 1,260, me2 1 in 1,260, me2pt5 1 in 540, me3 1 in 1,786, me4 1 in 956, me5 1 in 1,081 and me6 1 in 1,000. Ascended Heroes also needed its own Mega Attack Rare (1 in 29) and the Ultra Rare rate that tier displaces (1 in 21).
 
 Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shiny Ultra Rare 1 in 13 packs (the 1-in-50 table value was 3.9x too rare) and a Shiny Rare 1 in 4, and Crown Zenith prints its secret rares 1 in 133 rather than 1 in 50.
+
+The last sweep of every set pinned the tiers that were resting on the legacy table because no row had ever been researched for them, or because the catalogue spelled the tier differently from the row that existed. Seven were dealt at a figure 1.5x to 6x off the counted rate: EX-era ex cards 1 in 17 on the table (1 in 18 by the era's own figure, and Power Keepers was filed under Diamond & Pearl because the era rule read only the release year), ACE SPEC 1 in 50 (1 in 18 at Boundaries Crossed, 1 in 24 at Plasma Storm), BREAK 1 in 33 (1 in 9 by PackRip, 1 in 12 by Flipside, 2-3 a box by owners), Shining Legends’ Shining cards 1 in 33 (1 in 11.3), Shining Fates’ whole rare slot (its Pokémon V 1 in 9.2 against the era's 1 in 5.3, VMAX 1 in 18.4, full art 1 in 30.8, rainbow 1 in 84), Amazing Rare 5% (Vivid Voltage 1 in 17.5 and Shining Fates 1 in 17.4, each its own count), Radiant Rare 5% (1 in 20-22, unchanged in value but now named by its era), and Crown Zenith’s whole rare-slot ladder — V at half its counted rate (12.35% against 6%), full art at nearly double (1 in 35 against 1 in 20). Ascended Heroes’ Mega Attack Rare was researched but arrived in the catalogue labelled MEGA_ATTACK_RARE, so the 1-in-29 row never matched and it dealt at 1 in 50; label matching is now case- and separator-insensitive, which also fixes the EX-era spelling.
 
 ## Every hit row
 
@@ -23,42 +27,42 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Neo Destiny (neo4) | 2002/02/28 | hit | Rare Shining | 8 | 0.03 | 0.03 | era |
 | Aquapolis (ecard2) | 2003/01/15 | hit | Rare Secret | 3 | 0.012 | 0.012 | era |
 | Skyridge (ecard3) | 2003/05/12 | hit | Rare Secret | 6 | 0.012 | 0.012 | era |
-| Ruby & Sapphire (ex1) | 2003/07/01 | hit | Rare Holo EX | 8 | 0.06 | 0.06 | table |
-| Sandstorm (ex2) | 2003/09/18 | hit | Rare Holo EX | 7 | 0.06 | 0.06 | table |
-| Dragon (ex3) | 2003/11/24 | hit | Rare Holo EX | 9 | 0.06 | 0.06 | table |
+| Ruby & Sapphire (ex1) | 2003/07/01 | hit | Rare Holo EX | 8 | 0.055 | 0.055 | era |
+| Sandstorm (ex2) | 2003/09/18 | hit | Rare Holo EX | 7 | 0.055 | 0.055 | era |
+| Dragon (ex3) | 2003/11/24 | hit | Rare Holo EX | 9 | 0.055 | 0.055 | era |
 | Dragon (ex3) | 2003/11/24 | hit | Rare Secret | 3 | 0.012 | 0.012 | era |
-| Team Magma vs Team Aqua (ex4) | 2004/03/01 | hit | Rare Holo EX | 7 | 0.06 | 0.06 | table |
+| Team Magma vs Team Aqua (ex4) | 2004/03/01 | hit | Rare Holo EX | 7 | 0.055 | 0.055 | era |
 | Team Magma vs Team Aqua (ex4) | 2004/03/01 | hit | Rare Secret | 2 | 0.012 | 0.012 | era |
-| Hidden Legends (ex5) | 2004/06/01 | hit | Rare Holo EX | 9 | 0.06 | 0.06 | table |
+| Hidden Legends (ex5) | 2004/06/01 | hit | Rare Holo EX | 9 | 0.055 | 0.055 | era |
 | Hidden Legends (ex5) | 2004/06/01 | hit | Rare Secret | 1 | 0.012 | 0.012 | era |
-| FireRed & LeafGreen (ex6) | 2004/09/01 | hit | Rare Holo EX | 9 | 0.06 | 0.06 | table |
+| FireRed & LeafGreen (ex6) | 2004/09/01 | hit | Rare Holo EX | 9 | 0.055 | 0.055 | era |
 | FireRed & LeafGreen (ex6) | 2004/09/01 | hit | Rare Secret | 4 | 0.012 | 0.012 | era |
-| Team Rocket Returns (ex7) | 2004/11/01 | hit | Rare Holo EX | 11 | 0.06 | 0.06 | table |
+| Team Rocket Returns (ex7) | 2004/11/01 | hit | Rare Holo EX | 11 | 0.055 | 0.055 | era |
 | Team Rocket Returns (ex7) | 2004/11/01 | hit | Rare Secret | 2 | 0.012 | 0.012 | era |
 | Team Rocket Returns (ex7) | 2004/11/01 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
-| Deoxys (ex8) | 2005/02/01 | hit | Rare Holo EX | 9 | 0.06 | 0.06 | table |
+| Deoxys (ex8) | 2005/02/01 | hit | Rare Holo EX | 9 | 0.055 | 0.055 | era |
 | Deoxys (ex8) | 2005/02/01 | hit | Rare Secret | 1 | 0.012 | 0.012 | era |
 | Deoxys (ex8) | 2005/02/01 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
-| Emerald (ex9) | 2005/05/01 | hit | Rare Holo EX | 11 | 0.06 | 0.06 | table |
+| Emerald (ex9) | 2005/05/01 | hit | Rare Holo EX | 11 | 0.055 | 0.055 | era |
 | Emerald (ex9) | 2005/05/01 | hit | Rare Secret | 1 | 0.012 | 0.012 | era |
-| Unseen Forces (ex10) | 2005/08/01 | hit | Rare Holo EX | 12 | 0.06 | 0.06 | table |
+| Unseen Forces (ex10) | 2005/08/01 | hit | Rare Holo EX | 12 | 0.055 | 0.055 | era |
 | Unseen Forces (ex10) | 2005/08/01 | hit | Rare Secret | 2 | 0.012 | 0.012 | era |
 | Unseen Forces (ex10) | 2005/08/01 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
-| Delta Species (ex11) | 2005/10/31 | hit | Rare Holo EX | 3 | 0.06 | 0.06 | table |
+| Delta Species (ex11) | 2005/10/31 | hit | Rare Holo EX | 3 | 0.055 | 0.055 | era |
 | Delta Species (ex11) | 2005/10/31 | hit | Rare Secret | 1 | 0.012 | 0.012 | era |
 | Delta Species (ex11) | 2005/10/31 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
-| Legend Maker (ex12) | 2006/02/01 | hit | Rare Holo EX | 7 | 0.06 | 0.06 | table |
+| Legend Maker (ex12) | 2006/02/01 | hit | Rare Holo EX | 7 | 0.055 | 0.055 | era |
 | Legend Maker (ex12) | 2006/02/01 | hit | Rare Secret | 1 | 0.012 | 0.012 | era |
 | Legend Maker (ex12) | 2006/02/01 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
-| Holon Phantoms (ex13) | 2006/05/01 | hit | Rare Holo EX | 3 | 0.06 | 0.06 | table |
+| Holon Phantoms (ex13) | 2006/05/01 | hit | Rare Holo EX | 3 | 0.055 | 0.055 | era |
 | Holon Phantoms (ex13) | 2006/05/01 | hit | Rare Secret | 1 | 0.012 | 0.012 | era |
 | Holon Phantoms (ex13) | 2006/05/01 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
-| Crystal Guardians (ex14) | 2006/08/01 | hit | Rare Holo EX | 10 | 0.06 | 0.06 | table |
+| Crystal Guardians (ex14) | 2006/08/01 | hit | Rare Holo EX | 10 | 0.055 | 0.055 | era |
 | Crystal Guardians (ex14) | 2006/08/01 | hit | Rare Holo Star | 2 | 0.004 | 0.004 | era |
-| Dragon Frontiers (ex15) | 2006/11/01 | hit | Rare Holo EX | 10 | 0.06 | 0.06 | table |
+| Dragon Frontiers (ex15) | 2006/11/01 | hit | Rare Holo EX | 10 | 0.055 | 0.055 | era |
 | Dragon Frontiers (ex15) | 2006/11/01 | hit | Rare Holo Star | 2 | 0.004 | 0.004 | era |
-| Power Keepers (ex16) | 2007/02/02 | hit | Rare Holo EX | 8 | 0.06 | 0.06 | table |
-| Power Keepers (ex16) | 2007/02/02 | hit | Rare Holo Star | 3 | 0.01 | 0.01 | table |
+| Power Keepers (ex16) | 2007/02/02 | hit | Rare Holo EX | 8 | 0.055 | 0.055 | era |
+| Power Keepers (ex16) | 2007/02/02 | hit | Rare Holo Star | 3 | 0.004 | 0.004 | era |
 | Diamond & Pearl (dp1) | 2007/05/01 | hit | Rare Holo LV.X | 3 | 0.055 | 0.055 | era |
 | Mysterious Treasures (dp2) | 2007/08/01 | hit | Rare Holo LV.X | 3 | 0.055 | 0.055 | era |
 | Mysterious Treasures (dp2) | 2007/08/01 | hit | Rare Secret | 1 | 0.01 | 0.01 | era |
@@ -101,21 +105,21 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Dragons Exalted (bw6) | 2012/08/15 | hit | Rare Holo EX | 6 | 0.055 | 0.055 | era |
 | Dragons Exalted (bw6) | 2012/08/15 | hit | Rare Ultra | 6 | 0.03 | 0.03 | era |
 | Dragons Exalted (bw6) | 2012/08/15 | hit | Rare Secret | 4 | 0.018 | 0.018 | era |
+| Boundaries Crossed (bw7) | 2012/11/07 | hit | Rare ACE | 4 | 0.0556 | 0.0556 | set |
 | Boundaries Crossed (bw7) | 2012/11/07 | hit | Rare Holo EX | 6 | 0.055 | 0.055 | era |
 | Boundaries Crossed (bw7) | 2012/11/07 | hit | Rare Ultra | 9 | 0.03 | 0.03 | era |
-| Boundaries Crossed (bw7) | 2012/11/07 | hit | Rare ACE | 4 | 0.02 | 0.02 | table |
 | Boundaries Crossed (bw7) | 2012/11/07 | hit | Rare Secret | 4 | 0.018 | 0.018 | era |
 | Plasma Storm (bw8) | 2013/02/06 | hit | Rare Holo EX | 8 | 0.055 | 0.055 | era |
+| Plasma Storm (bw8) | 2013/02/06 | hit | Rare ACE | 3 | 0.0417 | 0.0417 | set |
 | Plasma Storm (bw8) | 2013/02/06 | hit | Rare Ultra | 5 | 0.03 | 0.03 | era |
-| Plasma Storm (bw8) | 2013/02/06 | hit | Rare ACE | 3 | 0.02 | 0.02 | table |
 | Plasma Storm (bw8) | 2013/02/06 | hit | Rare Secret | 3 | 0.018 | 0.018 | era |
 | Plasma Freeze (bw9) | 2013/05/08 | hit | Rare Holo EX | 6 | 0.055 | 0.055 | era |
+| Plasma Freeze (bw9) | 2013/05/08 | hit | Rare ACE | 2 | 0.05 | 0.05 | era |
 | Plasma Freeze (bw9) | 2013/05/08 | hit | Rare Ultra | 8 | 0.03 | 0.03 | era |
-| Plasma Freeze (bw9) | 2013/05/08 | hit | Rare ACE | 2 | 0.02 | 0.02 | table |
 | Plasma Freeze (bw9) | 2013/05/08 | hit | Rare Secret | 6 | 0.018 | 0.018 | era |
 | Plasma Blast (bw10) | 2013/08/14 | hit | Rare Holo EX | 6 | 0.055 | 0.055 | era |
+| Plasma Blast (bw10) | 2013/08/14 | hit | Rare ACE | 4 | 0.05 | 0.05 | era |
 | Plasma Blast (bw10) | 2013/08/14 | hit | Rare Ultra | 6 | 0.03 | 0.03 | era |
-| Plasma Blast (bw10) | 2013/08/14 | hit | Rare ACE | 4 | 0.02 | 0.02 | table |
 | Plasma Blast (bw10) | 2013/08/14 | hit | Rare Secret | 4 | 0.018 | 0.018 | era |
 | Legendary Treasures (bw11) | 2013/11/06 | hit | Rare Holo EX | 12 | 0.055 | 0.055 | era |
 | Legendary Treasures (bw11) | 2013/11/06 | hit | Rare Ultra | 5 | 0.03 | 0.03 | era |
@@ -141,26 +145,26 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Ancient Origins (xy7) | 2015/08/12 | hit | Rare Holo EX | 11 | 0.055 | 0.055 | era |
 | Ancient Origins (xy7) | 2015/08/12 | hit | Rare Ultra | 13 | 0.03 | 0.03 | era |
 | Ancient Origins (xy7) | 2015/08/12 | hit | Rare Secret | 5 | 0.018 | 0.018 | era |
+| BREAKthrough (xy8) | 2015/11/04 | hit | Rare BREAK | 6 | 0.0909 | 0.0909 | era |
 | BREAKthrough (xy8) | 2015/11/04 | hit | Rare Holo EX | 8 | 0.055 | 0.055 | era |
-| BREAKthrough (xy8) | 2015/11/04 | hit | Rare BREAK | 6 | 0.03 | 0.03 | table |
 | BREAKthrough (xy8) | 2015/11/04 | hit | Rare Ultra | 10 | 0.03 | 0.03 | era |
 | BREAKthrough (xy8) | 2015/11/04 | hit | Rare Secret | 2 | 0.018 | 0.018 | era |
+| BREAKpoint (xy9) | 2016/02/03 | hit | Rare BREAK | 5 | 0.0909 | 0.0909 | era |
 | BREAKpoint (xy9) | 2016/02/03 | hit | Rare Holo EX | 11 | 0.055 | 0.055 | era |
-| BREAKpoint (xy9) | 2016/02/03 | hit | Rare BREAK | 5 | 0.03 | 0.03 | table |
 | BREAKpoint (xy9) | 2016/02/03 | hit | Rare Ultra | 10 | 0.03 | 0.03 | era |
 | BREAKpoint (xy9) | 2016/02/03 | hit | Rare Secret | 1 | 0.018 | 0.018 | era |
 | Generations (g1) | 2016/02/22 | hit | Rare Holo EX | 14 | 0.055 | 0.055 | era |
 | Generations (g1) | 2016/02/22 | hit | Rare Ultra | 7 | 0.03 | 0.03 | era |
+| Fates Collide (xy10) | 2016/05/02 | hit | Rare BREAK | 5 | 0.0909 | 0.0909 | era |
 | Fates Collide (xy10) | 2016/05/02 | hit | Rare Holo EX | 13 | 0.055 | 0.055 | era |
-| Fates Collide (xy10) | 2016/05/02 | hit | Rare BREAK | 5 | 0.03 | 0.03 | table |
 | Fates Collide (xy10) | 2016/05/02 | hit | Rare Ultra | 13 | 0.03 | 0.03 | era |
 | Fates Collide (xy10) | 2016/05/02 | hit | Rare Secret | 1 | 0.018 | 0.018 | era |
+| Steam Siege (xy11) | 2016/08/03 | hit | Rare BREAK | 7 | 0.0909 | 0.0909 | era |
 | Steam Siege (xy11) | 2016/08/03 | hit | Rare Holo EX | 6 | 0.055 | 0.055 | era |
-| Steam Siege (xy11) | 2016/08/03 | hit | Rare BREAK | 7 | 0.03 | 0.03 | table |
 | Steam Siege (xy11) | 2016/08/03 | hit | Rare Ultra | 8 | 0.03 | 0.03 | era |
 | Steam Siege (xy11) | 2016/08/03 | hit | Rare Secret | 2 | 0.018 | 0.018 | era |
+| Evolutions (xy12) | 2016/11/02 | hit | Rare BREAK | 4 | 0.0909 | 0.0909 | era |
 | Evolutions (xy12) | 2016/11/02 | hit | Rare Holo EX | 12 | 0.055 | 0.055 | era |
-| Evolutions (xy12) | 2016/11/02 | hit | Rare BREAK | 4 | 0.03 | 0.03 | table |
 | Evolutions (xy12) | 2016/11/02 | hit | Rare Ultra | 9 | 0.03 | 0.03 | era |
 | Evolutions (xy12) | 2016/11/02 | hit | Rare Secret | 5 | 0.018 | 0.018 | era |
 | Sun & Moon (sm1) | 2017/02/03 | hit | Rare Holo GX | 11 | 0.111 | 0.111 | era |
@@ -175,11 +179,11 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Burning Shadows (sm3) | 2017/08/05 | hit | Rare Ultra | 19 | 0.042 | 0.042 | era |
 | Burning Shadows (sm3) | 2017/08/05 | hit | Rare Rainbow | 13 | 0.015 | 0.015 | era |
 | Burning Shadows (sm3) | 2017/08/05 | hit | Rare Secret | 9 | 0.008 | 0.008 | era |
-| Shining Legends (sm35) | 2017/10/06 | hit | Rare Holo GX | 5 | 0.111 | 0.111 | era |
-| Shining Legends (sm35) | 2017/10/06 | hit | Rare Ultra | 4 | 0.042 | 0.042 | era |
-| Shining Legends (sm35) | 2017/10/06 | hit | Rare Shining | 6 | 0.03 | 0.03 | table |
-| Shining Legends (sm35) | 2017/10/06 | hit | Rare Rainbow | 4 | 0.015 | 0.015 | era |
-| Shining Legends (sm35) | 2017/10/06 | hit | Rare Secret | 1 | 0.008 | 0.008 | era |
+| Shining Legends (sm35) | 2017/10/06 | hit | Rare Holo GX | 5 | 0.1111 | 0.1111 | set |
+| Shining Legends (sm35) | 2017/10/06 | hit | Rare Shining | 6 | 0.0885 | 0.0885 | set |
+| Shining Legends (sm35) | 2017/10/06 | hit | Rare Ultra | 4 | 0.0413 | 0.0413 | set |
+| Shining Legends (sm35) | 2017/10/06 | hit | Rare Rainbow | 4 | 0.0202 | 0.0202 | set |
+| Shining Legends (sm35) | 2017/10/06 | hit | Rare Secret | 1 | 0.0051 | 0.0051 | set |
 | Crimson Invasion (sm4) | 2017/11/03 | hit | Rare Holo GX | 9 | 0.111 | 0.111 | era |
 | Crimson Invasion (sm4) | 2017/11/03 | hit | Rare Ultra | 11 | 0.042 | 0.042 | era |
 | Crimson Invasion (sm4) | 2017/11/03 | hit | Rare Rainbow | 8 | 0.015 | 0.015 | era |
@@ -251,16 +255,16 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Champion's Path (swsh35) | 2020/09/25 | hit | Rare Rainbow | 5 | 0.012 | 0.012 | era |
 | Champion's Path (swsh35) | 2020/09/25 | hit | Rare Secret | 2 | 0.009 | 0.009 | era |
 | Vivid Voltage (swsh4) | 2020/11/13 | hit | Rare Holo V | 11 | 0.19 | 0.19 | era |
+| Vivid Voltage (swsh4) | 2020/11/13 | hit | Amazing Rare | 6 | 0.0571 | 0.0571 | set |
 | Vivid Voltage (swsh4) | 2020/11/13 | hit | Rare Holo VMAX | 6 | 0.055 | 0.055 | era |
-| Vivid Voltage (swsh4) | 2020/11/13 | hit | Amazing Rare | 6 | 0.05 | 0.05 | table |
 | Vivid Voltage (swsh4) | 2020/11/13 | hit | Rare Ultra | 20 | 0.03 | 0.03 | era |
 | Vivid Voltage (swsh4) | 2020/11/13 | hit | Rare Rainbow | 12 | 0.012 | 0.012 | era |
 | Vivid Voltage (swsh4) | 2020/11/13 | hit | Rare Secret | 6 | 0.009 | 0.009 | era |
-| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Holo V | 8 | 0.19 | 0.19 | era |
-| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Holo VMAX | 6 | 0.055 | 0.055 | era |
-| Shining Fates (swsh45) | 2021/02/19 | hit | Amazing Rare | 3 | 0.05 | 0.05 | table |
-| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Ultra | 9 | 0.03 | 0.03 | era |
-| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Rainbow | 1 | 0.012 | 0.012 | era |
+| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Holo V | 8 | 0.1087 | 0.1087 | set |
+| Shining Fates (swsh45) | 2021/02/19 | hit | Amazing Rare | 3 | 0.0575 | 0.0575 | set |
+| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Holo VMAX | 6 | 0.0543 | 0.0543 | set |
+| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Ultra | 9 | 0.0325 | 0.0325 | set |
+| Shining Fates (swsh45) | 2021/02/19 | hit | Rare Rainbow | 1 | 0.0119 | 0.0119 | set |
 | Battle Styles (swsh5) | 2021/03/19 | hit | Rare Holo V | 12 | 0.19 | 0.19 | era |
 | Battle Styles (swsh5) | 2021/03/19 | hit | Rare Holo VMAX | 6 | 0.055 | 0.055 | era |
 | Battle Styles (swsh5) | 2021/03/19 | hit | Rare Ultra | 22 | 0.03 | 0.03 | era |
@@ -276,9 +280,10 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Evolving Skies (swsh7) | 2021/08/27 | hit | Rare Ultra | 38 | 0.03 | 0.03 | era |
 | Evolving Skies (swsh7) | 2021/08/27 | hit | Rare Rainbow | 22 | 0.012 | 0.012 | era |
 | Evolving Skies (swsh7) | 2021/08/27 | hit | Rare Secret | 12 | 0.009 | 0.009 | era |
-| Celebrations (cel25) | 2021/10/08 | hit | Rare Holo V | 4 | 0.19 | 0.19 | era |
-| Celebrations (cel25) | 2021/10/08 | hit | Rare Holo VMAX | 2 | 0.055 | 0.055 | era |
-| Celebrations (cel25) | 2021/10/08 | hit | Rare Ultra | 1 | 0.03 | 0.03 | era |
+| Celebrations (cel25) | 2021/10/08 | hit | Rare Holo V | 4 | 0.3571 | 0.3571 | set |
+| Celebrations (cel25) | 2021/10/08 | hit | Rare Holo VMAX | 2 | 0.0769 | 0.0769 | set |
+| Celebrations (cel25) | 2021/10/08 | hit | Rare Ultra | 1 | 0.04 | 0.04 | set |
+| Celebrations (cel25) | 2021/10/08 | hit | Secret Rare | 1 | 0.0067 | 0.0067 | set |
 | Fusion Strike (swsh8) | 2021/11/12 | hit | Rare Holo V | 19 | 0.19 | 0.19 | era |
 | Fusion Strike (swsh8) | 2021/11/12 | hit | Rare Holo VMAX | 8 | 0.055 | 0.055 | era |
 | Fusion Strike (swsh8) | 2021/11/12 | hit | Rare Ultra | 20 | 0.03 | 0.03 | era |
@@ -292,37 +297,37 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Brilliant Stars (swsh9) | 2022/02/25 | hit | Rare Secret | 6 | 0.009 | 0.009 | era |
 | Astral Radiance (swsh10) | 2022/05/27 | hit | Rare Holo V | 19 | 0.19 | 0.19 | era |
 | Astral Radiance (swsh10) | 2022/05/27 | hit | Rare Holo VMAX | 2 | 0.055 | 0.055 | era |
-| Astral Radiance (swsh10) | 2022/05/27 | hit | Radiant Rare | 3 | 0.05 | 0.05 | table |
+| Astral Radiance (swsh10) | 2022/05/27 | hit | Radiant Rare | 3 | 0.05 | 0.05 | era |
 | Astral Radiance (swsh10) | 2022/05/27 | hit | Rare Holo VSTAR | 7 | 0.03 | 0.03 | era |
 | Astral Radiance (swsh10) | 2022/05/27 | hit | Rare Ultra | 30 | 0.03 | 0.03 | era |
 | Astral Radiance (swsh10) | 2022/05/27 | hit | Rare Rainbow | 18 | 0.012 | 0.012 | era |
 | Astral Radiance (swsh10) | 2022/05/27 | hit | Rare Secret | 9 | 0.009 | 0.009 | era |
 | Pokémon GO (pgo) | 2022/07/01 | hit | Rare Holo V | 6 | 0.19 | 0.19 | era |
 | Pokémon GO (pgo) | 2022/07/01 | hit | Rare Holo VMAX | 1 | 0.055 | 0.055 | era |
-| Pokémon GO (pgo) | 2022/07/01 | hit | Radiant Rare | 3 | 0.05 | 0.05 | table |
+| Pokémon GO (pgo) | 2022/07/01 | hit | Radiant Rare | 3 | 0.05 | 0.05 | era |
 | Pokémon GO (pgo) | 2022/07/01 | hit | Rare Holo VSTAR | 2 | 0.03 | 0.03 | era |
 | Pokémon GO (pgo) | 2022/07/01 | hit | Rare Ultra | 8 | 0.03 | 0.03 | era |
 | Pokémon GO (pgo) | 2022/07/01 | hit | Rare Rainbow | 7 | 0.012 | 0.012 | era |
 | Pokémon GO (pgo) | 2022/07/01 | hit | Rare Secret | 3 | 0.009 | 0.009 | era |
 | Lost Origin (swsh11) | 2022/09/09 | hit | Rare Holo V | 12 | 0.19 | 0.19 | era |
 | Lost Origin (swsh11) | 2022/09/09 | hit | Rare Holo VMAX | 1 | 0.055 | 0.055 | era |
-| Lost Origin (swsh11) | 2022/09/09 | hit | Radiant Rare | 3 | 0.05 | 0.05 | table |
+| Lost Origin (swsh11) | 2022/09/09 | hit | Radiant Rare | 3 | 0.05 | 0.05 | era |
 | Lost Origin (swsh11) | 2022/09/09 | hit | Rare Holo VSTAR | 6 | 0.03 | 0.03 | era |
 | Lost Origin (swsh11) | 2022/09/09 | hit | Rare Ultra | 25 | 0.03 | 0.03 | era |
 | Lost Origin (swsh11) | 2022/09/09 | hit | Rare Rainbow | 15 | 0.012 | 0.012 | era |
 | Lost Origin (swsh11) | 2022/09/09 | hit | Rare Secret | 6 | 0.009 | 0.009 | era |
 | Silver Tempest (swsh12) | 2022/11/11 | hit | Rare Holo V | 15 | 0.19 | 0.19 | era |
 | Silver Tempest (swsh12) | 2022/11/11 | hit | Rare Holo VMAX | 1 | 0.055 | 0.055 | era |
-| Silver Tempest (swsh12) | 2022/11/11 | hit | Radiant Rare | 3 | 0.05 | 0.05 | table |
+| Silver Tempest (swsh12) | 2022/11/11 | hit | Radiant Rare | 3 | 0.05 | 0.05 | era |
 | Silver Tempest (swsh12) | 2022/11/11 | hit | Rare Holo VSTAR | 6 | 0.03 | 0.03 | era |
 | Silver Tempest (swsh12) | 2022/11/11 | hit | Rare Ultra | 26 | 0.03 | 0.03 | era |
 | Silver Tempest (swsh12) | 2022/11/11 | hit | Rare Rainbow | 14 | 0.012 | 0.012 | era |
 | Silver Tempest (swsh12) | 2022/11/11 | hit | Rare Secret | 6 | 0.009 | 0.009 | era |
-| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Holo V | 17 | 0.06 | 0.06 | table |
-| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Radiant Rare | 3 | 0.05 | 0.05 | table |
-| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Ultra | 13 | 0.05 | 0.05 | table |
-| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Holo VMAX | 5 | 0.03 | 0.03 | table |
-| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Holo VSTAR | 8 | 0.03 | 0.03 | table |
+| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Holo V | 17 | 0.1235 | 0.1235 | set |
+| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Radiant Rare | 3 | 0.0455 | 0.0455 | set |
+| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Holo VSTAR | 8 | 0.0326 | 0.0326 | set |
+| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Ultra | 13 | 0.0285 | 0.0285 | set |
+| Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Holo VMAX | 5 | 0.0204 | 0.0204 | set |
 | Crown Zenith (swsh12pt5) | 2023/01/20 | hit | Rare Secret | 1 | 0.0075 | 0.0075 | set |
 | Scarlet & Violet (sv1) | 2023/03/31 | hit | Double Rare | 12 | 0.2 | 0.2 | era |
 | Scarlet & Violet (sv1) | 2023/03/31 | hit | Ultra Rare | 20 | 0.11 | 0.11 | era |
@@ -422,7 +427,7 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Phantasmal Flames (me2) | 2025/11/14 | reverse2hit | Special Illustration Rare | 5 | 0.028 | 0.028 | set |
 | Ascended Heroes (me2pt5) | 2026/01/30 | hit | Double Rare | 39 | 0.2 | 0.2 | era |
 | Ascended Heroes (me2pt5) | 2026/01/30 | hit | Ultra Rare | 14 | 0.0481 | 0.0481 | set |
-| Ascended Heroes (me2pt5) | 2026/01/30 | hit | MEGA_ATTACK_RARE | 7 | 0.02 | 0.02 | table |
+| Ascended Heroes (me2pt5) | 2026/01/30 | hit | MEGA_ATTACK_RARE | 7 | 0.0345 | 0.0345 | set |
 | Ascended Heroes (me2pt5) | 2026/01/30 | hit | Mega Hyper Rare | 2 | 0.0019 | 0.0019 | set |
 | Ascended Heroes (me2pt5) | 2026/01/30 | reverse2hit | Illustration Rare | 33 | 0.1125 | 0.1125 | set |
 | Ascended Heroes (me2pt5) | 2026/01/30 | reverse2hit | Special Illustration Rare | 22 | 0.0144 | 0.0144 | set |
@@ -442,7 +447,7 @@ Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shi
 | Pitch Black (me5) | 2026/07/17 | reverse2hit | Illustration Rare | 11 | 0.09 | 0.09 | set |
 | Pitch Black (me5) | 2026/07/17 | reverse2hit | Special Illustration Rare | 6 | 0.028 | 0.028 | set |
 | 30th Celebration (me55) | 2026/09/16 | hit | Double Rare | 12 | 0.2 | 0.2 | era |
-| 30th Celebration (me55) | 2026/09/16 | hit | Futuristic Rare | 2 | 0.008 | 0.008 | table |
+| 30th Celebration (me55) | 2026/09/16 | hit | Futuristic Rare | 2 | 0.008 | 0.008 | set |
 | 30th Celebration (me55) | 2026/09/16 | reverse2hit | Illustration Rare | 18 | 0.09 | 0.09 | set |
 | 30th Celebration (me55) | 2026/09/16 | reverse2hit | Special Illustration Rare | 10 | 0.028 | 0.028 | set |
 | Delta Reign (me6) | 2026/11/06 | hit | Double Rare | 10 | 0.2 | 0.2 | set |

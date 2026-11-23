@@ -50,11 +50,14 @@ export const ERA_PROFILES: Record<EraKey, EraProfile> = {
     source: 'holo rare 1 in 3 packs (pokegym box study); shinings/secrets era estimate',
   },
   // EX series: 1 in 3 holo rares, ex cards roughly 1 in 18 packs. Packs still
-  // shipped a basic Energy.
+  // shipped a basic Energy. The tier is spelled the way the catalogue spells
+  // it ("Rare Holo EX"); the lower-case "ex" is the card's name, not its tier,
+  // and a key that never matched the label was dealt at the legacy table's
+  // 1-in-17 instead of the era's 1 in 18.
   ex: {
     label: 'EX series (2003–2006)',
     rare: { plain: 0.66, holo: 0.34 },
-    upgrade: { 'Rare Holo ex': 0.055, 'Rare Holo Star': 0.004, 'Rare Secret': 0.012 },
+    upgrade: { 'Rare Holo EX': 0.055, 'Rare Holo Star': 0.004, 'Rare Secret': 0.012 },
     // Bulbapedia: e-Card through EX packs are 9 cards (5 common, 2 uncommon,
     // reverse holo, rare) and carry no Energy. The game deals ten, so the
     // ninth card becomes a third uncommon rather than a card the pack lacks.
@@ -74,11 +77,22 @@ export const ERA_PROFILES: Record<EraKey, EraProfile> = {
     source: 'era-typical estimate (no large public sample)',
   },
   // Black & White – XY: full arts and rainbow/secret rares enter the ladder.
-  // From here the tenth card is a second reverse holo, not an Energy.
+  // From here the tenth card is a second reverse holo, not an Energy. Two tiers
+  // printed only in this stretch had no era figure and were dealt at the legacy
+  // table: ACE SPEC at 1 in 50 (thepricedex counts Boundaries Crossed at 1 in 18
+  // and Plasma Storm at 1 in 24) and BREAK at 1 in 33 (PackRip 1 in 9, Flipside
+  // 1 in 12, owners' boxes 2-3 a box, so 1 in 11 here).
   bw: {
     label: 'Black & White – XY (2011–2016)',
     rare: { plain: 0.62, holo: 0.38 },
-    upgrade: { 'Rare Holo EX': 0.055, 'Rare Ultra': 0.03, 'Rare Rainbow': 0.012, 'Rare Secret': 0.018 },
+    upgrade: {
+      'Rare Holo EX': 0.055,
+      'Rare Ultra': 0.03,
+      'Rare Rainbow': 0.012,
+      'Rare Secret': 0.018,
+      'Rare ACE': 0.05,
+      'Rare BREAK': 1 / 11,
+    },
     energyInPack: false,
     source: 'era-typical estimate (no large public sample)',
   },
@@ -114,6 +128,11 @@ export const ERA_PROFILES: Record<EraKey, EraProfile> = {
       'Rare Rainbow': 0.012,
       'Rare Secret': 0.009,
       'Rare Shiny': 0.09,
+      // Radiant was 1 in 20-22 (Astral Radiance 1 in 20.1, Lost Origin 1 in 20,
+      // Silver Tempest 4.55%), where the legacy table had a flat 5%. Amazing
+      // Rare is deliberately NOT here: only two sets print it and each has its
+      // own count, so a profile row would lend one set the other's figure.
+      'Radiant Rare': 0.05,
     },
     // 5 commons, 3 uncommons, reverse holo, rare — plus the extra Energy (or a
     // VSTAR marker from Brilliant Stars to Crown Zenith) and a code card.
@@ -190,6 +209,21 @@ export const SET_UPGRADE_OVERRIDE: Record<string, Record<string, number>> = {
   // whole hit ladder is the set's rather than the era's. Shiny Ultra Rare is
   // the tier that used to fall through to a 1-in-50 table value: it really
   // lands 1 in 13 packs, alongside a Shiny Rare in every fourth pack.
+  // Celebrations was counted over hundreds of packs (thepricedex's aggregate,
+  // agreeing with DigitalTQ's 541-pack tally): a main-set V in 1 in 2.8 packs,
+  // a VMAX in 1 in 13, the one full art in 1 in 25, and the gold secret Mew in
+  // 1 in 150. The era profile carries no V or VMAX tier for a 2021 special set,
+  // so all four sat on the generic hit weight. With the subset slot at 40%, the
+  // sum (48.1%) leaves the remaining 51.9% of packs a plain main-set foil — the
+  // 3.12 main-set cards per pack the same sample reports.
+  cel25: {
+    'Rare Holo V': 1 / 2.8,
+    'Rare Holo VMAX': 1 / 13,
+    'Rare Ultra': 1 / 25,
+    // The tier's name as TCGplayer spells it: Celebrations' gold Mew is sold as
+    // "Mew (Secret)", Rarity=Secret Rare, and that is the label its row carries.
+    'Secret Rare': 1 / 150,
+  },
   sv4pt5: {
     'Double Rare': 0.1589,
     'Ultra Rare': 0.0661,
@@ -199,9 +233,57 @@ export const SET_UPGRADE_OVERRIDE: Record<string, Record<string, number>> = {
     'Shiny Ultra Rare': 0.0772,
     'Hyper Rare': 0.0161,
   },
-  // Crown Zenith's secret rares are 1 in 133 packs (0.75%) and its Galarian
-  // Gallery secrets 1 in 125 — nowhere near the 1-in-50 table fallback.
-  swsh12pt5: { 'Rare Secret': 1 / 133 },
+  // Crown Zenith was counted over 1,900 packs (TCGplayer) and again by thepricedex:
+  // its whole rare-slot ladder is the set's, not the era's, and the table values
+  // it used before had the V at half its rate (1 in 8 packs) and the full art at
+  // nearly double (1 in 20 against 1 in 35). Secrets are 1 in 133 and the
+  // Galarian Gallery secrets 1 in 125 — nowhere near the 1-in-50 fallback.
+  swsh12pt5: {
+    'Rare Secret': 1 / 133,
+    'Rare Holo V': 0.1235,
+    'Rare Holo VMAX': 1 / 49.1,
+    'Rare Holo VSTAR': 1 / 30.7,
+    'Rare Ultra': 1 / 35.1,
+    'Radiant Rare': 1 / 22,
+  },
+  // Shining Legends' Shining cards are the set's own tier, 1 in 11.3 packs
+  // (thepricedex; Elite Fourum's 8.72% agrees), not the 1-in-33 legacy weight,
+  // and its GX/Ultra/Rainbow/Secret rows are the same source's counts.
+  sm35: {
+    'Rare Holo GX': 1 / 9,
+    'Rare Ultra': 1 / 24.2,
+    'Rare Shining': 1 / 11.3,
+    'Rare Rainbow': 1 / 49.5,
+    'Rare Secret': 1 / 197.8,
+  },
+  // ACE SPEC's era figure is a set figure: Boundaries Crossed 1 in 18 packs,
+  // Plasma Storm 1 in 24. Plasma Freeze and Plasma Blast take the mode of the
+  // two via the era profile.
+  bw7: { 'Rare ACE': 1 / 18 },
+  bw8: { 'Rare ACE': 1 / 24 },
+  // The 30th Celebration's Futuristic Rare was counted at 0.83% in TCGplayer's
+  // 3,000-pack study. It sat in the legacy table, which is the same figure but
+  // not a row anyone could call the set's own; this names it.
+  me55: { 'Futuristic Rare': 0.008 },
+  // Amazing Rare prints in exactly two sets and each was counted on its own:
+  // Vivid Voltage 1 in 17.5 packs (thepricedex, agreeing with DigitalTQ's
+  // 630-pack count at 5.71%) and Shining Fates 1 in 17.4 (thepricedex). The two
+  // land within a hundredth of each other, which is the point of pinning them
+  // separately — the agreement is a fact about the counts, not a shared row.
+  swsh4: { 'Amazing Rare': 1 / 17.5 },
+  // Shining Fates' whole rare slot is its own count, not the Sword & Shield
+  // era's: thepricedex measures a Pokémon V in 1 in 9.2 packs (the era profile
+  // says 1 in 5.3, roughly double), a VMAX in 1 in 18.4, a full art in 1 in 30.8
+  // and the rainbow in 1 in 84. Its Shiny Vault sits in the bonus-subset slot
+  // and already matches the same page's Shiny Rare V 1 in 19.8 and Shiny Rare
+  // VMAX 1 in 25.5, so nothing here duplicates those.
+  swsh45: {
+    'Amazing Rare': 1 / 17.4,
+    'Rare Holo V': 1 / 9.2,
+    'Rare Holo VMAX': 1 / 18.4,
+    'Rare Ultra': 1 / 30.8,
+    'Rare Rainbow': 1 / 84,
+  },
   // The gallery-only table (never sold; kept for owned stock) carries the same
   // measured gallery rate as the host pack's subset slot: 35.2% per pack, not
   // the era profile's 9% and not a certainty.
@@ -268,6 +350,10 @@ export type SlotPlan = { slot: PackSlot; count: number }
  * sets, and the Galarian Gallery in Crown Zenith.
  */
 export const HOST_SUBSETS: Record<string, string> = {
+  // Celebrations prints its Classic Collection inside the four-card Celebrations
+  // wrapper itself — one reprint in the pack's third slot in about two packs of
+  // five — never in a product of its own.
+  cel25: 'cel25c',
   sm115: 'sma',
   swsh45: 'swsh45sv',
   swsh9: 'swsh9tg',
@@ -290,12 +376,19 @@ export const BLUEPRINTS: Record<string, SlotPlan[]> = {
   ],
   me55c: [{ slot: 'subset', count: 10 }],
   cel25c: [{ slot: 'subset', count: 10 }],
-  // Celebrations' real pack is four cards, so it deals four of its own: its
-  // table holds rares and hits but no commons or reverses for the era's shape.
+  // Celebrations' real pack is four cards, all foil, in a fixed order: two
+  // main-set cards, a third that is a Classic Collection reprint in two packs
+  // of five (else a main-set card), and a fourth that is a main-set card or the
+  // set's upgrade — a V, a VMAX, the one full art or the gold secret. It dealt
+  // three rares and a rare-or-hit before, so no Celebrations wrapper ever
+  // produced a Classic Collection card.
+  // Bleeding Cool's launch opening lists the four slots in that order; the
+  // rates are in SET_UPGRADE_OVERRIDE and SUBSET_CHANCE below.
   // The subset-only sets (Shiny Vault, the galleries, Basic Energy) are not sold
   // at all — see SUBSET_ONLY_SETS in sealed.ts — so they get no blueprint.
   cel25: [
-    { slot: 'holo', count: 3 },
+    { slot: 'holo', count: 2 },
+    { slot: 'subset', count: 1 },
     { slot: 'hit', count: 1 },
   ],
   // McDonald's 2021 and 2022 are the two Happy Meal promotions that shipped a
@@ -427,6 +520,11 @@ function printsBasicEnergy(setId: string): boolean {
  */
 export const SUBSET_CHANCE: Record<string, number> = {
   swsh12pt5: 0.352,
+  // Celebrations: a Classic Collection card in 1 of every 2.5 packs (40%), and
+  // any one of the 25 in 1 in 62.5 — a flat subset, which is what 25 x 1/62.5
+  // gives. A miss deals a main-set foil in that slot, not a reverse holo: no
+  // Celebrations card was ever printed reverse.
+  cel25: 0.4,
   // Hidden Fates: one Shiny Vault card in about three packs, not every pack.
   // Pokecompare's Elite Fourum figures are 21.20% baby shinies, 10.19% Shiny
   // GX, 3.42% full-art Trainers and 1.01% gold, summing to 35.8%.
@@ -482,9 +580,37 @@ export function subsetChanceFor(setId: string): number {
   return chance === undefined ? 1 : Math.max(0, Math.min(1, chance))
 }
 
+/**
+ * What a missed subset card becomes.
+ *
+ * The reprint sits on the reverse-holo position everywhere a pack prints one;
+ * in a pack with no reverse printing at all (Celebrations is foil front to
+ * back) it is another plain foil rare instead. The roller, the shelf copy and
+ * both value estimates read this one rule, so the pack, its price and the
+ * sentence describing it cannot drift apart.
+ */
+export function subsetMissRule(printsReverse: boolean): { slot: 'reverse' | 'rare'; pool: 'reverse' | 'holo'; label: string } {
+  return printsReverse
+    ? { slot: 'reverse', pool: 'reverse', label: 'the reverse holo' }
+    : { slot: 'rare', pool: 'holo', label: 'a main-set foil rare' }
+}
+
+/** The same rule, picking the caller's own rows (or values) for each pool. */
+export function subsetMiss<T>(printsReverse: boolean, pools: { reverse: T; holo: T }): { slot: 'reverse' | 'rare'; label: string; pick: T } {
+  const rule = subsetMissRule(printsReverse)
+  return { slot: rule.slot, label: rule.label, pick: rule.pool === 'reverse' ? pools.reverse : pools.holo }
+}
+
 export function planFor(setId: string, cardsPerPack = 10): SlotPlan[] {
   const bp = BLUEPRINTS[setId]
-  if (bp) return bp.map((s) => ({ ...s }))
+  if (bp) {
+    // A subset-only blueprint says "the whole wrapper is the subset", so its
+    // count is the wrapper's own card count rather than a hard ten: the 30th
+    // Celebration Classic Collection pack in the UPC holds three.
+    return bp.every((s) => s.slot === 'subset')
+      ? bp.map((s) => ({ ...s, count: cardsPerPack }))
+      : bp.map((s) => ({ ...s }))
+  }
   const era = eraOf(setId)
   const year = releaseYearOf(setId)
   // Legendary Collection and Expedition are WotC-era sets that DO carry a
@@ -575,7 +701,11 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
   const hostSubsetName = hostSubset
     ? (db.prepare('SELECT name FROM sets WHERE id = ?').get(hostSubset) as { name: string } | undefined)?.name ?? hostSubset
     : null
-  const out = planFor(setId, cardsPerPack).map(({ slot, count }): PackSlotInfo => {
+  const plan = planFor(setId, cardsPerPack)
+  // The same rule the roller deals: no reverse slot in the plan means no
+  // reverse printing to fall back to.
+  const printsReverse = plan.some((s) => s.slot === 'reverse' || s.slot === 'reverse2')
+  const out = plan.map(({ slot, count }): PackSlotInfo => {
     let detail: string
     switch (slot) {
       case 'common':
@@ -605,9 +735,10 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
         break
       case 'subset': {
         const subsetChance = subsetChanceFor(setId)
+        const missLine = subsetMissRule(printsReverse).label
         detail = hostSubsetName
           ? subsetChance < 1
-            ? `one ${hostSubsetName} card in ${pct(subsetChance)} of packs, else the reverse holo`
+            ? `one ${hostSubsetName} card in ${pct(subsetChance)} of packs, else ${missLine}`
             : `one ${hostSubsetName} card in the reverse-holo position`
           : setId === 'me55'
             ? 'one 30th Celebration Pikachu'
@@ -627,7 +758,7 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
     const label = setId === 'dv1' && slot === 'holo'
       ? 'Holofoil'
       : slot === 'subset'
-        ? hostSubsetName ? 'Bonus subset' : count > 1 ? 'Subset cards' : SLOT_LABEL[slot]
+        ? setId === 'cel25' ? 'Classic Collection' : hostSubsetName ? 'Bonus subset' : count > 1 ? 'Subset cards' : SLOT_LABEL[slot]
         : SLOT_LABEL[slot]
     return { slot, count, label, detail }
   })
@@ -651,6 +782,14 @@ export function eraOf(setId: string): EraKey {
   const year = releaseYearOf(setId)
   if (year === 0) return 'sv'
   if (year <= 2002) return 'wotc'
+  // Power Keepers shipped in February 2007, three months before Diamond & Pearl
+  // opened the next era, and its chase cards are the EX era's: ex, Gold Star.
+  // A year alone filed it under DP, where those tiers have no row and were
+  // dealt at the legacy table (ex 1 in 17, stars 1 in 100 instead of 1 in 250).
+  if (year === 2007) {
+    const date = (db.prepare('SELECT release_date FROM sets WHERE id = ?').get(setId) as { release_date: string | null } | undefined)?.release_date ?? ''
+    if (date.slice(0, 10) < '2007/05') return 'ex'
+  }
   if (year <= 2006) return 'ex'
   if (year <= 2010) return 'dp'
   if (year <= 2016) return 'bw'
@@ -918,10 +1057,12 @@ export function expectedPackValue(setId: string, cardsPerPack = 10): number {
     else if (s.slot === 'hit') total += s.count * finalValue
     else if (s.slot === 'energy') total += s.count * weightedAvg(energy)
     else if (s.slot === 'subset') {
-      // The subset card takes the reverse-holo position, so a pack that misses
-      // the measured subset rate deals a reverse holo in its place.
+      // The subset card takes the slot under it, so a miss is priced as that
+      // card: the reverse holo where the pack prints one, the plain foil rare
+      // where it prints none (Celebrations), never $0.
       const p = subsetChanceFor(setId)
-      total += s.count * (p * weightedAvg(withValue('subset')) + (1 - p) * reverseValue)
+      const missValue = subsetMiss(reverseRows.length > 0, { reverse: reverseValue, holo: weightedAvg(withValue('holo')) }).pick
+      total += s.count * (p * weightedAvg(withValue('subset')) + (1 - p) * missValue)
     }
     else if (s.slot === 'phantom') total += s.count * weightedAvg(withValue('phantom'))
   }

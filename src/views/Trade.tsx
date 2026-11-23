@@ -89,7 +89,7 @@ function CounterFairness({ lineupValue, yourValue, netCash, variant = 'counter' 
   if (yourValue <= 0) return null
   const landed = (lineupValue + netCash) / yourValue
   const pct = Math.round(landed * 100)
-  const color = landed >= 0.9 ? 'var(--green)' : landed >= 0.8 ? 'var(--yellow)' : 'var(--red)'
+  const color = landed >= 0.9 ? 'var(--green)' : landed >= 0.8 ? 'var(--gold)' : 'var(--red)'
   return (
     <div className="small" style={{ marginTop: 8, padding: '8px 10px', background: 'var(--panel2)', borderRadius: 6, border: '1px solid var(--border-soft)' }}>
       <div style={{ fontWeight: 600, marginBottom: 4 }}>⚖ Why this number</div>
@@ -159,7 +159,7 @@ function HaggleBar({ offer, onChanged }: { offer: TradeOfferRow; onChanged: () =
   const pct = yourV > 0 ? Math.round(((lineup + v) / yourV) * 100) : 100
   const showFloorPct = !h.incoming
   const pctFloor = yourV > 0 ? Math.round(((lineup + floor) / yourV) * 100) : 100
-  const color = pct >= 90 ? 'var(--green)' : pct >= 80 ? 'var(--yellow)' : 'var(--red)'
+  const color = pct >= 90 ? 'var(--green)' : pct >= 80 ? 'var(--gold)' : 'var(--red)'
   const go = async () => {
     setBusy(true)
     try {

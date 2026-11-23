@@ -264,6 +264,12 @@ export type BoxOpen = OpenSession & {
   productId: string
   productName: string
   packIndex: number
+  /** The expansion this particular wrapper came from (a mixed box's wrappers differ). */
+  packSetId?: string
+  /** That wrapper's own name, symbol and photo, for an expansion the shop never sells. */
+  packName?: string | null
+  packSymbol?: string | null
+  packArt?: string | null
   packsTotal: number
   packsLeft: number
   done: boolean

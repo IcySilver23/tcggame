@@ -5,35 +5,33 @@
 // or through the sealed suite, which resolves a save for you:
 //   npm run check:sealed
 //
-// `buildPullTable` resolves a hit's weight as
-//   upgradeOdds(setId)[rarity] ?? TIER_ODDS[rarity] ?? 0.02
-// so any rarity no era profile, set override or legacy table names is dealt as
-// if it were a 1-in-50 pull. That is how the Mega Hyper Rare tier sat at ten to
-// thirty-six times its measured frequency across six sets before it was pinned.
+// `buildPullTable` resolves a hit's weight through `tierOddsSource`, which tries
+// the set's override, then its era profile, then the legacy table, and only then
+// the generic 1-in-50 weight. That is how the Mega Hyper Rare tier sat at ten to
+// thirty-six times its measured frequency across six sets before it was pinned,
+// and how seven other tiers sat on the legacy table because their label never
+// matched the researched one ("Rare Holo EX" against "Rare Holo ex",
+// "MEGA_ATTACK_RARE" against "Mega Attack Rare").
 //
 // Every hit-slot rarity is classified by where its odds come from — `set` (a
-// measured per-set row), `era` (the era profile) or `table` (the legacy fallback
-// table, no era or set figure) — and this fails when a rarity reaches the
-// generic 0.02 or when a stored pull table disagrees with what the code resolves
-// now, so a stale save cannot pass silently.
+// measured per-set row), `era` (the era profile), `table` (the legacy table, no
+// era or set figure) or `generic` — and this fails on a generic weight, on any
+// tier still resting on the legacy table, and on a stored pull table that
+// disagrees with what the code resolves now, so neither an unresearched rate nor
+// a stale save can pass silently.
 //
 // Writes reports/hit-odds-audit.{json,md} (or HIT_ODDS_REPORT_DIR). The report
 // carries no timestamp, so re-running it on an unchanged save is byte-identical.
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { db } from '../server/lib/db'
-import {
-  eraOf,
-  upgradeOdds,
-  secondSlotUpgradeOdds,
-  SET_UPGRADE_OVERRIDE,
-} from '../server/services/packodds'
-import { TIER_ODDS } from '../server/services/packs'
+import { secondSlotUpgradeOdds } from '../server/services/packodds'
+import { tierOddsSource, type TierOddsKind } from '../server/services/packs'
 
 type SetRow = { id: string; name: string; release_date: string | null }
 type Row = { slot: string; rarity: string | null; n: number; w: number }
 
-type Kind = 'set' | 'era' | 'table' | 'generic'
+type Kind = TierOddsKind
 type AuditRow = {
   setId: string
   setName: string
@@ -69,29 +67,16 @@ for (const s of sets) {
     .all(`${s.id}-booster`) as Row[]
   if (stored.length === 0) continue
 
-  const odds = upgradeOdds(s.id)
-  const overrides = SET_UPGRADE_OVERRIDE[s.id] ?? {}
   const second = new Map(secondSlotUpgradeOdds(s.id).map((u) => [u.rarity.toLowerCase(), u.odds]))
 
   for (const r of stored) {
     const rarity = r.rarity ?? '(none)'
     const slot = r.slot as 'hit' | 'reverse2hit'
-    const codeOdds =
-      slot === 'reverse2hit'
-        ? (second.get(rarity.toLowerCase()) ?? 0)
-        : (odds[rarity] ?? TIER_ODDS[rarity] ?? 0.02)
-    const kind: Kind =
-      slot === 'reverse2hit'
-        ? second.has(rarity.toLowerCase())
-          ? 'set'
-          : 'generic'
-        : overrides[rarity] !== undefined
-          ? 'set'
-          : odds[rarity] !== undefined
-            ? 'era'
-            : TIER_ODDS[rarity] !== undefined
-              ? 'table'
-              : 'generic'
+    // The shipped resolver, not a copy of it: this audit exists to catch a label
+    // that stops matching its researched figure.
+    const resolved = tierOddsSource(s.id, rarity)
+    const codeOdds = slot === 'reverse2hit' ? (second.get(rarity.toLowerCase()) ?? 0) : resolved.odds
+    const kind: Kind = slot === 'reverse2hit' ? (second.has(rarity.toLowerCase()) ? 'set' : 'generic') : resolved.kind
     rows.push({
       setId: s.id,
       setName: s.name,
@@ -114,6 +99,7 @@ if (withRows.length === 0) {
 }
 
 const generic = rows.filter((r) => r.kind === 'generic')
+const fallback = rows.filter((r) => r.kind === 'table')
 const stale = rows.filter((r) => r.stale)
 const measuredSets = [...new Set(rows.filter((r) => r.kind === 'set').map((r) => r.setId))]
 const fallbackSets = [...new Set(rows.filter((r) => r.kind === 'table').map((r) => r.setId))]
@@ -138,6 +124,17 @@ if (generic.length === 0) {
   for (const r of generic) md.push(`- ${r.setId} ${r.rarity} (${r.slot})`)
   md.push('')
 }
+if (fallback.length === 0) {
+  md.push(
+    '**No hit tier rests on the legacy table either**: every rarity is dealt at a figure counted for its set ' +
+      'or named for its era, so no set is running on a value someone picked for a different era.',
+    '',
+  )
+} else {
+  md.push(`**${fallback.length} rarity row(s) still rest on the legacy table:**`, '')
+  for (const r of fallback) md.push(`- ${r.setId} ${r.rarity} (${r.slot}) at ${r.codeOdds}`)
+  md.push('')
+}
 md.push(
   `- Sets with a measured per-set row: ${measuredSets.length}`,
   `- Sets relying on a fallback table row: ${fallbackSets.length}`,
@@ -157,6 +154,20 @@ md.push(
   'Two older fallbacks were measured too and are pinned: Paldean Fates prints a Shiny Ultra Rare 1 in 13 packs ' +
     '(the 1-in-50 table value was 3.9x too rare) and a Shiny Rare 1 in 4, and Crown Zenith prints its secret ' +
     'rares 1 in 133 rather than 1 in 50.',
+  '',
+)
+md.push(
+  'The last sweep of every set pinned the tiers that were resting on the legacy table because no row had ever been ' +
+    'researched for them, or because the catalogue spelled the tier differently from the row that existed. ' +
+    'Seven were dealt at a figure 1.5x to 6x off the counted rate: EX-era ex cards 1 in 17 on the table (1 in 18 by ' +
+    "the era's own figure, and Power Keepers was filed under Diamond & Pearl because the era rule read only the " +
+    'release year), ACE SPEC 1 in 50 (1 in 18 at Boundaries Crossed, 1 in 24 at Plasma Storm), BREAK 1 in 33 ' +
+    '(1 in 9 by PackRip, 1 in 12 by Flipside, 2-3 a box by owners), Shining Legends’ Shining cards 1 in 33 (1 in ' +
+    '11.3), Shining Fates’ whole rare slot (its Pokémon V 1 in 9.2 against the era\'s 1 in 5.3, VMAX 1 in 18.4, full art 1 in 30.8, rainbow 1 in 84), Amazing Rare 5% (Vivid Voltage 1 in 17.5 and Shining Fates 1 in 17.4, each its own count), Radiant Rare 5% (1 in 20-22, unchanged in value but now ' +
+    'named by its era), and Crown Zenith’s whole rare-slot ladder — V at half its counted rate (12.35% against 6%), ' +
+    'full art at nearly double (1 in 35 against 1 in 20). Ascended Heroes’ Mega Attack Rare was researched but ' +
+    'arrived in the catalogue labelled MEGA_ATTACK_RARE, so the 1-in-29 row never matched and it dealt at 1 in 50; ' +
+    'label matching is now case- and separator-insensitive, which also fixes the EX-era spelling.',
   '',
 )
 md.push('## Every hit row', '')
@@ -194,11 +205,12 @@ console.log(`  generic 1-in-50 fallbacks: ${generic.length}`)
 console.log(`  legacy-table rows: ${rows.filter((r) => r.kind === 'table').length}`)
 console.log(`  stale stored weights: ${stale.length}`)
 console.log(`  report: ${resolve(reportDir, 'hit-odds-audit.md')}`)
-if (generic.length > 0 || stale.length > 0) {
-  for (const r of [...generic, ...stale]) {
-    console.log(`  ${r.kind === 'generic' ? 'GENERIC' : 'STALE'} ${r.setId} ${r.rarity} stored=${r.storedOdds} code=${r.codeOdds}`)
+if (generic.length > 0 || fallback.length > 0 || stale.length > 0) {
+  for (const r of rows.filter((r) => r.kind === 'generic' || r.kind === 'table' || r.stale)) {
+    const flag = r.kind === 'generic' ? 'GENERIC' : r.kind === 'table' ? 'FALLBACK' : 'STALE'
+    console.log(`  ${flag} ${r.setId} ${r.rarity} stored=${r.storedOdds} code=${r.codeOdds}`)
   }
-  console.error('hit odds FAILED: a rarity has no real odds, or a pull table is stale')
+  console.error('hit odds FAILED: a rarity is unresearched, still on the legacy table, or its pull table is stale')
   process.exit(1)
 }
 console.log('hit odds passed')
