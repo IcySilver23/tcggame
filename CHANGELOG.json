@@ -1,16 +1,30 @@
 {
   "entries": [
     {
+      "version": "0.92.2",
+      "date": "2026-11-23",
+      "title": "The lot in the frame",
+      "highlights": [
+        "A live room now gives the lot the whole frame: the card or sealed pack sits in the middle with its label above it, clear of the chat, the pinned bar and the host overlay.",
+        "The chat ticker shows two readable lines instead of cutting every message off after a few words, and it no longer runs into the item being sold.",
+        "Just sold names what sold — a sealed pack used to read \"null\" — and Up next counts the lots the rail is actually holding.",
+        "The Sell live picker stacks its card choice, opening bid and reserve on their own lines, and a button you cannot press no longer looks like one you can."
+      ],
+      "features": [
+        "Both new screens were laid out against a stage that had less room than the content wanted. In a live room the item's label sat under the card and landed on top of the chat, the pinned bar's ninety-odd pixels were not accounted for, and the host's LIVE badge was drawn over their avatar and the first letters of their name. The stage is a little taller now (16:11 instead of 16:9), the label is pinned above the item instead of under it, the chat is two clamped lines at the bottom left, and each band has its own space. A room between lots no longer floats a wrapper in the dark with no label: it says BETWEEN LOTS and names the product it is working through.",
+        "The data behind the room had two small lies. Just sold built its label from a helper that only knew card lots, so a sealed pick or a bundle printed as \"null\"; it now uses the same naming the stage uses. Up next printed the server's six-item preview as the room's total while the rail listed everything it held, so the count and the list disagreed. Both now count the same way, and the lot on camera is no longer repeated at the top of the rail.",
+        "On the stream, the Sell live picker put its label, the card dropdown, both number inputs and the button on one line, which read as a row of empty boxes at narrow widths, and a disabled \"hammer the lot first\" button wore the same gold as an active one. The picker is a stack now and the disabled button is quiet. Separately, at a narrow window the place name in the top bar was being cut off under the day counter — the money keeps its width and the crumb steps aside instead."
+      ]
+    },
+    {
       "version": "0.92.1",
       "date": "2026-11-23",
       "title": "The armful reaches the till",
       "highlights": [
-        "The till now carries the same quantity stepper, directly under its PURCHASE button — set the count there and the button above charges for it.",
-        "The count stops at what the drawer can pay, and a daily deal is still one unit per game day.",
-        "Buying more than one still arrives sealed, so the armful goes into Inventory → Sealed ready to open whenever you like."
+        "The till now carries the same quantity stepper, directly under its PURCHASE button — set the count there and the button above charges for it."
       ],
       "features": [
-        "The shelf has had a quantity stepper under its PURCHASE button since the last release, but the till — the panel that never scrolls away and is where a product's price, quote and pack contents actually live — still bought exactly one at a time. The stepper now sits there too, in the same place under the button: pick a product, set the count, and the button reads PURCHASE ×N and charges the total. It gives up the same way the shelf does, stopping at whatever the cash on hand can pay, and a daily deal still holds it at one unit because the server enforces one claim per game day. A count that cannot be paid is not a count.",
+        "The shelf has had a quantity stepper under its PURCHASE button since the last release, but the till — the panel that never scrolls away and is where a product's price, quote and pack contents actually live — still bought exactly one at a time. The stepper now sits there too, in the same place under the button: pick a product, set the count, and the button reads PURCHASE ×N and charges the total. It gives up the same way the shelf does, stopping at whatever the cash on hand can pay, and a daily deal still holds it at one unit because the server enforces one claim per game day. A count that cannot be paid is not a count. The count stops at what the drawer can pay, and a daily deal is still one unit per game day. Buying more than one still arrives sealed, so the armful goes into Inventory → Sealed ready to open whenever you like.",
         "The purchased units arrive sealed either way, so nothing changes about opening them: the armful sits in Inventory → Sealed until you decide to rip it. Buying ten booster packs still has its own shortcut in the till menu, which remains the quicker route when that is exactly what you want."
       ]
     },

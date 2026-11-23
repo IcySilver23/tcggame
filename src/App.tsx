@@ -560,7 +560,7 @@ export default function App() {
 
       <div className="main">
         <header className="topbar">
-          <div className="row" style={{ gap: 10, minWidth: 0 }}>
+          <div className="row topbar-crumbs" style={{ gap: 10, minWidth: 0 }}>
             <span className="logo-mini">TCG LIFE</span>
             <span className="crumb-sep">/</span>
             <span className="crumb">{currentLabel}</span>

@@ -724,10 +724,9 @@ function LotBoard({ lots, sellable, busy, pick, setPick, start, setStart, reserv
             <div className="faint small mt8">No free cards in the binder — everything is listed, graded or already escrowed.</div>
           ) : (
             <select
-              className="mt8"
+              className="lot-select"
               value={pick ?? ''}
               disabled={busy || !!lot}
-              style={{ minWidth: 280, maxWidth: '100%' }}
               onChange={(e) => {
                 const id = Number(e.target.value) || null
                 setPick(id)
@@ -746,12 +745,24 @@ function LotBoard({ lots, sellable, busy, pick, setPick, start, setStart, reserv
               ))}
             </select>
           )}
-          <div className="row mt8" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <label className="small">opens at <input type="number" min={0.99} step={0.5} value={start} onChange={(e) => setStart(e.target.value)} style={{ width: 80 }} disabled={busy || !!lot} /></label>
-            <label className="small">reserve <input type="number" min={0.99} step={0.5} value={reserve} onChange={(e) => setReserve(e.target.value)} style={{ width: 80 }} disabled={busy || !!lot} /></label>
-            <button className="primary" disabled={busy || !pick || !!lot} onClick={onList}>
-              {lot ? 'Hammer the lot first' : 'Put it on the block'}
-            </button>
+          <div className="lot-form">
+            <label className="lot-field">
+              <span>opens at</span>
+              <input type="number" min={0.99} step={0.5} value={start} onChange={(e) => setStart(e.target.value)} disabled={busy || !!lot} />
+            </label>
+            <label className="lot-field">
+              <span>reserve</span>
+              <input type="number" min={0.99} step={0.5} value={reserve} onChange={(e) => setReserve(e.target.value)} disabled={busy || !!lot} />
+            </label>
+          </div>
+          <div className="lot-actions">
+            {lot ? (
+              <span className="faint small">One lot at a time — hammer the card on camera before the next one goes up.</span>
+            ) : (
+              <button className="primary" disabled={busy || !pick} onClick={onList}>
+                Put it on the block
+              </button>
+            )}
             {picked && Number(reserve) > 0 && (
               <span className="faint small">at the reserve you'd net {fmtUsd(Number(reserve) * 0.92)}</span>
             )}

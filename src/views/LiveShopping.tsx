@@ -384,9 +384,21 @@ export function LiveShoppingView() {
                         </span>
                       </div>
                     </>
-                  ) : show.product.image
-                    ? <img className="wn-cam-art" src={show.product.image} alt="" />
-                    : <span className="wn-cam-emoji">{show.host?.avatar ?? '📺'}</span>}
+                  ) : (
+                    <>
+                      {show.product.image
+                        ? <img className="wn-cam-art" src={show.product.image} alt="" />
+                        : <span className="wn-cam-emoji">{show.host?.avatar ?? '📺'}</span>}
+                      {/* Between lots. The room is live, the board is empty for a
+                          moment, and the stage says so instead of floating a
+                          wrapper in the dark with no label at all. */}
+                      <div className="wn-cam-tag">
+                        <span className="wn-cam-on dim">BETWEEN LOTS</span>
+                        <b>{show.product.name}</b>
+                        <span className="wn-cam-ask">the next one is coming</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* host overlay, top-left */}
@@ -408,7 +420,7 @@ export function LiveShoppingView() {
 
                 {/* chat ticker along the bottom-left, like the real overlay */}
                 <div className="wn-ticker">
-                  {[...show.chat, ...myChat].slice(-3).map((c, i) => (
+                  {[...show.chat, ...myChat].slice(-2).map((c, i) => (
                     <div key={i}><b>{c.who}</b> {c.text}</div>
                   ))}
                 </div>
@@ -445,7 +457,14 @@ export function LiveShoppingView() {
                 <div className="wn-panel wn-listings">
                   <div className="wn-panel-h">
                     <b>Up next</b>
-                    <span className="wn-dim">{show.upNext?.length ?? 0} waiting</span>
+                    {/* Counted the way the rail counts: the lot on camera is not
+                        queued, and the server's six-item preview is not the
+                        room's total. */}
+                    <span className="wn-dim">
+                      {(show.items ?? []).filter((i) =>
+                        i.kind !== 'teamspot' && i.id !== show.onCam?.id && (i.status === 'open' || i.status === 'pending'),
+                      ).length}{' '}waiting
+                    </span>
                   </div>
                   <ListingRail
                     show={show}
@@ -678,7 +697,9 @@ function ListingRail({ show, now, busy, bid, setBid, onBid, onSnipe, onBin, onMy
   onChoose: (id: number, choice: 'rip' | 'ship') => void
 }) {
   const [filt, setFilt] = useState<Filt>('all')
-  const items = show.items.filter((i) => i.kind !== 'teamspot')
+  // The be in the frame is not also in the queue: the rail is what comes next,
+  // so the lot the host is working now is dropped from it.
+  const items = show.items.filter((i) => i.kind !== 'teamspot' && i.id !== show.onCam?.id)
   const counts: Record<Filt, number> = {
     all: items.length,
     buy: items.filter((i) => i.kind === 'drop' || i.kind === 'mystery').length,

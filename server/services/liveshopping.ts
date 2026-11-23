@@ -1358,7 +1358,9 @@ export function section(showId?: number) {
       justSold: recent
         .filter((i) => i.status === 'sold' || i.status === 'passed')
         .slice(0, 4)
-        .map((i) => ({ id: i.id, name: describeItem(i), kind: i.kind, sold: i.status === 'sold', price: round2(i.current_bid ?? i.bin_price ?? i.ask ?? 0), winner: i.winner ?? null })),
+        // The name comes from the same public shape the stage reads, so a sealed
+        // pick or a mystery pile is not printed as "null" in the receipts.
+        .map((i) => { const p = publicItem(i); return { id: i.id, name: p.name, kind: i.kind, sold: i.status === 'sold', price: round2(i.current_bid ?? i.bin_price ?? i.ask ?? 0), winner: i.winner ?? null } }),
       boards,
       style: h?.style ?? 'rip',
       endsAt: live.end_at,
