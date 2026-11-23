@@ -6,6 +6,7 @@
 #   npm run check:odds          hit odds on their own (no rarity on the generic weight)
 #   npm run check:changelog     the ✨ What's New rules
 #   tmp/check-academy-steps.ts  every Academy step, plus the legacy-waiver edge
+#   tmp/check-generations.ts    the fifteen Generations boxes: packs, promos, art, price
 #   tmp/check-bulk.ts           quantity buys and bulk rips, wrapper by wrapper
 #
 # Called by scripts/build-installer.sh BEFORE anything is built, so a red check
@@ -29,7 +30,7 @@ mkdir -p "$TMP/reports"
 step() { echo; echo "==> $1"; }
 
 # 1. Static and instant: fail here before a single save is copied.
-step "release gate 1/5: changelog rules"
+step "release gate 1/6: changelog rules"
 npm run --silent check:changelog
 
 # 2. The sealed audit resolves its own isolated home (a copy of data/tcglife.db,
@@ -38,7 +39,7 @@ npm run --silent check:changelog
 #    Its reports go to tmp/ as well: refreshing the tracked reports/ copies stays
 #    a deliberate act (`npm run check:sealed` by hand), so a release build never
 #    leaves the working tree dirty mid-release.
-step "release gate 2/5: sealed audit"
+step "release gate 2/6: sealed audit"
 SEALED_AUDIT_REPORT_DIR="$PWD/$TMP/reports" npm run --silent check:sealed
 
 # 3. Whatever that just resolved is what the remaining checks copy: already
@@ -58,7 +59,7 @@ echo "gate save: $SAVE"
 
 # 4. The hit-odds check on its own name, against that save. Its report goes to
 #    tmp/ so a release build never rewrites the tracked reports/ copies.
-step "release gate 3/5: hit odds"
+step "release gate 3/6: hit odds"
 TCGLIFE_HOME="$SOURCE_HOME" HIT_ODDS_REPORT_DIR="$PWD/$TMP/reports" npm run --silent check:odds
 
 # A scratch home: the save plus the schema the services expect to find beside it.
@@ -75,6 +76,7 @@ scratch() {
 }
 
 ACADEMY=$(scratch academy)
+GENERATIONS=$(scratch generations)
 BULK=$(scratch bulk)
 
 # The bulk check buys a few boosters, so a dev save that has been spent down
@@ -84,11 +86,14 @@ node -e 'const db=require("better-sqlite3")(process.argv[1]);const r=db.prepare(
 
 # 5/6. The two proofs that live in tmp/ rather than in package.json.
 TSX=./node_modules/tsx/dist/cli.mjs
-step "release gate 4/5: Academy steps"
+step "release gate 4/6: Academy steps"
 TCGLIFE_HOME="$ACADEMY" node "$TSX" tmp/check-academy-steps.ts | tail -3
 
-step "release gate 5/5: bulk buy and rip"
+step "release gate 5/6: Generations boxes"
+TCGLIFE_HOME="$GENERATIONS" node "$TSX" tmp/check-generations.ts | tail -3
+
+step "release gate 6/6: bulk buy and rip"
 TCGLIFE_HOME="$BULK" node "$TSX" tmp/check-bulk.ts | tail -4
 
 echo
-echo "release gate passed: changelog, sealed audit, hit odds, Academy steps, bulk rip"
+echo "release gate passed: changelog, sealed audit, hit odds, Academy steps, Generations boxes, bulk rip"

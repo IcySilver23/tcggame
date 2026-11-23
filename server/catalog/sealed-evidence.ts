@@ -1803,7 +1803,9 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Mew promo and its pin.',
     promos: ['Mew'], promoIds: ['xyp-XY110'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('mew', 'Mew'),
-    note: 'Mythical Pokémon Collection—Mew: two Generations booster packs, a full-art Mew promo (XY110) and a Mew pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/113774_in_400x400.jpg',
+    shelf: { market: 743.27, source: TCGPLAYER_SHELF('Mythical Pokemon Collection Box [Mew]', 113774), asOf: '2026-11-23' },
+    note: 'Mythical Pokémon Collection—Mew: two Generations booster packs, a full-art Mew promo (XY110) and a Mew pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. The $743.27 shelf price is the TCGplayer market on 23 November 2026.',
   },
   {
     id: 'g1-mythical-celebi', setId: 'g1', name: 'Mythical Pokémon Collection—Celebi', msrp: 12.99,
@@ -1811,7 +1813,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Celebi promo and its pin.',
     promos: ['Celebi'], promoIds: ['xyp-XY111'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('celebi', 'Celebi'),
-    note: 'Mythical Pokémon Collection—Celebi: two Generations booster packs, a full-art Celebi promo (XY111) and a Celebi pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/114525_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Celebi: two Generations booster packs, a full-art Celebi promo (XY111) and a Celebi pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-jirachi', setId: 'g1', name: 'Mythical Pokémon Collection—Jirachi', msrp: 12.99,
@@ -1819,7 +1822,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Jirachi promo and its pin.',
     promos: ['Jirachi'], promoIds: ['xyp-XY112'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('jirachi', 'Jirachi'),
-    note: 'Mythical Pokémon Collection—Jirachi: two Generations booster packs, a full-art Jirachi promo (XY112) and a Jirachi pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/116999_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Jirachi: two Generations booster packs, a full-art Jirachi promo (XY112) and a Jirachi pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-darkrai', setId: 'g1', name: 'Mythical Pokémon Collection—Darkrai', msrp: 12.99,
@@ -1827,7 +1831,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Darkrai promo and its pin.',
     promos: ['Darkrai'], promoIds: ['xyp-XY114'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('darkrai', 'Darkrai'),
-    note: 'Mythical Pokémon Collection—Darkrai: two Generations booster packs, a full-art Darkrai promo (XY114) and a Darkrai pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/118342_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Darkrai: two Generations booster packs, a full-art Darkrai promo (XY114) and a Darkrai pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-manaphy', setId: 'g1', name: 'Mythical Pokémon Collection—Manaphy', msrp: 12.99,
@@ -1835,7 +1840,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Manaphy promo and its pin.',
     promos: ['Manaphy'], promoIds: ['xyp-XY113'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('manaphy', 'Manaphy'),
-    note: 'Mythical Pokémon Collection—Manaphy: two Generations booster packs, a full-art Manaphy promo (XY113) and a Manaphy pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/118796_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Manaphy: two Generations booster packs, a full-art Manaphy promo (XY113) and a Manaphy pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-shaymin', setId: 'g1', name: 'Mythical Pokémon Collection—Shaymin', msrp: 12.99,
@@ -1843,7 +1849,9 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Shaymin promo and its pin.',
     promos: ['Shaymin'], promoIds: ['xyp-XY115'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('shaymin', 'Shaymin'),
-    note: 'Mythical Pokémon Collection—Shaymin: two Generations booster packs, a full-art Shaymin promo (XY115) and a Shaymin pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/120114_in_400x400.jpg',
+    shelf: { market: 650, source: TCGPLAYER_SHELF('Mythical Pokemon Collection Box [Shaymin]', 120114), asOf: '2026-11-23' },
+    note: 'Mythical Pokémon Collection—Shaymin: two Generations booster packs, a full-art Shaymin promo (XY115) and a Shaymin pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. The $650 shelf price is the TCGplayer market on 23 November 2026.',
   },
   {
     id: 'g1-mythical-arceus', setId: 'g1', name: 'Mythical Pokémon Collection—Arceus', msrp: 12.99,
@@ -1851,7 +1859,9 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Arceus promo and its pin.',
     promos: ['Arceus'], promoIds: ['xyp-XY116'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('arceus', 'Arceus'),
-    note: 'Mythical Pokémon Collection—Arceus: two Generations booster packs, a full-art Arceus promo (XY116) and a Arceus pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/121363_in_400x400.jpg',
+    shelf: { market: 788.3, source: TCGPLAYER_SHELF('Mythical Pokemon Collection Box [Arceus]', 121363), asOf: '2026-11-23' },
+    note: 'Mythical Pokémon Collection—Arceus: two Generations booster packs, a full-art Arceus promo (XY116) and a Arceus pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. The $788.3 shelf price is the TCGplayer market on 23 November 2026.',
   },
   {
     id: 'g1-mythical-victini', setId: 'g1', name: 'Mythical Pokémon Collection—Victini', msrp: 12.99,
@@ -1859,7 +1869,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Victini promo and its pin.',
     promos: ['Victini'], promoIds: ['xyp-XY117'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('victini', 'Victini'),
-    note: 'Mythical Pokémon Collection—Victini: two Generations booster packs, a full-art Victini promo (XY117) and a Victini pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/123433_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Victini: two Generations booster packs, a full-art Victini promo (XY117) and a Victini pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-keldeo', setId: 'g1', name: 'Mythical Pokémon Collection—Keldeo', msrp: 12.99,
@@ -1867,7 +1878,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Keldeo promo and its pin.',
     promos: ['Keldeo'], promoIds: ['xyp-XY118'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('keldeo', 'Keldeo'),
-    note: 'Mythical Pokémon Collection—Keldeo: two Generations booster packs, a full-art Keldeo promo (XY118) and a Keldeo pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/123740_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Keldeo: two Generations booster packs, a full-art Keldeo promo (XY118) and a Keldeo pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-genesect', setId: 'g1', name: 'Mythical Pokémon Collection—Genesect', msrp: 12.99,
@@ -1875,7 +1887,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Genesect promo and its pin.',
     promos: ['Genesect'], promoIds: ['xyp-XY119'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('genesect', 'Genesect'),
-    note: 'Mythical Pokémon Collection—Genesect: two Generations booster packs, a full-art Genesect promo (XY119) and a Genesect pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/126569_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Genesect: two Generations booster packs, a full-art Genesect promo (XY119) and a Genesect pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-mythical-meloetta', setId: 'g1', name: 'Mythical Pokémon Collection—Meloetta', msrp: 12.99,
@@ -1883,7 +1896,8 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Two Generations packs, the full-art Meloetta promo and its pin.',
     promos: ['Meloetta'], promoIds: ['xyp-XY120'], promoSet: 'xyp',
     source: MYTHICAL_COLLECTION('meloetta', 'Meloetta'),
-    note: 'Mythical Pokémon Collection—Meloetta: two Generations booster packs, a full-art Meloetta promo (XY120) and a Meloetta pin. Generations packs were never sold on their own, so this box is one of the only two ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/126568_in_400x400.jpg',
+    note: 'Mythical Pokémon Collection—Meloetta: two Generations booster packs, a full-art Meloetta promo (XY120) and a Meloetta pin. Generations packs were never sold on their own, so this box is one of the only ways a wrapper exists. The pin and the code card are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from the published $12.99 retail price with the packs\' pull value as its floor.',
   },
   {
     id: 'g1-red-blue-charizard-ex', setId: 'g1', name: 'Red & Blue Collection—Charizard-EX', msrp: 24.99,
@@ -1891,7 +1905,9 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Four Generations packs, the full-art Charizard-EX promo and its figure.',
     promos: ['Charizard-EX'], promoIds: ['xyp-XY121'], promoSet: 'xyp',
     source: RED_BLUE_COLLECTION('charizard-ex', 'Charizard-EX'),
-    note: 'Red & Blue Collection—Charizard-EX: four Generations booster packs, a full-art Charizard-EX promo (XY121) and a Charizard-EX figure. The published price was $24.99 (PokéBeach\'s 20th-anniversary lineup). The figure and the card holder are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from that retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/115598_in_400x400.jpg',
+    shelf: { market: 1800.88, source: TCGPLAYER_SHELF('Red & Blue Collection [Charizard EX]', 115598), asOf: '2026-11-23' },
+    note: 'Red & Blue Collection—Charizard-EX: four Generations booster packs, a full-art Charizard-EX promo (XY121) and a Charizard-EX figure. The published price was $24.99 (PokéBeach\'s 20th-anniversary lineup). The figure and the card holder are accessories and are not modelled. The $1800.88 shelf price is the TCGplayer market on 23 November 2026.',
   },
   {
     id: 'g1-red-blue-blastoise-ex', setId: 'g1', name: 'Red & Blue Collection—Blastoise-EX', msrp: 24.99,
@@ -1899,6 +1915,7 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Four Generations packs, the full-art Blastoise-EX promo and its figure.',
     promos: ['Blastoise-EX'], promoIds: ['xyp-XY122'], promoSet: 'xyp',
     source: RED_BLUE_COLLECTION('blastoise-ex', 'Blastoise-EX'),
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/118795_in_400x400.jpg',
     note: 'Red & Blue Collection—Blastoise-EX: four Generations booster packs, a full-art Blastoise-EX promo (XY122) and a Blastoise-EX figure. The published price was $24.99 (PokéBeach\'s 20th-anniversary lineup). The figure and the card holder are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from that retail price with the packs\' pull value as its floor.',
   },
   {
@@ -1907,6 +1924,7 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Four Generations packs, the full-art Venusaur-EX promo and its figure.',
     promos: ['Venusaur-EX'], promoIds: ['xyp-XY123'], promoSet: 'xyp',
     source: RED_BLUE_COLLECTION('venusaur-ex', 'Venusaur-EX'),
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/120700_in_400x400.jpg',
     note: 'Red & Blue Collection—Venusaur-EX: four Generations booster packs, a full-art Venusaur-EX promo (XY123) and a Venusaur-EX figure. The published price was $24.99 (PokéBeach\'s 20th-anniversary lineup). The figure and the card holder are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from that retail price with the packs\' pull value as its floor.',
   },
   {
@@ -1915,7 +1933,9 @@ export const SPECIAL_PRODUCTS: SpecialProductRow[] = [
     description: 'Four Generations packs, the full-art Pikachu-EX promo and its figure.',
     promos: ['Pikachu-EX'], promoIds: ['xyp-XY124'], promoSet: 'xyp',
     source: RED_BLUE_COLLECTION('pikachu-ex', 'Pikachu-EX'),
-    note: 'Red & Blue Collection—Pikachu-EX: four Generations booster packs, a full-art Pikachu-EX promo (XY124) and a Pikachu-EX figure. The published price was $24.99 (PokéBeach\'s 20th-anniversary lineup). The figure and the card holder are accessories and are not modelled. No marketplace quote for this box was read here, so the shelf price is modelled from that retail price with the packs\' pull value as its floor.',
+    image: 'https://tcgplayer-cdn.tcgplayer.com/product/123432_in_400x400.jpg',
+    shelf: { market: 2995.99, source: TCGPLAYER_SHELF('Red & Blue Collection [Pikachu EX]', 123432), asOf: '2026-11-23' },
+    note: 'Red & Blue Collection—Pikachu-EX: four Generations booster packs, a full-art Pikachu-EX promo (XY124) and a Pikachu-EX figure. The published price was $24.99 (PokéBeach\'s 20th-anniversary lineup). The figure and the card holder are accessories and are not modelled. The $2995.99 shelf price is the TCGplayer market on 23 November 2026.',
   },
 
   // Double Crisis was only sold as a four-pack blister of seven-card packs.
