@@ -70,7 +70,7 @@ const PROSE: Record<string, Prose> = {
     points: [
       'The Pack Shop rings every purchase up sealed at the shelf price, which is the market price of that wrapper, not its contents. A pack can cost more than the cards inside it are worth on average — the tile prints TYP, P50, P90 and the average so you can see that before you buy.',
       'Open it from Inventory → Sealed. The ceremony deals the cards one at a time and the summary lands the whole pack in your collection, with new-to-binder marks and the pack’s return.',
-      'Sets differ on purpose. Special sets have two reverse-ish slots and ball patterns, the oldest sets can throw first-edition stamps, some products carry a guaranteed card, and Delta Reign’s Legendary Stadiums arrive as a matched pair — both halves or neither, never a lone half.',
+      'Sets differ on purpose. Special sets have two reverse-ish slots and ball patterns, the oldest sets can throw first-edition stamps, some products carry a guaranteed card, and Delta Reign’s Legendary Stadiums arrive as a matched pair, back to back — both halves or neither, never a lone half, and never scattered apart in the pile.',
       'Pull History keeps every wrapper you ever opened, card by card, so a bad night is data rather than a feeling.',
       'Sealed is also an asset: hold it, and the shelf price drifts. Products that go out of print climb, and the OOP tag on the tile tells you the market has started paying for the box rather than the cards.',
     ],

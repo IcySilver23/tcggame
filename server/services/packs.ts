@@ -700,9 +700,13 @@ function cardMeta(cardId: string): { rarity: string | null; supertype: string; s
 // separate cards. So the six halves are not dealt as ordinary uncommons (that
 // had a Stadium in two of every three packs): they are kept out of the slot
 // pools and one pair is dealt on its own roll, then this pass keeps the pair
-// whole — both halves or neither, never the same half twice, and never the two
-// of them side by side, where the shared artwork and shared name read as one
-// card dealt twice.
+// whole — both halves or neither, never the same half twice.
+//
+// And they come BACK TO BACK, the way the pair is printed: number 94 and number
+// 95 are one ruined Stadium split across two sleeves, so the second half lands
+// directly beside the first in the reveal and the shared artwork and shared name
+// read as one card. Splitting them apart to look like two unrelated pulls was
+// backwards — it hid the thing the pair exists to do.
 /** The Legendary Stadium halves a set's packs can hold; they never enter a pool. */
 export function stadiumHalvesFor(setId: string): string[] {
   return (LEGENDARY_STADIUMS[setId] ?? []).flat()
@@ -734,7 +738,10 @@ function stadiumCard(id: string): RolledCard {
   return { cardId: id, variant: 'normal', value: valueOf(id), rarity: meta.rarity, supertype: meta.supertype, isHit: false }
 }
 
-/** One Stadium, both halves, in the place of two ordinary non-hit cards. */
+/**
+ * One Stadium, both halves, in the place of two ordinary non-hit cards — and in
+ * the two seats next to each other, so the reveal shows them back to back.
+ */
 function dealLegendaryStadium(setId: string, picked: RolledCard[]): void {
   const pairs = LEGENDARY_STADIUMS[setId]
   const odds = LEGENDARY_STADIUM_PACK_ODDS[setId]
@@ -743,8 +750,10 @@ function dealLegendaryStadium(setId: string, picked: RolledCard[]): void {
   if (open.length < 2) return
   const [left, right] = pairs[Math.floor(Math.random() * pairs.length)]
   const first = open[Math.floor(Math.random() * open.length)]
-  const rest = open.filter((i) => i !== first)
-  const second = rest[Math.floor(Math.random() * rest.length)]
+  // The seat just after the first half; if it was dealt last, the seat just
+  // before it. Either way the two are consecutive, never scattered.
+  const second = open.find((i) => i > first) ?? [...open].reverse().find((i) => i < first)
+  if (second === undefined) return
   picked[first] = stadiumCard(left)
   picked[second] = stadiumCard(right)
 }
@@ -801,22 +810,21 @@ function pairLegendaryStadiums(setId: string, picked: RolledCard[], rows: { card
     if (spare.length === 0) break
     picked.push(asCard(weightedPick(spare)))
   }
-  // Never back to back: the later half moves to the place farthest from its
-  // partner, and the pass repeats because that move can park another pair's half
-  // beside its own.
+  // Back to back: a half whose partner drifted (to a spare seat, or through the
+  // padding above) is moved into the seat beside its mate, after it where there
+  // is room and before it when the mate is last. The pass repeats because
+  // seating one pair can displace the neighbour it lands on.
   for (let guard = 0; guard < 32; guard++) {
     let moved = false
     for (const [left, right] of pairs) {
       const a = picked.findIndex((c) => c.cardId === left)
       const b = picked.findIndex((c) => c.cardId === right)
-      if (a < 0 || b < 0 || Math.abs(a - b) !== 1) continue
-      const anchor = Math.min(a, b)
+      if (a < 0 || b < 0 || Math.abs(a - b) === 1) continue
+      const mate = Math.min(a, b)
       const from = Math.max(a, b)
-      let to = from
-      for (let j = 0; j < picked.length; j++) {
-        if (Math.abs(j - anchor) > Math.abs(to - anchor)) to = j
-      }
-      if (to === from) continue
+      const to = mate + 1 < picked.length ? mate + 1 : mate - 1
+      // Another Stadium's half keeps its seat: two pairs must never interleave.
+      if (to < 0 || to === from || halves.has(picked[to].cardId)) continue
       const held = picked[from]
       picked[from] = picked[to]
       picked[to] = held

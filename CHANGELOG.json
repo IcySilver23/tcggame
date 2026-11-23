@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.86.8",
+      "date": "2026-11-23",
+      "title": "The Stadium comes back to back",
+      "highlights": [
+        "Delta Reign’s Legendary Stadiums now land back to back: the two halves sit in consecutive places in the reveal, so the shared art and shared name read as one Stadium.",
+        "The old rule that pushed a pair apart — moving a half to the seat farthest from its twin — is gone; nothing scatters them any more.",
+        "Still one pack in twelve, both halves or neither, never a lone half, and the booster still holds ten cards."
+      ],
+      "features": [
+        "A Legendary Stadium is one ruined Stadium printed across two sleeves, numbers 94 and 95, and the pair is supposed to be read together. The pack reveal was doing the opposite: a pass moved the second half to whichever seat was farthest from its twin, on the reasoning that two cards with the same name and connecting art looked like a duplicate. They look like one Stadium because they are one Stadium, so the pair is now dealt into consecutive seats and any drift — from the spare seat the pairing pass uses, or from padding — is corrected back to back.",
+        "Checked on 400 Delta Reign boosters: 34 carried a Stadium, every one of the 34 had both halves in adjacent seats with exactly two halves and ten cards in the pack. The rate, the pair-only rule and the set’s ten-card blueprint are all unchanged; only the order of the reveal moved.",
+        "Honestly: two Stadiums never appear in one pack, and the pairing pass deliberately refuses to seat one pair against another pair’s half, so a pack can hold at most one back-to-back pair. The pull history and the summary list keep the dealt order, which is what the ceremony shows."
+      ]
+    },
+    {
       "version": "0.86.7",
       "date": "2026-11-23",
       "title": "Every step has a door",
       "highlights": [
-        "Each Academy action step now has a button that opens the screen it names — Pack Shop, Buylist, Wishlist, Grading, Calendar — so you are not navigating from memory.",
-        "The step’s own wording stays as the hint underneath, so the instruction and the door are in the same place rather than one replacing the other.",
-        "Locked screens still explain themselves: the button uses the game’s own routing, so a shop you have not earned yet says why instead of opening an empty room."
+        "Each Academy action step now has a button that opens the screen it names — Pack Shop, Buylist, Wishlist, Grading, Calendar — so you are not navigating from memory."
       ],
       "features": [
         "Ten action steps, ten doors. Each one now carries a Go to … button that jumps straight to the screen it names: the Pack Shop for opening a wrapper, Grading for protecting a card, the Market feed for a purchase, the Buylist for a sale, Storage & Auctions for the shelf and lockers, Wishlist for a target, the Calendar for an event, the Card Shop for a counter job and Community for an audience. The economy step points at the Home dashboard, where the TODAY panel prints what rolls at the next boundary.",
