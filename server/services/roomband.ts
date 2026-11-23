@@ -11,8 +11,13 @@ import { round2 } from './market'
  * quarter. Price at the bottom and it sells; price at the top and it is a
  * gamble. That is the game the band leaves in place.
  */
+/** The ladder a band snaps to: a quarter under a dollar, then bigger steps. */
+export function moneyStep(v: number): number {
+  return v < 1 ? 0.25 : v < 5 ? 0.5 : v < 20 ? 1 : v < 50 ? 5 : v < 200 ? 10 : 25
+}
+
 export function bandedCeiling(v: number): { low: number; high: number } {
-  const step = v < 1 ? 0.25 : v < 5 ? 0.5 : v < 20 ? 1 : v < 50 ? 5 : v < 200 ? 10 : 25
+  const step = moneyStep(v)
   const low = Math.max(step, Math.floor((v * 0.75) / step) * step)
   // Always at least two steps wide, so a band can never collapse onto one number.
   const high = Math.max(low + step, Math.ceil((v * 1.2) / step) * step)

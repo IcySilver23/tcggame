@@ -62,6 +62,7 @@ import { collectorStats } from './services/collector-stats'
 import * as packbattles from './services/packbattles'
 import * as tournaments from './services/tournaments'
 import * as streaming from './services/streaming'
+import * as stacks from './services/stacks'
 import * as tcgcsv from './services/tcgcsv'
 import * as sponsors from './services/sponsors'
 import * as resale from './services/resale'
@@ -2455,6 +2456,12 @@ app.post('/api/stream/lot', async (c) => {
   const body = await c.req.json<{ inventoryId?: number; start?: number | null; reserve?: number | null }>().catch(() => ({}) as { inventoryId?: number; start?: number | null; reserve?: number | null })
   const r = streaming.listStreamLot(Number(body.inventoryId), body.start ?? null, body.reserve ?? null)
   return c.json(r, r.ok ? 200 : 400)
+})
+// A stack quote: what a pile of junk might clear on camera, banded, with the
+// buylist's instant offer beside it. Quoting never reserves or charges anything.
+app.post('/api/stream/stack/quote', async (c) => {
+  const body = await c.req.json<{ inventoryIds?: number[] }>().catch(() => ({}) as { inventoryIds?: number[] })
+  return c.json(stacks.quoteStack(Array.isArray(body.inventoryIds) ? body.inventoryIds : [], streaming.liveStream()?.peak_viewers ?? 0))
 })
 // Search the whole binder, not a slice of it: `q` narrows by card name, set or
 // card id, and the page is capped rather than the population.
