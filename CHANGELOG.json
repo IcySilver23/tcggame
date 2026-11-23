@@ -20,9 +20,9 @@
       "date": "2026-11-23",
       "title": "The town borrows from you now",
       "highlights": [
-        "A lending desk behind the Gold Exchange counter: collectors borrow against a card at 0.25%, 0.4% or 0.6% a game-day, on a 14-day ticket worth no more than 80% of its market. Repaid, you keep the interest; unpaid, you keep the card at what you lent.",
-        "The Card Shop sells repacks you build yourself: five sealed five-card packs, one chase worth 4x the price, and wrapper odds you choose. Promise better than the truth and it sells faster, until the complaints cost you standing.",
-        "Interest is billed in exact game-days at every desk — the pawn shop and sealed-box loans included. A late tick charges the days it missed and no more, and a ticket carrying the old date-only stamp is billed only the days it actually ran."
+        "A lending desk behind the Gold Exchange counter: collectors borrow against a card at 0.25%–0.6% a game-day, on a 14-day ticket up to 80% of its market. Repaid you keep the interest; unpaid you keep the card.",
+        "The Card Shop sells repacks you build: five sealed five-card packs, one chase worth 4x the price, and wrapper odds you choose. Hype sells faster, until the complaints cost you standing.",
+        "Interest is billed in exact game-days at every desk, the pawn shop and sealed-box loans included. A late tick charges the days it missed and no more, and an old date-only ticket is billed only the days it ran."
       ],
       "features": [
         "The Gold Exchange has a second counter, and you are behind it: collectors ask for cash and offer a card as collateral.",
@@ -76,7 +76,7 @@
         "Every figure is a community count, because The Pokémon Company does not publish English pull rates, and BREAK cards are dealt from the rare slot rather than the reverse-holo one.",
         "A Celebrations pack now holds the four foil cards its wrapper lists, including a Classic Collection reprint about two packs in five; it used to deal three main-set rares and no reprints at all.",
         "The 30th Celebration Ultra-Premium Collection closes on the Classic Collection pack it was missing: three reprints in their own gold wrapper, only ever inside the box.",
-        "The shop comes in ten chrome palettes picked in Settings → Appearance: Ember, Tide, Forest, Nebula, Graphite, Sakura, Frost and Parchment join Midnight and Daylight, and the light ones got a readability pass."
+        "Ten chrome palettes in Settings → Appearance: Ember, Tide, Forest, Nebula, Graphite, Sakura, Frost and Parchment join Midnight and Daylight, and the light ones got a readability pass."
       ],
       "features": [
         "Pack odds are counted per set rather than borrowed from one generic ladder. A Crown Zenith pack holds a Pokémon V in 1 in 8 packs instead of 1 in 17, and its full-art V in 1 in 35 instead of 1 in 20; EX-series ex cards are back to the era’s 1 in 18, with Power Keepers no longer filed under the Diamond & Pearl era it shipped before; ACE SPEC is 1 in 18 at Boundaries Crossed and 1 in 24 at Plasma Storm instead of 1 in 50; a BREAK card is 1 in 11 packs instead of 1 in 33; Shining Legends’ Shining cards are 1 in 11.3 with its GX, full art, rainbow and secret tiers matching the same count; Shining Fates’ rare slot is its own count — a V in 1 in 9.2, a VMAX in 1 in 18.4, the rainbow in 1 in 84; Amazing Rare is 1 in 17.5 at Vivid Voltage and 1 in 17.4 at Shining Fates; and Ascended Heroes’ Mega Attack Rare is the 1 in 29 its own study found. No set is left on a rate nobody counted for it. Two honest notes: BREAK cards are dealt from the rare slot here while the real cards took the reverse-holo slot in BREAKthrough through Evolutions (the rate is counted, the slot is not), and every figure is a community count — TCGplayer, thepricedex, DigitalTQ, Flipside — because The Pokémon Company does not publish English pull rates.",
