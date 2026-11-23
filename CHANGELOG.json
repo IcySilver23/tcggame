@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.86.4",
+      "date": "2026-11-23",
+      "title": "The checklist checks itself",
+      "highlights": [
+        "Academy steps tick on their own: the page re-reads your save while it is open, so the thing you just did in the game is already marked when you come back.",
+        "A tick that lands while you are reading is announced by name at the top of the screen, so you know which action counted.",
+        "The Check the save again button is gone — a live dot sits beside the count, and the panel looks the moment the window regains focus."
+      ],
+      "features": [
+        "The Academy checklist now watches the save instead of waiting to be asked. While the page is open it re-reads /api/academy every five seconds, so a step proved by the game — a wrapper in Pull History, a sale, a protected copy, a wishlist target — ticks by itself and the chapter’s Claim button unlocks without a click in between. The manual Check the save again button is gone; a small green live dot beside the step count is the only sign it is happening.",
+        "Coming back from another screen is instant, not five seconds later: the panel re-checks the moment the window regains focus or the tab becomes visible again, and it stops polling entirely while the tab is hidden so a backgrounded game is not chatting with the server for nothing. A tick that arrives while you are reading the chapter gets a toast naming the step, because an action done two screens away otherwise lands with no explanation. Quiz answers keep their own verdict and are not announced twice.",
+        "Nothing here is trust in the browser. The tick appears only because the server found the work in the save when it was asked; the page has no way to mark a step itself. A poll that fails quietly is skipped rather than shown as an error, and it never lands on top of a claim or an answer still in flight."
+      ]
+    },
+    {
       "version": "0.86.3",
       "date": "2026-11-23",
       "title": "The Academy is work now",
       "highlights": [
-        "Every Academy chapter is a checklist: do the thing in the game, answer the one question about the numbers, and only then does its $25 unlock.",
-        "The action is proved by your save, not a button: a wrapper in Pull History, a row in sale history, a protected copy, a wishlist target, a venue you worked.",
-        "A replay starts a fresh checklist — actions only count from when you began the run — and the money stays once-only, still $300 for the whole course."
+        "Every Academy chapter is a checklist: do the thing in the game, answer the one question about the numbers, and only then does its $25 unlock."
       ],
       "features": [
         "The Collector’s Academy pays for work instead of reading. Each of the ten chapters now carries two steps: one real action in the game and one question about the numbers that chapter just explained. The chapter’s $25 is locked until both are ticked, the button reads Finish the steps first while anything is open, and the screen prints which step is left rather than a generic refusal.",

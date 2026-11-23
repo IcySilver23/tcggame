@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import { useStore } from '../store'
 import { fmtUsd } from '../format'
@@ -19,6 +19,13 @@ import type { AcademyState } from '../types'
  * the list with no prose still renders (with a short fallback) rather than
  * disappearing; prose for an id the server no longer lists is not rendered at
  * all. Never add a title or a dollar figure to this file.
+ *
+ * THE CHECKLIST CHECKS ITSELF. Action steps are proved against the save on every
+ * read, so this screen re-reads `/api/academy` while it is open (and the moment
+ * the window regains focus) and ticks land on their own — a player who opens a
+ * pack on another screen comes back to a ticked step, not to a button. Nothing
+ * about that is client-side trust: the tick only appears because the server
+ * found the work in the save.
  */
 
 type Prose = {
@@ -198,6 +205,60 @@ export function AcademyView() {
     void load()
   }, [])
 
+  // The live re-read. `busy` and the last state live in refs so the interval can
+  // be set up once and still see fresh values, and so a poll never lands on top
+  // of a claim or an answer that is still in flight.
+  const busyRef = useRef(false)
+  const stateRef = useRef<AcademyState | null>(null)
+  useEffect(() => {
+    busyRef.current = busy
+  }, [busy])
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  const autoCheck = useCallback(async () => {
+    if (busyRef.current) return
+    let next: AcademyState
+    try {
+      next = await api.academy()
+    } catch {
+      return // a dropped poll is not news; the next one is five seconds away
+    }
+    if (busyRef.current) return
+    const prev = stateRef.current
+    setState(next)
+    if (!prev) return
+    // Announce only ACTIONS. A question already toasts its own verdict, so naming
+    // it twice would be noise; an action done on another screen has no voice.
+    const fresh: string[] = []
+    for (const c of next.chapters) {
+      const before = new Map(prev.chapters.find((p) => p.id === c.id)?.steps.map((s) => [s.id, s.done]) ?? [])
+      for (const s of c.steps) if (s.kind === 'act' && s.done && !before.get(s.id)) fresh.push(s.label)
+    }
+    if (fresh.length > 0) toast(`${fresh.length === 1 ? 'Step ticked' : 'Steps ticked'} — ${fresh.join(', ')}`, 'good')
+  }, [toast])
+
+  // Five seconds is the beat: fast enough to feel like the panel noticed you, slow
+  // enough that reading a chapter is not a request every frame. It pauses in a
+  // hidden tab and fires immediately when the window comes back, which is exactly
+  // when a returning player looks at the list.
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void autoCheck()
+    }, 5000)
+    const wake = () => {
+      if (document.visibilityState === 'visible') void autoCheck()
+    }
+    window.addEventListener('focus', wake)
+    document.addEventListener('visibilitychange', wake)
+    return () => {
+      window.clearInterval(id)
+      window.removeEventListener('focus', wake)
+      document.removeEventListener('visibilitychange', wake)
+    }
+  }, [autoCheck])
+
   useEffect(() => {
     if (open) localStorage.setItem(CHAPTER_KEY, open)
   }, [open])
@@ -243,18 +304,6 @@ export function AcademyView() {
       toast(r.correct ? 'Correct — step ticked.' : 'Not quite. The numbers are in the chapter above.', r.correct ? 'good' : 'bad')
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Could not save that answer', 'bad')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  // The action steps are proved by the save, so re-reading the state is how you
-  // see one tick after doing it in another screen.
-  const recheck = async () => {
-    setBusy(true)
-    try {
-      await load()
-      toast('Checked the save again', 'info')
     } finally {
       setBusy(false)
     }
@@ -370,7 +419,10 @@ export function AcademyView() {
               <div className="academy-steps-head">
                 <b>Your work in this chapter</b>
                 <span className="faint small">
-                  {chapter.stepsDone}/{chapter.steps.length} done{chapter.ready ? ' — the reward is unlocked' : ''}
+                  {chapter.stepsDone}/{chapter.steps.length} done{chapter.ready ? ' — the reward is unlocked' : ''}{' '}
+                  <span className="academy-live" title="The save is re-read while this page is open, so a step ticks on its own">
+                    live
+                  </span>
                 </span>
               </div>
               {chapter.steps.map((s, i) => (
@@ -404,11 +456,6 @@ export function AcademyView() {
                 {index > 0 && (
                   <button className="ghost" onClick={() => setOpen(chapters[index - 1].id)}>
                     ← Previous
-                  </button>
-                )}
-                {!done.has(chapter.id) && (
-                  <button className="ghost" disabled={busy} onClick={recheck}>
-                    Check the save again
                   </button>
                 )}
                 {done.has(chapter.id) ? (
