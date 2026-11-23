@@ -24,7 +24,7 @@ const SPOT_MIN = 4
 const SPOT_MAX = 16
 
 export function StreamView() {
-  const { toast, refreshState, openCard } = useStore()
+  const { toast, refreshState, openCard, state } = useStore()
   const [channel, setChannel] = useState<StreamChannel | null>(null)
   const [products, setProducts] = useState<StreamProduct[]>([])
   const [selProduct, setSelProduct] = useState('')
@@ -37,7 +37,12 @@ export function StreamView() {
   const [breakState, setBreakState] = useState<BreakStatus>(null)
   const [lastBreakRip, setLastBreakRip] = useState<BreakRipResult | null>(null)
   const [spotsInput, setSpotsInput] = useState(8)
+  // Packs are bought with the break, so the suggested ask and the spot split are
+  // measured on the whole product, not one pack.
+  const [breakPacks, setBreakPacks] = useState(1)
   const [priceInput, setPriceInput] = useState('')
+  // A charge that eats a big slice of the wallet asks first.
+  const [confirm, setConfirm] = useState<{ kind: 'live' | 'break'; amount: number } | null>(null)
   // A live break priced past the room used to be dead for the rest of the
   // stream. Cutting the ask is the move a real host makes.
   const [cutInput, setCutInput] = useState('')
@@ -88,8 +93,21 @@ export function StreamView() {
     return () => { clearInterval(p); clearInterval(t) }
   }, [channel?.live?.id])
 
-  const goLive = async () => {
+  const cashOnHand = state?.cash ?? 0
+  const bigCharge = (amount: number) => amount > 0 && (amount >= 20 || amount >= cashOnHand * 0.1)
+  const pctOfCash = (amount: number) => Math.round((amount / Math.max(1, cashOnHand)) * 100)
+
+  const goLive = async (force = false) => {
     if (!selProduct) return
+    const prod = products.find((p) => p.id === selProduct)
+    const unit = prod ? prod.market_price ?? prod.msrp : 0
+    const breakWaiting = breakState && breakState.status === 'selling' && !breakState.live
+    const liveCost = breakWaiting ? 0 : Math.round(unit * packs * 100) / 100
+    if (!force && bigCharge(liveCost)) {
+      setConfirm({ kind: 'live', amount: liveCost })
+      return
+    }
+    setConfirm(null)
     setBusy(true)
     try {
       const res = await api.streamGoLive(selProduct, packs)
@@ -108,13 +126,21 @@ export function StreamView() {
     }
   }
 
-  const createBreak = async () => {
+  const createBreak = async (force = false) => {
     if (!selProduct) return
+    const prod = products.find((p) => p.id === selProduct)
+    const unit = prod ? prod.market_price ?? prod.msrp : 0
+    const breakCost = Math.round(unit * breakPacks * 100) / 100
+    if (!force && bigCharge(breakCost)) {
+      setConfirm({ kind: 'break', amount: breakCost })
+      return
+    }
+    setConfirm(null)
     setBusy(true)
     try {
-      const res = await api.breakCreate(selProduct, spotsInput, priceInput ? Number(priceInput) : null)
+      const res = await api.breakCreate(selProduct, spotsInput, priceInput ? Number(priceInput) : null, breakPacks)
       if (res.ok) {
-        toast(`Break listed — ${res.spotsTotal} spots at ${fmtUsd(res.spotPrice ?? 0)}`, 'good')
+        toast(`Break listed — ${res.spotsTotal} spots at ${fmtUsd(res.spotPrice ?? 0)} for ${res.packs ?? breakPacks} pack${(res.packs ?? breakPacks) === 1 ? '' : 's'}`, 'good')
         setPriceInput('')
         refreshState()
         loadBreak()
@@ -550,10 +576,10 @@ export function StreamView() {
   // Offline — channel hub + go-live setup.
   const product = products.find((p) => p.id === selProduct)
   const price = product ? product.market_price ?? product.msrp : 0
-  // A pending break already bought its first pack; the rest are charged now, so
-  // the number under Go live is what actually leaves your cash.
+  // A break bought every pack it rips when it opened, so going live is free for
+  // it; a normal stream buys its packs here.
   const breakWaiting = breakState && breakState.status === 'selling' && !breakState.live
-  const cost = Math.round(price * (breakWaiting ? Math.max(0, packs - 1) : packs) * 100) / 100
+  const cost = breakWaiting ? 0 : Math.round(price * packs * 100) / 100
 
   return (
     <div>
@@ -575,7 +601,8 @@ export function StreamView() {
             <div>
               <b>📦 Break pending — {breakState.productName}</b>
               <div className="small faint">
-                {breakState.spotsTotal} spots · go live to put them on sale. Product cost {fmtUsd(breakState.productCost)} is already out of pocket.
+                {breakState.packs} pack{breakState.packs === 1 ? '' : 's'} · {breakState.spotsTotal} spots · go live to put them on
+                sale. Product cost {fmtUsd(breakState.productCost)} is already out of pocket.
               </div>
             </div>
             <button className="small" onClick={cancelBreak}>Cancel break (refund)</button>
@@ -643,6 +670,7 @@ export function StreamView() {
               spots{' '}
               <input
                 type="number"
+                aria-label="Break spots"
                 min={SPOT_MIN}
                 max={SPOT_MAX}
                 value={spotsInput}
@@ -650,7 +678,19 @@ export function StreamView() {
                 style={{ width: 60 }}
               />
             </label>
-            <label className="small" title="Leave blank for the suggested ask: even split + 25% house margin">
+            <label className="small" title="Packs are bought now — the suggested ask splits the whole product across the board">
+              packs{' '}
+              <input
+                type="number"
+                aria-label="Break packs"
+                min={1}
+                max={20}
+                value={breakPacks}
+                onChange={(e) => setBreakPacks(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                style={{ width: 60 }}
+              />
+            </label>
+            <label className="small" title="Leave blank for the suggested ask: even split + 10% house margin">
               spot price{' '}
               <input
                 type="number"
@@ -658,18 +698,35 @@ export function StreamView() {
                 step={0.25}
                 placeholder={`auto · ${(() => {
                   const p = products.find((x) => x.id === selProduct)
-                  const cost = p ? p.market_price ?? p.msrp : 0
-                  return fmtUsd(Math.max(0.5, Math.ceil((cost * 1.25) / Math.max(SPOT_MIN, Math.min(SPOT_MAX, spotsInput)) * 2) / 2))
+                  const unit = p ? p.market_price ?? p.msrp : 0
+                  return fmtUsd(Math.max(0.5, Math.ceil(((unit * breakPacks * 1.1) / Math.max(SPOT_MIN, Math.min(SPOT_MAX, spotsInput))) * 2) / 2))
                 })()}`}
                 value={priceInput}
                 onChange={(e) => setPriceInput(e.target.value)}
                 style={{ width: 90 }}
               />
             </label>
-            <button className="primary" disabled={busy || !selProduct} onClick={createBreak}>
+            <button className="primary" disabled={busy || !selProduct} onClick={() => { void createBreak() }}>
               {busy ? 'Listing…' : '📦 Open the break'}
             </button>
-            <span className="faint small">out of pocket {fmtUsd((products.find((p) => p.id === selProduct)?.market_price ?? products.find((p) => p.id === selProduct)?.msrp ?? 0))}</span>
+            <span className="faint small">
+              out of pocket{' '}
+              {fmtUsd(
+                (products.find((p) => p.id === selProduct)?.market_price ?? products.find((p) => p.id === selProduct)?.msrp ?? 0) *
+                  breakPacks,
+              )}{' '}
+              for {breakPacks} pack{breakPacks === 1 ? '' : 's'}
+            </span>
+          </div>
+        )}
+        {confirm?.kind === 'break' && (
+          <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span className="small">
+              This spends <b>{fmtUsd(confirm.amount)}</b> on {breakPacks} pack{breakPacks === 1 ? '' : 's'} — {pctOfCash(confirm.amount)}% of your
+              cash.
+            </span>
+            <button className="primary small" disabled={busy} onClick={() => { void createBreak(true) }}>Yes, buy the packs</button>
+            <button className="small" onClick={() => setConfirm(null)}>Not now</button>
           </div>
         )}
       </div>
@@ -688,26 +745,39 @@ export function StreamView() {
                 </option>
               ))}
             </select>
-            <label className="small">
-              packs{' '}
-              <input
-                type="number"
-                min={1}
-                max={20}
-                value={packs}
-                onChange={(e) => setPacks(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-                style={{ width: 60 }}
-              />
-            </label>
+            {breakWaiting && breakState ? (
+              <span className="small">
+                packs <b>{breakState.packs}</b> — bought with the break
+              </span>
+            ) : (
+              <label className="small">
+                packs{' '}
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={packs}
+                  onChange={(e) => setPacks(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+                  style={{ width: 60 }}
+                />
+              </label>
+            )}
             <span className="faint small">cost {fmtUsd(cost)}</span>
-            <button className="primary" disabled={busy || !selProduct} onClick={goLive}>
+            <button className="primary" disabled={busy || !selProduct} onClick={() => { void goLive() }}>
               {busy ? 'Starting…' : breakState && breakState.status === 'selling' ? '🔴 Go live — open the break' : '🔴 Go live'}
             </button>
             {breakState && breakState.status === 'selling' && (
-              <span className="faint small">
-                the break rides this stream — packs is how many it rips, and you pay for every pack past the one you already bought
-              </span>
+              <span className="faint small">the break rides this stream — its packs are already paid for</span>
             )}
+          </div>
+        )}
+        {confirm?.kind === 'live' && (
+          <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span className="small">
+              Going live spends <b>{fmtUsd(confirm.amount)}</b> on {packs} packs — {pctOfCash(confirm.amount)}% of your cash.
+            </span>
+            <button className="primary small" disabled={busy} onClick={() => { void goLive(true) }}>Yes, go live</button>
+            <button className="small" onClick={() => setConfirm(null)}>Not now</button>
           </div>
         )}
       </div>

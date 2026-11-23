@@ -2491,8 +2491,8 @@ app.get('/api/stream/analytics', (c) => c.json(streaming.streamAnalytics()))
 // Case breaks — sell rip spots on the channel; pulls go to spot-holders
 app.get('/api/stream/break', (c) => c.json(breaks.breakForStream(streaming.liveStream()?.id ?? 0)))
 app.post('/api/stream/breaks', async (c) => {
-  const body = await c.req.json<{ productId: string; spots: number; spotPrice?: number | null }>()
-  return c.json(breaks.createBreak(body.productId, body.spots, body.spotPrice ?? null))
+  const body = await c.req.json<{ productId: string; spots: number; spotPrice?: number | null; packs?: number | null }>()
+  return c.json(breaks.createBreak(body.productId, body.spots, body.spotPrice ?? null, body.packs ?? null))
 })
 app.post('/api/stream/breaks/:id/cancel', (c) => c.json(breaks.cancelBreak(Number(c.req.param('id')))))
 app.post('/api/stream/breaks/:id/buy', async (c) => {

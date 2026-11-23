@@ -1,16 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.93.4",
+      "date": "2026-11-23",
+      "title": "Buy the packs, then price the spots",
+      "highlights": [
+        "The pack count is part of opening the break now, so a ten-pack break shows an even split and a suggested ask measured on the whole product instead of one pack.",
+        "You pay for those packs when you open the break and going live is free for a break, so the spots are priced against what you actually spent.",
+        "Any charge of $20 or 10% of your cash now asks first, naming the amount and the share of your wallet it takes."
+      ],
+      "features": [
+        "Picking packs at go-live made the break lie to itself: the suggested ask and the even split were worked out on one pack, then six packs went out at that price, and a live ask cannot be raised. Packs now live in the Open a case break panel next to spots and price. Everything is measured on that real total — a ten-pack break on a $3.06 pack is $30.60 out of pocket, an even split of $3.83 across eight spots, and a suggested ask of $4.50 — and the go-live panel shows the pack count as bought, with a cost of $0.00.",
+        "Charges that eat a big slice of the wallet now ask before they take it. Opening a break or going live with a stream that costs $20 or more, or 10% of your cash, shows the amount and the percentage and waits for a second click; smaller charges go through as before. The confirm appears at whichever action spends the money, since a break now pays at opening time rather than at go-live. Cancelling a pending break still refunds the whole product including its packs."
+      ]
+    },
+    {
       "version": "0.93.3",
       "date": "2026-11-23",
       "title": "The playtest holds",
       "highlights": [
-        "A break now pays for every pack it rips: going live with six packs charges the five you had not bought yet, instead of opening up to twenty on one pack’s price.",
-        "The box cannot be over-ripped and spots cannot be sold once the packs are open — a spot sold then would buy pulls that already went out.",
-        "A break with sold spots will not let you wrap until you have ripped what those buyers paid for, and only one break can be pending at a time."
+        "A break now pays for every pack it rips: going live with six packs charges the five you had not bought yet, instead of opening up to twenty on one pack’s price."
       ],
       "features": [
-        "A full adversarial pass over the streaming systems found five ways to turn the room into free money. The break rip engine had no queue at all, so a one-pack stream could be ripped for as many packs as the client cared to ask for, all of it landing in the house while the spots were unsold. Going live with a pending break was free, which meant twenty packs of a product for the price of one. Spots could be sold after the last pack was opened, taking money for pulls already handed out. Wrapping early kept the spot money without ripping anything, and a second pending break sat invisible in the panel while its product cost was spent.",
+        "A full adversarial pass over the streaming systems found five ways to turn the room into free money. The break rip engine had no queue at all, so a one-pack stream could be ripped for as many packs as the client cared to ask for, all of it landing in the house while the spots were unsold. Going live with a pending break was free, which meant twenty packs of a product for the price of one. Spots could be sold after the last pack was opened, taking money for pulls already handed out. Wrapping early kept the spot money without ripping anything, and a second pending break sat invisible in the panel while its product cost was spent. The box cannot be over-ripped and spots cannot be sold once the packs are open — a spot sold then would buy pulls that already went out. A break with sold spots will not let you wrap until you have ripped what those buyers paid for, and only one break can be pending at a time.",
         "Each one is closed at the same line: the host pays for what the break rips. The break buys its first pack when it opens, going live charges for the rest (a six-pack break on a $3 pack costs $15.30 all in, shown under Go live), the rip engine refuses past the planned packs, spots close when the box is empty, and you cannot wrap a break that has sold spots until the packs in the box are opened. The spot split is now measured on that real total rather than one pack, so a multi-pack break prices its spots against what the host actually spent. The playtest script lives in tmp/ and runs every path — listing the same copy twice, hostile and negative asks, refund abuse, buying a team twice, over-selling the board, absurd spot prices — and passes clean; the room is still one shared ceiling, not a crowd of individual budgets."
       ]
     },

@@ -120,30 +120,29 @@ export function goLive(productId: string, packs: number) {
   const products = listBattlableProducts()
   const p = products.find((x) => x.id === productId)
   if (!p) return { ok: false as const, error: 'Unknown product' }
-  const planned = Math.max(1, Math.min(20, Math.round(packs)))
   const price = round2(p.market_price ?? p.msrp)
 
   // A pending break owns its product already — this stream rips THAT product
-  // free of charge (the break paid up front). Nothing else may ride along.
+  // free of charge (the break paid for every pack up front). Nothing else may
+  // ride along, and the pack count is the one bought with the break.
   const pendingBreakRow = db
     .prepare(`SELECT * FROM stream_breaks WHERE stream_id IS NULL AND status = 'selling' ORDER BY id DESC LIMIT 1`)
-    .get() as { id: number; product_id: string; product_name: string; spots_total: number; product_cost: number } | undefined
+    .get() as
+    | { id: number; product_id: string; product_name: string; spots_total: number; product_cost: number; packs: number | null }
+    | undefined
+  const planned = pendingBreakRow
+    ? Math.max(1, Math.min(20, Math.round(pendingBreakRow.packs ?? 1)))
+    : Math.max(1, Math.min(20, Math.round(packs)))
   if (pendingBreakRow && productId !== pendingBreakRow.product_id) {
     return { ok: false as const, error: `A break is pending for ${pendingBreakRow.product_name} — break that, or cancel it first` }
   }
 
-  // A break already paid for one pack when it opened; every pack past that one
-  // is charged here, because the break rips packs the host bought. Riding free
-  // would open twenty packs for the price of one.
-  const cost = round2(price * (pendingBreakRow ? planned - 1 : planned))
+  // The break bought all of its packs when it opened; a normal stream buys its
+  // packs here.
+  const cost = pendingBreakRow ? 0 : round2(price * planned)
   const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
   if (state.cash < cost) {
-    return {
-      ok: false as const,
-      error: pendingBreakRow
-        ? `Opening ${planned} packs for the break costs $${cost.toFixed(2)} past the one you already bought — not enough cash`
-        : `Streaming ${planned} × ${p.name} costs $${cost.toFixed(2)} — not enough cash`,
-    }
+    return { ok: false as const, error: `Streaming ${planned} × ${p.name} costs $${cost.toFixed(2)} — not enough cash` }
   }
 
   if (cost > 0) db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
@@ -168,13 +167,6 @@ export function goLive(productId: string, packs: number) {
   // (break viewers are a different crowd than pack rips).
   const linkedBreak = linkBreakFor(streamId) as { spots_total: number } | null
   if (linkedBreak) {
-    // The break now owns every pack this stream will rip: its true cost is what
-    // the host has actually spent, which is what the spot split is measured on.
-    db.prepare('UPDATE stream_breaks SET packs = ?, product_cost = ? WHERE stream_id = ?').run(
-      planned,
-      round2(price * planned),
-      streamId,
-    )
     const bump = Math.max(2, Math.round(followers * 0.08))
     db.prepare(`UPDATE streams SET peak_viewers = peak_viewers + ? WHERE id = ?`).run(bump, streamId)
   }

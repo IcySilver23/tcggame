@@ -115,7 +115,7 @@ function liveBreakRow(): BreakRow | undefined {
  * Open a break on the upcoming stream. Cash for the product leaves up front;
  * you set the per-spot price (a markup over even split is the house margin).
  */
-export function createBreak(productId: string, spots: number, spotPriceInput: number | null) {
+export function createBreak(productId: string, spots: number, spotPriceInput: number | null, packsInput: number | null = null) {
   if (liveStream()) return { ok: false as const, error: 'End the current stream first — breaks open before you go live' }
   // One at a time: a second pending break would be invisible in the panel (it
   // shows the newest) while its product cost sat out of pocket.
@@ -126,17 +126,24 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
   const total = Math.max(SPOT_MIN, Math.min(SPOT_MAX, Math.round(spots)))
   if (total !== Math.round(spots)) return { ok: false as const, error: `A break runs ${SPOT_MIN}–${SPOT_MAX} spots` }
 
-  const cost = round2(p.market_price ?? p.msrp)
+  // The packs are bought HERE, not at go-live. A break that priced its spots off
+  // one pack and then ripped six sold out at a sixth of what the host spent.
+  const packs = Math.max(1, Math.min(20, Math.round(packsInput ?? 1)))
+  if (packsInput != null && packsInput !== packs) return { ok: false as const, error: 'A break rips 1–20 packs' }
+  const unit = round2(p.market_price ?? p.msrp)
+  const cost = round2(unit * packs)
   const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
-  if (state.cash < cost) return { ok: false as const, error: `The ${p.name} costs $${cost.toFixed(2)} — not enough cash` }
+  if (state.cash < cost) {
+    return { ok: false as const, error: `A ${packs}-pack ${p.name} break costs $${cost.toFixed(2)} — not enough cash` }
+  }
 
   // The team board comes from the set itself — every sold spot can actually hit.
   const roster = rosterFor(p.set_id, total)
   if (roster.length < SPOT_MIN) return { ok: false as const, error: 'Not enough different Pokémon in this set to run a break' }
   const spotsTotal = Math.min(total, roster.length)
 
-  // A spot's worth is the product split across the board. Suggested ask is that
-  // split +10%, rounded to a clean .50 — the margin you're actually playing for.
+  // A spot's worth is everything the host spent split across the board. Suggested
+  // ask is that split +10%, rounded to a clean .50 — the margin you're playing for.
   const evenSplit = cost / spotsTotal
   // Buyers pay over the even split — that overpay is the host's margin. 1.05–1.6
   // means the suggested ask clears most boards and eats the cost on a cold one.
@@ -150,19 +157,19 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
     const info = db
       .prepare(
         `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, heat, packs, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 'selling', ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'selling', ?)`,
       )
-      .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), heat, nowIso())
+      .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), heat, packs, nowIso())
     return Number(info.lastInsertRowid)
   })()
 
   logActivity(
     'stream',
-    `📦 Break opened: selling ${spotsTotal} team spots at $${spotPrice.toFixed(2)} for a ${p.name} ($${cost.toFixed(2)} out of pocket). Board: ${roster.map((t) => t.team).join(', ')}. Full sellout = $${round2(spotsTotal * spotPrice).toFixed(2)} gross; unsold spots stay with the house.`,
+    `📦 Break opened: selling ${spotsTotal} team spots at $${spotPrice.toFixed(2)} for ${packs} × ${p.name} ($${cost.toFixed(2)} out of pocket). Board: ${roster.map((t) => t.team).join(', ')}. Full sellout = $${round2(spotsTotal * spotPrice).toFixed(2)} gross; unsold spots stay with the house.`,
     -cost,
   )
 
-  return { ok: true as const, breakId, suggested, spotPrice, spotsTotal, productCost: cost, evenSplit: r2(evenSplit) }
+  return { ok: true as const, breakId, suggested, spotPrice, spotsTotal, productCost: cost, evenSplit: r2(evenSplit), packs, unitPrice: unit }
 }
 
 /** The pending break (created, stream not started yet). */
