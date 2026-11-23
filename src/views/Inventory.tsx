@@ -1477,14 +1477,39 @@ export function InventoryView() {
                         </td>
                         <td className="right">
                           <span className="row" style={{ gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                            {freeQty > 0 && <button className="small" onClick={() => openSealed(s.product_id)}>{s.packs && s.packs > 1 ? `OPEN BOX · ${s.packs} packs` : 'OPEN 1'}</button>}
-                            {freeQty > 1 && (
-                              <button
-                                className="small"
-                                title={`Rip ${Math.min(freeQty, 36)} of your ${freeQty} ${s.packs && s.packs > 1 ? 'boxes' : 'wrappers'} in one go — every pack is opened and the stage shows the lot together`}
-                                onClick={() => openSealedMany(s.product_id, Math.min(freeQty, 36))}
-                              >OPEN ×{Math.min(freeQty, 36)}{s.packs && s.packs > 1 ? ' boxes' : ''}</button>
-                            )}
+                            {/* A quantity, not a choice between one and everything:
+                                1, 5, 10 and all (whatever the shelf holds, up to the
+                                server's 36-per-request ceiling). The label says
+                                what one unit tears, each chip carries a title with
+                                the pack count, and only "1" goes through the
+                                single-box ceremony. */}
+                            {freeQty > 0 && (() => {
+                              const perBox = s.packs && s.packs > 1 ? s.packs : 1
+                              const units = perBox > 1 ? 'boxes' : 'wrappers'
+                              const cap = Math.min(freeQty, 36)
+                              const picks = [1, 5, 10].filter((n) => n <= freeQty)
+                              const all = cap > Math.max(...picks) ? cap : 0
+                              const rip = (n: number) => (n <= 1 ? openSealed(s.product_id) : openSealedMany(s.product_id, n))
+                              const title = (n: number) =>
+                                n <= 1
+                                  ? perBox > 1
+                                    ? `Open one box the long way — ${perBox} packs, one at a time, with its promo up front`
+                                    : 'Rip one wrapper — full ceremony'
+                                  : `Rip ${n} of your ${freeQty} ${units} in one action — ${n * perBox} packs, promos first, then the lot on one stage`
+                              return (
+                                <span className="row" style={{ gap: 4, justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
+                                  <span className="faint small" title={`You hold ${freeQty} ${units}`}>
+                                    OPEN{perBox > 1 ? ` · ${perBox}pk each` : ''}
+                                  </span>
+                                  {picks.map((n) => (
+                                    <button key={n} className="small" title={title(n)} onClick={() => rip(n)}>{n}</button>
+                                  ))}
+                                  {all > 0 && (
+                                    <button className="small" title={title(all)} onClick={() => rip(all)}>ALL {all}</button>
+                                  )}
+                                </span>
+                              )
+                            })()}
                             {freshQty > 0 && <button className="small primary" onClick={() => sellSealedCond(s.product_id, freshQty, 'fresh')}>SELL FRESH · {fmtUsd(freshQty * (f?.freshPrice ?? s.market_price) * 0.9)}</button>}
                             {wornQty > 0 && f && (
                               <>

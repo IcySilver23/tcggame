@@ -1,13 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.89.4",
+      "date": "2026-11-23",
+      "title": "Rip by the handful",
+      "highlights": [
+        "The sealed shelf opens by quantity now: 1, 5, 10 or all, so tearing a dozen boosters no longer means tearing every last one.",
+        "The shelf label says what one unit tears — “OPEN · 6pk each” for a bundle — and each button names the packs it will open before you press it.",
+        "One still opens the box the long way with its promo up front; 5, 10 and all rip in a single action, promos first."
+      ],
+      "features": [
+        "Inventory’s sealed rows offered two doors: one, or every free unit of that product. That is fine for a pair of boosters and useless for a dozen — you either clicked twelve times or ripped the whole shelf. Each row now carries a quantity: 1, 5 and 10 when you hold that many, plus an ALL button that names the count it will take (whatever is free, still capped at the 36-per-request ceiling the server enforces). The label in front of them states what a single unit tears — “OPEN · 6pk each” for a bundle, plain “OPEN” for a booster — and every button’s tooltip spells out the packs: “Rip 5 of your 12 wrappers in one action — 5 packs, promos first, then the lot on one stage”. Counts you cannot reach are not shown rather than shown greyed, so the row never offers a 10 you do not have.",
+        "The two kinds of rip stay different, and the tooltips say so rather than pretending otherwise: 1 opens the box the long way — pack by pack, its promo handed over before the first wrapper — while 5, 10 and ALL open every chosen unit in one action and put the lot on one stage, with the promos introduced first. Loan collateral still sits out of reach, and the count in the row is what “all” reads from."
+      ]
+    },
+    {
       "version": "0.89.3",
       "date": "2026-11-23",
       "title": "Legacy means older",
       "highlights": [
-        "A chapter finished before the checklist is still waived, but only when it is genuinely older than the checklist — not merely missing its step flags.",
-        "A completion is stamped with a date now, so a chapter you finish on this build can never be mistaken for a pre-checklist one, even if the upgrade bookkeeping never ran.",
-        "The course records when the checklist started watching each save, and any ticked step on a chapter is enough to keep it from being waived."
+        "A chapter finished before the checklist is still waived, but only when it is genuinely older than the checklist — not merely missing its step flags."
       ],
       "features": [
         "The waiver used to read “completion flag and no step evidence” as proof a chapter was finished before the checklist existed. That inference had a hole: a chapter completed on a fresh install could carry exactly that shape before the upgrade flag was ever written, and would have been waived with its steps handed to you. The rule is explicit now — a chapter is waved only when it carries a completion stamp, has no step evidence at all, and that stamp predates this build’s checklist. The course records the instant it first laid eyes on a save (written before any claim can run, so a fresh save’s first completion is always newer than its own boundary), and a completion stores the date it happened rather than a bare flag. Every screen reads both forms, so a save from the read-and-claim build keeps its waived chapters and its paid amounts.",
