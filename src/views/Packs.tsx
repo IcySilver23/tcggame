@@ -288,9 +288,26 @@ function ShelfItem({ p, detail, active, busy, cash, onSelect, onVisible, onBuy }
           {sequinBadge(detail.mini)}
         </span>
       )}
-      {/* A wrapper can be bought by the armful: the stepper is capped by the
-          money on hand (and by one unit on a daily deal, which the server
-          enforces anyway), and the button always names the total. */}
+      {active && (
+        <button
+          className="bay-rip"
+          disabled={busy === p.id || price == null || cash < price * buyQty || claimed}
+          title={claimed
+            ? 'Daily deal claimed for this game day'
+            : price == null
+              ? 'Weighing the packs…'
+              : cash < price * buyQty
+                ? 'Not enough cash'
+                : `Buy ${buyQty}× sealed for ${fmtUsd(price * buyQty)}`}
+          onClick={(e) => { e.stopPropagation(); onBuy(p, buyQty); setQty(1) }}
+        >
+          {claimed ? 'CLAIMED' : price == null ? '…' : cash < price * buyQty ? 'NO CASH' : buyQty > 1 ? `PURCHASE ×${buyQty}` : 'PURCHASE'}
+        </button>
+      )}
+      {/* Buy by the armful: the quantity sits with the button that spends the
+          cash, capped by the money on hand (and by one unit on a daily deal,
+          which the server enforces anyway). A total you cannot pay is not a
+          quantity, so the stepper stops at what the cash buys. */}
       {active && price != null && !claimed && (
         <span className="bay-buy">
           <span className="bay-qty" onClick={(e) => e.stopPropagation()}>
@@ -308,22 +325,6 @@ function ShelfItem({ p, detail, active, busy, cash, onSelect, onVisible, onBuy }
             >+</button>
           </span>
         </span>
-      )}
-      {active && (
-        <button
-          className="bay-rip"
-          disabled={busy === p.id || price == null || cash < price * buyQty || claimed}
-          title={claimed
-            ? 'Daily deal claimed for this game day'
-            : price == null
-              ? 'Weighing the packs…'
-              : cash < price * buyQty
-                ? 'Not enough cash'
-                : `Buy ${buyQty}× sealed for ${fmtUsd(price * buyQty)}`}
-          onClick={(e) => { e.stopPropagation(); onBuy(p, buyQty); setQty(1) }}
-        >
-          {claimed ? 'CLAIMED' : price == null ? '…' : cash < price * buyQty ? 'NO CASH' : buyQty > 1 ? `PURCHASE ×${buyQty}` : 'PURCHASE'}
-        </button>
       )}
     </div>
   )

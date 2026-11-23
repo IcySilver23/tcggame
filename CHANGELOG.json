@@ -1,14 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.91.2",
+      "date": "2026-11-23",
+      "title": "The armful under the button",
+      "highlights": [
+        "The quantity stepper now sits directly under the PURCHASE button it feeds, instead of by the price sticker, so the count and the total are one control again.",
+        "It still stops at whatever the cash on hand can pay, and a daily deal still holds it at one unit per game day.",
+        "Nothing else on the shelf moved: the price sticker, the QUOTE or MODEL tag, the promo line and the typical-return figure are where they were."
+      ],
+      "features": [
+        "The stepper that buys a wrapper by the armful used to sit in the bottom corner of the bay, under the price sticker, while the button that spends the money sat at the top. Two halves of one decision in opposite corners: you set the count in one place and read the total somewhere else. It now hangs directly beneath the PURCHASE button, left edge to left edge, so the number you are about to pay for and the button that pays it are the same little stack.",
+        "The rules behind it are unchanged. The stepper stops at what the cash on hand actually buys and says so in its tooltip, a daily deal keeps it at one because the server enforces that anyway, and the button still names the count and the total before you press it. It is drawn over the wrapper art rather than in the card flow, so a shelf with a hundred bays does not reflow as you step a quantity, and a long label such as PURCHASE ×3 stays on its own line above it."
+      ]
+    },
+    {
       "version": "0.91.1",
       "date": "2026-11-23",
       "title": "Faces for the boxes",
       "highlights": [
-        "All fifteen Generations collections show their own box art now — the Mythical boxes with their pins, the Red & Blue boxes with their figures — instead of the set symbol.",
-        "Five of them sell at their published TCGplayer market price rather than a model: Mew’s box, Shaymin’s, Arceus’s, Charizard-EX’s and Pikachu-EX’s.",
-        "A brand-new save can open a Generations box now. The first build with these boxes refused every one of them on a fresh install, because the wrapper row they deal from was never seeded.",
-        "The other ten keep a modelled price because no quote is published for them, and a new check now pins all fifteen so a row cannot drift unnoticed."
+        "All fifteen Generations collections show their own box art now — the Mythical boxes with their pins, the Red & Blue boxes with their figures — instead of the set symbol."
       ],
       "features": [
         "The shelf drew the Generations set symbol on every one of the fifteen boxes because the rows carried no picture. Each row now points at its own TCGplayer product image — the Mythical Pokémon Collection boxes at 113774, 114525, 116999, 118342, 118796, 120114, 121363, 123433, 123740, 126568 and 126569, the Red & Blue boxes at 115598, 118795, 120700 and 123432 — read from the tcgcsv mirror of TCGplayer’s Generations group. Every one of those fifteen URLs answers, and the row is tied to its product id rather than to a name, so a box cannot quietly inherit another box’s picture.",
