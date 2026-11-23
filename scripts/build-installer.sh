@@ -59,11 +59,12 @@ else
 fi
 
 # 0.5 Release gate: the checks that must be green BEFORE anything is built —
-#     the sealed audit, hit odds, the changelog rules, the Academy step proof and
-#     the bulk rip. 0.90.0 shipped a display paying out 32% a rip because the
-#     audit was only ever run by hand; this makes forgetting it impossible. It
-#     runs first so a red check costs a minute, not a seven-minute build.
-echo "==> 0.5/6 release gate: sealed + odds + changelog + Academy + bulk"
+#     the changelog rules, the promo-badge layout, the sealed audit, hit odds, the
+#     Academy step proof, the Generations boxes and the bulk rip. 0.90.0 shipped
+#     a display paying out 32% a rip because the audit was only ever run by hand;
+#     this makes forgetting it impossible. It runs first so a red check costs a
+#     minute, not a seven-minute build.
+echo "==> 0.5/6 release gate: changelog + promo badge + sealed + odds + Academy + Generations + bulk"
 bash scripts/check-release.sh
 
 # 1. The app itself (window host + server exe + support files)

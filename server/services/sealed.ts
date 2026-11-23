@@ -326,6 +326,18 @@ export function ensureFullCatalog(): number {
           updatePacks.run(11, id, 11)
         }
       }
+      // A wrapper that only ever came inside a box still needs a row of its own:
+      // it is the table those boxes deal from, never a shelf item. productsForSet
+      // refuses to generate it because no shop sold it alone, so a fresh save
+      // never grew the row — and every box of Double Crisis, Dragon Vault,
+      // Generations or the 30th Celebration UPC died with "Pull table missing"
+      // the first time it was opened, on a machine whose save was new. The row is
+      // created here, pruneNeverShippedProducts spares these ids by name, and
+      // sellsProduct keeps them off the shelf.
+      const hostId = `${s.id}-booster`
+      if (PULL_TABLE_HOSTS.has(hostId)) {
+        added += insert.run(hostId, s.id, `${s.name} Booster Pack`, 'booster', 0, 1, perPack, s.release_date).changes
+      }
     }
   })
   tx()

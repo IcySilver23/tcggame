@@ -5,6 +5,7 @@
 #   npm run check:sealed        sealed audit + hit odds + daily deals + failure path
 #   npm run check:odds          hit odds on their own (no rarity on the generic weight)
 #   npm run check:changelog     the ✨ What's New rules
+#   npm run check:promo-badge   the shelf's promo tag: no clipping, no price collision
 #   tmp/check-academy-steps.ts  every Academy step, plus the legacy-waiver edge
 #   tmp/check-generations.ts    the fifteen Generations boxes: packs, promos, art, price
 #   tmp/check-bulk.ts           quantity buys and bulk rips, wrapper by wrapper
@@ -30,19 +31,24 @@ mkdir -p "$TMP/reports"
 step() { echo; echo "==> $1"; }
 
 # 1. Static and instant: fail here before a single save is copied.
-step "release gate 1/6: changelog rules"
+step "release gate 1/7: changelog rules"
 npm run --silent check:changelog
 
-# 2. The sealed audit resolves its own isolated home (a copy of data/tcglife.db,
+# 2. Also static: a three-promo shelf tag must show every name and stay clear of
+#    the price label. It reads src/styles.css and src/views/Packs.tsx.
+step "release gate 2/7: promo badge layout"
+npm run --silent check:promo-badge
+
+# 3. The sealed audit resolves its own isolated home (a copy of data/tcglife.db,
 #    a prepared snapshot, or a catalogue seeded from data/catalog-seed.db) and
 #    runs the hit-odds and daily-deal checks underneath the audit.
 #    Its reports go to tmp/ as well: refreshing the tracked reports/ copies stays
 #    a deliberate act (`npm run check:sealed` by hand), so a release build never
 #    leaves the working tree dirty mid-release.
-step "release gate 2/6: sealed audit"
+step "release gate 3/7: sealed audit"
 SEALED_AUDIT_REPORT_DIR="$PWD/$TMP/reports" npm run --silent check:sealed
 
-# 3. Whatever that just resolved is what the remaining checks copy: already
+# 4. Whatever that just resolved is what the remaining checks copy: already
 #    isolated from the player's save, and on a checkout with no dev save it is
 #    the freshly seeded catalogue.
 SAVE=""
@@ -57,9 +63,9 @@ fi
 SOURCE_HOME=$(dirname "$(dirname "$SAVE")")
 echo "gate save: $SAVE"
 
-# 4. The hit-odds check on its own name, against that save. Its report goes to
+# 5. The hit-odds check on its own name, against that save. Its report goes to
 #    tmp/ so a release build never rewrites the tracked reports/ copies.
-step "release gate 3/6: hit odds"
+step "release gate 4/7: hit odds"
 TCGLIFE_HOME="$SOURCE_HOME" HIT_ODDS_REPORT_DIR="$PWD/$TMP/reports" npm run --silent check:odds
 
 # A scratch home: the save plus the schema the services expect to find beside it.
@@ -76,8 +82,23 @@ scratch() {
 }
 
 ACADEMY=$(scratch academy)
-GENERATIONS=$(scratch generations)
 BULK=$(scratch bulk)
+
+# Generations runs on a FACTORY-FRESH catalogue rather than a copy of the dev
+# save. 0.91.1 first went out with boxes that could not be opened on a new
+# machine — the wrapper row they deal from was only ever seeded into saves that
+# predated it — and a check against a played save cannot see that shape at all.
+# So this home starts from the seed and schema and grows everything the way a
+# first boot does.
+GENERATIONS="$TMP/generations"
+if [ -f data/catalog-seed.db ]; then
+  rm -rf "$GENERATIONS"
+  mkdir -p "$GENERATIONS/data"
+  cp data/catalog-seed.db "$GENERATIONS/data/catalog-seed.db"
+  cp server/schema.sql "$GENERATIONS/schema.sql"
+else
+  GENERATIONS=$(scratch generations)
+fi
 
 # The bulk check buys a few boosters, so a dev save that has been spent down
 # would fail it for the wrong reason. The COPY is topped up; the real save is
@@ -86,14 +107,14 @@ node -e 'const db=require("better-sqlite3")(process.argv[1]);const r=db.prepare(
 
 # 5/6. The two proofs that live in tmp/ rather than in package.json.
 TSX=./node_modules/tsx/dist/cli.mjs
-step "release gate 4/6: Academy steps"
+step "release gate 5/7: Academy steps"
 TCGLIFE_HOME="$ACADEMY" node "$TSX" tmp/check-academy-steps.ts | tail -3
 
-step "release gate 5/6: Generations boxes"
+step "release gate 6/7: Generations boxes"
 TCGLIFE_HOME="$GENERATIONS" node "$TSX" tmp/check-generations.ts | tail -3
 
-step "release gate 6/6: bulk buy and rip"
+step "release gate 7/7: bulk buy and rip"
 TCGLIFE_HOME="$BULK" node "$TSX" tmp/check-bulk.ts | tail -4
 
 echo
-echo "release gate passed: changelog, sealed audit, hit odds, Academy steps, Generations boxes, bulk rip"
+echo "release gate passed: changelog, promo badge, sealed audit, hit odds, Academy steps, Generations boxes, bulk rip"
