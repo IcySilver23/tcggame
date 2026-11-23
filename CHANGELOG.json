@@ -1,98 +1,24 @@
 {
   "entries": [
     {
-      "version": "0.86.8",
+      "version": "0.87.0",
       "date": "2026-11-23",
-      "title": "The Stadium comes back to back",
+      "title": "The Academy pays for work",
       "highlights": [
-        "Delta Reign’s Legendary Stadiums now land back to back: the two halves sit in consecutive places in the reveal, so the shared art and shared name read as one Stadium.",
-        "The old rule that pushed a pair apart — moving a half to the seat farthest from its twin — is gone; nothing scatters them any more.",
-        "Still one pack in twelve, both halves or neither, never a lone half, and the booster still holds ten cards."
+        "The Collector’s Academy is a checklist now: a chapter wants one real action in the game and one question about its numbers, and its $25 lands when both are ticked.",
+        "Every step has a Go to … button to the screen it names — Pack Shop, Buylist, Wishlist, Grading, Calendar — and the panel re-reads your save, so the tick arrives on its own.",
+        "The economy step buys a day pass instead of waiting out two real hours: the pass moves the clock, and the boundary it opens settles rent, wages, the deals board and the market.",
+        "Delta Reign’s Legendary Stadium halves come back to back now, so the split-art Stadium reads as one card instead of two unrelated pulls.",
+        "Installers ship factory-fresh again — no player save inside — and the pack-tear photo is cropped to the wrapper instead of its padded canvas."
       ],
       "features": [
-        "A Legendary Stadium is one ruined Stadium printed across two sleeves, numbers 94 and 95, and the pair is supposed to be read together. The pack reveal was doing the opposite: a pass moved the second half to whichever seat was farthest from its twin, on the reasoning that two cards with the same name and connecting art looked like a duplicate. They look like one Stadium because they are one Stadium, so the pair is now dealt into consecutive seats and any drift — from the spare seat the pairing pass uses, or from padding — is corrected back to back.",
-        "Checked on 400 Delta Reign boosters: 34 carried a Stadium, every one of the 34 had both halves in adjacent seats with exactly two halves and ten cards in the pack. The rate, the pair-only rule and the set’s ten-card blueprint are all unchanged; only the order of the reveal moved.",
-        "Honestly: two Stadiums never appear in one pack, and the pairing pass deliberately refuses to seat one pair against another pair’s half, so a pack can hold at most one back-to-back pair. The pull history and the summary list keep the dealt order, which is what the ceremony shows."
-      ]
-    },
-    {
-      "version": "0.86.7",
-      "date": "2026-11-23",
-      "title": "Every step has a door",
-      "highlights": [
-        "Each Academy action step now has a button that opens the screen it names — Pack Shop, Buylist, Wishlist, Grading, Calendar — so you are not navigating from memory."
-      ],
-      "features": [
-        "Ten action steps, ten doors. Each one now carries a Go to … button that jumps straight to the screen it names: the Pack Shop for opening a wrapper, Grading for protecting a card, the Market feed for a purchase, the Buylist for a sale, Storage & Auctions for the shelf and lockers, Wishlist for a target, the Calendar for an event, the Card Shop for a counter job and Community for an audience. The economy step points at the Home dashboard, where the TODAY panel prints what rolls at the next boundary.",
-        "The hint is unchanged. The step still explains what to do in its own words underneath the label, so the button is an addition — a door beside the instruction, not a replacement for it. A finished step drops its button and keeps its tick.",
-        "The routes come from the server, next to the check that proves each step, so a button cannot point at a screen where the work is not. Navigation uses the same hash routing as the sidebar, which means a locked screen — the Card Shop under $500, Deals under three sales — still shows its own explanation and gate rather than a dead end."
-      ]
-    },
-    {
-      "version": "0.86.6",
-      "date": "2026-11-23",
-      "title": "The clock has a lever now",
-      "highlights": [
-        "The Academy’s economy chapter no longer asks you to wait two real hours for a day to pass: buy the day pass from the header clock and the step ticks at once."
-      ],
-      "features": [
-        "The first chapter’s action step was \"let one game day run\", which could mean two real hours of waiting or buying a day pass — a step that teaches the clock by making you stare at it. It is now \"move the clock — buy the day pass\": the ticket in the top bar skips the wait at the fee printed there, and its boundary is exactly the beat the chapter is about, since rent, wages, the deals board and the market all roll when it lands. The step ticks as soon as the pass does.",
-        "Waiting is still allowed but no longer required: a day that turns over on its own between the moment you started the course and now ticks the step too, so a player whose cash will not cover the fee can still finish the chapter by playing. What changed is that there is now a way to do it immediately, on the page, with something to watch happen.",
-        "Honestly: the step reads the day-pass line in your activity feed, so it is the ticket that counts rather than a click. Buying a pass to pass a $25 chapter costs the fee, which the reward covers; the chapter is optional, and nothing else in the game depends on it."
-      ]
-    },
-    {
-      "version": "0.86.5",
-      "date": "2026-11-23",
-      "title": "Live, but only while it is watching",
-      "highlights": [
-        "The Academy only re-reads your save while the chapter you are reading has an action left to do — a finished chapter, or one waiting on its question, stops the timer completely."
-      ],
-      "features": [
-        "The live checklist was polling every five seconds on every chapter, including chapters that were finished, questions that were waiting on the player, and someone simply reading. It now runs only while the OPEN chapter still has an action waiting on the save. A chapter whose actions are ticked — or one where only the question is left — has nothing for a timer to find, so there is no timer at all, and the green live dot beside the step count disappears with it rather than claiming a check that is not happening.",
-        "When a chapter is waiting, the beat is fifteen seconds rather than five: at most four requests a minute instead of twelve, and only under a page that is genuinely expecting something. The narrow gap that a timer still covers is a second window open on the same save, or a day boundary settling a step under a page that is already open — both tolerate fifteen seconds, and neither is the normal case.",
-        "Nothing is lost for coming and going. Leaving the screen unmounts it and returning re-reads the save straight away, and the panel still checks the moment the window regains focus or the tab becomes visible again. The timer pauses in a hidden tab. What changed is that a player who is simply reading is no longer paying for a request every five seconds."
-      ]
-    },
-    {
-      "version": "0.86.4",
-      "date": "2026-11-23",
-      "title": "The checklist checks itself",
-      "highlights": [
-        "Academy steps tick on their own: the page re-reads your save while it is open, so the thing you just did in the game is already marked when you come back."
-      ],
-      "features": [
-        "The Academy checklist now watches the save instead of waiting to be asked. While the page is open it re-reads /api/academy every five seconds, so a step proved by the game — a wrapper in Pull History, a sale, a protected copy, a wishlist target — ticks by itself and the chapter’s Claim button unlocks without a click in between. The manual Check the save again button is gone; a small green live dot beside the step count is the only sign it is happening.",
-        "Coming back from another screen is instant, not five seconds later: the panel re-checks the moment the window regains focus or the tab becomes visible again, and it stops polling entirely while the tab is hidden so a backgrounded game is not chatting with the server for nothing. A tick that arrives while you are reading the chapter gets a toast naming the step, because an action done two screens away otherwise lands with no explanation. Quiz answers keep their own verdict and are not announced twice.",
-        "Nothing here is trust in the browser. The tick appears only because the server found the work in the save when it was asked; the page has no way to mark a step itself. A poll that fails quietly is skipped rather than shown as an error, and it never lands on top of a claim or an answer still in flight."
-      ]
-    },
-    {
-      "version": "0.86.3",
-      "date": "2026-11-23",
-      "title": "The Academy is work now",
-      "highlights": [
-        "Every Academy chapter is a checklist: do the thing in the game, answer the one question about the numbers, and only then does its $25 unlock."
-      ],
-      "features": [
-        "The Collector’s Academy pays for work instead of reading. Each of the ten chapters now carries two steps: one real action in the game and one question about the numbers that chapter just explained. The chapter’s $25 is locked until both are ticked, the button reads Finish the steps first while anything is open, and the screen prints which step is left rather than a generic refusal.",
-        "The actions are checked against the save, so no click can claim them: economy wants a game day to turn over, packs wants a wrapper in Pull History, condition wants a copy protected or submitted for grading, buying wants a purchase at any venue, selling wants a row in sale history, storage wants a locker, bulk box or supplies job, collecting wants a wishlist target, events wants a convention, card show, local meetup or flea bin worked, business wants a shop, repack, lending or books action, and showbiz wants a Community post, stream, pack battle or authentication. Every one of them only counts work done after the run started, so a long save cannot tick the course with last month’s history.",
-        "The question is answered on the server: the browser is sent the choices and told only whether the pick was right, never which one is right. A wrong answer costs nothing and leaves the options there, so it reads as a check on the chapter rather than a gate on the reward. The books action also answers a chapter’s whole premise, which is why the cheapest route through the course still teaches the numbers.",
-        "Honestly: one step can make you wait. The economy chapter asks for a game day to turn, which is two real hours on the default clock unless you buy a day pass ($8.33), and the events and business steps need a venue or a counter you can afford — the course is optional, and nothing else in the game is gated behind it."
-      ]
-    },
-    {
-      "version": "0.86.2",
-      "date": "2026-11-23",
-      "title": "The wrapper, not the photo",
-      "highlights": [
-        "The pack you tear is cropped to the wrapper: TCGplayer ships every product photo on a padded white canvas, so a booster sat at half width in a white card with the SWIPE handle out on the margin."
-      ],
-      "features": [
-        "A Celestial Storm booster photo arrives as 356×400 with the pack itself only at x 86–270, y 34–368 — 24% of white down each side and 8% above and below. The tear screen sized its box to the photo, so the wrapper drew at about half the stage width inside a white card, the crimp the SWIPE handle points at was nowhere near the handle, and the pack read as a picture of a pack rather than a pack you open.",
-        "The photo now comes through the game’s own art route so a canvas may read it: a 160px copy finds the bounding box of everything that is not near-white (channel 244, alpha 8), the tear box switches to that box’s aspect, and both halves of the wrapper are scaled up and offset until the margin falls outside. A photo that is already tight keeps its own shape, the position is measured again for every product, and if the art route is unreachable the photo is used as-is rather than failing.",
-        "Honestly: the crop trusts that a wrapper’s edge is not white. A pack printed edge-to-edge on white would keep some of that white, and a product whose photo is already cropped tight is left alone rather than pushed to an assumed shape.",
-        "The installer and the portable zip carried whatever save happened to be sitting in the build folder, which is how a played save ended up inside a public download. A build now carries no save unless one is named with TCGLIFE_SHIP_SAVE=<path>, and an upgrade still keeps its own save because the installer only writes data/ on a machine that has no game yet."
+        "Ten chapters, ten checklists. Every Academy chapter now carries two steps: one action in the game and one question about the numbers the chapter just explained. The $25 is locked until both are ticked, the button reads Finish the steps first while anything is open, and a refusal names the step that is left rather than failing quietly. The question is answered on the server — the browser is sent the choices and told only whether the pick was right, never which one is right — and a wrong answer costs nothing, so it is a check on the chapter rather than a gate on the reward.",
+        "No click can claim an action. Each one is proved against the save: a wrapper in Pull History, a row in sale history, a protected copy or a grading submission, a purchase at any venue, a locker or bulk-box job, a wishlist target, a convention, card show, meetup or flea bin worked, a shop, repack, lending or books action, a Community post, stream, pack battle or authentication. They only count work done after the run started, so a long save cannot tick the course with last month’s history, and a replay resets the checklist while the money stays once-only — still $300 for the whole course, under the $400 Resale Desk and $500 Card Shop gates.",
+        "The checklist checks itself. The panel re-reads the save on the way in and whenever the window comes back, and runs a fifteen-second timer while, and only while, the chapter you are reading still has an action waiting on the save. A finished chapter, or one waiting on its question, polls nothing at all, and the green live dot beside the step count appears only when that timer is really running. A tick that lands while you are reading is announced by name.",
+        "Every step has a door. Each action step carries a Go to … button for the screen it names — the Pack Shop for a wrapper, Grading for a protected card, the Market feed, the Buylist, Storage & Auctions, Wishlist, the Calendar, the Card Shop, Community — while the step keeps its own wording as the hint underneath. The routes come from the server beside the check that proves each step, and navigation uses the same hash routing as the sidebar, so a locked screen still explains its gate instead of opening an empty room.",
+        "The economy chapter stopped asking you to wait. Its step was \"let one game day run\", which meant two real hours or a ticket; it is now the day pass itself, bought from the header clock at the fee printed there, which skips the wait and rolls the boundary the chapter describes: rent, wages, the deals board and the market. A day that turns over on its own still ticks the step, so a drawer without the fee is never stuck. Honestly, the pass costs $8.33 against a $25 chapter — the reward covers it, and the course is optional either way.",
+        "Delta Reign’s Legendary Stadiums are one Stadium printed across two sleeves, and the deal used to scatter the halves: a pass moved the second half to whichever seat was farthest from its twin so the pair would not look like a duplicate. It was backwards — the shared art and shared name are the point — so the halves are now dealt into consecutive seats and any half that drifts is re-seated beside its mate. Checked on 400 Delta Reign boosters: 28 carried a Stadium and all 28 arrived back to back, ten cards a pack, both halves or neither at the same one-in-twelve rate.",
+        "Two smaller fixes ride along. The pack-tear ceremony was drawing TCGplayer’s padded photo canvas as if the wrapper were the whole image, which left the artwork small inside a white card with the swipe handle floating on the margin; the image is now measured and cropped to the pack itself, through a server proxy that only fetches from the card CDN. And the installer ships factory-fresh again: no player save is baked in unless one is named on purpose, so a new download opens someone else’s collection never — the older release downloads were rebuilt the same way."
       ]
     },
     {
