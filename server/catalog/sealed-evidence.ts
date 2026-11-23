@@ -1903,6 +1903,55 @@ export const PACK_MIX: Readonly<Record<string, PackMix>> = {
     { setId: 'sv2', packs: 4 },
     { setId: 'sv1', packs: 2 },
   ],
+  // The Pikachu V-UNION Special Collection holds six wrappers, not four: four
+  // four-card Celebrations packs plus the "2 additional Pokémon TCG boosters,
+  // each containing 10 cards and 1 basic Energy" on the box. Published copy
+  // never names those two expansions, so the box deals the pair that was on
+  // shelves when it shipped in October 2021 — one Chilling Reign and one
+  // Evolving Skies wrapper, at the ordinary ten cards each rather than the
+  // Celebrations four the rest of the box deals.
+  'cel25-pikachu-v-union': [
+    { setId: 'cel25', packs: 4 },
+    { setId: 'swsh6', packs: 1, cardsPerPack: 10 },
+    { setId: 'swsh7', packs: 1, cardsPerPack: 10 },
+  ],
+  // Every other Celebrations collection has the same split between the four-card
+  // packs the set was sold in and the ordinary ten-card boosters its contents
+  // list only calls "additional". Published counts: Dragapult Prime 2 + 1,
+  // Deluxe Pin 4 + 2, V Memories 6 + 2, Premium Figure 8 + 3, Ultra-Premium
+  // 17 + 8. No listing names which expansions the extras came from, so they are
+  // dealt Chilling Reign, then Evolving Skies, Battle Styles and Vivid Voltage —
+  // the sets on shelves when these boxes shipped in October 2021 — and each
+  // product's note says the pick is this build's. The Ultra-Premium Collection's
+  // eight extras split two apiece; Fusion Strike shipped after the box, so it is
+  // not in the pool.
+  'cel25-dragapult-prime': [
+    { setId: 'cel25', packs: 2 },
+    { setId: 'swsh6', packs: 1, cardsPerPack: 10 },
+  ],
+  'cel25-deluxe-pin': [
+    { setId: 'cel25', packs: 4 },
+    { setId: 'swsh6', packs: 1, cardsPerPack: 10 },
+    { setId: 'swsh7', packs: 1, cardsPerPack: 10 },
+  ],
+  'cel25-v-memories': [
+    { setId: 'cel25', packs: 6 },
+    { setId: 'swsh6', packs: 1, cardsPerPack: 10 },
+    { setId: 'swsh7', packs: 1, cardsPerPack: 10 },
+  ],
+  'cel25-premium-figure': [
+    { setId: 'cel25', packs: 8 },
+    { setId: 'swsh6', packs: 1, cardsPerPack: 10 },
+    { setId: 'swsh7', packs: 1, cardsPerPack: 10 },
+    { setId: 'swsh5', packs: 1, cardsPerPack: 10 },
+  ],
+  'cel25-upc': [
+    { setId: 'cel25', packs: 17 },
+    { setId: 'swsh6', packs: 2, cardsPerPack: 10 },
+    { setId: 'swsh7', packs: 2, cardsPerPack: 10 },
+    { setId: 'swsh5', packs: 2, cardsPerPack: 10 },
+    { setId: 'swsh4', packs: 2, cardsPerPack: 10 },
+  ],
 }
 
 export function packMixFor(productId: string): PackMix | null {

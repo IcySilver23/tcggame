@@ -1,6 +1,24 @@
 {
   "entries": [
     {
+      "version": "0.85.2",
+      "date": "2026-11-23",
+      "title": "Everything that was still in the box",
+      "features": [
+        "The other Celebrations collections now open every wrapper printed on their boxes, not just the anniversary packs. V Memories rips eight packs instead of six, the Deluxe Pin Collection six instead of four, the Premium Figure Collection eleven instead of eight, the Ultra-Premium Collection twenty-five instead of seventeen, and the Dragapult Prime Collection three instead of two. The four-card Celebrations packs still come out first, so the additional ten-card boosters land last, and the same counts hold whether you rip the whole box from the shop or open it one wrapper at a time.",
+        "Those extra boosters are ordinary Sword & Shield packs, and the published contents lists only ever call them “additional” without naming an expansion. This build deals Chilling Reign, then Evolving Skies, Battle Styles and Vivid Voltage — the sets that were on shelves when the boxes shipped in October 2021 — with the Ultra-Premium Collection's eight split two apiece. That is the game's choice, not a measured fact, and each product's note now says so. Everything else is unchanged: same promos handed over, same shelf prices, and the pins, coins, metal and gold cards, binder and Pikachu VMAX figure are still described rather than modelled."
+      ]
+    },
+    {
+      "version": "0.85.1",
+      "date": "2026-11-23",
+      "title": "The box that was two packs short",
+      "features": [
+        "The Celebrations Special Collection—Pikachu V-UNION now holds every wrapper printed on its box: the four four-card Celebrations packs it always opened, then the two additional ten-card boosters that were listed on the packaging and quietly left in the cardboard. Ripping the box opens six packs instead of four, and the extra pair is dealt last, after the four Pikachu V-UNION pieces and Professor Burnet are already in your binder.",
+        "Those two extra boosters are ordinary Sword & Shield wrappers, so this build deals one Chilling Reign and one Evolving Skies pack — the expansions that were on shelves when the box shipped in October 2021. The published contents list never names which two were inside (the pair varied by print run), so this is the game’s choice and the product’s note says as much rather than presenting it as a measured fact. Everything else about the box is unchanged: same promos, same $189.08 shelf price, same four Celebrations wrappers first."
+      ]
+    },
+    {
       "version": "0.85.0",
       "date": "2026-11-22",
       "title": "Counted odds, ten chromes, a Pikachu that arrives",
