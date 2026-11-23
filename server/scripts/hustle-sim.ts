@@ -265,7 +265,7 @@ function chaseFor(price: number): { card_id: string; market: number } {
   return pick(band) ?? { card_id: '', market: price * 4 }
 }
 
-function stockBatch(chase: { card_id: string; market: number }): { chaseId: number; ok: boolean } {
+function stockBatch(chase: { card_id: string; market: number }): number {
   const ins = db.prepare(
     `INSERT INTO inventory (card_id, variant, condition, quantity, status, cost_basis, acquired_via, acquired_at) VALUES (?, 'normal', 'NM', 1, 'collection', 0.25, 'sim', ?)`,
   )
@@ -278,11 +278,11 @@ function stockBatch(chase: { card_id: string; market: number }): { chaseId: numb
       // Bought at half market — the flipper's edge, not free money.
       .run(chase.card_id, round2(chase.market * 0.5), nowIso()).lastInsertRowid,
   )
-  return { chaseId, ok: true }
+  return chaseId
 }
 
 function simulateRun(printedOdds: number, price: number) {
-  const { chaseId } = stockBatch(chaseFor(price))
+  const chaseId = stockBatch(chaseFor(price))
   const sealed = repacks.assemble({ price, chaseInventoryId: chaseId, publishedOdds: printedOdds })
   if (!sealed.ok) return null
   const batch = (repacks.status().batches[0] ?? null) as { id: number; cost_basis: number } | null

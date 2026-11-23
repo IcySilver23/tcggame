@@ -1806,8 +1806,7 @@ export type LendingOffer = {
   created_at: string
   expires_at: string
   status: string
-  principal: number
-  /** One entry per offered rate, keyed by the rate as a string ('0.005'). */
+  /** One entry per offered rate, keyed by the rate as a string ('0.004'). */
   interest: Record<string, number>
 }
 
@@ -1847,9 +1846,7 @@ export type LendingDesk = {
   history: LendingHistoryRow[]
   stats: {
     lentOut: number
-    openLoans: number
     interestEarned: number
-    repaid: number
     defaulted: number
     defaultRate: number | null
     collateralValue: number
@@ -1881,8 +1878,6 @@ export type RepackShelf = {
   honest: boolean
 }
 
-export type RepackHistory = Omit<RepackShelf, 'remaining' | 'margin' | 'honest'> & { resolved_at: string | null }
-
 export type RepackTerms = {
   prices: number[]
   packCount: number
@@ -1894,14 +1889,13 @@ export type RepackTerms = {
 
 export type RepackStatus = {
   batches: RepackShelf[]
-  history: RepackHistory[]
   reputation: number
   terms: RepackTerms
 }
 
 export type RepackStockable = {
   ok: true
-  rows: { id: number; card_id: string; name: string; anchor: number; condition: string; set_name: string; rarity: string | null }[]
+  rows: { id: number; card_id: string; name: string; anchor: number; condition: string }[]
   fillerCount: number
   need: number
   terms: RepackTerms

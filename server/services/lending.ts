@@ -65,8 +65,6 @@ export const DESK_TERMS = {
   rates: [0.0025, 0.004, 0.006] as const,
   /** The band a walk-in actually asks for, inside the limit. */
   askBand: [0.55, 0.8] as const,
-  /** What a repo card is realistically worth once it is sold (fees, postage). */
-  liquidation: 0.85,
   offerTtlDays: 3,
   openOffers: 4,
 }
@@ -171,7 +169,7 @@ export function lend(offerId: number, rateDaily: number): LendResult {
     return { ok: false, error: 'They walked away — the offer expired' }
   }
   const rate = DESK_TERMS.rates.find((r) => Math.abs(r - rateDaily) < 1e-9)
-  if (rate === undefined) return { ok: false, error: `Rate must be ${DESK_TERMS.rates.map((r) => `${(r * 100).toFixed(1)}%`).join(', ')} per game-day` }
+  if (rate === undefined) return { ok: false, error: `Rate must be ${DESK_TERMS.rates.map((r) => `${(r * 100).toFixed(2)}%`).join(', ')} per game-day` }
   if (offer.ask > offer.market * DESK_TERMS.maxLtv + 0.005) return { ok: false, error: `That ask is over the ${Math.round(DESK_TERMS.maxLtv * 100)}% lending limit` }
   if (cashNow() < offer.ask) return { ok: false, error: `You need $${offer.ask.toFixed(2)} in cash to write this ticket` }
 
@@ -194,13 +192,6 @@ export function lend(offerId: number, rateDaily: number): LendResult {
     -offer.ask,
   )
   return { ok: true, principal: offer.ask, dueAt: due, interest: round2(offer.ask * rate * DESK_TERMS.days) }
-}
-
-/** The offer's own ask, so the desk can show what a ticket would be worth. */
-export function quoteFor(offer: Offer): { principal: number; interest: Record<string, number> } {
-  const interest: Record<string, number> = {}
-  for (const r of DESK_TERMS.rates) interest[String(r)] = round2(offer.ask * r * DESK_TERMS.days)
-  return { principal: offer.ask, interest }
 }
 
 function accrue(loan: Loan): number {
@@ -326,7 +317,13 @@ export function desk() {
 
   return {
     terms: DESK_TERMS,
-    offers: offers.map((o) => ({ ...o, card: nameOf(o.card_id), ...quoteFor(o) })),
+    // What a full-term ticket at each offered rate would return, so the counter
+    // can price the choice before the player commits.
+    offers: offers.map((o) => {
+      const interest: Record<string, number> = {}
+      for (const r of DESK_TERMS.rates) interest[String(r)] = round2(o.ask * r * DESK_TERMS.days)
+      return { ...o, card: nameOf(o.card_id), interest }
+    }),
     loans: activeValue,
     history: history.map((l) => ({
       id: l.id,
@@ -342,9 +339,7 @@ export function desk() {
     })),
     stats: {
       lentOut: round2(loans.reduce((a, l) => a + l.principal, 0)),
-      openLoans: loans.length,
       interestEarned,
-      repaid: repaid.length,
       defaulted: defaulted.length,
       defaultRate: repaid.length + defaulted.length > 0 ? round2(defaulted.length / (repaid.length + defaulted.length)) : null,
       collateralValue: round2(loans.reduce((a, l) => a + valueOf(l.card_id, 'normal', (l.condition as Condition) || 'NM'), 0)),

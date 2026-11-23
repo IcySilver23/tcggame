@@ -9,7 +9,7 @@
     "dev:api": "tsx watch server/index.ts",
     "dev:web": "vite",
     "build": "vite build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc --noEmit",
     "check:sealed": "tsx tmp/check-sealed-suite.ts",
     "check:odds": "tsx tmp/check-hit-odds.ts",
     "check:promo-badge": "tsx tmp/check-promo-badge-ui.ts",

@@ -379,7 +379,7 @@ function money2(n: number) {
 function LendingCounter() {
   const { toast, refreshState } = useStore()
   const [data, setData] = useState<LendingDeskData | null>(null)
-  const [rate, setRate] = useState(0.01)
+  const [rate, setRate] = useState(0.004) // must be one of DESK_TERMS.rates
   const [busy, setBusy] = useState(false)
 
   const load = () => { api.lending().then(setData).catch(() => {}) }
@@ -417,7 +417,7 @@ function LendingCounter() {
         <div style={{ minWidth: 0 }}>
           <b>🏦 The desk — lend against collateral</b>
           <div className="faint small">
-            {data.terms.days} game-days · up to {Math.round(data.terms.maxLtv * 100)}% of market · interest compounds every game-day
+            {data.terms.days} game-days · up to {Math.round(data.terms.maxLtv * 100)}% of market · plain daily interest on what you lend
           </div>
         </div>
         <div className="row" style={{ gap: 14, flexWrap: 'wrap' }}>
@@ -443,7 +443,7 @@ function LendingCounter() {
                 onClick={() => setRate(r)}
                 title="The rate you charge per game-day. Higher rates pay more and get walked away from more often."
               >
-                {(r * 100).toFixed(1)}%/day
+                {(r * 100).toFixed(2)}%/day
               </button>
             ))}
           </div>

@@ -80,23 +80,34 @@ function adjustRep(delta: number): number {
   return next
 }
 
-/** Cheapest collection cards that can serve as filler, plus a valid chase. */
-export function stockable() {
+type CollectionRow = { id: number; card_id: string; variant: string; condition: Condition; cost_basis: number; name: string; anchor: number }
+
+/** Every single card in the collection, priced once — the chase and filler menu. */
+function collectionRows(): CollectionRow[] {
   const rows = db
     .prepare(
-      `SELECT i.id, i.card_id, i.variant, i.condition, i.cost_basis, c.name, c.image_small, c.rarity, s.name AS set_name
-       FROM inventory i JOIN cards c ON c.id = i.card_id JOIN sets s ON s.id = c.set_id
+      `SELECT i.id, i.card_id, i.variant, i.condition, i.cost_basis, c.name
+       FROM inventory i JOIN cards c ON c.id = i.card_id
        WHERE i.status = 'collection' AND i.graded_grade IS NULL AND i.quantity = 1
        ORDER BY i.acquired_at DESC LIMIT 600`,
     )
-    .all() as { id: number; card_id: string; variant: string; condition: Condition; cost_basis: number; name: string; image_small: string | null; rarity: string | null; set_name: string }[]
-  const out = rows.map((r) => ({ ...r, anchor: round2(valueOf(r.card_id, r.variant || 'normal', r.condition || 'NM')) }))
-  const filler = out.filter((r) => r.anchor > 0 && r.anchor <= REPACK_TERMS.fillerCeiling).sort((a, b) => a.anchor - b.anchor)
+    .all() as { id: number; card_id: string; variant: string; condition: Condition; cost_basis: number; name: string }[]
+  return rows.map((r) => ({ ...r, anchor: round2(valueOf(r.card_id, r.variant || 'normal', r.condition || 'NM')) }))
+}
+
+const NEED_FILLER = REPACK_TERMS.packCount * REPACK_TERMS.cardsPerPack - 1
+const isFiller = (r: { anchor: number }) => r.anchor > 0 && r.anchor <= REPACK_TERMS.fillerCeiling
+
+/** What the assembler can draw on: every card priced, plus the filler it needs. */
+export function stockable() {
+  const rows = collectionRows()
   return {
     ok: true as const,
-    rows: out.sort((a, b) => b.anchor - a.anchor),
-    fillerCount: filler.length,
-    need: REPACK_TERMS.packCount * REPACK_TERMS.cardsPerPack - 1,
+    rows: rows
+      .map((r) => ({ id: r.id, card_id: r.card_id, name: r.name, condition: r.condition, anchor: r.anchor }))
+      .sort((a, b) => b.anchor - a.anchor),
+    fillerCount: rows.filter(isFiller).length,
+    need: NEED_FILLER,
     terms: REPACK_TERMS,
   }
 }
@@ -129,17 +140,9 @@ export function assemble(opts: { price: number; chaseInventoryId: number; publis
     return { ok: false as const, error: `A $${price} repack needs a chase worth at least $${(price * REPACK_TERMS.minChaseMultiple).toFixed(2)} (this one is ~$${chaseValue.toFixed(2)})` }
   }
 
-  const need = REPACK_TERMS.packCount * REPACK_TERMS.cardsPerPack - 1
-  const filler = db
-    .prepare(
-      `SELECT i.id, i.card_id, i.variant, i.condition, i.cost_basis FROM inventory i
-       WHERE i.status = 'collection' AND i.graded_grade IS NULL AND i.quantity = 1 AND i.id != ?
-       ORDER BY i.acquired_at DESC LIMIT 600`,
-    )
-    .all(chaseInventoryId) as { id: number; card_id: string; variant: string; condition: Condition; cost_basis: number }[]
-  const cheap = filler
-    .map((r) => ({ ...r, anchor: round2(valueOf(r.card_id, r.variant || 'normal', r.condition || 'NM')) }))
-    .filter((r) => r.anchor > 0 && r.anchor <= REPACK_TERMS.fillerCeiling)
+  const need = NEED_FILLER
+  const cheap = collectionRows()
+    .filter((r) => r.id !== chaseInventoryId && isFiller(r))
     .sort((a, b) => a.anchor - b.anchor)
     .slice(0, need)
   if (cheap.length < need) {
@@ -364,17 +367,16 @@ export function stockBack(repackId: number) {
 
 export function status() {
   const batches = db.prepare(`SELECT * FROM repacks WHERE status = 'on_shelf' ORDER BY id DESC`).all() as Repack[]
-  const history = db.prepare(`SELECT * FROM repacks WHERE status != 'on_shelf' ORDER BY id DESC LIMIT 10`).all() as Repack[]
-  const soldPacks = (id: number) => (db.prepare(`SELECT COUNT(DISTINCT pack_index) n FROM repack_cards WHERE repack_id = ? AND sold_at IS NOT NULL`).get(id) as { n: number }).n
   return {
     batches: batches.map((b) => ({
       ...b,
       card: cardName(b.chase_card_id),
-      remaining: Math.max(0, b.pack_count - soldPacks(b.id)),
+      // `sold` counts every pack that left the run, including your own rip —
+      // a rip deletes its repack_cards rows, so counting rows undercounts it.
+      remaining: Math.max(0, b.pack_count - b.sold),
       margin: round2(b.price - b.cost_basis / b.pack_count),
       honest: b.published_odds >= b.actual_odds,
     })),
-    history: history.map((b) => ({ ...b, card: cardName(b.chase_card_id) })),
     reputation: reputation(),
     terms: REPACK_TERMS,
   }

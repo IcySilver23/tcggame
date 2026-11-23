@@ -418,6 +418,8 @@ const ledger = db
   .prepare(`SELECT line, amount FROM shop_ledger WHERE note LIKE '%own rip%' ORDER BY id DESC LIMIT 1`)
   .get() as { line: string; amount: number } | undefined
 ok('the own rip is booked in the ledger as a cost', ledger?.line === 'repacks' && ledger.amount === -12)
+// The rip deletes its repack_cards rows, so a row count would still say 5.
+ok('the shelf counts a ripped pack as gone', repacks.status().batches[0]?.remaining === 4)
 
 const unsealed = repacks.stockBack(batch.id)
 ok('an unsold run can be unsealed', unsealed.ok)
