@@ -202,6 +202,10 @@ export function AcademyView() {
   const [state, setState] = useState<AcademyState | null>(null)
   const [open, setOpen] = useState<string | null>(() => localStorage.getItem(CHAPTER_KEY))
   const [busy, setBusy] = useState(false)
+  // Why a question was wrong, per step, until it is answered right. The server
+  // sends the reason with the verdict rather than shipping it up front, so this
+  // is the only place it lives.
+  const [wrong, setWrong] = useState<Record<string, string>>({})
 
   const load = async () => {
     try {
@@ -322,9 +326,30 @@ export function AcademyView() {
     try {
       const r = await api.academyAnswer(chapter.id, stepId, choice)
       setState(r.state)
-      toast(r.correct ? 'Correct — step ticked.' : 'Not quite. The numbers are in the chapter above.', r.correct ? 'good' : 'bad')
+      setWrong((w) => (r.correct ? { ...w, [stepId]: '' } : { ...w, [stepId]: r.why ?? 'The numbers are in the chapter above.' }))
+      toast(r.correct ? 'Correct — step ticked.' : 'Not quite. The chapter has the reason below the question.', r.correct ? 'good' : 'bad')
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Could not save that answer', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // "I already know this." No reward, no progress, no nagging — reversible.
+  const skip = async (skipped: boolean) => {
+    if (!chapter) return
+    setBusy(true)
+    try {
+      const r = await api.academySkip(chapter.id, skipped)
+      setState(r.state)
+      toast(
+        skipped
+          ? 'Skipped — it pays nothing and counts for nothing. You can take it back.'
+          : 'Skip taken back — the checklist is on the page again.',
+        'info',
+      )
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not change that chapter', 'bad')
     } finally {
       setBusy(false)
     }
@@ -389,6 +414,18 @@ export function AcademyView() {
         </div>
       )}
 
+      {state.newSinceGraduation > 0 && !state.allDone && (
+        <div className="academy-graduated">
+          <span className="ico">🎓</span>
+          <div>
+            <b>
+              {state.newSinceGraduation} chapter{state.newSinceGraduation === 1 ? '' : 's'} since you graduated.
+            </b>{' '}
+            The course grew after you finished it — the new ones are marked new in the list.
+          </div>
+        </div>
+      )}
+
       <div className="academy-body">
         <div className="academy-list">
           {chapters.map((c, i) => {
@@ -402,8 +439,13 @@ export function AcademyView() {
               >
                 <span className="num">{String(i + 1).padStart(2, '0')}</span>
                 <span className="ico">{PROSE[c.id]?.icon ?? FALLBACK.icon}</span>
-                <span className="label">{c.title}</span>
-                <span className="tick">{isDone ? '✓' : <span className="faint reward">{fmtUsd(c.reward)}</span>}</span>
+                <span className="label">
+                  {c.fresh && <span className="academy-new" title="Added to the course after you graduated">new</span>}
+                  {c.title}
+                </span>
+                <span className="tick">
+                  {c.skipped ? '⤼' : isDone ? '✓' : <span className="faint reward">{fmtUsd(c.reward)}</span>}
+                </span>
               </button>
             )
           })}
@@ -451,6 +493,12 @@ export function AcademyView() {
                   )}
                 </span>
               </div>
+              {chapter.waived && (
+                <div className="faint small academy-waived">
+                  Finished before the checklist landed, so these steps are kept as done rather than demanded again. The
+                  chapter can still be read above.
+                </div>
+              )}
               {chapter.steps.map((s, i) => (
                 <div key={s.id} className={`academy-step ${s.done ? 'done' : ''}`}>
                   <span className="mark" aria-hidden>{s.done ? '✓' : i + 1}</span>
@@ -480,6 +528,11 @@ export function AcademyView() {
                         ))}
                       </div>
                     )}
+                    {s.kind === 'answer' && !s.done && wrong[s.id] && (
+                      <div className="academy-why">
+                        <b>Why:</b> {wrong[s.id]}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -488,9 +541,13 @@ export function AcademyView() {
               <span className="faint small">
                 {done.has(chapter.id)
                   ? 'Chapter done'
-                  : chapter.ready
-                    ? `Every step ticked — ${fmtUsd(chapter.reward)} is waiting`
-                    : `${chapter.steps.length - chapter.stepsDone} step${chapter.steps.length - chapter.stepsDone === 1 ? '' : 's'} left before this chapter pays`}
+                  : chapter.skipped
+                    ? 'Skipped — it pays nothing and counts for nothing'
+                    : chapter.waived
+                      ? 'Kept from before the checklist — nothing left to do'
+                      : chapter.ready
+                        ? `Every step ticked — ${fmtUsd(chapter.reward)} is waiting`
+                        : `${chapter.steps.length - chapter.stepsDone} step${chapter.steps.length - chapter.stepsDone === 1 ? '' : 's'} left before this chapter pays`}
               </span>
               <div className="row" style={{ gap: 8 }}>
                 {index > 0 && (
@@ -498,7 +555,18 @@ export function AcademyView() {
                     ← Previous
                   </button>
                 )}
+                {!done.has(chapter.id) && !chapter.waived && (
+                  <button className="ghost" disabled={busy} onClick={() => skip(!chapter.skipped)}>
+                    {chapter.skipped ? 'Take the skip back' : 'I already know this'}
+                  </button>
+                )}
                 {done.has(chapter.id) ? (
+                  index + 1 < chapters.length && (
+                    <button className="primary" onClick={() => setOpen(chapters[index + 1].id)}>
+                      Next chapter →
+                    </button>
+                  )
+                ) : chapter.skipped ? (
                   index + 1 < chapters.length && (
                     <button className="primary" onClick={() => setOpen(chapters[index + 1].id)}>
                       Next chapter →

@@ -532,6 +532,14 @@ export default function App() {
                     {n.id === 'inventory' && (state?.counters?.authVerdicts ?? 0) + (state?.counters?.gradingReady ?? 0) > 0 && (
                       <span className="nav-badge">{(state?.counters?.authVerdicts ?? 0) + (state?.counters?.gradingReady ?? 0)}</span>
                     )}
+                    {/* A chapter with every step ticked and no money claimed is
+                        invisible from anywhere but this tab. The count comes
+                        from the state poll, so it costs no extra request. */}
+                    {n.id === 'academy' && (state?.academyReady ?? 0) > 0 && (
+                      <span className="nav-badge" title={`${state?.academyReady} Academy reward${state?.academyReady === 1 ? '' : 's'} ready to claim`}>
+                        {state?.academyReady}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

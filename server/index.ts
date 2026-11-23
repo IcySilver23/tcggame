@@ -535,6 +535,9 @@ app.get('/api/state', (c) => {
     trade: { maxOfferCards: trading.MAX_OFFER_CARDS },
     progress,
     counters,
+    // Claimable Academy rewards, so the sidebar can badge the row from any
+    // screen instead of leaving a finished chapter unpaid and unnoticed.
+    academyReady: academy.academyReadyCount(),
     apiConfigured: Boolean(process.env.POKEMONTCG_API_KEY || getSetting('pokemontcgApiKey')),
     haggledOnce: getMeta('haggledOnce') === '1',
     // The starting tutorial only offers itself to saves with no play history
@@ -599,6 +602,14 @@ app.post('/api/academy/answer', async (c) => {
     .json<{ chapter?: string; step?: string; choice?: number }>()
     .catch(() => ({ chapter: '', step: '', choice: -1 }))
   const r = academy.answerStep(String(body.chapter || ''), String(body.step || ''), Number(body.choice))
+  if (!r.ok) return c.json(r, 400)
+  return c.json(r)
+})
+// "I already know this." A skip pays nothing and counts for nothing; it only
+// stops the page asking. Reversible.
+app.post('/api/academy/skip', async (c) => {
+  const body = await c.req.json<{ id?: string; skipped?: boolean }>().catch(() => ({ id: '', skipped: true }))
+  const r = academy.setChapterSkipped(String(body.id || ''), body.skipped !== false)
   if (!r.ok) return c.json(r, 400)
   return c.json(r)
 })

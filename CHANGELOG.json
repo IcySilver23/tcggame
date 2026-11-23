@@ -1,15 +1,31 @@
 {
   "entries": [
     {
+      "version": "0.88.0",
+      "date": "2026-11-23",
+      "title": "What the course already knew",
+      "highlights": [
+        "Chapters finished before the checklist existed keep their steps ticked and say so, instead of leaving a veteran save with a half-done course it can never satisfy.",
+        "A wrong answer now explains why the right one is right, and “I already know this” skips a chapter for good measure — no reward, no progress, no nagging, and it can be taken back.",
+        "The sidebar badges the Academy when a chapter is ticked and unpaid, and any chapter added after you graduated is marked new.",
+        "The changelog has a linter now (npm run check:changelog): highlight counts and lengths, dates, ordering, version match and baked-in counts, checked by machine instead of memory.",
+        "tmp/check-academy-steps.ts proves all ten Academy action steps tick from their own save rows, so a renamed activity kind fails loudly instead of quietly."
+      ],
+      "features": [
+        "Every chapter finished under the read-and-claim build has a completion flag and no step evidence, and it never will — those steps did not exist when it was read. The Academy now waives such a chapter once: its steps are kept as done, the card says it was finished before the checklist landed, and its reward is not paid twice. The waiver runs a single time per save and records that it ran, so a chapter completed from now on must have been earned through its steps, because the claim refuses otherwise.",
+        "“Not quite” was teaching nothing. Each question now carries a reason — why two hours is a day, why the wrapper’s price is not its contents, why the venue gates run 3, 3, 5, 6, 8, 10 and 12 — and the server sends it with a wrong verdict, never before it. The reason sits under the question until it is answered right, so the correction is in the same place as the mistake.",
+        "A chapter you already know can be skipped: it pays nothing, counts for nothing (so it cannot shortcut the graduation bonus) and stops the page asking, and the skip can be taken back at any time. The sidebar now badges the Academy with the number of chapters whose steps are all ticked and whose money is unclaimed, read from the state poll the game already makes, so a finished chapter is visible from any screen.",
+        "The course can grow without anyone missing it. Every chapter carries the version that added it and a graduate is stamped with the course version they finished; a chapter added later is marked new in the list, with a banner above it. Honest about the present: no chapter is newer than 0.87.0 yet, so the mark is idle until the next system lands, and the note in the code says to add its chapter in the same release.",
+        "The changelog rules are a script: npm run check:changelog checks that the newest entry has three to five highlights of 200 characters or less, that every older entry has exactly one, that dates are ISO and run newest-first with the versions, that the newest version matches package.json, and that no entry bakes in a count it cannot keep. It exits non-zero with one line per problem, so it belongs in a release before the installer is compiled rather than after.",
+        "And the checklist itself has a proof: tmp/check-academy-steps.ts writes the rows the ten features write — a day pass, a wrapper, a protected copy, a purchase, a sale, a storage job, a wishlist target, a convention, a shop job, a community post — then asserts every action step ticks, that the question stays the player’s to answer, that a wrong answer carries its reason, that a skip blocks the claim and is not counted as progress, and that a legacy chapter is waived exactly once."
+      ]
+    },
+    {
       "version": "0.87.0",
       "date": "2026-11-23",
       "title": "The Academy pays for work",
       "highlights": [
-        "The Collector’s Academy is a checklist now: a chapter wants one real action in the game and one question about its numbers, and its $25 lands when both are ticked.",
-        "Every step has a Go to … button to the screen it names — Pack Shop, Buylist, Wishlist, Grading, Calendar — and the panel re-reads your save, so the tick arrives on its own.",
-        "The economy step buys a day pass instead of waiting out two real hours: the pass moves the clock, and the boundary it opens settles rent, wages, the deals board and the market.",
-        "Delta Reign’s Legendary Stadium halves come back to back now, so the split-art Stadium reads as one card instead of two unrelated pulls.",
-        "Installers ship factory-fresh again — no player save inside — and the pack-tear photo is cropped to the wrapper instead of its padded canvas."
+        "The Collector’s Academy is a checklist now: a chapter wants one real action in the game and one question about its numbers, and its $25 lands when both are ticked."
       ],
       "features": [
         "Ten chapters, ten checklists. Every Academy chapter now carries two steps: one action in the game and one question about the numbers the chapter just explained. The $25 is locked until both are ticked, the button reads Finish the steps first while anything is open, and a refusal names the step that is left rather than failing quietly. The question is answered on the server — the browser is sent the choices and told only whether the pick was right, never which one is right — and a wrong answer costs nothing, so it is a check on the chapter rather than a gate on the reward.",
@@ -1181,7 +1197,7 @@
       ]
     },
     {
-      "version": "0.52.0",
+      "version": "0.52.1",
       "date": "2026-11-07",
       "title": "Out today, in the game",
       "features": [

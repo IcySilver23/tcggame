@@ -523,7 +523,10 @@ export const api = {
     post<{ ok: boolean; awarded: number; state: import('./types').AcademyState }>('/api/academy/chapter', { id }),
   /** Answer one chapter question; the verdict comes back, the answer does not. */
   academyAnswer: (chapter: string, step: string, choice: number) =>
-    post<{ ok: boolean; correct: boolean; state: import('./types').AcademyState }>('/api/academy/answer', { chapter, step, choice }),
+    post<{ ok: boolean; correct: boolean; why?: string; state: import('./types').AcademyState }>('/api/academy/answer', { chapter, step, choice }),
+  /** Skip a chapter the player already knows — no reward, no progress, reversible. */
+  academySkip: (id: string, skipped: boolean) =>
+    post<{ ok: boolean; error?: string; state: import('./types').AcademyState }>('/api/academy/skip', { id, skipped }),
   academyReset: () => post<{ ok: boolean; state: import('./types').AcademyState }>('/api/academy/reset'),
   syncProgress: () => req<import('./types').GameStateResponse['sync']>('/api/sync/progress'),
 

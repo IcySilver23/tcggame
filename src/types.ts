@@ -330,6 +330,8 @@ export type GameStateResponse = {
   progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean }
   /** Waiting-lab-result counters for badge chips — arrived auth verdicts and finished grading jobs. */
   counters?: { authVerdicts: number; gradingReady: number }
+  /** Academy chapters with every step ticked and no reward claimed yet. */
+  academyReady?: number
   apiConfigured: boolean
   /** One-time negotiation tutorial gate — flips after the player's first haggle. */
   haggledOnce: boolean
@@ -366,6 +368,14 @@ export type AcademyState = {
     stepsDone: number
     /** Every step ticked — the reward can be claimed. */
     ready: boolean
+    /** Finished before the checklist existed: its steps are kept, not demanded. */
+    waived: boolean
+    /** Skipped: no reward, no progress, no nagging. Reversible. */
+    skipped: boolean
+    /** The app version that added the chapter. */
+    addedIn: string
+    /** Added after this save graduated. */
+    fresh: boolean
   }[]
   doneCount: number
   total: number
@@ -374,6 +384,8 @@ export type AcademyState = {
   earned: number
   offerTotal: number
   allDone: boolean
+  /** Chapters added after this save graduated. */
+  newSinceGraduation: number
 }
 
 export type CardDetailResponse = {
