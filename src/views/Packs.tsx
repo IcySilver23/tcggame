@@ -358,6 +358,9 @@ export function PacksView() {
   const pendingDetails = useRef(new Set<string>())
   const [detailBusy, setDetailBusy] = useState(false)
   const [sortPending, setSortPending] = useState<string | null>(null)
+  // How many the till is about to ring up. One product at a time, so the count
+  // belongs to the selection and resets when you pick something else.
+  const [tillQty, setTillQty] = useState(1)
 
   useEffect(() => {
     const id = window.setInterval(() => setClock(Date.now()), 30_000)
@@ -573,6 +576,12 @@ export function PacksView() {
   const selChase = selDetail?.est.topChases[0] ?? null
   const packsPerChase = selChase && selPrice && selPrice > 0 ? Math.max(1, Math.round(selChase.value / selPrice)) : null
   const afford = selPrice && selPrice > 0 ? Math.floor(cash / selPrice) : 0
+  // The same rule the shelf uses: the count stops at what the drawer can pay,
+  // and a daily deal is one unit per game day because the server says so.
+  const tillMax = selClaimed || selPrice == null || selPrice <= 0 ? 1 : Math.max(1, Math.min(36, Math.floor(cash / selPrice)))
+  const tillBuy = Math.min(tillQty, tillMax)
+
+  useEffect(() => { setTillQty(1) }, [sel])
 
   return (
     <div className="shop">
@@ -834,11 +843,43 @@ export function PacksView() {
                     you were deciding on, and off-screen entirely on a phone. */}
                 <button
                   className="primary till-pay"
-                  disabled={busy === selProduct.id || selPrice == null || afford < 1 || selClaimed}
-                  onClick={() => buy(selProduct, 1)}
+                  disabled={busy === selProduct.id || selPrice == null || afford < tillBuy || selClaimed}
+                  onClick={() => { buy(selProduct, tillBuy); setTillQty(1) }}
                 >
-                  {selClaimed ? 'Daily deal claimed today' : selPrice == null ? 'Weighing…' : afford < 1 ? 'Not enough cash' : `PURCHASE · ${fmtUsd(selPrice)}`}
+                  {selClaimed
+                    ? 'Daily deal claimed today'
+                    : selPrice == null
+                      ? 'Weighing…'
+                      : afford < tillBuy
+                        ? 'Not enough cash'
+                        : tillBuy > 1
+                          ? `PURCHASE ×${tillBuy} · ${fmtUsd(selPrice * tillBuy)}`
+                          : `PURCHASE · ${fmtUsd(selPrice)}`}
                 </button>
+                {/* The armful lives with the button that spends the cash, at the
+                    till as well as on the shelf: set the count here and the
+                    button above charges for it. */}
+                {!selClaimed && selPrice != null && (
+                  <div className="till-buy">
+                    <span className="bay-qty" role="group" aria-label="How many to buy">
+                      <button
+                        aria-label="One fewer"
+                        disabled={busy === selProduct.id || tillQty <= 1}
+                        onClick={() => setTillQty((n) => Math.max(1, n - 1))}
+                      >−</button>
+                      <b>{tillBuy}</b>
+                      <button
+                        aria-label="One more"
+                        disabled={busy === selProduct.id || tillQty >= tillMax}
+                        title={tillMax <= 1 ? 'That is as many as the cash on hand buys' : 'Buy one more'}
+                        onClick={() => setTillQty((n) => Math.min(tillMax, n + 1))}
+                      >+</button>
+                    </span>
+                    <span className="faint small">
+                      {tillBuy > 1 ? `${fmtUsd(selPrice)} each · ${fmtUsd(selPrice * tillBuy)} total` : 'sealed · buy one or by the armful'}
+                    </span>
+                  </div>
+                )}
                 <div className="till-line" aria-hidden />
                 <p className="till-say">“{ripLine(selProduct, selDetail)}”</p>
                 {selDetail?.slots && selDetail.slots.length > 0 && (

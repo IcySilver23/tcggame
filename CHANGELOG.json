@@ -1,17 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.92.1",
+      "date": "2026-11-23",
+      "title": "The armful reaches the till",
+      "highlights": [
+        "The till now carries the same quantity stepper, directly under its PURCHASE button — set the count there and the button above charges for it.",
+        "The count stops at what the drawer can pay, and a daily deal is still one unit per game day.",
+        "Buying more than one still arrives sealed, so the armful goes into Inventory → Sealed ready to open whenever you like."
+      ],
+      "features": [
+        "The shelf has had a quantity stepper under its PURCHASE button since the last release, but the till — the panel that never scrolls away and is where a product's price, quote and pack contents actually live — still bought exactly one at a time. The stepper now sits there too, in the same place under the button: pick a product, set the count, and the button reads PURCHASE ×N and charges the total. It gives up the same way the shelf does, stopping at whatever the cash on hand can pay, and a daily deal still holds it at one unit because the server enforces one claim per game day. A count that cannot be paid is not a count.",
+        "The purchased units arrive sealed either way, so nothing changes about opening them: the armful sits in Inventory → Sealed until you decide to rip it. Buying ten booster packs still has its own shortcut in the till menu, which remains the quicker route when that is exactly what you want."
+      ]
+    },
+    {
       "version": "0.92.0",
       "date": "2026-11-23",
       "title": "The block and the hammer",
       "highlights": [
-        "Live shows now put the lot on camera: the card being bid on fills the stage at full size with its bid under it, the rest of the board waits in Up next, and finished lots show SOLD or PASSED.",
-        "Your stream has a Sell live panel — pick a card from your binder, open it at your price, set a reserve, and let the room bid for a little over a minute.",
-        "Sales are not guaranteed. Bids that stop under your reserve mean no sale: the card goes back to your binder untouched and the room sees NO SALE.",
-        "A streamed sale pays the hammer price minus the platform cut, so you net less than the number on screen, and the end-of-stream summary now totals lots sold, returned, gross, fees and net."
+        "Live shows now put the lot on camera: the card being bid on fills the stage at full size with its bid under it, the rest of the board waits in Up next, and finished lots show SOLD or PASSED."
       ],
       "features": [
-        "Live shopping could tell you which lots were open but never which one the host was holding up. The stage now carries a single lot: the card being bid on, at full size, with an ON CAMERA tag, its name, and the current bid or asking price under it. The rest of the board moves into Up next, and lots that have already gone read in a Just sold panel stamped SOLD or PASSED, so a room that is not selling looks like a room that is not selling. Blind piles and spot boards hold the wrapper they came out of, because there is no card to show until it is ripped.",
+        "Live shopping could tell you which lots were open but never which one the host was holding up. The stage now carries a single lot: the card being bid on, at full size, with an ON CAMERA tag, its name, and the current bid or asking price under it. The rest of the board moves into Up next, and lots that have already gone read in a Just sold panel stamped SOLD or PASSED, so a room that is not selling looks like a room that is not selling. Blind piles and spot boards hold the wrapper they came out of, because there is no card to show until it is ripped. Your stream has a Sell live panel — pick a card from your binder, open it at your price, set a reserve, and let the room bid for a little over a minute. Sales are not guaranteed. Bids that stop under your reserve mean no sale: the card goes back to your binder untouched and the room sees NO SALE. A streamed sale pays the hammer price minus the platform cut, so you net less than the number on screen, and the end-of-stream summary now totals lots sold, returned, gross, fees and net.",
         "Streaming was ripping only: tips in, product cost out. It now has the other half of the job. A Sell live panel lists the cards in your binder and you put one up at a time — you choose the card, the opening bid and the reserve. The room bids on a real clock for about a minute and a quarter, climbing in uneven jumps toward what it is actually willing to pay, and the bid feed and the receipts land on the panel as they happen. What the room will pay is not what you asked: a thin crowd stalls low, a packed one chases the card, and the ceiling sits under market. A lot that never reaches your reserve does not sell. The card goes back to the binder untouched and the panel says NO SALE, the way a real room leaves a lot on the table. Ending the stream hands back anything still on the block.",
         "A streamed sale pays the hammer price minus the platform's cut, so the number you keep is smaller than the number the room bid. The recap after every stream now totals lots listed, sold and returned, gross, fees, net and sell-through, which makes a passed lot something you can read rather than something you guess at. It is a simplification worth naming: bidders are simulated, the ceiling is drawn from the size of your audience rather than modelled bidder by bidder, and a sale always clears at the price the room stopped at."
       ]

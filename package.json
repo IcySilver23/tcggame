@@ -1,7 +1,7 @@
 {
   "name": "tcg-life",
   "private": true,
-  "version": "0.92.0",
+  "version": "0.92.1",
   "description": "TCG Life — a collector-life simulator built on the real Pokémon TCG. Real card data from pokemontcg.io, real TCGplayer USD market prices, official card imagery.",
   "type": "module",
   "scripts": {

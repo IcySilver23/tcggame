@@ -3040,6 +3040,12 @@ to{opacity:1;transform:none}
 .bay-qty button:hover:not(:disabled){background:rgba(255,255,255,.14)}
 .bay-qty button:disabled{opacity:.35;cursor:not-allowed}
 .bay-qty b{font-size:9.5px;font-weight:900;min-width:11px;text-align:center;font-variant-numeric:tabular-nums;color:var(--gold)}
+/* The same stepper at the till, where it sits under the PURCHASE button that
+   charges for it — a little larger, because the till is not a thumbnail. */
+.till-buy{display:flex;align-items:center;gap:9px;margin-top:7px;flex-wrap:wrap}
+.till-buy .bay-qty{padding:2px 4px;border-radius:7px;background:rgba(0,0,0,.3);border-color:var(--border)}
+.till-buy .bay-qty button{font-size:13px;padding:2px 8px}
+.till-buy .bay-qty b{font-size:12px;min-width:14px}
 /* Sealed wrapper art in Inventory — the Pack Shop's own fallback ladder:
    product photo, set logo, set symbol, then a box. */
 .inv-seal-thumb{flex:none;width:38px;height:46px;object-fit:contain;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);padding:2px;box-sizing:border-box}
