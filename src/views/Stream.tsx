@@ -168,8 +168,8 @@ export function StreamView() {
     try {
       const res = await api.breakReprice(breakState.id, v)
       if (res.ok) {
-        const room = res.roomMax != null ? ` · the room is good for about ${fmtUsd(res.roomMax)}` : ''
-        toast(`Spots cut to ${fmtUsd(res.spotPrice ?? v)}${room}`, 'good')
+        const room = !res.pending && res.roomMax != null ? ` · the room is good for about ${fmtUsd(res.roomMax)}` : ''
+        toast(`${res.pending ? 'Spots set to' : 'Spots cut to'} ${fmtUsd(res.spotPrice ?? v)}${room}`, 'good')
         setCutInput('')
         refreshState()
         loadBreak()
@@ -569,6 +569,32 @@ export function StreamView() {
               </div>
             </div>
             <button className="small" onClick={cancelBreak}>Cancel break (refund)</button>
+          </div>
+          {/* The number is yours before the room exists — nothing has been
+              shown or sold, so a bad ask gets fixed here, not mid-stream. */}
+          <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span className="small">
+              <b>{fmtUsd(breakState.spotPrice)}</b> a spot · even split <b>{fmtUsd(breakState.evenSplit)}</b>
+            </span>
+            <input
+              type="number"
+              min="0.25"
+              step="0.25"
+              aria-label="Spot price"
+              value={cutInput}
+              onChange={(e) => setCutInput(e.target.value)}
+              placeholder={breakState.spotPrice.toFixed(2)}
+              disabled={busy}
+              style={{ width: 92, padding: '5px 8px', fontSize: 12 }}
+            />
+            <button
+              className="small"
+              disabled={busy || !cutInput || Number(cutInput) <= 0 || Number(cutInput) === breakState.spotPrice}
+              onClick={cutPrice}
+            >
+              {Number(cutInput) > breakState.spotPrice ? 'Raise the ask' : 'Set the ask'}
+            </button>
+            <span className="faint small">nothing is sold yet — set it or cut it before you go live</span>
           </div>
         </div>
       )}

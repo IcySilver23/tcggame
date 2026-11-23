@@ -1,16 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.93.2",
+      "date": "2026-11-23",
+      "title": "Set the ask before you go live",
+      "highlights": [
+        "A pending break has an editable spot price right in the setup panel — fix a wrong number before the stream starts instead of finding out on air.",
+        "Before you are live the ask goes either way, up or down; once the break is on air it can still only come down.",
+        "The room still decides: changing the price opens or closes the board, it never promises a buyer."
+      ],
+      "features": [
+        "The last update let you cut the ask on a live break, which still meant discovering the mistake in front of everyone. A break that has not gone live now shows its price in the yellow pending panel with an even-split line beside it, so $500 a spot for a $3 pack is obvious before you open your mouth. Type a number and press Set the ask — the label switches to Raise the ask when the number is higher, because nothing has been shown or sold yet and the board is still yours to price.",
+        "Once you are live the rule from the previous update holds: the ask can only be cut, never raised, since buyers have already seen and paid the old number. Either way the room's ceiling is unmoved — a $0.25 ask in a room that will pay $0.70 sells, a $40 ask in the same room sells nothing. A pending price change is written to the activity log in plain words, with the old and new numbers, so the ledger shows what you did before the stream started."
+      ]
+    },
+    {
       "version": "0.93.1",
       "date": "2026-11-23",
       "title": "Cut the ask",
       "highlights": [
-        "A break priced past the room is not dead any more: drop the spot price while you are live and the board can move again.",
-        "The room still decides — cutting a $500 ask to $0.25 sold a spot immediately, and cutting it to $40 still sold none.",
-        "Spots already sold keep the price those buyers paid, and a live ask can only go down, never up."
+        "A break priced past the room is not dead any more: drop the spot price while you are live and the board can move again."
       ],
       "features": [
-        "Once the ceiling went in, an over-priced break had no way back: the spots never sold, the product was already paid for, and the rest of the stream was dead air. The spots panel now has a price box under the team buttons. Type a lower number, press Cut the ask, and the board is on sale at the new price for everyone still watching. Real hosts do exactly this — the price drop is the move that saves a cold break.",
+        "Once the ceiling went in, an over-priced break had no way back: the spots never sold, the product was already paid for, and the rest of the stream was dead air. The spots panel now has a price box under the team buttons. Type a lower number, press Cut the ask, and the board is on sale at the new price for everyone still watching. Real hosts do exactly this — the price drop is the move that saves a cold break. The room still decides — cutting a $500 ask to $0.25 sold a spot immediately, and cutting it to $40 still sold none. Spots already sold keep the price those buyers paid, and a live ask can only go down, never up.",
         "The ceiling has not moved: a cut only opens the board, it never guarantees a sale. Ask $40 for a spot in a $3 pack and the room still passes; ask $0.25 and buyers take them. A cut applies to spots not yet claimed, because the ones already sold were paid at the number those buyers agreed to — the panel says so next to the box. Raising a live ask is refused outright rather than modelled, and the price bottoms out at $0.25. Whatever the cut still fails to sell goes home with the house, pulls and all."
       ]
     },

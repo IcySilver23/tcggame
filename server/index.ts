@@ -2499,10 +2499,11 @@ app.post('/api/stream/breaks/:id/buy', async (c) => {
   const body = await c.req.json<{ team: string }>()
   return c.json(breaks.buySpot(Number(c.req.param('id')), body.team))
 })
-// Drop the ask while the break is live — the room's ceiling still decides.
+// Set the ask before going live, or cut it once the break is on air. The
+// room's ceiling still decides whether a spot sells.
 app.post('/api/stream/breaks/:id/price', async (c) => {
   const body = await c.req.json<{ price: number }>()
-  return c.json(breaks.lowerSpotPrice(Number(c.req.param('id')), Number(body.price)))
+  return c.json(breaks.setSpotPrice(Number(c.req.param('id')), Number(body.price)))
 })
 app.post('/api/stream/break/rip', (c) => c.json(breaks.ripBreak()))
 
