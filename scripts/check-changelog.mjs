@@ -8,7 +8,12 @@
 //     less; every older entry exactly ONE highlight (the panel shows highlights[0]
 //     and nothing more for history);
 //   • every entry: version, YYYY-MM-DD date, a short title, at least one feature,
-//     no empty strings, no duplicated versions;
+//     no empty strings;
+//   • versions are strict only for the release being written: the newest entry
+//     may not reuse a version that is already in the file (that is the number
+//     the What's New badge lights up with). A duplicate further back is history,
+//     not an error — 0.52.0 shipped twice before this linter existed, and a
+//     version label players have already seen is not the linter's to rewrite;
 //   • newest version === package.json version, or the What's New badge never
 //     lights up for the build that shipped it;
 //   • entries newest-first and dates non-increasing;
@@ -43,7 +48,8 @@ const COUNT = /\b(?:all|every|each|the)\s+\d[\d,]*[\s-]+(?:updates?|releases?|ve
 
 if (entries.length === 0) problems.push('CHANGELOG.json has no entries')
 
-const seen = new Set()
+const seenByVersion = new Map()
+const notes = []
 for (const [i, e] of entries.entries()) {
   const where = `entry ${i} (${e?.version ?? 'no version'})`
   if (!isText(e?.version)) problems.push(`${where}: missing version`)
@@ -55,8 +61,8 @@ for (const [i, e] of entries.entries()) {
     if (!isText(f)) problems.push(`${where}: empty feature string`)
     else if (COUNT.test(f)) problems.push(`${where}: feature bakes in a count — "${f.slice(0, 60)}…"`)
   }
-  if (seen.has(e?.version)) problems.push(`${where}: duplicate version`)
-  seen.add(e?.version)
+  if (!seenByVersion.has(e?.version)) seenByVersion.set(e?.version, [])
+  seenByVersion.get(e?.version).push(i)
 
   const h = e?.highlights
   if (h !== undefined) {
@@ -76,8 +82,28 @@ for (const [i, e] of entries.entries()) {
   }
 }
 
+// Duplicate versions. 0.52.0 was written twice for two releases on consecutive
+// days, and players saw both labels in What's New long before this check
+// existed. Renumbering one would be editing what shipped, so an old duplicate is
+// reported as history and allowed. A NEW release still cannot reuse a number:
+// the newest entry is the one compared against package.json and the one the
+// badge marks as "you are here", and two entries sharing the newest version
+// would make that badge indistinguishable from the last release. Same for the
+// version in package.json, which is by definition the release being written.
+const newestVersion = entries[0]?.version
+for (const [version, at] of seenByVersion) {
+  if (at.length < 2) continue
+  if (version === newestVersion || version === pkg.version) {
+    problems.push(`version ${version} is used by ${at.length} entries (${at.join(', ')}) — a new release needs its own number`)
+  } else {
+    notes.push(`version ${version} appears on entries ${at.join(', ')} — historical duplicate kept as shipped`)
+  }
+}
+
 for (let i = 1; i < entries.length; i++) {
-  if (cmp(entries[i - 1].version, entries[i].version) <= 0) {
+  // Equal versions are tolerated for the historical duplicates above; only a
+  // genuinely ascending step is out of order.
+  if (cmp(entries[i - 1].version, entries[i].version) < 0) {
     problems.push(`entries out of order: ${entries[i - 1].version} then ${entries[i].version}`)
   }
   if (String(entries[i - 1].date) < String(entries[i].date)) {
@@ -93,6 +119,7 @@ const newest = entries[0]
 console.log(
   `entries ${entries.length} | newest ${newest?.version} (${(newest?.highlights ?? []).length}h/${(newest?.features ?? []).length}f) | package ${pkg.version}`,
 )
+for (const n of notes) console.log('·· ' + n)
 if (problems.length > 0) {
   for (const p of problems.slice(0, 40)) console.log('!! ' + p)
   console.log(`${problems.length} problem${problems.length === 1 ? '' : 's'}`)
