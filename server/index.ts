@@ -581,13 +581,24 @@ app.post('/api/tutorials/start/replay', (c) => {
   return c.json({ ok: true })
 })
 
-// The Collector's Academy — the optional advanced course. The state is per
-// save; completing a chapter pays its reward once, and the graduation bonus is
-// paid when the tenth lands. Replaying pays nothing extra.
+// The Collector's Academy — the optional advanced course, now a checklist of
+// real work per chapter. The state is per save; a chapter pays its reward once,
+// and the graduation bonus is paid when the tenth lands. Replaying pays nothing
+// extra.
 app.get('/api/academy', (c) => c.json(academy.academyState()))
 app.post('/api/academy/chapter', async (c) => {
   const body = await c.req.json<{ id?: string }>().catch(() => ({ id: '' }))
   const r = academy.completeChapter(String(body.id || ''))
+  if (!r.ok) return c.json(r, 400)
+  return c.json(r)
+})
+// One question per chapter. The choice goes up, the verdict comes back; the
+// answer itself never reaches the browser.
+app.post('/api/academy/answer', async (c) => {
+  const body = await c.req
+    .json<{ chapter?: string; step?: string; choice?: number }>()
+    .catch(() => ({ chapter: '', step: '', choice: -1 }))
+  const r = academy.answerStep(String(body.chapter || ''), String(body.step || ''), Number(body.choice))
   if (!r.ok) return c.json(r, 400)
   return c.json(r)
 })

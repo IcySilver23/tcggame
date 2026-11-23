@@ -338,9 +338,32 @@ export type GameStateResponse = {
   tutorials: { start: boolean; local: boolean; auction: boolean; resale: boolean; convention: boolean; ebay: boolean; storage: boolean; buylist: boolean; pawn: boolean; yard: boolean; live: boolean; shipping: boolean; estate: boolean; auth: boolean; futures: boolean }
 }
 
+/** One checklist step in an Academy chapter. */
+export type AcademyStep = {
+  id: string
+  kind: 'act' | 'answer'
+  label: string
+  /** Where to do it, or why it is still open. */
+  how: string
+  done: boolean
+  /** Only on answer steps: the question and its choices. */
+  question?: string
+  options?: string[]
+}
+
 /** The optional Collector's Academy course — ten chapters, each paid once. */
 export type AcademyState = {
-  chapters: { id: string; title: string; reward: number; done: boolean; paid: boolean }[]
+  chapters: {
+    id: string
+    title: string
+    reward: number
+    done: boolean
+    paid: boolean
+    steps: AcademyStep[]
+    stepsDone: number
+    /** Every step ticked — the reward can be claimed. */
+    ready: boolean
+  }[]
   doneCount: number
   total: number
   bonus: number

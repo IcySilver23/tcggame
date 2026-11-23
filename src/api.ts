@@ -521,6 +521,9 @@ export const api = {
   academy: () => req<import('./types').AcademyState>('/api/academy'),
   academyChapter: (id: string) =>
     post<{ ok: boolean; awarded: number; state: import('./types').AcademyState }>('/api/academy/chapter', { id }),
+  /** Answer one chapter question; the verdict comes back, the answer does not. */
+  academyAnswer: (chapter: string, step: string, choice: number) =>
+    post<{ ok: boolean; correct: boolean; state: import('./types').AcademyState }>('/api/academy/answer', { chapter, step, choice }),
   academyReset: () => post<{ ok: boolean; state: import('./types').AcademyState }>('/api/academy/reset'),
   syncProgress: () => req<import('./types').GameStateResponse['sync']>('/api/sync/progress'),
 

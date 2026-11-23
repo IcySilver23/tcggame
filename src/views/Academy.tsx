@@ -217,14 +217,44 @@ export function AcademyView() {
       await refreshState()
       toast(
         r.awarded > 0
-          ? `Chapter learned — +${fmtUsd(r.awarded)}${r.state.allDone ? ' including the graduation bonus' : ''}`
-          : 'Chapter learned — the reward for this one was already paid',
+          ? `Chapter done — +${fmtUsd(r.awarded)}${r.state.allDone ? ' including the graduation bonus' : ''}`
+          : 'Chapter done — the reward for this one was already paid',
         r.awarded > 0 ? 'good' : 'info',
       )
       const next = r.state.chapters.find((c) => !c.done)
       if (next) setOpen(next.id)
-    } catch {
-      toast('Could not save that chapter', 'bad')
+    } catch (err) {
+      // The server refuses a chapter with steps left, and says which ones.
+      toast(err instanceof Error ? err.message : 'Could not save that chapter', 'bad')
+      void load()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // One question per chapter: the choice goes up, the verdict comes back. A wrong
+  // answer costs nothing and the options stay put, so it is a check, not a gate.
+  const answer = async (stepId: string, choice: number) => {
+    if (!chapter) return
+    setBusy(true)
+    try {
+      const r = await api.academyAnswer(chapter.id, stepId, choice)
+      setState(r.state)
+      toast(r.correct ? 'Correct — step ticked.' : 'Not quite. The numbers are in the chapter above.', r.correct ? 'good' : 'bad')
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Could not save that answer', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // The action steps are proved by the save, so re-reading the state is how you
+  // see one tick after doing it in another screen.
+  const recheck = async () => {
+    setBusy(true)
+    try {
+      await load()
+      toast('Checked the save again', 'info')
     } finally {
       setBusy(false)
     }
@@ -259,9 +289,9 @@ export function AcademyView() {
         <div>
           <h1 className="academy-title">Collector’s Academy</h1>
           <div className="faint small">
-            {state.total} chapters, every system in the game — {fmtUsd(state.offerTotal)} across the course, paid as you
-            read, with a {fmtUsd(state.bonus)} graduation bonus at the end. Optional: nothing here is required, and the
-            course can be read again at any time.
+            {state.total} chapters, every system in the game — {fmtUsd(state.offerTotal)} across the course, paid for the
+            work: each chapter is a short checklist of doing and answering, with a {fmtUsd(state.bonus)} graduation bonus
+            at the end. Optional: nothing here is required, and the course can be run again at any time.
           </div>
         </div>
         <div className="academy-progress">
@@ -298,7 +328,7 @@ export function AcademyView() {
                 key={c.id}
                 className={`academy-item ${c.id === chapter?.id ? 'on' : ''} ${isDone ? 'done' : ''}`}
                 onClick={() => setOpen(c.id)}
-                title={isDone ? `${c.title} — learned` : `${c.title} — ${fmtUsd(c.reward)}`}
+                title={isDone ? `${c.title} — done` : `${c.title} — ${fmtUsd(c.reward)} for the work`}
               >
                 <span className="num">{String(i + 1).padStart(2, '0')}</span>
                 <span className="ico">{PROSE[c.id]?.icon ?? FALLBACK.icon}</span>
@@ -308,7 +338,7 @@ export function AcademyView() {
             )
           })}
           <button className="ghost small academy-reset" disabled={busy} onClick={reset}>
-            Read the course again (rewards are once only)
+            Run the course again (fresh checklist, rewards are once only)
           </button>
         </div>
 
@@ -336,16 +366,49 @@ export function AcademyView() {
             <div className="academy-where">
               <b>Where it lives:</b> {prose.where}
             </div>
+            <div className="academy-steps">
+              <div className="academy-steps-head">
+                <b>Your work in this chapter</b>
+                <span className="faint small">
+                  {chapter.stepsDone}/{chapter.steps.length} done{chapter.ready ? ' — the reward is unlocked' : ''}
+                </span>
+              </div>
+              {chapter.steps.map((s, i) => (
+                <div key={s.id} className={`academy-step ${s.done ? 'done' : ''}`}>
+                  <span className="mark" aria-hidden>{s.done ? '✓' : i + 1}</span>
+                  <div className="grow" style={{ minWidth: 0 }}>
+                    <div className="academy-step-label">{s.label}</div>
+                    {!s.done && <div className="faint small academy-step-how">{s.how}</div>}
+                    {s.kind === 'answer' && !s.done && s.options && (
+                      <div className="academy-choices">
+                        {s.options.map((o, k) => (
+                          <button key={k} className="chip" disabled={busy} onClick={() => answer(s.id, k)}>
+                            {o}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="academy-actions">
               <span className="faint small">
                 {done.has(chapter.id)
-                  ? 'Chapter learned'
-                  : `Reward: ${fmtUsd(chapter.reward)} the first time you finish this chapter`}
+                  ? 'Chapter done'
+                  : chapter.ready
+                    ? `Every step ticked — ${fmtUsd(chapter.reward)} is waiting`
+                    : `${chapter.steps.length - chapter.stepsDone} step${chapter.steps.length - chapter.stepsDone === 1 ? '' : 's'} left before this chapter pays`}
               </span>
               <div className="row" style={{ gap: 8 }}>
                 {index > 0 && (
                   <button className="ghost" onClick={() => setOpen(chapters[index - 1].id)}>
                     ← Previous
+                  </button>
+                )}
+                {!done.has(chapter.id) && (
+                  <button className="ghost" disabled={busy} onClick={recheck}>
+                    Check the save again
                   </button>
                 )}
                 {done.has(chapter.id) ? (
@@ -355,8 +418,8 @@ export function AcademyView() {
                     </button>
                   )
                 ) : (
-                  <button className="primary" disabled={busy} onClick={learn}>
-                    Mark chapter learned
+                  <button className="primary" disabled={busy || !chapter.ready} onClick={learn}>
+                    {chapter.ready ? `Claim ${fmtUsd(chapter.reward)}` : 'Finish the steps first'}
                   </button>
                 )}
               </div>

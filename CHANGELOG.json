@@ -1,14 +1,27 @@
 {
   "entries": [
     {
+      "version": "0.86.3",
+      "date": "2026-11-23",
+      "title": "The Academy is work now",
+      "highlights": [
+        "Every Academy chapter is a checklist: do the thing in the game, answer the one question about the numbers, and only then does its $25 unlock.",
+        "The action is proved by your save, not a button: a wrapper in Pull History, a row in sale history, a protected copy, a wishlist target, a venue you worked.",
+        "A replay starts a fresh checklist — actions only count from when you began the run — and the money stays once-only, still $300 for the whole course."
+      ],
+      "features": [
+        "The Collector’s Academy pays for work instead of reading. Each of the ten chapters now carries two steps: one real action in the game and one question about the numbers that chapter just explained. The chapter’s $25 is locked until both are ticked, the button reads Finish the steps first while anything is open, and the screen prints which step is left rather than a generic refusal.",
+        "The actions are checked against the save, so no click can claim them: economy wants a game day to turn over, packs wants a wrapper in Pull History, condition wants a copy protected or submitted for grading, buying wants a purchase at any venue, selling wants a row in sale history, storage wants a locker, bulk box or supplies job, collecting wants a wishlist target, events wants a convention, card show, local meetup or flea bin worked, business wants a shop, repack, lending or books action, and showbiz wants a Community post, stream, pack battle or authentication. Every one of them only counts work done after the run started, so a long save cannot tick the course with last month’s history.",
+        "The question is answered on the server: the browser is sent the choices and told only whether the pick was right, never which one is right. A wrong answer costs nothing and leaves the options there, so it reads as a check on the chapter rather than a gate on the reward. The books action also answers a chapter’s whole premise, which is why the cheapest route through the course still teaches the numbers.",
+        "Honestly: one step can make you wait. The economy chapter asks for a game day to turn, which is two real hours on the default clock unless you buy a day pass ($8.33), and the events and business steps need a venue or a counter you can afford — the course is optional, and nothing else in the game is gated behind it."
+      ]
+    },
+    {
       "version": "0.86.2",
       "date": "2026-11-23",
       "title": "The wrapper, not the photo",
       "highlights": [
-        "The pack you tear is cropped to the wrapper: TCGplayer ships every product photo on a padded white canvas, so a booster sat at half width in a white card with the SWIPE handle out on the margin.",
-        "The printed edge is measured in the browser through the app’s own art route, because the CDN sends no CORS headers, and the tear box takes the wrapper’s shape instead of the canvas’s.",
-        "All 513 sealed products with a photo get the same treatment: the pack fills the stage and the handle rides the crimped top it cuts.",
-        "The download ships no player save: a build is factory-fresh unless a save is named on purpose, so a new install starts at $1,000 instead of in someone else's game."
+        "The pack you tear is cropped to the wrapper: TCGplayer ships every product photo on a padded white canvas, so a booster sat at half width in a white card with the SWIPE handle out on the margin."
       ],
       "features": [
         "A Celestial Storm booster photo arrives as 356×400 with the pack itself only at x 86–270, y 34–368 — 24% of white down each side and 8% above and below. The tear screen sized its box to the photo, so the wrapper drew at about half the stage width inside a white card, the crimp the SWIPE handle points at was nowhere near the handle, and the pack read as a picture of a pack rather than a pack you open.",
