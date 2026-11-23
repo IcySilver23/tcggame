@@ -1,6 +1,6 @@
 {
  "release": "Delta Reign and the 30th Celebration Wave 4 products, 2026-11-06 + MEP promos",
- "note": "Releases newer than the upstream catalog. Card identity, numbering and rarity from the published Delta Reign card list (Serebii + YesTCG), prices are TCGplayer market as relayed by YesTCG on 2026-11-05, images from the same image service the catalog uses. Supertype/subtype/type/HP come from Serebii cards. Subtypes of Pokémon are not published in the sources read here, so they stay null rather than being guessed. The MEP Black Star Promos are added from TCGdex: identity, numbering, rarity, artwork and TCGplayer USD market prices as published there, with the four Build & Battle Box promos TCGdex omits (MEP 111-114) taken from the TCGplayer mirror tcgcsv, which publishes no illustrator or Pokédex number for them. MEP 115-116 and 118 are not imported: Bulbapedia's promo pages for them redirect to the set printings they reprint (Spritzee Perfect Order 35, Seel Perfect Order 18, Mega Rayquaza ex Delta Reign 84), so the products that carry them hand over those set cards. MEP 117 is imported, because it is a printing of its own: the Delta Reign Elite Trainer Box promo is the Kyogre illustration rare (the Japanese Storm Emeralda artwork) that the English set left out, not the set's standard-frame Kyogre 26/103 that the $15 store promo reprints, and TCGplayer sells it as its own product (market $10.00 holofoil, 22 November 2026). The set is the promo programme, not a booster line, so it ships no sealed product of its own; its cards exist so the 30th Celebration, Ascended Heroes and Delta Reign boxes can hand out the promo they actually contain.",
+ "note": "Releases newer than the upstream catalog. Card identity, numbering and rarity from the published Delta Reign card list (Serebii + YesTCG), prices are TCGplayer market as relayed by YesTCG on 2026-11-05, images from the same image service the catalog uses. Supertype/subtype/type/HP come from Serebii cards. Subtypes of Pokémon are not published in the sources read here, so they stay null rather than being guessed. The MEP Black Star Promos are added from TCGdex: identity, numbering, rarity, artwork and TCGplayer USD market prices as published there, with the four Build & Battle Box promos TCGdex omits (MEP 111-114) taken from the TCGplayer mirror tcgcsv, which publishes no illustrator or Pokédex number for them. MEP 115-116 and 118 are not imported: Bulbapedia's promo pages for them redirect to the set printings they reprint (Spritzee Perfect Order 35, Seel Perfect Order 18, Mega Rayquaza ex Delta Reign 84), so the products that carry them hand over those set cards. MEP 117 is imported, because it is a printing of its own: the Delta Reign Elite Trainer Box promo is the Kyogre illustration rare (the Japanese Storm Emeralda artwork) that the English set left out, not the set's standard-frame Kyogre 26/103 that the $15 store promo reprints, and TCGplayer sells it as its own product (market $10.00 holofoil, 22 November 2026). The set is the promo programme, not a booster line, so it ships no sealed product of its own; its cards exist so the 30th Celebration, Ascended Heroes and Delta Reign boxes can hand out the promo they actually contain. The MEP artwork deserves its own sentence: the image service the rest of the catalogue uses answers most MEP numbers with the same card-back placeholder rather than a scan, so the promos the game can hand out take their photographs from TCGplayer's own product images for the group (tmp/fill-mep-art.mjs re-runs the match), and the one MEP card TCGplayer does not sell — Pikachu at the Museum — carries no image at all rather than a card back pretending to be one.",
  "sets": [
   {
    "id": "me6",
@@ -3280,8 +3280,8 @@
    "dex_numbers": [
     154
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-001/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-001/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/654594_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/654594_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 134.49,
@@ -3305,8 +3305,8 @@
    "dex_numbers": [
     818
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-002/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-002/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/654596_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/654596_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 41.19,
@@ -3330,8 +3330,8 @@
    "dex_numbers": [
     65
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-003/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-003/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/654597_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/654597_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 169.27,
@@ -3355,8 +3355,8 @@
    "dex_numbers": [
     337
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-004/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-004/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/654598_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/654598_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 61.56,
@@ -3380,8 +3380,8 @@
    "dex_numbers": [
     425
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-005/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-005/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/656255_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/656255_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 3.22,
@@ -3405,8 +3405,8 @@
    "dex_numbers": [
     426
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-006/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-006/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/656256_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/656256_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 1.67,
@@ -3430,8 +3430,8 @@
    "dex_numbers": [
     54
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-007/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-007/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/656257_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/656257_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 9.68,
@@ -3455,8 +3455,8 @@
    "dex_numbers": [
     55
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-008/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-008/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/656258_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/656258_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.94,
@@ -3480,8 +3480,8 @@
    "dex_numbers": [
     65
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-009/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-009/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/656259_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/656259_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 66.78,
@@ -3505,8 +3505,8 @@
    "dex_numbers": [
     447
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-010/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-010/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/656260_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/656260_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 55.46,
@@ -3530,8 +3530,8 @@
    "dex_numbers": [
     380
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-011/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-011/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/657846_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/657846_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.61,
@@ -3555,8 +3555,8 @@
    "dex_numbers": [
     448
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-012/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-012/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/663177_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/663177_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 1.45,
@@ -3580,8 +3580,8 @@
    "dex_numbers": [
     3
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-013/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-013/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/666905_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/666905_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.86,
@@ -3605,8 +3605,8 @@
    "dex_numbers": [
     937
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-014/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-014/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/663187_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/663187_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 67.57,
@@ -3630,8 +3630,8 @@
    "dex_numbers": [
     888
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-015/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-015/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/663189_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/663189_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 31.12,
@@ -3655,8 +3655,8 @@
    "dex_numbers": [
     330
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-016/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-016/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/663191_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/663191_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 39.29,
@@ -3680,8 +3680,8 @@
    "dex_numbers": [
     849
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-017/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-017/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/663193_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/663193_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 40.23,
@@ -3705,8 +3705,8 @@
    "dex_numbers": [
     546
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-018/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-018/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/664051_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/664051_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.3,
@@ -3730,8 +3730,8 @@
    "dex_numbers": [
     547
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-019/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-019/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/664054_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/664054_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.3,
@@ -3755,8 +3755,8 @@
    "dex_numbers": [
     215
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-020/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-020/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/664055_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/664055_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.34,
@@ -3780,8 +3780,8 @@
    "dex_numbers": [
     461
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-021/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-021/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/664063_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/664063_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.34,
@@ -3805,8 +3805,8 @@
    "dex_numbers": [
     935
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-022/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-022/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/665053_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/665053_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 27.9,
@@ -3830,8 +3830,8 @@
    "dex_numbers": [
     6
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-023/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-023/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/659612_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/659612_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 21.96,
@@ -3855,8 +3855,8 @@
    "dex_numbers": [
     741
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-024/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-024/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/664010_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/664010_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 7.29,
@@ -3880,8 +3880,8 @@
    "dex_numbers": [
     115
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-025/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-025/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/668509_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/668509_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 1.34,
@@ -3905,8 +3905,8 @@
    "dex_numbers": [
     648
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-026/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-026/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/659231_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/659231_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 14.07,
@@ -3930,8 +3930,8 @@
    "dex_numbers": [
     93
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-027/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-027/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/659232_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/659232_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 38.83,
@@ -3951,8 +3951,8 @@
    "hp": null,
    "artist": "Yuu Nishida",
    "dex_numbers": null,
-   "image_small": "https://images.scrydex.com/pokemon/mep-028/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-028/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/680449_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/680449_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 687.78,
@@ -3976,8 +3976,8 @@
    "dex_numbers": [
     6
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-029/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-029/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/680639_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/680639_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.92,
@@ -4001,8 +4001,8 @@
    "dex_numbers": [
     6
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-030/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-030/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/680640_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/680640_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.92,
@@ -4026,8 +4026,8 @@
    "dex_numbers": [
     644
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-031/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-031/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/680480_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/680480_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 50.49,
@@ -4051,8 +4051,8 @@
    "dex_numbers": [
     282
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-032/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-032/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685510_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685510_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.63,
@@ -4076,8 +4076,8 @@
    "dex_numbers": [
     448
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-033/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-033/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685511_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685511_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 8.82,
@@ -4101,8 +4101,8 @@
    "dex_numbers": [
     154
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-034/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-034/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/692120_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/692120_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.47,
@@ -4126,8 +4126,8 @@
    "dex_numbers": [
     500
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-035/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-035/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/692119_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/692119_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.46,
@@ -4151,8 +4151,8 @@
    "dex_numbers": [
     160
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-036/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-036/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/692118_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/692118_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.57,
@@ -4176,8 +4176,8 @@
    "dex_numbers": [
     1
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-037/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-037/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684461_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684461_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 17.6,
@@ -4201,8 +4201,8 @@
    "dex_numbers": [
     4
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-038/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-038/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684462_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684462_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 21.52,
@@ -4226,8 +4226,8 @@
    "dex_numbers": [
     7
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-039/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-039/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684463_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684463_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 19.9,
@@ -4251,8 +4251,8 @@
    "dex_numbers": [
     387
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-040/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-040/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684464_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684464_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.8,
@@ -4276,8 +4276,8 @@
    "dex_numbers": [
     390
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-041/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-041/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684465_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684465_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 5.21,
@@ -4301,8 +4301,8 @@
    "dex_numbers": [
     393
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-042/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-042/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684466_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684466_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 9.65,
@@ -4326,8 +4326,8 @@
    "dex_numbers": [
     722
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-043/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-043/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684467_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684467_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.45,
@@ -4351,8 +4351,8 @@
    "dex_numbers": [
     725
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-044/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-044/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684468_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684468_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.95,
@@ -4376,8 +4376,8 @@
    "dex_numbers": [
     728
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-045/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-045/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/684469_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/684469_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.34,
@@ -4401,8 +4401,8 @@
    "dex_numbers": [
     152
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-046/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-046/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699870_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699870_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 5,
@@ -4426,8 +4426,8 @@
    "dex_numbers": [
     155
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-047/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-047/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699871_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699871_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 6.6,
@@ -4451,8 +4451,8 @@
    "dex_numbers": [
     158
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-048/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-048/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699872_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699872_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 7.42,
@@ -4476,8 +4476,8 @@
    "dex_numbers": [
     495
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-049/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-049/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699873_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699873_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 2.81,
@@ -4501,8 +4501,8 @@
    "dex_numbers": [
     498
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-050/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-050/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699874_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699874_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 2.83,
@@ -4526,8 +4526,8 @@
    "dex_numbers": [
     501
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-051/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-051/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699875_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699875_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 4.17,
@@ -4551,8 +4551,8 @@
    "dex_numbers": [
     810
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-052/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-052/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699876_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699876_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 2.98,
@@ -4576,8 +4576,8 @@
    "dex_numbers": [
     813
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-053/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-053/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699877_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699877_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 3.41,
@@ -4601,8 +4601,8 @@
    "dex_numbers": [
     816
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-054/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-054/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/699878_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/699878_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 2.61,
@@ -4626,8 +4626,8 @@
    "dex_numbers": [
     252
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-055/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-055/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709969_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709969_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4648,8 +4648,8 @@
    "dex_numbers": [
     255
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-056/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-056/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709970_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709970_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4670,8 +4670,8 @@
    "dex_numbers": [
     258
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-057/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-057/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709971_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709971_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4692,8 +4692,8 @@
    "dex_numbers": [
     650
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-058/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-058/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709972_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709972_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4714,8 +4714,8 @@
    "dex_numbers": [
     653
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-059/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-059/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709973_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709973_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4736,8 +4736,8 @@
    "dex_numbers": [
     656
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-060/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-060/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709974_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709974_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4758,8 +4758,8 @@
    "dex_numbers": [
     906
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-061/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-061/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709975_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709975_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4780,8 +4780,8 @@
    "dex_numbers": [
     909
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-062/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-062/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709976_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709976_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4802,8 +4802,8 @@
    "dex_numbers": [
     912
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-063/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-063/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/709977_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/709977_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -4824,8 +4824,8 @@
    "dex_numbers": [
     497
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-064/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-064/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685494_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685494_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 39.1,
@@ -4849,8 +4849,8 @@
    "dex_numbers": [
     689
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-065/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-065/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685495_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685495_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 18.09,
@@ -4874,8 +4874,8 @@
    "dex_numbers": [
     697
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-066/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-066/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685496_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685496_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 50.57,
@@ -4899,8 +4899,8 @@
    "dex_numbers": [
     680
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-067/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-067/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685497_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685497_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 22.91,
@@ -4924,8 +4924,8 @@
    "dex_numbers": [
     296
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-068/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-068/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/686275_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/686275_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.32,
@@ -4949,8 +4949,8 @@
    "dex_numbers": [
     152
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-069/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-069/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/686342_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/686342_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.45,
@@ -4974,8 +4974,8 @@
    "dex_numbers": [
     696
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-070/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-070/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/685562_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/685562_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 28.41,
@@ -4999,8 +4999,8 @@
    "dex_numbers": [
     718
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-071/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-071/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/695311_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/695311_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.48,
@@ -5024,8 +5024,8 @@
    "dex_numbers": [
     36
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-072/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-072/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/696607_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/696607_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.65,
@@ -5049,8 +5049,8 @@
    "dex_numbers": [
     94
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-073/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-073/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/696608_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/696608_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 2.88,
@@ -5074,8 +5074,8 @@
    "dex_numbers": [
     655
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-074/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-074/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694679_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694679_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 28.22,
@@ -5099,8 +5099,8 @@
    "dex_numbers": [
     181
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-075/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-075/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694681_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694681_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 60.85,
@@ -5124,8 +5124,8 @@
    "dex_numbers": [
     169
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-076/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-076/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694686_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694686_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 33.1,
@@ -5149,8 +5149,8 @@
    "dex_numbers": [
     706
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-077/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-077/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694688_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694688_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 23.92,
@@ -5174,8 +5174,8 @@
    "dex_numbers": [
     848
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-078/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-078/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694692_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694692_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.31,
@@ -5199,8 +5199,8 @@
    "dex_numbers": [
     5
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-079/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-079/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694693_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694693_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.94,
@@ -5224,8 +5224,8 @@
    "dex_numbers": [
     653
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-080/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-080/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/694694_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/694694_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 29.82,
@@ -5249,8 +5249,8 @@
    "dex_numbers": [
     658
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-081/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-081/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/704879_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/704879_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.95,
@@ -5274,8 +5274,8 @@
    "dex_numbers": [
     1008
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-082/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-082/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706135_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706135_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 9.55,
@@ -5299,8 +5299,8 @@
    "dex_numbers": [
     80
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-083/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-083/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706129_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706129_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 19.4,
@@ -5324,8 +5324,8 @@
    "dex_numbers": [
     781
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-084/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-084/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706137_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706137_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 12.26,
@@ -5349,8 +5349,8 @@
    "dex_numbers": [
     411
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-085/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-085/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706133_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706133_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 8.84,
@@ -5374,8 +5374,8 @@
    "dex_numbers": [
     79
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-086/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-086/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706130_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706130_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 1.02,
@@ -5399,8 +5399,8 @@
    "dex_numbers": [
     688
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-087/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-087/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706131_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706131_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.29,
@@ -5424,8 +5424,8 @@
    "dex_numbers": [
     893
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-088/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-088/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/706193_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/706193_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 20.34,
@@ -5449,8 +5449,8 @@
    "dex_numbers": [
     807
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-089/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-089/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/710754_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/710754_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -5471,8 +5471,8 @@
    "dex_numbers": [
     491
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-090/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-090/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/710756_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/710756_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -5493,8 +5493,8 @@
    "dex_numbers": [
     149
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-091/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-091/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/710757_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/710757_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": null
   },
@@ -5511,8 +5511,8 @@
    "hp": null,
    "artist": "Naoki Saito",
    "dex_numbers": null,
-   "image_small": "https://images.scrydex.com/pokemon/mep-092/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-092/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/714597_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/714597_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 848,
@@ -5536,8 +5536,8 @@
    "dex_numbers": [
     25
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-093/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-093/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/712963_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/712963_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 135.26,
@@ -5561,8 +5561,8 @@
    "dex_numbers": [
     103
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-094/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-094/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/713262_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/713262_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.39,
@@ -5586,8 +5586,8 @@
    "dex_numbers": [
     448
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-095/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-095/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/713263_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/713263_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.36,
@@ -5611,8 +5611,8 @@
    "dex_numbers": [
     146
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-096/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-096/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/713264_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/713264_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.41,
@@ -5636,8 +5636,8 @@
    "dex_numbers": [
     144
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-097/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-097/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/713265_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/713265_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.34,
@@ -5661,8 +5661,8 @@
    "dex_numbers": [
     145
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-098/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-098/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/713266_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/713266_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.42,
@@ -5686,8 +5686,8 @@
    "dex_numbers": [
     658
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-099/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-099/large",
+   "image_small": "https://tcgplayer-cdn.tcgplayer.com/product/713268_200w.jpg",
+   "image_large": "https://tcgplayer-cdn.tcgplayer.com/product/713268_in_1000x1000.jpg",
    "regulation_mark": null,
    "price": {
     "market": 0.57,
@@ -6123,8 +6123,8 @@
    "dex_numbers": [
     25
    ],
-   "image_small": "https://images.scrydex.com/pokemon/mep-Museum/small",
-   "image_large": "https://images.scrydex.com/pokemon/mep-Museum/large",
+   "image_small": null,
+   "image_large": null,
    "regulation_mark": null,
    "price": null
   }

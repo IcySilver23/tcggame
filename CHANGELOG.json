@@ -1,14 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.89.1",
+      "date": "2026-11-23",
+      "title": "Every promo gets a face",
+      "highlights": [
+        "The MEP Black Star Promos show their own cards now instead of a card back — the promos a box can hand you take their artwork from TCGplayer’s photographs.",
+        "It was a gap in the data, not the drawing: the image service the catalogue uses had no scan for those promos and answered every one of them with the same placeholder.",
+        "The one MEP card no shop sells, Pikachu at the Museum, shows an empty frame rather than a card back pretending to be art.",
+        "Art refreshes on launch, so a save that already holds one of these promos gets the face without being reset."
+      ],
+      "features": [
+        "Pulling a Mega Evolution promo handed you a card back. A hundred of the set’s 117 cards were all pointing at the same 45 KB placeholder from the image service the catalogue uses — and pokemontcg.io behind it answers the same way — so the binder, the till’s promo shelf and the reveal all showed a card with no face. Each promo the game can hand out now takes its photograph from TCGplayer’s own product images for the MEP group, matched on the printed number rather than the name so a reprint cannot steal another card’s art: the thumbnail in a list and the large image in the card view are the same picture at two sizes. The catalogue note says where the art comes from, and tmp/fill-mep-art.mjs re-runs the match when the set grows.",
+        "Two honest limits. The replacement is a retail photograph, not an archival scan, so a corner can catch a flash the printed card does not have; the paper a promo wears is still decided by the printing database, and because the foil layer reads whatever image the card row holds, a Cosmos promo composites its foil over the photograph exactly as it did over a scan. And Pikachu at the Museum — the one MEP card TCGplayer does not sell — has no photograph anywhere, so it carries no image at all and draws the game’s own empty frame instead of a card back. The other local release, Delta Reign, was checked card by card and every one of its images is its own."
+      ]
+    },
+    {
       "version": "0.89.0",
       "date": "2026-11-23",
       "title": "An armful at a time",
       "highlights": [
-        "The Pack Shop sells by quantity now: a − / + stepper by the price sets how many wrappers or boxes you take, and one PURCHASE button pays for the lot.",
-        "Sealed stock in Inventory can be ripped in one action — OPEN ×N tears every unit of that product, oldest first, and the stage reveals the whole batch together.",
-        "Bulk buying is capped by the cash on hand rather than by a failed check, and a daily deal still buys exactly one unit a game day.",
-        "A bulk rip keeps every rule of a single one: its own pulls and sessions, cost basis per card, storage space for each rip, and the record chase for the best pack in the batch."
+        "The Pack Shop sells by quantity now: a − / + stepper by the price sets how many wrappers or boxes you take, and one PURCHASE button pays for the lot."
       ],
       "features": [
         "The shelf felt like a vending machine that only took one coin. Each bay now carries a small stepper beside the price sticker: − and + move the order between one and whatever the cash on hand actually buys (up to 36), the PURCHASE button names the count and pays the total in one request, and the stepper snaps back to one after the sale. A daily deal is still a single discounted unit per game day, so its stepper stays at one and the server keeps that rule even if a request asks for more.",
