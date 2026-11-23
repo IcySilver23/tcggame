@@ -31,6 +31,7 @@ type BreakRow = {
   spots_sold: number
   teams_json: string | null
   heat: number | null
+  packs: number | null
   gross: number
   status: string
   created_at: string
@@ -116,6 +117,9 @@ function liveBreakRow(): BreakRow | undefined {
  */
 export function createBreak(productId: string, spots: number, spotPriceInput: number | null) {
   if (liveStream()) return { ok: false as const, error: 'End the current stream first — breaks open before you go live' }
+  // One at a time: a second pending break would be invisible in the panel (it
+  // shows the newest) while its product cost sat out of pocket.
+  if (pendingBreak()) return { ok: false as const, error: 'A break is already waiting — go live with it, or cancel it before buying another product' }
   const products = listBattlableProducts()
   const p = products.find((x) => x.id === productId)
   if (!p) return { ok: false as const, error: 'Unknown product' }
@@ -145,8 +149,8 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
     db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
     const info = db
       .prepare(
-        `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, heat, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'selling', ?)`,
+        `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, heat, packs, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 'selling', ?)`,
       )
       .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), heat, nowIso())
     return Number(info.lastInsertRowid)
@@ -186,6 +190,11 @@ export function buySpot(breakId: number, team: string) {
   if (!b) return { ok: false as const, error: 'Break not found' }
   const st = liveStream()
   if (!st || st.id !== b.stream_id) return { ok: false as const, error: 'Spots go on sale when the break goes live' }
+  // Spots buy rips. Once the box is empty there is nothing left to sell, and a
+  // late sale would take money for pulls that already went to the house.
+  if (st.packs_opened >= st.packs_planned) {
+    return { ok: false as const, error: 'The packs are already open — spots sell before the rips, not after' }
+  }
 
   const spot = db
     .prepare(`SELECT id FROM stream_break_spots WHERE break_id = ? AND team = ?`)
@@ -270,6 +279,10 @@ export function ripBreak(): { ok: false; error: string } | BreakRip {
   if (!st) return { ok: false, error: 'Not live' }
   const b = liveBreakRow()
   if (!b || b.stream_id !== st.id) return { ok: false, error: 'No live break on this stream' }
+
+  // One pack per planned slot. Without this the break engine rolled as many
+  // packs as the client asked for, all of it past what the host paid.
+  if (st.packs_opened >= st.packs_planned) return { ok: false, error: 'The box is empty — every pack is already open' }
 
   const sessionId = `break_${b.id}_${st.packs_opened + 1}`
   // Break pulls belong to spot-holders, not the player — world log only.
@@ -506,6 +519,7 @@ export function breakForStream(streamId: number) {
     gross: round2(row.gross),
     productCost: row.product_cost,
     evenSplit: r2(row.product_cost / Math.max(1, row.spots_total)),
+    packs: row.packs ?? 1,
     roomMax: bestCeiling(row, open.length > 0 ? open : (JSON.parse(row.teams_json ?? '[]') as TeamEntry[]).map((t) => t.team), viewers),
     housePot: round2(row.spot_price * (row.spots_total - row.spots_sold)),
     status: row.status,

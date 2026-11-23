@@ -1,16 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.93.3",
+      "date": "2026-11-23",
+      "title": "The playtest holds",
+      "highlights": [
+        "A break now pays for every pack it rips: going live with six packs charges the five you had not bought yet, instead of opening up to twenty on one pack’s price.",
+        "The box cannot be over-ripped and spots cannot be sold once the packs are open — a spot sold then would buy pulls that already went out.",
+        "A break with sold spots will not let you wrap until you have ripped what those buyers paid for, and only one break can be pending at a time."
+      ],
+      "features": [
+        "A full adversarial pass over the streaming systems found five ways to turn the room into free money. The break rip engine had no queue at all, so a one-pack stream could be ripped for as many packs as the client cared to ask for, all of it landing in the house while the spots were unsold. Going live with a pending break was free, which meant twenty packs of a product for the price of one. Spots could be sold after the last pack was opened, taking money for pulls already handed out. Wrapping early kept the spot money without ripping anything, and a second pending break sat invisible in the panel while its product cost was spent.",
+        "Each one is closed at the same line: the host pays for what the break rips. The break buys its first pack when it opens, going live charges for the rest (a six-pack break on a $3 pack costs $15.30 all in, shown under Go live), the rip engine refuses past the planned packs, spots close when the box is empty, and you cannot wrap a break that has sold spots until the packs in the box are opened. The spot split is now measured on that real total rather than one pack, so a multi-pack break prices its spots against what the host actually spent. The playtest script lives in tmp/ and runs every path — listing the same copy twice, hostile and negative asks, refund abuse, buying a team twice, over-selling the board, absurd spot prices — and passes clean; the room is still one shared ceiling, not a crowd of individual budgets."
+      ]
+    },
+    {
       "version": "0.93.2",
       "date": "2026-11-23",
       "title": "Set the ask before you go live",
       "highlights": [
-        "A pending break has an editable spot price right in the setup panel — fix a wrong number before the stream starts instead of finding out on air.",
-        "Before you are live the ask goes either way, up or down; once the break is on air it can still only come down.",
-        "The room still decides: changing the price opens or closes the board, it never promises a buyer."
+        "A pending break has an editable spot price right in the setup panel — fix a wrong number before the stream starts instead of finding out on air."
       ],
       "features": [
-        "The last update let you cut the ask on a live break, which still meant discovering the mistake in front of everyone. A break that has not gone live now shows its price in the yellow pending panel with an even-split line beside it, so $500 a spot for a $3 pack is obvious before you open your mouth. Type a number and press Set the ask — the label switches to Raise the ask when the number is higher, because nothing has been shown or sold yet and the board is still yours to price.",
+        "The last update let you cut the ask on a live break, which still meant discovering the mistake in front of everyone. A break that has not gone live now shows its price in the yellow pending panel with an even-split line beside it, so $500 a spot for a $3 pack is obvious before you open your mouth. Type a number and press Set the ask — the label switches to Raise the ask when the number is higher, because nothing has been shown or sold yet and the board is still yours to price. Before you are live the ask goes either way, up or down; once the break is on air it can still only come down. The room still decides: changing the price opens or closes the board, it never promises a buyer.",
         "Once you are live the rule from the previous update holds: the ask can only be cut, never raised, since buyers have already seen and paid the old number. Either way the room's ceiling is unmoved — a $0.25 ask in a room that will pay $0.70 sells, a $40 ask in the same room sells nothing. A pending price change is written to the activity log in plain words, with the old and new numbers, so the ledger shows what you did before the stream started."
       ]
     },

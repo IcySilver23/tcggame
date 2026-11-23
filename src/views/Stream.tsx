@@ -383,9 +383,16 @@ export function StreamView() {
               <div className="panel mt8" style={{ padding: 10 }}>
                 <b className="small">Sell a spot</b>
                 <div className="faint small">{fmtUsd(liveBreak.spotPrice)} a spot · this room will pay up to about {fmtUsd(liveBreak.roomMax)}</div>
+                {live.packsOpened >= live.packsPlanned && (
+                  <div className="small" style={{ color: 'var(--yellow)' }}>
+                    The packs are open — spots are closed. Spots buy rips, so a spot sold now would buy nothing.
+                  </div>
+                )}
                 <div className="row mt8" style={{ gap: 6, flexWrap: 'wrap' }}>
                   {liveBreak.openTeams.map((t) => (
-                    <button key={t} className="small" disabled={busy} onClick={() => sellSpot(t)}>+ {t}</button>
+                    <button key={t} className="small" disabled={busy || live.packsOpened >= live.packsPlanned} onClick={() => sellSpot(t)}>
+                      + {t}
+                    </button>
                   ))}
                 </div>
                 <div className="row mt10" style={{ gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -543,7 +550,10 @@ export function StreamView() {
   // Offline — channel hub + go-live setup.
   const product = products.find((p) => p.id === selProduct)
   const price = product ? product.market_price ?? product.msrp : 0
-  const cost = Math.round(price * packs * 100) / 100
+  // A pending break already bought its first pack; the rest are charged now, so
+  // the number under Go live is what actually leaves your cash.
+  const breakWaiting = breakState && breakState.status === 'selling' && !breakState.live
+  const cost = Math.round(price * (breakWaiting ? Math.max(0, packs - 1) : packs) * 100) / 100
 
   return (
     <div>
@@ -694,7 +704,9 @@ export function StreamView() {
               {busy ? 'Starting…' : breakState && breakState.status === 'selling' ? '🔴 Go live — open the break' : '🔴 Go live'}
             </button>
             {breakState && breakState.status === 'selling' && (
-              <span className="faint small">the break rides this stream — packs sets how many rips it gets</span>
+              <span className="faint small">
+                the break rides this stream — packs is how many it rips, and you pay for every pack past the one you already bought
+              </span>
             )}
           </div>
         )}

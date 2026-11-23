@@ -108,6 +108,9 @@ try { db.exec('ALTER TABLE stream_breaks ADD COLUMN teams_json TEXT') } catch { 
 // What the room will pay for a spot, drawn when the break opens (old rows fall
 // back to a neutral appetite).
 try { db.exec('ALTER TABLE stream_breaks ADD COLUMN heat REAL') } catch { /* exists */ }
+// How many packs of the product this break rips — the host pays for each one,
+// and the box cannot be over-ripped past it.
+try { db.exec('ALTER TABLE stream_breaks ADD COLUMN packs INTEGER') } catch { /* exists */ }
 try { db.exec('ALTER TABLE stream_break_spots ADD COLUMN team_dex INTEGER') } catch { /* exists */ }
 try { db.exec('ALTER TABLE shop_sales ADD COLUMN roundup REAL NOT NULL DEFAULT 0') } catch { /* exists */ }
 // Employees with lives: mood drifts with fair pay, xp trains quality stars up,

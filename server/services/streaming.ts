@@ -132,9 +132,19 @@ export function goLive(productId: string, packs: number) {
     return { ok: false as const, error: `A break is pending for ${pendingBreakRow.product_name} — break that, or cancel it first` }
   }
 
-  const cost = pendingBreakRow ? 0 : round2(price * planned)
+  // A break already paid for one pack when it opened; every pack past that one
+  // is charged here, because the break rips packs the host bought. Riding free
+  // would open twenty packs for the price of one.
+  const cost = round2(price * (pendingBreakRow ? planned - 1 : planned))
   const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
-  if (state.cash < cost) return { ok: false as const, error: `Streaming ${planned} × ${p.name} costs $${cost.toFixed(2)} — not enough cash` }
+  if (state.cash < cost) {
+    return {
+      ok: false as const,
+      error: pendingBreakRow
+        ? `Opening ${planned} packs for the break costs $${cost.toFixed(2)} past the one you already bought — not enough cash`
+        : `Streaming ${planned} × ${p.name} costs $${cost.toFixed(2)} — not enough cash`,
+    }
+  }
 
   if (cost > 0) db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
   const info = db
@@ -158,12 +168,19 @@ export function goLive(productId: string, packs: number) {
   // (break viewers are a different crowd than pack rips).
   const linkedBreak = linkBreakFor(streamId) as { spots_total: number } | null
   if (linkedBreak) {
+    // The break now owns every pack this stream will rip: its true cost is what
+    // the host has actually spent, which is what the spot split is measured on.
+    db.prepare('UPDATE stream_breaks SET packs = ?, product_cost = ? WHERE stream_id = ?').run(
+      planned,
+      round2(price * planned),
+      streamId,
+    )
     const bump = Math.max(2, Math.round(followers * 0.08))
     db.prepare(`UPDATE streams SET peak_viewers = peak_viewers + ? WHERE id = ?`).run(bump, streamId)
   }
 
   logActivity('stream', pendingBreakRow
-    ? `Went live with the ${p.name} break — ${pendingBreakRow.spots_total} spots are on sale (product already paid). ${boostedBase} viewers for the rip.`
+    ? `Went live with the ${p.name} break — ${pendingBreakRow.spots_total} spots on sale, ${planned} pack${planned === 1 ? '' : 's'} to rip ($${round2(price * planned).toFixed(2)} all in). ${boostedBase} viewers for the rip.`
     : sponsorActive
       ? `Went live opening ${planned} × ${p.name} — sponsor promo pulled in a bigger room (${boostedBase} viewers). Cost $${cost.toFixed(2)}.`
       : `Went live opening ${planned} × ${p.name} — ${base} viewers showed up. Cost $${cost.toFixed(2)}.`,
@@ -354,6 +371,19 @@ export function ripOnStream(): { ok: false; error: string } | ({ ok: true } & St
 export function endStream() {
   const st = liveStream()
   if (!st) return { ok: false as const, error: 'Not live' }
+  // A break with sold spots has to actually rip what those buyers paid for:
+  // wrapping early would keep the spot money and hand out nothing, and the
+  // unopened packs would vanish with the product.
+  const brk = db.prepare(`SELECT spots_sold FROM stream_breaks WHERE stream_id = ? AND status = 'selling'`).get(st.id) as
+    | { spots_sold: number }
+    | undefined
+  if (brk && brk.spots_sold > 0 && st.packs_opened < st.packs_planned) {
+    const left = st.packs_planned - st.packs_opened
+    return {
+      ok: false as const,
+      error: `You sold ${brk.spots_sold} spot${brk.spots_sold === 1 ? '' : 's'} — rip the ${left} pack${left === 1 ? '' : 's'} still in the box before you wrap.`,
+    }
+  }
   const s = stats()
   const packs = st.packs_opened
   let followersGain = Math.max(1, Math.round(packs * (0.8 + Math.random() * 1.2) + (st.peak_viewers > 10 ? 3 : 0)))

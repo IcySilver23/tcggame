@@ -654,6 +654,7 @@ CREATE TABLE IF NOT EXISTS stream_breaks (
   set_id TEXT NOT NULL,
   spot_price REAL NOT NULL,
   heat REAL,                                -- the room's appetite for a spot, drawn at creation
+  packs INTEGER,                            -- how many packs of the product this break rips
   product_cost REAL NOT NULL,
   spots_total INTEGER NOT NULL,
   spots_sold INTEGER NOT NULL DEFAULT 0,
