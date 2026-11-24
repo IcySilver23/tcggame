@@ -1,15 +1,16 @@
-// Displays are wrappers: their price per pack must sit in the wrapper band.
+// A display is judged per pack against a real loose-wrapper quote.
 //
 //   TCGLIFE_HOME=<scratch> node ./node_modules/tsx/dist/cli.mjs tmp/check-sealed-band.ts
 //
-// The rule this pins: a display may discount below the packs it holds but may not
-// cost more than DISPLAY_PACK_CAP x the same set's pack price, and the pull-EV
-// floor still wins where the cards are worth more than the band allows. Without
-// it the Evolving Skies 36-pack display priced at its real $2,190 collector quote
-// while the same set's packs sell for $10, so every break and battle on that box
-// staked case money for wrappers the shop sells for a tenth of it.
+// The rule: where the same set's loose pack has a quote of its own, a display may
+// discount below it freely but may not cost more than DISPLAY_PACK_CAP x that
+// quote per pack; where the pack is only modelled there is no reference and the
+// display keeps its quoted price. Evolving Skies is the case that proves it: its
+// box is a genuine $2,190 box (1.38x a $44.12 wrapper), and the wrapper quote is
+// now what the shop charges instead of the $9.60 the card model guessed.
 import { db } from '../server/lib/db'
 import { ensureFullCatalog, priceOf, DISPLAY_PACK_CAP, SEALED_REALIZATION } from '../server/services/sealed'
+import { shelfPriceFor } from '../server/catalog/sealed-evidence'
 import { expectedPackValue } from '../server/services/packodds'
 
 ensureFullCatalog()
@@ -24,37 +25,47 @@ const rows = db
   .prepare(`SELECT id, set_id, packs FROM pack_products WHERE kind = 'display' AND packs > 1 ORDER BY id`)
   .all() as { id: string; set_id: string; packs: number }[]
 
-let checked = 0
-let capped = 0
 const over: string[] = []
+let banded = 0
+let untouched = 0
 for (const r of rows) {
   const d = priceOf(r.id).market
-  const pack = priceOf(`${r.set_id}-booster`).market
-  if (!(d > 0) || !(pack > 0)) continue
-  checked++
+  if (!(d > 0)) continue
+  const ref = priceOf(`${r.set_id}-booster`)
+  if (!(ref.market > 0) || ref.source === 'estimated') {
+    // No real wrapper quote: the display must still be at its shelf quote.
+    const quote = shelfPriceFor(r.id)
+    if (quote && Math.abs(quote.market - d) > 0.02) over.push(`${r.id} $${d.toFixed(2)} moved off its quote $${quote.market} without a reference`)
+    untouched++
+    continue
+  }
+  banded++
   const perPack = d / r.packs
-  if (perPack > pack * DISPLAY_PACK_CAP + 0.01) over.push(`${r.id} $${perPack.toFixed(2)}/pack vs pack $${pack.toFixed(2)}`)
-  if (perPack >= pack * DISPLAY_PACK_CAP - 0.01) capped++
-  // The floor is never violated: a display cannot sell below what its packs pay.
+  if (perPack > ref.market * DISPLAY_PACK_CAP + 0.01) over.push(`${r.id} $${perPack.toFixed(2)}/pack vs wrapper $${ref.market.toFixed(2)}`)
   const floor = expectedPackValue(r.set_id) * r.packs * SEALED_REALIZATION
   if (floor > 0 && d + 0.01 < floor) over.push(`${r.id} $${d.toFixed(2)} is under its pack-EV floor $${floor.toFixed(2)}`)
 }
-ok(checked > 100, `every sellable display was priced (${checked})`)
-ok(over.length === 0, over.length === 0 ? `no display is outside the wrapper band (${capped} sitting at the cap)` : `outside the band: ${over.slice(0, 5).join(' · ')}`)
+ok(banded > 20, `displays judged against a real wrapper quote (${banded})`)
+ok(untouched > 0, `displays with only a modelled pack kept their own quote (${untouched})`)
+ok(over.length === 0, over.length === 0 ? 'no display is outside the wrapper band' : `problems: ${over.slice(0, 5).join(' · ')}`)
 
-// The box that started this: real $2,190, capped to the band it shares with its
-// own $10 wrappers.
-const swsh7 = priceOf('swsh7-display').market
-const swsh7Pack = priceOf('swsh7-booster').market
-ok(swsh7 > 0 && swsh7 <= swsh7Pack * 36 * DISPLAY_PACK_CAP + 0.01, `Evolving Skies display is $${swsh7.toFixed(2)} ($${(swsh7 / 36).toFixed(2)}/pack) for $${swsh7Pack.toFixed(2)} packs`)
-ok(swsh7 < 1000, `its breaks stake four figures no longer ($${swsh7.toFixed(2)})`)
+// The box that started this: a real $2,190 box against a real $44 wrapper.
+const box = priceOf('swsh7-display').market
+const pack = priceOf('swsh7-booster')
+ok(box > 2000, `Evolving Skies display keeps its marketplace price ($${box.toFixed(2)})`)
+ok(pack.market > 40 && pack.source !== 'estimated', `its wrapper is quoted, not modelled ($${pack.market.toFixed(2)} ${pack.source})`)
+ok(box / 36 <= pack.market * DISPLAY_PACK_CAP + 0.01, `box sits inside the band (${(box / 36 / pack.market).toFixed(2)}x the wrapper)`)
 
-// The cap is one-sided: a box that discounts below its wrappers is left alone.
+// The catch this exists for: a case quote is six boxes in one price.
+const casePerPack = 15489.99 / 36
+ok(casePerPack > pack.market * DISPLAY_PACK_CAP, `a six-box case quote would be trimmed (${(casePerPack / pack.market).toFixed(1)}x the wrapper)`)
+
+// A discounted box is never pushed up to the band.
 const cheap = rows
-  .map((r) => ({ id: r.id, d: priceOf(r.id).market, p: priceOf(`${r.set_id}-booster`).market, n: r.packs }))
-  .filter((r) => r.d > 0 && r.p > 0 && r.d / r.n < r.p * 0.5)
-ok(cheap.length > 0, `a discounted box still exists to prove the floor is not a clamp (${cheap.length})`)
-ok(cheap.every((r) => r.d / r.n < r.p * 0.5), 'discounted boxes were not raised to the band')
+  .map((r) => ({ id: r.id, d: priceOf(r.id).market, p: priceOf(`${r.set_id}-booster`) }))
+  .filter((r) => r.d > 0 && r.p.market > 0 && r.p.source !== 'estimated')
+  .filter((r) => r.d / 36 < r.p.market * 0.5)
+ok(cheap.length > 0, `a discounted box still exists and was not raised (${cheap.length})`)
 
-console.log(`\nsealed band: ${fails === 0 ? 'every display is priced off the wrappers it holds' : `${fails} problem(s)`}`)
+console.log(`\nsealed band: ${fails === 0 ? 'every display is priced against a real wrapper' : `${fails} problem(s)`}`)
 process.exit(fails === 0 ? 0 : 1)

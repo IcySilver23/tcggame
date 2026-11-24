@@ -401,6 +401,50 @@ export const XY_BOOSTER_SHELF: Readonly<Record<string, { market: number; product
   'xy12-display': { market: 2707.61, productId: 123446, product: 'XY Evolutions Booster Box' },
 }
 
+// What a LOOSE wrapper of an out-of-print set actually costs. This is the
+// honest per-pack reference a display has to be judged against: the pack model
+// below prices an OOP wrapper off the cards it holds, which for a collector set
+// is a fraction of what the wrapper trades for — Evolving Skies' model says
+// $9.60 while a single sealed pack sells for $44.12. Comparing a real box quote
+// to that model is what made the band say a $2,179 box was wrong.
+//
+// Read from TCGplayer's market for the exact single-pack listing on
+// 22 November 2026, via Pitt PokeResearch's per-set pack tables. Only sets whose
+// wrappers trade separately are here; a set with no loose-pack row keeps its
+// modelled pack and gets no band (see capDisplayPerPack).
+export const LOOSE_PACK_SHELF: Readonly<Record<string, { market: number; productId: number }>> = {
+  'bw1-booster': { market: 187.99, productId: 98553 },
+  'bw10-booster': { market: 273.56, productId: 98573 },
+  'bw11-booster': { market: 392.43, productId: 98581 },
+  'bw2-booster': { market: 121.38, productId: 98549 },
+  'bw3-booster': { market: 168.71, productId: 98570 },
+  'bw4-booster': { market: 383.04, productId: 98538 },
+  'bw5-booster': { market: 396.63, productId: 98521 },
+  'bw7-booster': { market: 246.11, productId: 98554 },
+  'bw8-booster': { market: 720.9, productId: 98526 },
+  'sm1-booster': { market: 21.63, productId: 129385 },
+  'sm10-booster': { market: 67.77, productId: 185718 },
+  'sm2-booster': { market: 37.95, productId: 129889 },
+  'sm4-booster': { market: 19.75, productId: 146996 },
+  'sm6-booster': { market: 52.12, productId: 164297 },
+  'sm7-booster': { market: 73.89, productId: 170274 },
+  'sm8-booster': { market: 55.13, productId: 175510 },
+  'sm9-booster': { market: 325.17, productId: 181699 },
+  'sv2-booster': { market: 14.86, productId: 493976 },
+  'sv8-booster': { market: 9.03, productId: 565604 },
+  'swsh11-booster': { market: 18.64, productId: 277325 },
+  'swsh12-booster': { market: 14.68, productId: 283388 },
+  'swsh7-booster': { market: 44.12, productId: 244337 },
+  'xy1-booster': { market: 154.74, productId: 91602 },
+  'xy10-booster': { market: 48.75, productId: 168114 },
+  'xy12-booster': { market: 71.16, productId: 129907 },
+  'xy2-booster': { market: 164.1, productId: 91595 },
+  'xy3-booster': { market: 83.04, productId: 92169 },
+  'xy5-booster': { market: 102.71, productId: 97751 },
+  'xy6-booster': { market: 91.31, productId: 129906 },
+  'xy7-booster': { market: 153.14, productId: 100490 },
+}
+
 // Booster bundles and 36-pack displays whose TCGplayer listing publishes a
 // market price. The sealed catalogue had been modelling every one of these from
 // the packs inside, so an in-print bundle and an out-of-print display could be
@@ -2410,6 +2454,15 @@ const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; a
   ...Object.entries(BW_BOOSTER_SHELF).map(
     ([id, q]) =>
       [id, { market: q.market, source: TCGPLAYER_SHELF(q.product, q.productId), asOf: '2026-11-08' }] as const,
+  ),
+  ...Object.entries(LOOSE_PACK_SHELF).map(
+    ([id, q]) =>
+      [id, {
+        market: q.market,
+        source: TCGPLAYER_SHELF(`Loose booster pack (${id.replace('-booster', '')})`, q.productId),
+        asOf: '2026-11-22',
+        kind: 'tcgplayer' as const,
+      }] as const,
   ),
   ...Object.entries(BUNDLE_DISPLAY_SHELF).map(
     ([id, q]) =>

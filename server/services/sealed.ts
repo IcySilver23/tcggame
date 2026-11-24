@@ -451,30 +451,34 @@ function atLeastPackEv(setId: string, packs: number | null, market: number): num
 }
 
 /**
- * A display is nothing but wrappers, so its price per pack has to sit near the
- * price of the wrappers this game sells for the same set. A box may discount
- * BELOW its packs freely — that is what a dealer's box discount is — but not
- * cost more than twice them.
+ * How much more a box may cost per wrapper than a loose wrapper of the same set.
  *
- * This is a game rule, not a market claim, and the difference matters. The real
- * 2026 market for an Evolving Skies box is about $2,190 ($60.84 a pack) while
- * loose Evolving Skies packs trade around $44, so the shelf quote is a real box,
- * not a mis-matched case. What is out of step is this game's side: a set whose
- * packs the Pack Shop models at $10.00 cannot also sell a $2,190 box, because the
- * break and battle screens price a whole box off that number — $2,190 of stakes
- * for ten-card wrappers the same shop sells for ten dollars. The band ties the
- * display to the wrappers, which is the number the roller actually deals.
+ * Measured, not picked: across the 48 displays whose set also has a loose-pack
+ * quote (TCGplayer market, November 2026), a box costs 0.05x to 1.78x the loose
+ * wrapper per pack up to the p95 — median 0.91x, p90 1.57x, p95 1.78x. Above that
+ * sit two numbers the band is meant to trim: a half-display at 2.17x and a
+ * model-priced box at 2.74x. A six-box CASE quote, the other mistake this catches,
+ * runs 6-8x. So 1.8 leaves every box a marketplace actually quotes alone.
+ *
+ * The reference is a real loose-wrapper quote, never the pack model. Comparing a
+ * real box against a modelled pack is what made an earlier 2x band cut Evolving
+ * Skies' genuine $2,179 box down to $720: the box was right and the model was
+ * four times under what a single sealed pack costs.
  */
-export const DISPLAY_PACK_CAP = 2
+export const DISPLAY_PACK_CAP = 1.8
 
 function capDisplayPerPack(setId: string, packs: number | null, market: number): number {
   const n = Math.max(1, Math.floor(packs ?? 1))
   if (!(market > 0)) return market
-  // The wrapper's own price is the reference: same set, same marketplace, one
-  // pack against thirty-six. The booster row is a different kind, so it returns
-  // before this cap and cannot recurse into it.
-  const pack = priceOf(`${setId}-booster`).market
-  if (!(pack > 0)) return market
+  // The reference is a loose wrapper with a QUOTE of its own: same set, same
+  // marketplace, one pack against thirty-six. A modelled pack is not a reference
+  // — it is what the cards inside the wrapper are worth, which for a collector
+  // set is a quarter of the wrapper's price — so a set whose packs are still
+  // modelled keeps its display quote rather than being judged by one. The booster
+  // row is a different kind, so it returns before this cap and cannot recurse.
+  const ref = priceOf(`${setId}-booster`)
+  const pack = ref.market
+  if (!(pack > 0) || ref.source === 'estimated') return market
   const cap = pack * n * DISPLAY_PACK_CAP
   return market > cap ? round2(cap) : market
 }

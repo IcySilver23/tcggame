@@ -1,18 +1,30 @@
 {
   "entries": [
     {
+      "version": "0.94.16",
+      "date": "2026-11-24",
+      "title": "A box is judged against a wrapper, not a model",
+      "highlights": [
+        "The display band now measures against a real loose-pack quote at the measured 1.8x ceiling, so boxes a model had been halving are back at their marketplace price: Evolving Skies returns to $2,190.20.",
+        "The same quote prices that set's packs — Evolving Skies wrappers cost $44.12, not the $9.60 the card model guessed — so a pack, a box and a break finally quote the same marketplace.",
+        "A set with no loose-pack quote keeps its display price rather than being judged against a model, and a discounted box is still never pushed up to the band."
+      ],
+      "features": [
+        "Capping real marketplace quotes against a modelled pack was backwards. The model answers a different question: what the cards inside a wrapper are worth. For an out-of-print collector set that is a fraction of the wrapper — Evolving Skies cards model at $9.60 while one sealed pack sells for $44.12 — so the band read a genuine $2,190 box as a six-times error and cut it to $720.",
+        "The reference is now a loose wrapper with a quote of its own: thirty out-of-print sets priced from TCGplayer market for the exact single-pack listing, read on 22 November 2026 through Pitt PokeResearch's per-set pack tables. Those quotes also price the packs themselves, so the Pack Shop stops wrapping Evolving Skies at the card model and starts charging what the wrapper trades at.",
+        "The ceiling comes from the measurement rather than from a round number. Across the 48 displays whose set also has a loose-pack quote, a box costs 0.05x to 1.78x the wrapper per pack up to the 95th percentile — median 0.91x, p90 1.57x — while a six-box case quote, the mistake this band exists to catch, runs 6-8x. The cap is 1.8x, which leaves every box a marketplace actually asks for alone; it trims exactly two numbers today, a half-display at 2.17x and a model-priced box at 2.74x.",
+        "The honest limit: only sets whose wrappers trade loose get this treatment. Seventy displays still have a modelled pack and therefore no reference at all — they keep their quoted price instead of being banded against the model, so a box and its packs can still disagree on those sets until a loose-pack quote exists for them."
+      ]
+    },
+    {
       "version": "0.94.15",
       "date": "2026-11-24",
       "title": "A box costs what its wrappers cost",
       "highlights": [
-        "A display can no longer cost more than twice the packs the same set's shop sells: the Evolving Skies 36-pack box drops from $2,190 to $720, so a break on it stakes $720 instead of case money.",
-        "It is a game rule, not a price fix — the real 2026 box does trade near $2,190, while loose Evolving Skies packs trade near $44.",
-        "Boxes that sell below their wrappers keep their discount, and the per-pack floor that stops a box from being a money printer still applies."
+        "Displays were capped at twice the same set's modelled pack price, so the Evolving Skies box fell from $2,190 to $720: the right instinct with the wrong reference, corrected in 0.94.16."
       ],
       "features": [
-        "Sealed prices come from three places, in order: a researched shelf quote for the exact product, a stored PriceCharting lookup, then the set's own pull-table model. A display took whichever came first and nothing compared it to the wrappers it holds, which is how a 36-pack Evolving Skies box sat at $2,190.20 — $60.84 a pack — beside a shop selling the same set's packs for $10.00. Every break, battle and purchase on that box priced a whole box off that number.",
-        "A display is now kept inside a per-pack band: it may discount below the wrapper price but may not exceed twice it. The Evolving Skies box lands at $720.00 ($20.00 a pack), Silver Tempest at $403.20, and the boxes that already traded below their wrappers — some at a tenth of the wrapper price — are untouched, because a box discount is what a box discount is. The pull-EV floor is applied after the cap, so where the cards really are worth more than the band allows, the floor still wins.",
-        "The honest part: this is the game choosing internal consistency over collector scarcity. A real Evolving Skies box trades around $2,100–2,190 today, roughly $60 a pack, with loose packs near $44 — the $2,190 quote was a real box, not a mis-matched case, and the model's $10 pack is the side that is out of step with the real world. Capping the box to the wrappers this game sells means an owned collector box is now worth less here than it is outside, in exchange for a break that stakes a sane amount."
+        "A display had no rule tying its price to the packs it holds, so every box was taken from whichever quote or model answered first. This capped a display at twice the same set's pack price, which corrected nothing in the quote and instead pulled a real ,190 box down to 20 against a 0 modelled wrapper. The cap itself was kept; 0.94.16 replaces the reference it measured against."
       ]
     },
     {
