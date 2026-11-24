@@ -1,6 +1,7 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { round2, valueOf, withTcgPriceCache } from './market'
 import { bandedCeiling, bandText } from './roomband'
+import { resolveStack, stackHeat } from './stacks'
 import { rollPack } from './packs'
 import { listBattlableProducts } from './packbattles'
 import { settleStream, sponsorForKind, maybeGenerateOffer } from './sponsors'
@@ -478,6 +479,18 @@ CREATE TABLE IF NOT EXISTS stream_lots (
   ends_at TEXT NOT NULL
 )`)
 
+// A stack is the same lot with many copies behind it: kind 'stack' carries the
+// count and the pile's market, and stream_lot_cards is the escrow list.
+try { db.exec(`ALTER TABLE stream_lots ADD COLUMN kind TEXT NOT NULL DEFAULT 'single'`) } catch { /* exists */ }
+try { db.exec(`ALTER TABLE stream_lots ADD COLUMN cards INTEGER NOT NULL DEFAULT 1`) } catch { /* exists */ }
+try { db.exec(`ALTER TABLE stream_lots ADD COLUMN market REAL`) } catch { /* exists */ }
+db.exec(`
+CREATE TABLE IF NOT EXISTS stream_lot_cards (
+  lot_id INTEGER NOT NULL,
+  inventory_id INTEGER NOT NULL,
+  PRIMARY KEY (lot_id, inventory_id)
+)`)
+
 const LOT_FEE = 0.08            // the platform's cut on a streamed sale
 const LOT_MS = 75_000           // a lot gets a little over a minute on camera
 const LOT_BID_EVERY_MS = 6_000
@@ -488,6 +501,7 @@ type LotRow = {
   id: number; stream_id: number; inventory_id: number | null; card_id: string; variant: string
   start_price: number; reserve: number; current_bid: number | null; bids: number; ceiling: number | null
   status: string; sold_price: number | null; winner: string | null; chat: string; created_at: string; ends_at: string
+  kind: string; cards: number; market: number | null
 }
 
 function pushLotChat(lotId: number, lines: { who: string; avatar: string; text: string }[]): void {
@@ -501,16 +515,21 @@ function pushLotChat(lotId: number, lines: { who: string; avatar: string; text: 
 }
 
 function lotView(l: LotRow) {
-  const name = cardName(l.card_id)
-  const image = (db.prepare('SELECT image_small FROM cards WHERE id = ?').get(l.card_id) as { image_small: string | null } | undefined)?.image_small ?? null
+  const isStack = l.kind === 'stack'
+  const name = isStack ? `Stack of ${l.cards} cards` : cardName(l.card_id)
+  const image = isStack
+    ? null
+    : (db.prepare('SELECT image_small FROM cards WHERE id = ?').get(l.card_id) as { image_small: string | null } | undefined)?.image_small ?? null
   const net = l.status === 'sold' ? round2((l.sold_price ?? 0) * (1 - LOT_FEE)) : 0
   return {
     id: l.id,
+    kind: isStack ? ('stack' as const) : ('single' as const),
+    cards: isStack ? l.cards : 1,
     cardId: l.card_id,
     variant: l.variant,
     name,
     image,
-    market: round2(valueOf(l.card_id, l.variant)),
+    market: round2(l.market ?? valueOf(l.card_id, l.variant)),
     start: l.start_price,
     reserve: l.reserve,
     currentBid: l.current_bid,
@@ -588,15 +607,22 @@ export function forgetSellable(): void {
  * oldest, cheapest one, so the snapshot reads all of them and the caller pages
  * by limit. Text is what narrows the list, never a silent cutoff.
  */
-export function sellableCards(opts: { q?: string; limit?: number } = {}): { total: number; items: SellableCard[]; truncated: boolean } {
+/**
+ * `max` flips the ranking: the picker normally offers the most valuable copies
+ * first, but a stack is built from the cheap end, so a cap asks for the cards
+ * that could ride in one and orders them cheapest first.
+ */
+export function sellableCards(opts: { q?: string; limit?: number; max?: number } = {}): { total: number; items: SellableCard[]; truncated: boolean } {
   const limit = Math.max(1, Math.min(500, Math.round(opts.limit ?? 100)))
   const q = (opts.q ?? '').trim().toLowerCase()
   const all = sellableSnapshot()
-  const matched = q
+  const searched = q
     ? all.filter((r) =>
         r.name.toLowerCase().includes(q) || r.set.toLowerCase().includes(q) || r.cardId.toLowerCase().includes(q),
       )
     : all
+  const capped = opts.max && opts.max > 0 ? searched.filter((r) => r.market > 0 && r.market <= opts.max!) : searched
+  const matched = opts.max && opts.max > 0 ? capped.slice().sort((a, b) => a.market - b.market) : capped
   const items = matched.slice(0, limit)
   return { total: matched.length, items, truncated: matched.length > items.length }
 }
@@ -648,6 +674,8 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
     .prepare(`SELECT id, card_id, variant, quantity, cost_basis FROM inventory WHERE id = ? AND status = 'collection' AND graded_grade IS NULL`)
     .get(inventoryId) as { id: number; card_id: string; variant: string; quantity: number; cost_basis: number } | undefined
   if (!inv) return { ok: false as const, error: 'That card is not free to sell — it is listed, graded or already escrowed.' }
+  const auctioned = (db.prepare(`SELECT COUNT(*) AS n FROM ebay_auctions WHERE inventory_id = ? AND status = 'live'`).get(inv.id) as { n: number }).n
+  if (auctioned > 0) return { ok: false as const, error: 'That copy is in a live BidBay auction — it cannot go on the block until the auction ends.' }
   const market = round2(valueOf(inv.card_id, inv.variant))
   const start = round2(Math.max(0.99, startPrice && startPrice > 0 ? startPrice : market * 0.3))
   const reserveWanted = reserve && reserve > 0 ? reserve : market * 0.65
@@ -679,10 +707,10 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   const overAsk = start > ceiling
   const info = db
     .prepare(
-      `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, created_at, ends_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, market, created_at, ends_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(st.id, escrowId, inv.card_id, inv.variant, start, floor, ceiling, nowIso(), new Date(Date.now() + LOT_MS).toISOString())
+    .run(st.id, escrowId, inv.card_id, inv.variant, start, floor, ceiling, market, nowIso(), new Date(Date.now() + LOT_MS).toISOString())
   const lotId = Number(info.lastInsertRowid)
   pushLotChat(lotId, [
     { who: 'STREAM', avatar: '📣', text: `${cardName(inv.card_id)} is ON CAMERA — opens at $${start.toFixed(2)}, reserve $${floor.toFixed(2)}` },
@@ -697,6 +725,7 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
 
 /** Hammer one lot: sold if the room reached the reserve, otherwise it goes home. */
 function settleLot(l: LotRow): void {
+  if (l.kind === 'stack') return settleStackLot(l)
   const name = cardName(l.card_id)
   const bid = l.current_bid ?? 0
   const reached = l.bids > 0 && bid >= l.reserve
@@ -724,6 +753,115 @@ function settleLot(l: LotRow): void {
   const why = l.bids === 0 ? 'nobody opened it' : `the room stopped at $${bid.toFixed(2)}`
   pushLotChat(l.id, [{ who: 'STREAM', avatar: '🚫', text: `NO SALE — ${name} went back to the binder: ${why}, under your $${l.reserve.toFixed(2)} reserve.` }])
   logActivity('stream', `No sale on ${name} — ${why}, under the $${l.reserve.toFixed(2)} reserve. Card returned.`)
+}
+
+/**
+ * A stack goes up as one lot: 10–40 junk copies, one ask, one clock, and the
+ * froth that makes the pile worth staging (the measurement lives in stacks.ts).
+ * Escrow is all-or-nothing — a copy that cannot be reserved fails the listing.
+ */
+export function listStreamStack(inventoryIds: number[], startPrice?: number | null, reserve?: number | null) {
+  const st = liveStream()
+  if (!st) return { ok: false as const, error: 'Go live first — a stack needs a room.' }
+  const openLot = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'live'`).get(st.id)
+  if (openLot) return { ok: false as const, error: 'One thing at a time — hammer the lot on camera first.' }
+  const resolved = resolveStack(inventoryIds)
+  if (!resolved.ok) return resolved
+  const { copies, market, distinctSets } = resolved
+  // A stack opens at a hammer, not at a whistle: the floor is $2.99 because a
+  // pile worth one bid is not worth the airtime.
+  const start = round2(Math.max(2.99, startPrice && startPrice > 0 ? startPrice : market * 0.6))
+  const reserveWanted = reserve && reserve > 0 ? reserve : market * 0.75
+  const floor = round2(Math.max(start, reserveWanted))
+  const ceiling = round2(market * stackHeat(st.peak_viewers ?? 0, distinctSets))
+  const room = bandedCeiling(ceiling)
+  const overAsk = start > ceiling
+
+  let lotId = 0
+  const tx = db.transaction(() => {
+    const info = db
+      .prepare(
+        `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, kind, cards, market, created_at, ends_at)
+         VALUES (?, NULL, ?, ?, ?, ?, ?, 'stack', ?, ?, ?, ?)`,
+      )
+      .run(st.id, copies[0].cardId, copies[0].variant, start, floor, ceiling, copies.length, market, nowIso(), new Date(Date.now() + LOT_MS).toISOString())
+    lotId = Number(info.lastInsertRowid)
+    for (const c of copies) {
+      const took = db.prepare(`UPDATE inventory SET status = 'escrowed' WHERE id = ? AND status = 'collection'`).run(c.id)
+      if (took.changes !== 1) throw new Error('One of those copies is no longer free to sell')
+      db.prepare(`INSERT INTO stream_lot_cards (lot_id, inventory_id) VALUES (?, ?)`).run(lotId, c.id)
+    }
+  })
+  try {
+    tx()
+  } catch (e) {
+    return { ok: false as const, error: e instanceof Error ? e.message : 'Could not put the stack up' }
+  }
+
+  pushLotChat(lotId, [
+    {
+      who: 'STREAM',
+      avatar: '📣',
+      text: `${copies.length} cards hit the block as one stack — $${market.toFixed(2)} of market across ${distinctSets} set${distinctSets === 1 ? '' : 's'}, opens at $${start.toFixed(2)}`,
+    },
+    ...(overAsk
+      ? [{ who: 'STREAM', avatar: '🤔', text: `Opening at $${start.toFixed(2)}? This room looks like a ${bandText(room)} crowd — a stack that high may just sit.` }]
+      : []),
+  ])
+  forgetSellable()
+  logActivity('stream', `Put a ${copies.length}-card stack on the block — $${market.toFixed(2)} of market, opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`)
+  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceilingBand: room, overAsk }
+}
+
+/**
+ * A stack settles as one sale: every copy leaves with a sale record, or every
+ * copy comes home. The winner bought the pile, so the per-copy split is a
+ * bookkeeping detail and never a second sale.
+ */
+function settleStackLot(l: LotRow): void {
+  const copies = db.prepare('SELECT inventory_id FROM stream_lot_cards WHERE lot_id = ?').all(l.id) as { inventory_id: number }[]
+  const count = copies.length
+  const bid = l.current_bid ?? 0
+  const reached = l.bids > 0 && bid >= l.reserve
+  if (reached) {
+    const net = round2(bid * (1 - LOT_FEE))
+    const fee = round2(bid * LOT_FEE)
+    const per = round2(bid / Math.max(1, count))
+    const tx = db.transaction(() => {
+      for (const c of copies) {
+        const row = db
+          .prepare('SELECT card_id, variant, condition, cost_basis FROM inventory WHERE id = ?')
+          .get(c.inventory_id) as { card_id: string; variant: string; condition: string; cost_basis: number } | undefined
+        if (row) {
+          db.prepare(
+            `INSERT INTO sale_history (inventory_id, card_id, variant, condition, quantity, sale_price, cost_basis, fee, profit, buyer, sale_type, sold_at)
+             VALUES (?, ?, ?, ?, 1, ?, ?, 0, ?, 'the room', 'stream_stack', ?)`,
+          ).run(c.inventory_id, row.card_id, row.variant, row.condition, per, round2(row.cost_basis), round2(per - row.cost_basis), nowIso())
+        }
+        db.prepare(`UPDATE inventory SET status = 'sold', quantity = 0 WHERE id = ?`).run(c.inventory_id)
+      }
+      db.prepare('UPDATE game_state SET cash = cash + ? WHERE id = 1').run(net)
+      db.prepare(`UPDATE stream_lots SET status = 'sold', sold_price = ?, winner = ? WHERE id = ?`).run(bid, 'the room', l.id)
+    })
+    tx()
+    forgetSellable()
+    pushLotChat(l.id, [
+      { who: 'STREAM', avatar: '🔨', text: `SOLD — the ${count}-card stack at $${bid.toFixed(2)} to ${pick(BIDDER_HANDLES)}. You keep $${net.toFixed(2)} after the $${fee.toFixed(2)} fee.` },
+    ])
+    logActivity('stream', `Sold a ${count}-card stack on stream for $${bid.toFixed(2)} — $${net.toFixed(2)} after fees.`, net)
+    return
+  }
+  const tx = db.transaction(() => {
+    for (const c of copies) db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(c.inventory_id)
+    db.prepare(`UPDATE stream_lots SET status = 'passed' WHERE id = ?`).run(l.id)
+  })
+  tx()
+  forgetSellable()
+  const why = l.bids === 0 ? 'nobody opened it' : `the room stopped at $${bid.toFixed(2)}`
+  pushLotChat(l.id, [
+    { who: 'STREAM', avatar: '🚫', text: `NO SALE — the ${count}-card stack went back to the binder: ${why}, under your $${l.reserve.toFixed(2)} reserve.` },
+  ])
+  logActivity('stream', `No sale on the ${count}-card stack — ${why}, under the $${l.reserve.toFixed(2)} reserve. All ${count} cards returned.`)
 }
 
 /** 2.5s heartbeat: the room raises, the hammer falls. */
@@ -761,7 +899,12 @@ function returnOpenLots(streamId: number): void {
   if (lots.length > 0) forgetSellable()
   const tx = db.transaction(() => {
     for (const l of lots) {
-      if (l.inventory_id) db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(l.inventory_id)
+      if (l.kind === 'stack') {
+        const copies = db.prepare('SELECT inventory_id FROM stream_lot_cards WHERE lot_id = ?').all(l.id) as { inventory_id: number }[]
+        for (const c of copies) db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(c.inventory_id)
+      } else if (l.inventory_id) {
+        db.prepare(`UPDATE inventory SET status = 'collection' WHERE id = ?`).run(l.inventory_id)
+      }
       db.prepare(`UPDATE stream_lots SET status = 'passed' WHERE id = ?`).run(l.id)
     }
   })

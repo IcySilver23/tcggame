@@ -295,7 +295,7 @@ export function StreamView() {
         loadChannel()
         refreshState()
       } else {
-        toast(r.error ?? 'Could not list it', 'bad')
+                    toast(r.error ?? 'Could not list it', 'bad')
       }
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Could not list it', 'bad')
@@ -303,6 +303,29 @@ export function StreamView() {
       setBusy(false)
     }
   }
+
+  // A stack is the same block with many copies behind it: 10–40 junk cards, one
+  // ask, one buyer. The server escrows every copy and settles them together.
+  const listStack = async (ids: number[], start: string, reserve: string) => {
+    setBusy(true)
+    try {
+      const r = await api.stackList(ids, start ? Number(start) : null, reserve ? Number(reserve) : null)
+      if (r.ok) {
+        toast(`A ${r.lot?.cards ?? ids.length}-card stack is on the block — reserve ${fmtUsd(r.lot?.reserve ?? 0)}`, 'good')
+        setLotStart('')
+        setLotReserve('')
+        loadChannel()
+        refreshState()
+      } else {
+        toast(r.error ?? 'Could not put the stack up', 'bad')
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Could not put the stack up', 'bad')
+    } finally {
+      setBusy(false)
+    }
+  }
+
 
   const declineOffer = async (id: number) => {
     setBusy(true)
@@ -539,6 +562,7 @@ export function StreamView() {
           reserve={lotReserve}
           setReserve={setLotReserve}
           onList={listLot}
+          onStackList={listStack}
           onOpen={openCard}
           now={Date.now()}
         />
@@ -813,7 +837,7 @@ export function StreamView() {
 // receipts underneath. This is the half of a real channel that ripping never
 // covered: a sale has to be earned, and an unsold lot is a normal night.
 // ---------------------------------------------------------------------------
-function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setReserve, onList, onOpen, now }: {
+function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setReserve, onList, onStackList, onOpen, now }: {
   lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals } | null
   busy: boolean
   pick: number | null
@@ -823,6 +847,7 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
   reserve: string
   setReserve: (v: string) => void
   onList: () => void
+  onStackList: (ids: number[], start: string, reserve: string) => void
   onOpen: (id: string) => void
   now: number
 }) {
@@ -836,6 +861,8 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
   // collection for months simply could not be listed. It now asks the server for
   // a page, which reads every ungraded copy and ranks the matches by value; text
   // is what narrows the list.
+  const [mode, setMode] = useState<'single' | 'stack'>('single')
+  const [stackIds, setStackIds] = useState<number[]>([])
   const [q, setQ] = useState('')
   const [rows, setRows] = useState<StreamSellable[]>([])
   const [total, setTotal] = useState(0)
@@ -845,7 +872,7 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
     let alive = true
     const t = setTimeout(() => {
       setLoading(true)
-      api.streamSellable(q, 100)
+      api.streamSellable(q, 100, mode === 'stack' ? 2 : 0)
         .then((r) => {
           if (!alive) return
           setRows(r.items)
@@ -856,8 +883,35 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
         .finally(() => { if (alive) setLoading(false) })
     }, q ? 250 : 0)
     return () => { alive = false; clearTimeout(t) }
-  }, [q])
+  }, [q, mode])
   const picked = rows.find((s) => s.id === pick) ?? null
+
+  // Stacks: pick from the cheap end of the binder, price the pile, put it up.
+  const [quote, setQuote] = useState<{ market: number; count: number; distinctSets: number; viewers: number; band: { low: number; high: number }; buylist: { low: number; high: number } } | null>(null)
+  useEffect(() => {
+    if (mode !== 'stack' || stackIds.length < 10) {
+      setQuote(null)
+      return
+    }
+    let alive = true
+    const t = setTimeout(() => {
+      api
+        .stackQuote(stackIds)
+        .then((r) => {
+          if (!alive) return
+          setQuote(r.ok && r.band && r.buylist ? { market: r.market ?? 0, count: r.count ?? stackIds.length, distinctSets: r.distinctSets ?? 0, viewers: r.viewers ?? 0, band: r.band, buylist: r.buylist } : null)
+        })
+        .catch(() => { if (alive) setQuote(null) })
+    }, 250)
+    return () => { alive = false; clearTimeout(t) }
+  }, [stackIds, mode])
+  // A stack's ask starts at 60% of the pile and its reserve at 75%, the same
+  // shape a single lot uses.
+  useEffect(() => {
+    if (mode !== 'stack' || !quote) return
+    if (!start) setStart(String(Math.round(quote.market * 0.6)))
+    if (!reserve) setReserve(String(Math.round(quote.market * 0.75)))
+  }, [quote?.market, mode])
 
   return (
     <div className="panel mt14">
@@ -865,7 +919,7 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
         <div>
           <b>🔨 Sell live</b>
           <div className="faint small">
-            One card at a time. The room bids what it thinks the card is worth — a lot under your reserve goes straight back to the binder.
+            The room bids what it thinks the card is worth — a lot under your reserve goes straight back to the binder. A stack sells 10–40 junk cards as one pile.
           </div>
         </div>
         {totals && totals.listed > 0 && (
@@ -881,14 +935,18 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
           <div className="faint small">ON THE BLOCK</div>
           {lot ? (
             <>
-              {lot.image && (
+              {lot.kind === 'stack' ? (
+                <div className="small mt8" style={{ color: 'var(--yellow)' }}>
+                  {lot.cards} cards · one buyer takes the whole pile
+                </div>
+              ) : lot.image ? (
                 <img
                   src={lot.image}
                   alt={lot.name}
                   onClick={() => onOpen(lot.cardId)}
                   style={{ maxHeight: 168, display: 'block', margin: '4px auto', cursor: 'pointer' }}
                 />
-              )}
+              ) : null}
               <div><b>{lot.name}</b></div>
               <div className="faint small">market {fmtUsd(lot.market)}</div>
               <div className="row mt8" style={{ justifyContent: 'center', gap: 14 }}>
@@ -907,13 +965,34 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
         </div>
 
         <div className="grow" style={{ minWidth: 260 }}>
-          <b className="small">Put a card up</b>
+          <div className="row" style={{ gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+            <b className="small">Put it up</b>
+            <button
+              type="button"
+              className={mode === 'single' ? 'primary small' : 'small'}
+              disabled={busy || !!lot}
+              onClick={() => { setMode('single'); setStackIds([]) }}
+            >
+              One card
+            </button>
+            <button
+              type="button"
+              className={mode === 'stack' ? 'primary small' : 'small'}
+              disabled={busy || !!lot}
+              onClick={() => { setMode('stack'); setStackIds([]) }}
+            >
+              A stack
+            </button>
+            <span className="faint small">
+              {mode === 'stack' ? '10–40 cards, none over $2, sold as one pile' : 'one card, one ask'}
+            </span>
+          </div>
           <div className="lot-pick">
             <input
               className="lot-search"
               type="search"
               value={q}
-              placeholder="Search the binder — name, set or card id"
+              placeholder={mode === 'stack' ? 'Search the cheap end — name, set or card id' : 'Search the binder — name, set or card id'}
               aria-label="Search your binder"
               disabled={busy || !!lot}
               onChange={(e) => setQ(e.target.value)}
@@ -930,10 +1009,14 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
                   key={s.id}
                   type="button"
                   role="option"
-                  aria-selected={pick === s.id}
-                  className={`lot-row ${pick === s.id ? 'on' : ''}`}
+                  aria-selected={mode === 'stack' ? stackIds.includes(s.id) : pick === s.id}
+                  className={`lot-row ${(mode === 'stack' ? stackIds.includes(s.id) : pick === s.id) ? 'on' : ''}`}
                   disabled={busy || !!lot}
                   onClick={() => {
+                    if (mode === 'stack') {
+                      setStackIds((ids) => ids.includes(s.id) ? ids.filter((x) => x !== s.id) : ids.length >= 40 ? ids : [...ids, s.id])
+                      return
+                    }
                     setPick(s.id)
                     setStart(String(Math.round(s.market * 0.25 * 100) / 100))
                     setReserve(String(Math.round(s.market * 0.65 * 100) / 100))
@@ -951,10 +1034,49 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
               ))}
             </div>
             <div className="faint small lot-count">
-              {total} ungraded {total === 1 ? 'copy' : 'copies'} in the binder
-              {truncated ? ` · showing the ${rows.length} most valuable — search to narrow it` : ''}
+              {mode === 'stack'
+                ? `${total} ${total === 1 ? 'copy' : 'copies'} under $2${truncated ? ` · showing the ${rows.length} cheapest` : ''}`
+                : `${total} ungraded ${total === 1 ? 'copy' : 'copies'} in the binder${truncated ? ` · showing the ${rows.length} most valuable — search to narrow it` : ''}`}
             </div>
           </div>
+          {mode === 'stack' && (
+            <div className="panel" style={{ margin: '8px 0', padding: 8, borderColor: stackIds.length >= 10 ? 'var(--yellow)' : undefined }}>
+              <div className="row" style={{ justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+                <span className="small">
+                  <b>{stackIds.length}</b> picked{quote ? ` · market ${fmtUsd(quote.market)} across ${quote.distinctSets} set${quote.distinctSets === 1 ? '' : 's'}` : ''}
+                </span>
+                <span className="row" style={{ gap: 6 }}>
+                  <button
+                    type="button"
+                    className="small"
+                    disabled={busy || !!lot || rows.length === 0}
+                    onClick={() => {
+                      // Spread across the visible cheap end rather than taking
+                      // the 20 cheapest: a pile of $0.19 commons is not worth
+                      // the airtime, and variety is what the froth pays for.
+                      const pool = rows.filter((r) => r.market > 0 && r.market <= 2)
+                      const n = Math.min(20, pool.length)
+                      const step = Math.max(1, Math.floor(pool.length / Math.max(1, n)))
+                      setStackIds(Array.from({ length: n }, (_, k) => pool[Math.min(pool.length - 1, k * step)].id))
+                    }}
+                  >
+                    Fill 20
+                  </button>
+                  <button type="button" className="small" disabled={busy || stackIds.length === 0} onClick={() => setStackIds([])}>
+                    Clear
+                  </button>
+                </span>
+              </div>
+              {quote ? (
+                <div className="small mt8">
+                  the room looks like <b>{fmtUsd(quote.band.low)}–{fmtUsd(quote.band.high)}</b>
+                  <span className="faint"> · the buylist pays {fmtUsd(quote.buylist.low)}–{fmtUsd(quote.buylist.high)} now{quote.viewers === 0 ? ' · nobody watching yet, so no froth' : ''}</span>
+                </div>
+              ) : (
+                <div className="faint small mt8">Pick at least 10 cards under $2. A stack only pays while a room is watching.</div>
+              )}
+            </div>
+          )}
           <div className="lot-form">
             <label className="lot-field">
               <span>opens at</span>
@@ -967,13 +1089,17 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
           </div>
           <div className="lot-actions">
             {lot ? (
-              <span className="faint small">One lot at a time — hammer the card on camera before the next one goes up.</span>
+              <span className="faint small">One lot at a time — hammer what is on camera before the next one goes up.</span>
+            ) : mode === 'stack' ? (
+              <button className="primary" disabled={busy || stackIds.length < 10} onClick={() => { onStackList(stackIds, start, reserve); setStackIds([]) }}>
+                Put the stack on the block
+              </button>
             ) : (
               <button className="primary" disabled={busy || !pick} onClick={onList}>
                 Put it on the block
               </button>
             )}
-            {picked && Number(reserve) > 0 && (
+            {mode === 'single' && picked && Number(reserve) > 0 && (
               <span className="faint small">at the reserve you'd net {fmtUsd(Number(reserve) * 0.92)}</span>
             )}
           </div>

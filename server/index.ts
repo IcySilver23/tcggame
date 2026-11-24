@@ -2457,6 +2457,12 @@ app.post('/api/stream/lot', async (c) => {
   const r = streaming.listStreamLot(Number(body.inventoryId), body.start ?? null, body.reserve ?? null)
   return c.json(r, r.ok ? 200 : 400)
 })
+// A stack goes up as one lot: the same block, one ask, many copies.
+app.post('/api/stream/stack', async (c) => {
+  const body = await c.req.json<{ inventoryIds?: number[]; start?: number | null; reserve?: number | null }>().catch(() => ({}) as { inventoryIds?: number[]; start?: number | null; reserve?: number | null })
+  const r = streaming.listStreamStack(Array.isArray(body.inventoryIds) ? body.inventoryIds : [], body.start ?? null, body.reserve ?? null)
+  return c.json(r, r.ok ? 200 : 400)
+})
 // A stack quote: what a pile of junk might clear on camera, banded, with the
 // buylist's instant offer beside it. Quoting never reserves or charges anything.
 app.post('/api/stream/stack/quote', async (c) => {
@@ -2468,7 +2474,9 @@ app.post('/api/stream/stack/quote', async (c) => {
 app.get('/api/stream/sellable', (c) => {
   const q = c.req.query('q') ?? ''
   const limit = Number(c.req.query('limit') ?? 100)
-  return c.json(streaming.sellableCards({ q, limit }))
+  // `max` asks for the cheap end (a stack is built from it) instead of the top.
+  const max = Number(c.req.query('max') ?? 0)
+  return c.json(streaming.sellableCards({ q, limit, max }))
 })
 app.get('/api/stream/products', (c) =>
   // The stream setup only picks a product and shows its price. Sending the

@@ -29,8 +29,6 @@ export const STACK_RULES = {
   frothCap: 0.3,
   /** A room under this many viewers gets a proportional slice of the froth. */
   frothViewerFloor: 150,
-  /** Buyers pay this share of the room's ceiling when the ask leaves room to bid. */
-  minIncrement: 0.25,
 } as const
 
 /** The crowd term a single lot already uses, so a stack reads the same room. */
@@ -51,6 +49,11 @@ export function stackHeatRange(viewers: number, distinctSets: number): { low: nu
   return { low: 0.35 + crowd + froth, high: 0.95 + crowd + froth }
 }
 
+/** One draw, made when the stack goes on the block — never shown, only banded. */
+export function stackHeat(viewers: number, distinctSets: number): number {
+  return 0.35 + Math.random() * 0.6 + crowdTerm(viewers) + stackFroth(viewers, distinctSets)
+}
+
 /**
  * Heat at a given point of the roll. The quote covers the realistic middle
  * (a fifth to four fifths of it) rather than the whole spread: "$12–$25" tells a
@@ -66,10 +69,71 @@ function quoteStep(v: number): number {
   return v < 50 ? 1 : v < 200 ? 5 : 10
 }
 
-/** One draw, made when the stack goes on the block — never shown, only banded. */
-export function stackHeat(viewers: number, distinctSets: number): number {
-  const crowd = crowdTerm(viewers)
-  return 0.35 + Math.random() * 0.6 + crowd + stackFroth(viewers, distinctSets)
+export type StackCopy = {
+  id: number
+  cardId: string
+  variant: string
+  condition: string
+  set: string
+  value: number
+  costBasis: number
+}
+
+export type StackResolved = { ok: true; copies: StackCopy[]; market: number; distinctSets: number }
+
+/**
+ * Everything a stack needs before it can be priced or escrowed: 10–40 raw
+ * copies of the same binder, none of them over the junk cap, none of them
+ * already committed elsewhere. A copy on a live BidBay auction is committed —
+ * escrowing it here would sell the same card twice.
+ */
+export function resolveStack(inventoryIds: number[]): StackResolved | { ok: false; error: string } {
+  const ids = [...new Set((inventoryIds ?? []).map((n) => Math.round(Number(n))).filter((n) => Number.isFinite(n) && n > 0))]
+  if (ids.length === 0) return { ok: false as const, error: 'Pick cards for the stack' }
+  if (ids.length < STACK_RULES.min) {
+    return { ok: false as const, error: `A stack is at least ${STACK_RULES.min} cards — this one has ${ids.length}.` }
+  }
+  if (ids.length > STACK_RULES.max) {
+    return { ok: false as const, error: `A stack is at most ${STACK_RULES.max} cards — this one has ${ids.length}.` }
+  }
+
+  const copies: StackCopy[] = []
+  let market = 0
+  const sets = new Set<string>()
+  for (const id of ids) {
+    const r = db
+      .prepare(`SELECT id, card_id, variant, condition, status, graded_grade, cost_basis FROM inventory WHERE id = ?`)
+      .get(id) as { id: number; card_id: string; variant: string | null; condition: string | null; status: string; graded_grade: string | null; cost_basis: number } | undefined
+    if (!r) return { ok: false as const, error: 'One of those cards is gone' }
+    if (r.status !== 'collection') return { ok: false as const, error: 'One of those cards is already on the block or in a display' }
+    if (r.graded_grade) return { ok: false as const, error: 'Stacks are raw cards — a slab belongs in its own lot' }
+    const onAuction = (db.prepare(`SELECT COUNT(*) AS n FROM ebay_auctions WHERE inventory_id = ? AND status = 'live'`).get(id) as { n: number }).n
+    if (onAuction > 0) {
+      return { ok: false as const, error: 'One of those copies is in a live BidBay auction — pull it off the auction before it goes on the block.' }
+    }
+    const value = valueOf(r.card_id, r.variant || 'normal', (r.condition as Condition) || 'NM')
+    if (!(value > 0)) return { ok: false as const, error: 'One of those cards has no market price to anchor a stack on' }
+    if (value > STACK_RULES.cardCap) {
+      return {
+        ok: false as const,
+        error: `A stack is for junk — $${value.toFixed(2)} is over the $${STACK_RULES.cardCap.toFixed(2)} a-card cap. Sell it on its own.`,
+      }
+    }
+    const set = (db.prepare(`SELECT set_id FROM cards WHERE id = ?`).get(r.card_id) as { set_id: string } | undefined)?.set_id ?? ''
+    if (set) sets.add(set)
+    market += value
+    copies.push({
+      id: r.id,
+      cardId: r.card_id,
+      variant: r.variant || 'normal',
+      condition: r.condition || 'NM',
+      set,
+      value,
+      costBasis: r.cost_basis,
+    })
+  }
+
+  return { ok: true as const, copies, market: round2(market), distinctSets: sets.size }
 }
 
 export type StackQuote = {
@@ -86,46 +150,17 @@ export type StackQuote = {
 }
 
 export function quoteStack(inventoryIds: number[], viewers: number): StackQuote | { ok: false; error: string } {
-  const ids = [...new Set((inventoryIds ?? []).map((n) => Math.round(Number(n))).filter((n) => Number.isFinite(n) && n > 0))]
-  if (ids.length === 0) return { ok: false, error: 'Pick cards for the stack' }
-  if (ids.length < STACK_RULES.min) {
-    return { ok: false, error: `A stack is at least ${STACK_RULES.min} cards — this one has ${ids.length}.` }
-  }
-  if (ids.length > STACK_RULES.max) {
-    return { ok: false, error: `A stack is at most ${STACK_RULES.max} cards — this one has ${ids.length}.` }
-  }
-
-  const rows = ids.map((id) => db.prepare(`SELECT id, card_id, variant, condition, status, graded_grade, quantity FROM inventory WHERE id = ?`).get(id))
-  if (rows.some((r) => !r)) return { ok: false, error: 'One of those cards is gone' }
-
-  let market = 0
-  const sets = new Set<string>()
-  for (const raw of rows) {
-    const r = raw as { id: number; card_id: string; variant: string | null; condition: string | null; status: string; graded_grade: string | null; quantity: number }
-    if (r.status !== 'collection') return { ok: false, error: 'One of those cards is already on the block or in a display' }
-    if (r.graded_grade) return { ok: false, error: 'Stacks are raw cards — a slab belongs in its own lot' }
-    const value = valueOf(r.card_id, r.variant || 'normal', (r.condition as Condition) || 'NM')
-    if (!(value > 0)) return { ok: false, error: 'One of those cards has no market price to anchor a stack on' }
-    if (value > STACK_RULES.cardCap) {
-      return {
-        ok: false,
-        error: `A stack is for junk — $${value.toFixed(2)} is over the $${STACK_RULES.cardCap.toFixed(2)} a-card cap. Sell it on its own.`,
-      }
-    }
-    market += value
-    const set = (db.prepare(`SELECT set_id FROM cards WHERE id = ?`).get(r.card_id) as { set_id: string } | undefined)?.set_id
-    if (set) sets.add(set)
-  }
-
-  market = round2(market)
+  const resolved = resolveStack(inventoryIds)
+  if (!resolved.ok) return resolved
+  const { copies, market, distinctSets } = resolved
   const step = quoteStep(market)
-  const low = Math.floor((market * heatAt(viewers, sets.size, 0.2)) / step) * step
-  const high = Math.ceil((market * heatAt(viewers, sets.size, 0.8)) / step) * step
+  const low = Math.floor((market * heatAt(viewers, distinctSets, 0.2)) / step) * step
+  const high = Math.ceil((market * heatAt(viewers, distinctSets, 0.8)) / step) * step
   return {
     ok: true,
-    count: ids.length,
+    count: copies.length,
     market,
-    distinctSets: sets.size,
+    distinctSets,
     viewers,
     band: { low: round2(low), high: round2(Math.max(low + step, high)) },
     buylist: { low: round2(market * 0.55), high: round2(market * 0.75) },

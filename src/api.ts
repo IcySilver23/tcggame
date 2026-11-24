@@ -324,8 +324,13 @@ export const api = {
   streamRip: () => post<StreamRipResult>('/api/stream/rip'),
   streamLot: (inventoryId: number, start: number | null, reserve: number | null) =>
     post<{ ok: boolean; error?: string; lot?: StreamLot; market?: number }>('/api/stream/lot', { inventoryId, start, reserve }),
-  streamSellable: (q = '', limit = 100) =>
-    req<StreamSellablePage>(`/api/stream/sellable?q=${encodeURIComponent(q)}&limit=${limit}`),
+  streamSellable: (q = '', limit = 100, max = 0) =>
+    req<StreamSellablePage>(`/api/stream/sellable?q=${encodeURIComponent(q)}&limit=${limit}${max > 0 ? `&max=${max}` : ''}`),
+  /** What a pile might clear, banded, beside the buylist's instant offer. */
+  stackQuote: (inventoryIds: number[]) =>
+    post<{ ok: boolean; error?: string; count?: number; market?: number; distinctSets?: number; viewers?: number; band?: { low: number; high: number }; buylist?: { low: number; high: number } }>('/api/stream/stack/quote', { inventoryIds }),
+  stackList: (inventoryIds: number[], start: number | null, reserve: number | null) =>
+    post<{ ok: boolean; error?: string; lot?: StreamLot; market?: number; ceilingBand?: { low: number; high: number }; overAsk?: boolean }>('/api/stream/stack', { inventoryIds, start, reserve }),
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
   breakStatus: () => req<BreakStatus>('/api/stream/break'),
   breakCreate: (productId: string, spots: number, spotPrice: number | null, packs: number) =>
@@ -2612,6 +2617,9 @@ export type StreamLive = {
 
 export type StreamLot = {
   id: number
+  /** A stack is one lot with many copies behind it. */
+  kind: 'single' | 'stack'
+  cards: number
   cardId: string
   variant: string
   name: string
