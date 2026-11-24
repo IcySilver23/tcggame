@@ -826,6 +826,14 @@ export function upgradeOdds(setId: string): Record<string, number> {
   const odds = { ...profileFor(setId).upgrade, ...SET_UPGRADE_OVERRIDE[setId] }
   const sir = SET_SIR_OVERRIDE[setId]
   if (sir !== undefined && 'Special Illustration Rare' in odds) odds['Special Illustration Rare'] = sir
+  // A ladder belongs to the ERA, not to the set. Generations is an XY set and the
+  // XY ladder carries Rare BREAK and Rare ACE SPEC, neither of which Generations
+  // ever printed: the pack panel listed all six tiers, their odds added to 25.6%
+  // against the 8.5% the pull table actually deals, and it promised a BREAK in
+  // 9.1% of packs that could not arrive. A tier with no card in the catalogue
+  // cannot be pulled, so it is not a rate this set has — and the figures that stay
+  // are the same ones the table was built from, which is why the two now agree.
+  for (const name of Object.keys(odds)) if (!setPrintsTier(setId, name)) delete odds[name]
   return odds
 }
 

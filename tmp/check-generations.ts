@@ -23,7 +23,8 @@
 import { db } from '../server/lib/db'
 import { ensureFullCatalog, priceDetail, sellsProduct } from '../server/services/sealed'
 import { sealedEvidenceFor } from '../server/catalog/sealed-evidence'
-import { expectedPackValue } from '../server/services/packodds'
+import { expectedPackValue, upgradeOdds } from '../server/services/packodds'
+import { productManifest } from '../server/services/product-manifest'
 import { buildPullTable } from '../server/services/packs'
 import { applyCatalogSeed } from '../server/services/sync'
 
@@ -120,6 +121,30 @@ for (const box of BOXES) {
   ok(price + 0.005 >= row.msrp, `${box.id} is not sold under its sticker ($${row.msrp}, asks $${price})`)
   // Whatever the model says, no box may be cheaper than the cards its packs deal.
   ok(price + 0.02 >= 0.92 * box.packs * ev, `${box.id} is floored by its packs' pull value ($${(0.92 * box.packs * ev).toFixed(2)})`)
+}
+
+// Pull rates. The pack panel, the pack-contents panel and the roller have to
+// quote the same ladder: the era's XY ladder carries Rare BREAK and Rare ACE
+// SPEC, neither of which Generations printed, and listing them promised a BREAK
+// in 9.1% of packs against the 8.5% the table deals. The ladder is now the set's
+// own tiers, so its total IS the table's total.
+const tableHit = (db.prepare("SELECT COALESCE(SUM(weight),0) AS w FROM pack_product_cards WHERE pack_product_id = 'g1-booster' AND slot = 'hit'").get() as { w: number }).w
+const ladder = upgradeOdds('g1')
+ok(
+  Object.keys(ladder).sort().join('|') === 'Rare Holo EX|Rare Ultra',
+  `the hit ladder is the two tiers Generations prints (${Object.keys(ladder).join(', ')})`,
+)
+ok(
+  Math.abs(Object.values(ladder).reduce((a, v) => a + v, 0) - tableHit) < 0.005,
+  `the ladder adds up to what the table deals (${(tableHit * 100).toFixed(2)}% of packs)`,
+)
+for (const box of BOXES) {
+  const tiers = productManifest(box.id)?.hitTiers.value ?? []
+  const total = tiers.reduce((a, t) => a + t.odds, 0)
+  ok(
+    tiers.length === Object.keys(ladder).length && Math.abs(total - tableHit) < 0.005,
+    `${box.id} prints the same ${tiers.length} tiers, ${(total * 100).toFixed(2)}% of packs`,
+  )
 }
 
 const etb = byId.get('g1-etb')

@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.10",
+      "date": "2026-11-24",
+      "title": "The packs quote their own odds",
+      "highlights": [
+        "Generations boxes no longer promise a Rare BREAK or a Rare ACE SPEC: the pack panel lists only the tiers a set actually prints, so its rates add up to what the wrapper deals — 8.5% of packs upgrade.",
+        "Every set got the same treatment: a tier with no card in the catalogue is no longer quoted as a pull rate.",
+        "Nothing about opening changed — the pull tables were already right, so this fixes the numbers the panels printed, not the pull."
+      ],
+      "features": [
+        "The hit ladder is written per era, and an era is not a set. The XY ladder carries Rare BREAK at 9.1% and Rare ACE SPEC at 5%, plus rainbow at 1.2% and secret at 1.8% — none of which Generations ever printed; it prints Rare Holo EX and Rare Ultra and nothing above them. The panel and the pack-contents list quoted all six tiers, so their odds added up to 25.6% against the 8.5% the pull table deals, and a box advertised a BREAK in one pack in eleven that could never arrive.",
+        "The ladder is now cut to the tiers the catalogue actually holds for the set, so the shelf, the pack-contents manifest and the roller quote one set of numbers. Across the 178 sets with a pull table, 107 used to disagree with their own table and 83 of those now agree exactly; the ones left are sets whose illustration-rare tiers ride in the second reverse slot, where the two figures measure different slots on purpose.",
+        "The honest limit: this is a display fix. The roller always dealt from the pull table, so no pack got easier or harder — the rates were simply being printed wrong. And they remain era-typical models, not measured samples: Generations’ two tiers are the XY era’s estimate, which the panel still says."
+      ]
+    },
+    {
       "version": "0.94.9",
       "date": "2026-11-24",
       "title": "Ask before the shelf eats your pulls",
       "highlights": [
-        "Opening a pack or a box now warns you first when the shelf is full: how many cards it deals, how many spots are free, and what happens to the rest.",
-        "Under the scrapping policy it names how many spare cards go and for how much; under the refusing policy it says how many pulls would stay in the wrapper — lost.",
-        "Every way in is covered: the Pack Shop’s OPEN 1, Inventory’s Open and Open ×N, and the next-pack and skip-to-end buttons inside a box. Nothing is dealt until you say yes."
+        "Opening a pack or a box now warns you first when the shelf is full: how many cards it deals, how many spots are free, and what happens to the rest."
       ],
       "features": [
         "The shelf is a hard limit and the rip never mentioned it. Opening with no room admitted what fitted and left the rest in the wrapper — under the refuse policy those cards were simply gone, under the scrap policy spare cards were sold to make room — and the only notice was an activity line afterwards. Which is exactly how you lose pulls: open a box, then read the log to find out.",
