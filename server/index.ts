@@ -1369,6 +1369,17 @@ app.post('/api/packs/open', async (c) => {
 
 // Several of the same sealed product in one action: each unit is a normal rip,
 // the response is one session so the ceremony reveals the lot together.
+// What a rip would cost the shelf, asked BEFORE the cards are dealt. A full
+// shelf silently loses pulls (or auto-scraps spares), and the ceremony never
+// said so until the activity line afterwards.
+app.get('/api/packs/rip-preview', (c) => {
+  const productId = c.req.query('productId') ?? ''
+  const units = Math.max(1, Math.floor(Number(c.req.query('units') ?? 1) || 1))
+  const packsRaw = Number(c.req.query('packs') ?? NaN)
+  const preview = packs.ripPreview(productId, { units, packs: Number.isFinite(packsRaw) ? packsRaw : undefined })
+  return preview ? c.json(preview) : c.json({ error: 'Unknown product' }, 404)
+})
+
 app.post('/api/packs/open-many', async (c) => {
   const body = await c.req.json<{ productId: string; qty?: number }>()
   const qty = Math.max(2, Math.min(Math.floor(body.qty ?? 2), 36))

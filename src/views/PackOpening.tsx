@@ -6,6 +6,7 @@ import { CardImg, EmptyState, fmtUsd, TearPack, glowClass, packHue } from '../co
 // in the packaged exe) — every reveal turns from this print.
 import cardBack from '../assets/card-back.png'
 import { takeOpeningHandoff } from '../store'
+import { confirmRip } from '../lib/rip-warning'
 import { flipSwish, hitStinger } from '../audio'
 import type { BoxOpen, BoxPromo, OpenSession, OpenedCard, ProductRow } from '../types'
 
@@ -366,6 +367,7 @@ export function PackOpeningView() {
     if (!box || busy) return
     setBusy('next')
     try {
+      if (!(await confirmRip(box.productId, { packs: 1 }))) return
       const res = await api.openBoxNext(box.boxId)
       setBox({ ...box, packsLeft: res.packsLeft, packIndex: res.packIndex })
       setBoxPulls((pulls) => [...pulls, ...res.cards])
@@ -392,6 +394,7 @@ export function PackOpeningView() {
     if (!box || box.packsLeft <= 0 || busy || !baseSession) return
     setBusy('skip')
     try {
+      if (!(await confirmRip(box.productId, { packs: box.packsLeft }))) return
       const res = await api.openBoxRest(box.boxId)
       const allCards = [...boxPulls, ...res.cards]
       const remainingValues = res.perPack?.map((p) => p.totalValue) ?? [res.totalValue]
@@ -542,6 +545,7 @@ export function PackOpeningView() {
   const openSealedOne = async (productId: string) => {
     setBusy(productId)
     try {
+      if (!(await confirmRip(productId))) return
       const best = await api.pullsBest().catch(() => ({ value: 0, bestPackTotal: 0 }))
       const first = await api.openBox(productId)
       ensureProducts().catch(() => products).then((rows) => {

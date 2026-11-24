@@ -259,6 +259,21 @@ export type OpenSession = { sessionId: string; cards: OpenedCard[]; totalValue: 
 export type BoxPromo = { cardId: string; name: string; image: string | null; value: number }
 
 /** One pack out of a box that is being opened wrapper by wrapper. */
+/** What a rip would do to the shelf, asked before anything is dealt. */
+export type RipPreview = {
+  productId: string
+  name: string
+  cards: number
+  free: number
+  capacity: number
+  overflow: number
+  policy: 'refuse' | 'scrap'
+  scrapLow: number
+  scrapHigh: number
+  blockedByFloor: boolean
+  warning: string | null
+}
+
 export type BoxOpen = OpenSession & {
   boxId: number
   productId: string

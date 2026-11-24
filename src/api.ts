@@ -104,6 +104,13 @@ export const api = {
   openBoxNext: (boxId: number) => post<import('./types').BoxOpen>('/api/packs/box/next', { boxId }),
   /** Skip to the end: open every remaining wrapper and return the whole box. */
   openBoxRest: (boxId: number) => post<import('./types').BoxOpen>('/api/packs/box/rest', { boxId }),
+  /** What opening this would do to the shelf: the warning shown before a rip. */
+  ripPreview: (productId: string, opts: { units?: number; packs?: number } = {}) => {
+    const q = new URLSearchParams({ productId })
+    if (opts.units && opts.units > 1) q.set('units', String(Math.floor(opts.units)))
+    if (opts.packs !== undefined) q.set('packs', String(Math.max(0, Math.floor(opts.packs))))
+    return req<import('./types').RipPreview>(`/api/packs/rip-preview?${q.toString()}`)
+  },
   /** Boxes that still have wrappers inside — a reload mid-box must not lose them. */
   openBoxes: () => req<{ id: number; product_id: string; packs_left: number; packs_total: number; name: string | null }[]>('/api/packs/boxes'),
   sellSealed: (productId: string, qty: number) =>

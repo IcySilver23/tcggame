@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../api'
 import { gameDayEtaFor } from '../lib/gameday'
+import { confirmRip } from '../lib/rip-warning'
 import type { GradingReveal, GradingService, GradingPendingRow, MarketIncomingRow, SealedStockRow, SuppliesStatus, InsuranceStatus, AuthSection, AuthReveal, SealedFuturesSection } from '../api'
 import { useStore , setOpeningHandoff } from '../store'
 import { byNum, byStr, CardImg, ConditionBadge, BrowseToggle, CapacityStrip, DensityToggle, EmptyState, FirstUseTip, fmtUsd, GRADE_BADGE, GradeRevealModal, LoadFailure, matchesQuery, OverflowMenu, PriceTag, SearchInput, SetSection, SlabCard, SortSelect, SourceBadge, TipList, VirtualGrid } from '../components'
@@ -291,6 +292,8 @@ export function InventoryView() {
 
   const openSealed = async (productId: string) => {
     try {
+      // A full shelf loses pulls, so the deal is on screen before the rip.
+      if (!(await confirmRip(productId))) return
       // Ripping a bundle/ETB/display is a run of packs, so it belongs in the
       // ceremony — the first pack comes out here, the rest follow on stage.
       const first = await api.openBox(productId)
@@ -308,6 +311,7 @@ export function InventoryView() {
   // the summary still groups it pack by pack.
   const openSealedMany = async (productId: string, qty: number) => {
     try {
+      if (!(await confirmRip(productId, { units: qty }))) return
       const first = await api.openMany(productId, qty)
       setOpeningHandoff({ session: first as unknown as import('../types').OpenSession, productId })
       await load()

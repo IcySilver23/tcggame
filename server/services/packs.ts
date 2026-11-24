@@ -1304,6 +1304,84 @@ export function openSealed(productId: string) {
  * the ceremony can reveal it in one go, with the summary still grouped by
  * wrapper because perPack keeps each unit's packs apart.
  */
+export type RipPreview = {
+  productId: string
+  name: string
+  cards: number
+  free: number
+  capacity: number
+  overflow: number
+  policy: 'refuse' | 'scrap'
+  scrapLow: number
+  scrapHigh: number
+  blockedByFloor: boolean
+  /** One sentence for the confirm bar; null when the rip fits. */
+  warning: string | null
+}
+
+/**
+ * What a rip would do to the shelf, before anything is opened.
+ *
+ * A full shelf does not stop a rip: `makeRoomFor` admits what fits and the rest
+ * of the pulls stay in the wrapper — under the refuse policy they are simply
+ * lost, and under the scrap policy spare cards are sold to make room first. Both
+ * are silent in the ceremony, so a player opening packs with a full shelf only
+ * found out afterwards, from an activity line. This is the same arithmetic the
+ * rip uses, exposed to the client so it can ask before the cards are dealt.
+ */
+export function ripPreview(
+  productId: string,
+  opts: { units?: number; packs?: number } = {},
+): RipPreview | null {
+  const product = db
+    .prepare('SELECT id, set_id, name, kind, packs, cards_per_pack FROM pack_products WHERE id = ?')
+    .get(productId) as { id: string; set_id: string; name: string; kind: string; packs: number | null; cards_per_pack: number | null } | undefined
+  if (!product) return null
+  const units = Math.max(1, Math.floor(opts.units ?? 1))
+  const packsInBox = opts.packs ?? (product.kind === 'booster' || !product.packs ? 1 : Math.max(1, product.packs))
+  const perPack = product.cards_per_pack ?? 10
+  let perBox = 0
+  for (let i = 0; i < Math.max(0, packsInBox); i++) {
+    // A mixed box holds a smaller wrapper, and the three General Mills mini
+    // packs deal three cards each whatever the host product says.
+    perBox += mixedPackSpec(product.id, i)?.cardsPerPack ?? (product.id.startsWith('gm-') ? 3 : perPack)
+  }
+  const cards = perBox * units
+  const free = vault.freeRawSpace()
+  const cap = vault.capacity()
+  const overflow = Math.max(0, cards - free)
+  const scrap = vault.autoScrapEnabled()
+  const pre = scrap ? vault.overflowPreview(cards) : null
+  const s = (n: number) => (n === 1 ? '' : 's')
+  const shelf = `${free} of ${cap.rawCapacity} shelf spot${s(cap.rawCapacity)}`
+  let warning: string | null = null
+  if (overflow > 0) {
+    const spare = pre?.wouldScrap ?? 0
+    const floor = `$${vault.getScrapFloor().toFixed(0)}`
+    const short = overflow - spare
+    warning = scrap
+      ? pre && pre.blockedByFloor
+        ? spare > 0
+          ? `This opens ${cards} cards and ${shelf} are free. Only ${spare} spare card${s(spare)} can be sold at your ${floor} scrap floor, so ${short} of those card${s(short)} would stay in the wrapper — lost.`
+          : `This opens ${cards} cards and ${shelf} are free. Nothing spare can be sold at your ${floor} scrap floor, so all ${overflow} card${s(overflow)} would stay in the wrapper — lost.`
+        : `This opens ${cards} cards and ${shelf} are free. ${overflow} spare card${s(overflow)} will be auto-scrapped for about $${(pre?.estimateLow ?? 0).toFixed(2)}–$${(pre?.estimateHigh ?? 0).toFixed(2)} to make room.`
+      : `This opens ${cards} cards, and ${shelf} are free. Your shelf refuses what it cannot hold, so ${overflow} of those card${s(overflow)} would stay in the wrapper — lost.`
+  }
+  return {
+    productId: product.id,
+    name: product.name,
+    cards,
+    free,
+    capacity: cap.rawCapacity,
+    overflow,
+    policy: scrap ? 'scrap' : 'refuse',
+    scrapLow: pre?.estimateLow ?? 0,
+    scrapHigh: pre?.estimateHigh ?? 0,
+    blockedByFloor: pre?.blockedByFloor ?? false,
+    warning,
+  }
+}
+
 export function openSealedMany(productId: string, qty: number) {
   if (!(qty >= 2)) return openSealed(productId)
   // Units, not rows: one purchase of four boosters is a single row carrying a

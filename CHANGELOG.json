@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.9",
+      "date": "2026-11-24",
+      "title": "Ask before the shelf eats your pulls",
+      "highlights": [
+        "Opening a pack or a box now warns you first when the shelf is full: how many cards it deals, how many spots are free, and what happens to the rest.",
+        "Under the scrapping policy it names how many spare cards go and for how much; under the refusing policy it says how many pulls would stay in the wrapper — lost.",
+        "Every way in is covered: the Pack Shop’s OPEN 1, Inventory’s Open and Open ×N, and the next-pack and skip-to-end buttons inside a box. Nothing is dealt until you say yes."
+      ],
+      "features": [
+        "The shelf is a hard limit and the rip never mentioned it. Opening with no room admitted what fitted and left the rest in the wrapper — under the refuse policy those cards were simply gone, under the scrap policy spare cards were sold to make room — and the only notice was an activity line afterwards. Which is exactly how you lose pulls: open a box, then read the log to find out.",
+        "Every opening now asks the server first. The pre-flight does the same arithmetic the rip does — packs in the product times cards per pack, mixed boxes and the three-card General Mills mini packs included, against your free slots and your overflow policy — and, when the rip would not fit, the screens ask before dealing: “This opens 20 cards and 0 of 200 shelf spots are free. 20 spare cards will be auto-scrapped for about $0.51–$0.70 to make room.” or “…Your shelf refuses what it cannot hold, so 20 of those cards would stay in the wrapper — lost.” Saying no opens nothing; the box stays where it was.",
+        "Nothing is shown when the rip fits, and a pre-flight that fails never blocks a rip — the server still has the last word. The warning is a warning, not a rule: say yes and the rip behaves exactly as before, because the shelf still refuses what it cannot hold and still scraps what it can."
+      ]
+    },
+    {
       "version": "0.94.8",
       "date": "2026-11-24",
       "title": "The question is printed",
       "highlights": [
-        "Every Academy question shows the question now, above its three answers — before, the panel printed the hint and the chips and never what was being asked.",
-        "Ten chapters were affected: you were told “The numbers are in the chapter” and handed three choices with no prompt above them.",
-        "Nothing about answering changed: the same three choices, the same server verdict, and a wrong answer still explains itself underneath."
+        "Every Academy question shows the question now, above its three answers — before, the panel printed the hint and the chips and never what was being asked."
       ],
       "features": [
         "The answer step in each chapter carries a question and three choices, and the panel rendered only the choices — so the grading step showed “A whitened $3 common / A clean, well-centred $40 card / Any copy without a sleeve” with the hint “The numbers are in the chapter” and no question above them. The question is now printed between the step’s title and its hint, in the ordinary text colour so it reads as the prompt rather than as more explanation.",
