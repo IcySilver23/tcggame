@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.15",
+      "date": "2026-11-24",
+      "title": "A box costs what its wrappers cost",
+      "highlights": [
+        "A display can no longer cost more than twice the packs the same set's shop sells: the Evolving Skies 36-pack box drops from $2,190 to $720, so a break on it stakes $720 instead of case money.",
+        "It is a game rule, not a price fix — the real 2026 box does trade near $2,190, while loose Evolving Skies packs trade near $44.",
+        "Boxes that sell below their wrappers keep their discount, and the per-pack floor that stops a box from being a money printer still applies."
+      ],
+      "features": [
+        "Sealed prices come from three places, in order: a researched shelf quote for the exact product, a stored PriceCharting lookup, then the set's own pull-table model. A display took whichever came first and nothing compared it to the wrappers it holds, which is how a 36-pack Evolving Skies box sat at $2,190.20 — $60.84 a pack — beside a shop selling the same set's packs for $10.00. Every break, battle and purchase on that box priced a whole box off that number.",
+        "A display is now kept inside a per-pack band: it may discount below the wrapper price but may not exceed twice it. The Evolving Skies box lands at $720.00 ($20.00 a pack), Silver Tempest at $403.20, and the boxes that already traded below their wrappers — some at a tenth of the wrapper price — are untouched, because a box discount is what a box discount is. The pull-EV floor is applied after the cap, so where the cards really are worth more than the band allows, the floor still wins.",
+        "The honest part: this is the game choosing internal consistency over collector scarcity. A real Evolving Skies box trades around $2,100–2,190 today, roughly $60 a pack, with loose packs near $44 — the $2,190 quote was a real box, not a mis-matched case, and the model's $10 pack is the side that is out of step with the real world. Capping the box to the wrappers this game sells means an owned collector box is now worth less here than it is outside, in exchange for a break that stakes a sane amount."
+      ]
+    },
+    {
       "version": "0.94.14",
       "date": "2026-11-24",
       "title": "Old breaks get their packs back",
       "highlights": [
-        "A break opened before the pack-plan fix is repaired rather than ripping one pack: a pending half display now queues all 18 packs it was bought for.",
-        "The repair runs at boot and again when you go live, so a break you already own cannot lose the packs you paid for.",
-        "A break that is already live has its queue lifted and its header corrected, and the activity log says what was repaired."
+        "A break opened before the pack-plan fix is repaired rather than ripping one pack: a pending half display now queues all 18 packs it was bought for."
       ],
       "features": [
         "Break rows written before the pack plan existed stored the box count where the pack count goes, so a half display bought at box price sat in the desk as a one-pack break. Those rows are now recognisable — the new plan records what the box holds, and a row without that figure is an old one — and they are rewritten to boxes × packs per box before anything reads the queue. One half display becomes 18 packs, a display 36, an ETB 8 or 9, a bundle 6, and a booster is unchanged at one.",

@@ -450,6 +450,49 @@ function atLeastPackEv(setId: string, packs: number | null, market: number): num
   return ev > market ? round2(ev) : market
 }
 
+/**
+ * A display is nothing but wrappers, so its price per pack has to sit near the
+ * price of the wrappers this game sells for the same set. A box may discount
+ * BELOW its packs freely — that is what a dealer's box discount is — but not
+ * cost more than twice them.
+ *
+ * This is a game rule, not a market claim, and the difference matters. The real
+ * 2026 market for an Evolving Skies box is about $2,190 ($60.84 a pack) while
+ * loose Evolving Skies packs trade around $44, so the shelf quote is a real box,
+ * not a mis-matched case. What is out of step is this game's side: a set whose
+ * packs the Pack Shop models at $10.00 cannot also sell a $2,190 box, because the
+ * break and battle screens price a whole box off that number — $2,190 of stakes
+ * for ten-card wrappers the same shop sells for ten dollars. The band ties the
+ * display to the wrappers, which is the number the roller actually deals.
+ */
+export const DISPLAY_PACK_CAP = 2
+
+function capDisplayPerPack(setId: string, packs: number | null, market: number): number {
+  const n = Math.max(1, Math.floor(packs ?? 1))
+  if (!(market > 0)) return market
+  // The wrapper's own price is the reference: same set, same marketplace, one
+  // pack against thirty-six. The booster row is a different kind, so it returns
+  // before this cap and cannot recurse into it.
+  const pack = priceOf(`${setId}-booster`).market
+  if (!(pack > 0)) return market
+  const cap = pack * n * DISPLAY_PACK_CAP
+  return market > cap ? round2(cap) : market
+}
+
+/** A display is floored by its pack EV and capped by the wrappers it holds. */
+function displayQuote(setId: string, packs: number | null, market: number): number {
+  // Cap first, then floor: the pull-EV floor is a `max`, so flooring the raw
+  // quote would hand the case price straight back. With the cap applied first a
+  // box can only ever be worth the cheaper of the two, and the floor still wins
+  // where the cards really are worth more than the band allows.
+  return round2(atLeastPackEv(setId, packs, capDisplayPerPack(setId, packs, round2(market))))
+}
+
+/** The pull-EV floor for every kind; a display also gets the per-pack band. */
+function sealedMarket(setId: string, kind: string, packs: number | null, market: number): number {
+  return kind === 'display' ? displayQuote(setId, packs, market) : atLeastPackEv(setId, packs, market)
+}
+
 export function priceDetail(productId: string): {
   market: number
   source: 'pricecharting' | 'tcgplayer' | 'pokeinvest' | 'estimated'
@@ -495,7 +538,7 @@ export function priceDetail(productId: string): {
     // rip made that arithmetic repeatable at scale. Single wrappers keep their
     // quote (that IS what a wrapper costs) and collections keep theirs (the
     // extras and the promo inside them are part of the price).
-    const quoted = row.kind === 'display' ? atLeastPackEv(row.set_id, row.packs, round2(shelf.market)) : round2(shelf.market)
+    const quoted = row.kind === 'display' ? displayQuote(row.set_id, row.packs, shelf.market) : round2(shelf.market)
     return {
       market: quoted,
       source: shelf.kind ?? 'tcgplayer',
@@ -539,9 +582,9 @@ export function priceDetail(productId: string): {
   const promo = promoValueOf(productId)
   const stored = storedPrice(productId)
   if (stored && stored.source === 'pricecharting' && stored.market > 0) {
-    return { market: atLeastPackEv(row.set_id, row.packs, round2(round2(stored.market * scene) + promo)), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+    return { market: sealedMarket(row.set_id, row.kind, row.packs, round2(round2(stored.market * scene) + promo)), source: 'pricecharting', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
   }
-  return { market: atLeastPackEv(row.set_id, row.packs, round2(round2(derivedPrice(row.set_id, row.kind, productId) * scene) + promo)), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
+  return { market: sealedMarket(row.set_id, row.kind, row.packs, round2(round2(derivedPrice(row.set_id, row.kind, productId) * scene) + promo)), source: 'estimated', oopMonths: Math.round(m), oop: m > 0, multiplier: round2(mult), status: m > 0 ? 'out of print' : 'in print' }
 }
 
 function storedPrice(productId: string): SealedPriceRow | null {
