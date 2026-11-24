@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.8",
+      "date": "2026-11-24",
+      "title": "The question is printed",
+      "highlights": [
+        "Every Academy question shows the question now, above its three answers — before, the panel printed the hint and the chips and never what was being asked.",
+        "Ten chapters were affected: you were told “The numbers are in the chapter” and handed three choices with no prompt above them.",
+        "Nothing about answering changed: the same three choices, the same server verdict, and a wrong answer still explains itself underneath."
+      ],
+      "features": [
+        "The answer step in each chapter carries a question and three choices, and the panel rendered only the choices — so the grading step showed “A whitened $3 common / A clean, well-centred $40 card / Any copy without a sleeve” with the hint “The numbers are in the chapter” and no question above them. The question is now printed between the step’s title and its hint, in the ordinary text colour so it reads as the prompt rather than as more explanation.",
+        "All ten chapters were affected, not just grading: “One game day is how much real time, by default?”, “A booster’s shelf price buys you what, exactly?”, “Which copy is worth paying a grader for?”, the Deals-hub gate count, the fastest counter for bulk, the 101st card, what a set’s completion cost measures, what pays for a show’s hall, when rent drafts, and how a counterfeit is priced. Each of those was previously invisible.",
+        "Nothing about answering changed: the choices are the same, a wrong answer still comes back with the chapter’s reason underneath, and the step still ticks from the server’s verdict."
+      ]
+    },
+    {
       "version": "0.94.7",
       "date": "2026-11-24",
       "title": "The box opens",
       "highlights": [
-        "A sealed box whose set had no pull table opens now: the table is built the moment the rip needs it, instead of coming back “Pull table missing”.",
-        "Any set with cards and no table of its own gets one at boot, so its boxes are priced off their own packs from the first launch.",
-        "When a set really has no cards in the save, the message names the box and the set and says to sync, instead of “sync this set first”."
+        "A sealed box whose set had no pull table opens now: the table is built the moment the rip needs it, instead of coming back “Pull table missing”."
       ],
       "features": [
         "A pull table is built once per release, and a played save could hold a box whose set never got one: the set’s cards synced before the booster row existed, or the box arrived in a catalogue update whose table build skipped a set with no product row yet. Nothing ever noticed, because the rebuild only runs when the cards sync again — which for a finished set is never. The box sat on the shelf, priced, and died on the rip every time. Opening one now builds the missing table first, then deals the pack.",

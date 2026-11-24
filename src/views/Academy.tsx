@@ -504,6 +504,12 @@ export function AcademyView() {
                   <span className="mark" aria-hidden>{s.done ? '✓' : i + 1}</span>
                   <div className="grow" style={{ minWidth: 0 }}>
                     <div className="academy-step-label">{s.label}</div>
+                    {/* The question is the step. Until 0.94.8 the panel printed
+                        the hint and the three chips and never the question itself,
+                        so a player was asked to answer something never asked. */}
+                    {s.kind === 'answer' && !s.done && s.question && (
+                      <div className="academy-step-question">{s.question}</div>
+                    )}
                     {!s.done && <div className="faint small academy-step-how">{s.how}</div>}
                     {s.kind === 'act' && !s.done && s.route && s.where && (
                       <button
