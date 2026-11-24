@@ -1,13 +1,27 @@
 {
   "entries": [
     {
+      "version": "0.94.7",
+      "date": "2026-11-24",
+      "title": "The box opens",
+      "highlights": [
+        "A sealed box whose set had no pull table opens now: the table is built the moment the rip needs it, instead of coming back “Pull table missing”.",
+        "Any set with cards and no table of its own gets one at boot, so its boxes are priced off their own packs from the first launch.",
+        "When a set really has no cards in the save, the message names the box and the set and says to sync, instead of “sync this set first”."
+      ],
+      "features": [
+        "A pull table is built once per release, and a played save could hold a box whose set never got one: the set’s cards synced before the booster row existed, or the box arrived in a catalogue update whose table build skipped a set with no product row yet. Nothing ever noticed, because the rebuild only runs when the cards sync again — which for a finished set is never. The box sat on the shelf, priced, and died on the rip every time. Opening one now builds the missing table first, then deals the pack.",
+        "The same hole is healed at boot, which matters for everything that reads the table without rolling it: a box with no table showed a modelled shelf price with no pull-value floor behind it, and the odds and battle pools counted no cards. Every set that has cards and no booster table gets one on startup.",
+        "The error that used to read “Pull table missing — sync this set first” now names the product and the set, and tells the two cases apart. A set with cards whose table could not be built says a catalogue sync rebuilds it; a set with no cards in the save at all says that plainly, because a sync is the only thing that fixes it.",
+        "The honest limit: a box whose set has no cards in the save still cannot be opened — it now says which set is missing instead of failing without a name, and the on-demand build only fires when the cards are already there."
+      ]
+    },
+    {
       "version": "0.94.6",
       "date": "2026-11-24",
       "title": "The Academy starts with the clock, not a bill",
       "highlights": [
-        "The Academy’s first task is no longer buying a day pass — it asks you to pick the pace the clock runs at, in Settings, which costs nothing.",
-        "A new player is no longer charged a fee and handed a rent-and-wages roll on their first day just to tick a box on the first chapter.",
-        "Changing the pace or buying a pass you actually wanted both count. The step no longer ticks itself just because the clock moved."
+        "The Academy’s first task is no longer buying a day pass — it asks you to pick the pace the clock runs at, in Settings, which costs nothing."
       ],
       "features": [
         "The economy chapter opened with “Move the clock — buy the day pass”, which was the wrong first task for a player who had just arrived: the pass charges a fee, and the boundary it opens rolls rent, wages, the deals board and the market before the player has earned a dollar. The chapter pays $25, so the very first lesson was a bill against an unexplored save.",

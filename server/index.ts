@@ -282,10 +282,39 @@ function rebuildPullTables() {
   setMeta('pullTablesBuiltAt', nowIso())
 }
 
+/**
+ * A set can have its cards, a booster row, and no table of its own: the table was
+ * built before `ensureFullCatalog` grew that row, and `rebuildPullTables` only
+ * runs again when the cards sync — which for a finished set is never. Every box
+ * of it then sat on the shelf, priced, and answered "Pull table missing" on the
+ * rip, which is what Generations, Double Crisis, Dragon Vault and the 30th
+ * Celebration UPC looked like on a played save. `rollPack` now builds a table at
+ * the moment a rip needs one; this heals the same hole for everything that reads
+ * the table without rolling it — the shelf's estimates, the odds and the battle
+ * pools — so a box is priced off its real packs from the first boot.
+ */
+function buildMissingPullTables() {
+  sealed.ensureFullCatalog()
+  const missing = db.prepare(`
+    SELECT DISTINCT pp.set_id AS setId FROM pack_products pp
+    WHERE EXISTS (SELECT 1 FROM cards c WHERE c.set_id = pp.set_id)
+      AND NOT EXISTS (SELECT 1 FROM pack_product_cards pc WHERE pc.pack_product_id = pp.set_id || '-booster')
+  `).all() as { setId: string }[]
+  for (const { setId } of missing) {
+    try {
+      packs.buildPullTable(setId)
+      console.log(`[packs] built the missing pull table for ${setId}`)
+    } catch (e) {
+      console.error('[packs] missing pull table failed for', setId, e)
+    }
+  }
+}
+
 function maybeRebuildPullTables() {
   const builtAt = getMeta('pullTablesBuiltAt')
   const cardsSynced = getMeta('cardsLastSyncedAt')
   if (!builtAt || (cardsSynced && cardsSynced > builtAt)) rebuildPullTables()
+  buildMissingPullTables()
 }
 
 // ---------------------------------------------------------------------------

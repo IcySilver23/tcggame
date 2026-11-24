@@ -834,9 +834,51 @@ function pairLegendaryStadiums(setId: string, picked: RolledCard[], rows: { card
   }
 }
 
+/**
+ * Build the table a pack is about to read, when it is missing but the set has
+ * cards behind it. The table is built once per release, and a played save can
+ * hold a box whose set never got one — the cards synced before the booster row
+ * existed, or the box arrived in a catalogue update whose table build skipped a
+ * set with no product row yet. The timestamps that trigger a rebuild only move
+ * when the cards sync again, which for a finished set is never, so the box sat
+ * on the shelf, priced, and died on "Pull table missing" every time it was
+ * opened. `ensureFullCatalog` closed this hole for the host rows; this closes it
+ * from the rip's end, which is where a player meets it.
+ */
+function healPullTable(setId: string, cardsPerPack: number) {
+  const cards = (db.prepare('SELECT COUNT(*) AS n FROM cards WHERE set_id = ?').get(setId) as { n: number }).n
+  if (cards === 0) return
+  try {
+    buildPullTable(setId, cardsPerPack)
+  } catch (e) {
+    console.error('[packs] could not build the pull table for', setId, e instanceof Error ? e.message : e)
+  }
+}
+
+/**
+ * "Pull table missing — sync this set first" named neither the set nor the
+ * product, and a catalogue sync cannot fix a set whose cards are already here.
+ * Say which set is short and what actually helps.
+ */
+function pullTableError(product: { name: string; set_id: string }) {
+  const set = db.prepare('SELECT name FROM sets WHERE id = ?').get(product.set_id) as { name: string } | undefined
+  const cards = (db.prepare('SELECT COUNT(*) AS n FROM cards WHERE set_id = ?').get(product.set_id) as { n: number }).n
+  const setName = set?.name ?? product.set_id
+  return new Error(
+    cards === 0
+      ? `${product.name} deals cards from ${setName}, and this save has none of its cards yet — run a catalogue sync in Settings, then open it.`
+      : `${product.name} deals cards from ${setName}, whose pull table could not be built — syncing the catalogue in Settings rebuilds it.`,
+  )
+}
+
 export function rollPack(setId: string, sessionId: string, productKind = 'booster', cardsPerPack = 10, owner: 'player' | 'other' = 'player') {
   const pid = `${setId}-booster`
-  const rows = db.prepare('SELECT card_id, weight, slot FROM pack_product_cards WHERE pack_product_id = ?').all(pid) as { card_id: string; weight: number; slot: string }[]
+  const readRows = () => db.prepare('SELECT card_id, weight, slot FROM pack_product_cards WHERE pack_product_id = ?').all(pid) as { card_id: string; weight: number; slot: string }[]
+  let rows = readRows()
+  if (rows.length === 0) {
+    healPullTable(setId, cardsPerPack)
+    rows = readRows()
+  }
   if (rows.length === 0) return null
   // The Legendary Stadium halves stay out of the ordinary pools; dealLegendaryStadium
   // is the only thing that puts one in a pack, and it always puts in both.
@@ -1207,7 +1249,7 @@ export function openSealed(productId: string) {
     // Sequin card + reprints); everything else rolls the set's booster table.
     const packCards = rollMiniPack(product.id, sessionId) ?? rollProductPack(product, i, sessionId, product.cards_per_pack)
     if (!packCards) {
-      if (sessions.length === 0) throw new Error('Pull table missing — sync this set first')
+      if (sessions.length === 0) throw pullTableError(product)
       break
     }
     cards.push(...packCards)
@@ -1443,7 +1485,7 @@ function ripNextPack(box: BoxRow) {
       sessionId,
       box.cards_per_pack,
     )
-  if (!packCards) throw new Error('Pull table missing — sync this set first')
+  if (!packCards) throw pullTableError({ name: product?.name ?? box.product_id, set_id: box.set_id })
 
   type OpenedCard = { cardId: string; isHit: boolean; value: number; variant?: string; setName?: string; rarity?: string | null; image?: string | null; isNew?: boolean }
   const ownedBefore = db.prepare('SELECT COALESCE(SUM(quantity), 0) AS n FROM inventory WHERE card_id = ?')
