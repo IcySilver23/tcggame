@@ -112,6 +112,11 @@ const singleWhileQueued = streaming.listStreamLot(cheap[200].id, null, null)
 check('a single cannot jump the queue', !singleWhileQueued.ok, singleWhileQueued.ok ? '' : (singleWhileQueued as { error: string }).error)
 const both = streaming.streamLotsFor(streamId)
 check('the block shows one live and one waiting', !!both.live && !!both.queued && both.recent.every((r) => r.status !== 'queued'), 'queue is not history')
+check(
+  'a queued pile is not counted as listed',
+  both.totals.listed === both.totals.sold + both.totals.unsold + 1,
+  `listed ${both.totals.listed} = ${both.totals.sold} sold + ${both.totals.unsold} passed + 1 live, queue excluded`,
+)
 
 const aId = (a.lot as { id: number }).id
 db.prepare(`UPDATE stream_lots SET ends_at = ? WHERE id = ?`).run(new Date(Date.now() - 1000).toISOString(), aId)

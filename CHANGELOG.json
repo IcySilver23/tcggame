@@ -1,16 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.94.2",
+      "date": "2026-11-24",
+      "title": "The switch answers on the press",
+      "highlights": [
+        "One card / A stack now flips the moment you press it, instead of waiting for a click the settling panel could swallow.",
+        "A queued pile no longer counts as a listing, so the night’s sell-through holds steady while it waits for the hammer.",
+        "The binder list reserves its own height, so the sell panel stops jumping while the first page of cards loads."
+      ],
+      "features": [
+        "The mode switch only listened for a click, and a click is a promise the browser makes about two events: the press has to start and end on the same element. Right after the page loads the sell panel is still settling — the picker swaps its placeholder for a hundred rows and the list can move or gain a scrollbar under the cursor — so a press that began on One card or A stack could finish somewhere else and produce no click at all. The switch now acts on pointerdown, which cannot be lost that way, and still listens for click so a keyboard still works; switching to the mode you are already in is a no-op. The switch is also no longer disabled while a request is in flight, and the results list has a minimum height so the panel does not resize under the pointer. The simplification to admit: the swallowed press could not be reproduced at the raw event level in this build’s own harness, so this removes the two code paths that can lose a first press rather than pointing at a single proven culprit — the toggle is verified working on the first press after a fresh load, in both directions.",
+        "The block’s totals now leave the queue out. Listed, sold, unsold, gross and fees all count only the lots that actually faced the room, so a pile sitting in the wings no longer drags the sell-through percentage down for a night it has not been offered on. The block’s arithmetic is pinned in the playtest: listed must equal sold plus passed plus the one live lot, with a queued pile excluded."
+      ]
+    },
+    {
       "version": "0.94.1",
       "date": "2026-11-24",
       "title": "One on the block, one in the wings",
       "highlights": [
-        "Build the next pile while the current lot is being bid on — a queued stack takes the block the moment the hammer falls.",
-        "Fill 20 now draws from every cheap card you own instead of the page the picker happened to have loaded.",
-        "The queue is one deep, so a single card cannot jump it until the waiting pile has had the hammer."
+        "Build the next pile while the current lot is being bid on — a queued stack takes the block the moment the hammer falls."
       ],
       "features": [
-        "Sell live has a real queue now. With a lot on camera you can switch to A stack, pick the next pile and press Queue the stack behind this lot: its copies are escrowed straight away, it shows under the live lot as NEXT UP with its own opening ask and reserve, and the moment the current lot settles it is promoted with a fresh 75-second clock — time spent waiting never eats a lot’s airtime. The promotion is announced in the lot chat and the activity log, so the room knows what just landed.",
+        "Sell live has a real queue now. With a lot on camera you can switch to A stack, pick the next pile and press Queue the stack behind this lot: its copies are escrowed straight away, it shows under the live lot as NEXT UP with its own opening ask and reserve, and the moment the current lot settles it is promoted with a fresh 75-second clock — time spent waiting never eats a lot’s airtime. The promotion is announced in the lot chat and the activity log, so the room knows what just landed. Fill 20 now draws from every cheap card you own instead of the page the picker happened to have loaded. The queue is one deep, so a single card cannot jump it until the waiting pile has had the hammer.",
         "The queue is one deep on purpose: a second queued pile is refused, and a single card cannot be put up while a pile is waiting, because the block takes one lot at a time and a hidden third row would only confuse what the room is watching. A pile that is still queued when you wrap goes back to the binder copy for copy, exactly as a live one does — nothing is charged and nothing is kept.",
         "Fill 20 also stopped sampling the picker. It used to spread a selection across the hundred rows the page had loaded, which is why the piles it made were worth about $6; it now asks the server for an even spread across every copy you own under the $2 cap — 455 copies in a save of this size, from roughly 19¢ up to the cap — and priced the pile it builds at about $10 to $12. The page you are looking at no longer limits what the button can reach."
       ]

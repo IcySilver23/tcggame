@@ -671,12 +671,15 @@ export function streamLotsFor(streamId: number) {
   const recent = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status NOT IN ('live', 'queued') ORDER BY id DESC LIMIT 6`).all(streamId) as LotRow[]
   const row = db
     .prepare(
+      // A queued lot has not been offered to the room yet, so it is not a
+      // listing: counting it would dip the night's sell-through while a pile
+      // sits in the wings doing nothing wrong.
       `SELECT COUNT(*) AS listed,
               SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) AS sold,
               SUM(CASE WHEN status = 'passed' THEN 1 ELSE 0 END) AS unsold,
               COALESCE(SUM(CASE WHEN status = 'sold' THEN sold_price ELSE 0 END), 0) AS gross,
               COALESCE(SUM(CASE WHEN status = 'sold' THEN sold_price * ? ELSE 0 END), 0) AS fees
-       FROM stream_lots WHERE stream_id = ?`,
+       FROM stream_lots WHERE stream_id = ? AND status != 'queued'`,
     )
     .get(LOT_FEE, streamId) as { listed: number; sold: number | null; unsold: number | null; gross: number; fees: number }
   const sold = row.sold ?? 0
