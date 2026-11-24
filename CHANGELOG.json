@@ -1,13 +1,27 @@
 {
   "entries": [
     {
+      "version": "0.94.19",
+      "date": "2026-11-24",
+      "title": "One screen, one ceiling that cannot creep",
+      "highlights": [
+        "Price, badge and display band now ask one function whether a shelf quote is in play, so they cannot disagree about it again.",
+        "The band's ceiling is fixed at 3x — the empty space between real boxes (up to 2.74x a wrapper) and case quotes (6x and up) — so a new box quote can no longer ratchet it.",
+        "Half a box can no longer cost more than the full box it is half of: Journey Together's $333.33 half drops to its $203.30 box."
+      ],
+      "features": [
+        "The shelf-quote screen lived in three places — the price, the shelf badge and the display band each decided for themselves whether a quote was usable — and they drifted, which is how a refused wrapper quote ended up badged as TCGplayer over a modelled price. There is now one exported call, usableShelfQuote, returning the quote a row may be priced at or nothing, and all three ask it.",
+        "The display band's ceiling had been following the newest box quote: it started at 2x, went to 1.8 when the measured spread was narrower, then to 2.05 when a $16,763 Phantom Forces box arrived at 2.03x. That is a ratchet a single thin sale can turn. The ceiling is now 3x, chosen from the gap in the measurements rather than their edge: every real box measured sits at or below 2.74x its wrapper and every six-box case quote starts at 6x, so nothing measured lives in between. A new outlier cannot move a number that is not tracking outliers, and a case still cannot pass.",
+        "Halves needed a different rule, not a wider one. Journey Together's half box quoted $333.33 for eighteen packs while the set's own thirty-six-pack box asks $203.30 — the half cost more than the whole — and no per-pack spread catches that cleanly. A display holding fewer packs than its set's full display now cannot cost more than that display, which fires once today, leaves cheaper halves alone (Evolving Skies' half is $173.05 against a $2,190 box), and only ever lowers a price.",
+        "What the rules actually do today, measured rather than asserted: of 118 displays, 56 carry a curated quote and the band moves none of them, the dominance rule moves one, and the wrapper screen refuses nine (all Black & White, where no box quote exists to clear them). The curated table is doing the heavy lifting — a quoted display sits at a median 2.39x its model, and dropping the table would move 41 of the 56 by more than half — while the band is insurance that has not paid out since it was written. It stays because it is one comparison and it is the only thing standing between a mis-scaled display quote and the shelf, but it is not what keeps these prices honest: the quotes and the wrapper screen are."
+      ]
+    },
+    {
       "version": "0.94.18",
       "date": "2026-11-24",
       "title": "The badge says what the price is",
       "highlights": [
-        "A product now badges the source that actually priced it: a wrapper quote the screen refused is no longer cited as the market while a model sets the price.",
-        "Black & White could not be cleared — TCGplayer publishes no market for any of its eleven booster boxes — so those wrappers stay modelled and the page says so.",
-        "Researched box quotes for XY fill the gaps: Flashfire $10,598.42, Phantom Forces $16,763.04, BREAKpoint $2,499, so those wrappers clear the screen and the band is a measured 2.05x."
+        "A product now badges the source that actually priced it: a wrapper quote the screen refused is no longer cited as the market while a model sets the price."
       ],
       "features": [
         "The shelf badge and the price came from two different places. The price screen learnt to refuse a wrapper quote that cannot be a wrapper, but the badge still read the shelf directly, so a Black & White wrapper showed the QUOTE tag and a TCGplayer citation beside a price that was the pack model. Both now ask the same screen, and a refused quote reports itself as modelled because that is what is pricing the row.",

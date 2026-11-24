@@ -453,22 +453,45 @@ function atLeastPackEv(setId: string, packs: number | null, market: number): num
 /**
  * How much more a box may cost per wrapper than a loose wrapper of the same set.
  *
- * Measured, not picked: across the 38 displays whose set also has a loose-wrapper
- * quote (TCGplayer market and PriceCharting sold values, November 2026), a box
- * costs 0.22x to 2.03x the wrapper per pack — median 1.09x, p90 1.83x — and 2.03x
- * is the widest a full thirty-six-pack box reaches (Phantom Forces: a $16,763 box
- * against a $229.72 wrapper). Half displays go further, at 2.17x and 2.74x. A
- * six-box CASE quote, the other mistake this catches, runs 6-8x. So the ceiling is
- * 2.05, just past the widest real box: no full box a marketplace quotes is trimmed,
- * and what it does trim are the half displays asking more per pack than their own
- * set's thirty-six-pack box.
+ * 3 is chosen from the GAP in the measurements, not from their edge. Across the
+ * 38 displays whose set also has a loose-wrapper quote (TCGplayer market and
+ * PriceCharting sold values, November 2026), a box costs 0.22x to 2.74x the
+ * wrapper per pack and nothing measured sits between 2.74x and the 6x a six-box
+ * CASE quote starts at. 3 is in that empty stretch, so the ceiling is a property
+ * of the two populations and not of whichever box was quoted last: a thin outlier
+ * at 2.0x or a half display at 2.7x cannot pull it, and a case at 6x still cannot
+ * pass. An earlier version of this number tracked the newest quote (2, then 1.8,
+ * then 2.05) and that is exactly the ratchet this replaces.
+ *
+ * A half display that asks more than its own set's full box is handled separately
+ * by capByFullBox, because that is a dominance rule and not a spread one.
  *
  * The reference is a real loose-wrapper quote, never the pack model. Comparing a
  * real box against a modelled pack is what made an earlier 2x band cut Evolving
  * Skies' genuine $2,179 box down to $720: the box was right and the model was
  * four times under what a single sealed pack costs.
  */
-export const DISPLAY_PACK_CAP = 2.05
+export const DISPLAY_PACK_CAP = 3
+
+/**
+ * The one rule for a shelf quote: the quote this row may actually be priced at,
+ * or null when there is none (or when the screen refuses it).
+ *
+ * Price, badge and display band all call this, so they cannot disagree about
+ * whether a quote is in play — which they did once, and the shelf badged a
+ * TCGplayer quote over a modelled price.
+ */
+export function usableShelfQuote(
+  productId: string,
+  row?: { set_id: string; kind: string },
+): ReturnType<typeof shelfPriceFor> {
+  const quote = shelfPriceFor(productId)
+  if (!quote) return null
+  const product = row ?? (db.prepare('SELECT set_id, kind FROM pack_products WHERE id = ?').get(productId) as { set_id: string; kind: string } | undefined)
+  if (!product) return null
+  if (product.kind === 'booster' && !wrapperQuoteAgreesWithBox(product.set_id, quote.market)) return null
+  return quote
+}
 
 function capDisplayPerPack(setId: string, packs: number | null, market: number): number {
   const n = Math.max(1, Math.floor(packs ?? 1))
@@ -477,13 +500,35 @@ function capDisplayPerPack(setId: string, packs: number | null, market: number):
   // marketplace, one pack against thirty-six. A modelled pack is not a reference
   // — it is what the cards inside the wrapper are worth, which for a collector
   // set is a quarter of the wrapper's price — so a set whose packs are still
-  // modelled keeps its display quote rather than being judged by one. The booster
-  // row is a different kind, so it returns before this cap and cannot recurse.
-  const ref = priceOf(`${setId}-booster`)
-  const pack = ref.market
-  if (!(pack > 0) || ref.source === 'estimated') return market
-  const cap = pack * n * DISPLAY_PACK_CAP
+  // modelled keeps its display quote rather than being judged by one. A refused
+  // wrapper quote is no reference either, and usableShelfQuote is what tells the
+  // two apart. The booster row is a different kind, so it returns before this cap
+  // and cannot recurse.
+  const pack = usableShelfQuote(`${setId}-booster`)
+  if (!pack) return market
+  const cap = pack.market * n * DISPLAY_PACK_CAP
   return market > cap ? round2(cap) : market
+}
+
+/**
+ * Half a box cannot cost more than the whole box it is half of.
+ *
+ * Not a spread rule and not measured from a distribution: a display holding fewer
+ * packs than its set's thirty-six-pack display is the same product with the pack
+ * count cut, so a quote above the full box is quoting a different thing. It fires
+ * on Journey Together's half box ($333.33 for eighteen packs against a $203.30
+ * box) and is silent wherever the half is genuinely cheaper, which is how the
+ * real market prices halves — Evolving Skies' trades at $1,138 against a $2,163
+ * box. Only ever lowers a price.
+ */
+function capByFullBox(setId: string, packs: number | null, market: number): number {
+  const n = Math.max(1, Math.floor(packs ?? 1))
+  if (n >= 36 || !(market > 0)) return market
+  // The 36-pack row returns before this (n >= 36), so asking for it cannot recurse
+  // into itself; a set with no full display has no dominance to enforce.
+  const full = priceOf(`${setId}-display`).market
+  if (!(full > 0) || market <= full) return market
+  return round2(full)
 }
 
 /** A display is floored by its pack EV and capped by the wrappers it holds. */
@@ -492,7 +537,8 @@ function displayQuote(setId: string, packs: number | null, market: number): numb
   // quote would hand the case price straight back. With the cap applied first a
   // box can only ever be worth the cheaper of the two, and the floor still wins
   // where the cards really are worth more than the band allows.
-  return round2(atLeastPackEv(setId, packs, capDisplayPerPack(setId, packs, round2(market))))
+  const capped = capByFullBox(setId, packs, capDisplayPerPack(setId, packs, round2(market)))
+  return round2(atLeastPackEv(setId, packs, capped))
 }
 
 /**
@@ -565,13 +611,11 @@ export function priceDetail(productId: string): {
   // pack EV is $15.80 against the $7.57 its packs trade at on the same
   // marketplace, so flooring the real $19.05 three-pack would replace the truth
   // with the model.
-  const shelf = shelfPriceFor(productId)
-  // A loose wrapper's quote is screened against its own box before it is allowed
-  // to price anything: a wrapper costing a third of a box's per-pack price, or
-  // three times it, is a different product's number wearing a pack's name. The
-  // set falls back to its model rather than taking the impossible figure.
-  const shelfUsable = shelf !== null && (row.kind !== 'booster' || wrapperQuoteAgreesWithBox(row.set_id, shelf.market))
-  if (shelf && shelfUsable) {
+  // The one screen: a loose wrapper's quote is checked against its own box before
+  // it prices anything, and the same call decides the badge. The set falls back to
+  // its model rather than taking an impossible figure.
+  const shelf = usableShelfQuote(productId, row)
+  if (shelf) {
     const rel = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(row.set_id) as { release_date: string } | undefined
     const s = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
     // A DISPLAY is the one real quote that still gets the floor, because a
@@ -758,16 +802,14 @@ export function shelfFacts(productId: string): {
     .prepare('SELECT release_date FROM sets WHERE id = ?')
     .get(row.set_id) as { release_date: string } | undefined
   const months = release ? monthsOutOfPrint(release.release_date, row.kind, row.set_id) : 0
-  const shelf = shelfPriceFor(productId)
+  // The badge has to say what the price is, so it asks the same screen the price
+  // does: a refused quote is not pricing this row and is not cited for it.
+  const shelf = usableShelfQuote(productId, row)
   const stored = storedPrice(productId)
-  // The badge has to say what the price is: a wrapper quote the screen refused is
-  // not pricing this row, so the row reports the model it is actually priced at
-  // rather than citing a quote that only appears in the evidence.
-  const shelfUsed = shelf !== null && (row.kind !== 'booster' || wrapperQuoteAgreesWithBox(row.set_id, shelf.market))
   const source = miniPackFor(productId)
     ? 'estimated'
-    : shelfUsed
-      ? (shelf!.kind ?? 'tcgplayer')
+    : shelf
+      ? (shelf.kind ?? 'tcgplayer')
       : row.kind === 'special'
         ? 'estimated'
         : stored && stored.source === 'pricecharting' && stored.market > 0

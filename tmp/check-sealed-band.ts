@@ -67,6 +67,19 @@ const cheap = rows
   .filter((r) => r.d / 36 < r.p.market * 0.5)
 ok(cheap.length > 0, `a discounted box still exists and was not raised (${cheap.length})`)
 
+// The ceiling is set from the gap in the data, not from its edge: above every
+// measured box (2.74x) and below the 6x a six-box case starts at. A thin outlier
+// moving by a tenth of a turn must not be able to move it.
+ok(DISPLAY_PACK_CAP > 2.74 && DISPLAY_PACK_CAP < 6, `the per-pack ceiling sits in the empty stretch (${DISPLAY_PACK_CAP}x)`)
+
+// A half box cannot out-price the full box it is half of.
+const sv9Half = priceOf('sv9-half-display').market
+const sv9Full = priceOf('sv9-display').market
+ok(sv9Half <= sv9Full + 0.01, `a half box is not dearer than its full box ($${sv9Half.toFixed(2)} vs $${sv9Full.toFixed(2)})`)
+const swsh7Half = priceOf('swsh7-half-display').market
+const swsh7Full = priceOf('swsh7-display').market
+ok(swsh7Half <= swsh7Full + 0.01, `and a cheaper half is left alone ($${swsh7Half.toFixed(2)} vs $${swsh7Full.toFixed(2)})`)
+
 // The badge and the price agree: a refused quote is not cited as this row's source.
 const bw1Facts = shelfFacts('bw1-booster')
 ok(bw1Facts.source === 'estimated' && priceOf('bw1-booster').source === 'estimated', `a refused quote is not the badge either (${bw1Facts.source})`)
