@@ -58,7 +58,7 @@ const PROSE: Record<string, Prose> = {
       'Cash is the only money you can spend. Collection value is what your cards would fetch — it moves with the market whether you act or not.',
       'Net worth is cash plus collection plus sealed stock. Profit and loss compares today’s value against what each copy actually cost you, so a card you pulled and a card you bought are not the same position.',
       'Prices refresh on a sync loop, and the Home dashboard shows what changed while you were away. The Portfolio screen keeps the record: best pull, best flip, week by week.',
-      'The day clock in the top bar is the game’s economy running: rent, payroll, wear, disasters and save snapshots all roll at day boundaries (two real hours a day by default). A day pass buys a skipped day when you need something to settle now.',
+      'The day clock in the top bar is the game’s economy running: rent, payroll, wear, disasters and save snapshots all roll at day boundaries (two real hours a day by default). You set the pace yourself in Settings — 2, 12 or 24 real hours — so the heartbeat matches how you play. A day pass is there for the times something has to settle now, and it costs a fee every time you use it.',
     ],
     numbers: 'A game day is 2 real hours. Rent, wages and roll events land at every even UTC hour.',
     where: 'Cash and net worth sit in the top bar; Home, Portfolio and Inventory break them down.',

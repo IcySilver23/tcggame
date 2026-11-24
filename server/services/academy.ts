@@ -188,21 +188,28 @@ const COURSE_VERSION = '0.88.0'
 const STEPS: Record<string, Step[]> = {
   economy: [
     {
-      // The clock is the chapter's subject, so the step moves it rather than
-      // watching it. Two real hours of waiting is not a step anyone can do now,
-      // so the day pass is the way in — and the boundary it opens settles rent,
-      // wages, the deals board and the market, which is the whole lesson. Catching
-      // the clock turning on its own still counts, so a player with no fee in the
-      // drawer is never locked out; nobody has to sit and watch a timer either.
+      // The clock is the chapter's subject, so the step makes the player choose
+      // it rather than watch it. It used to be the day pass, which was a bad
+      // first task: it charged a fee AND rolled rent, wages, the deals board and
+      // the market on a player who had just arrived, so the first thing the
+      // course taught was a bill. The pace panel is the same lesson for free —
+      // it names the length of a day and what lands at every boundary, and every
+      // save has to make that call anyway. A pace change or a day pass the
+      // player actually bought both tick it; nothing here demands the pass.
+      // The old check also accepted `last_tick_at` moving, which every state
+      // fetch does — the step ticked itself and the player never read a word of
+      // it, so that shortcut is gone and only a deliberate clock action counts.
       id: 'pass',
       kind: 'act',
-      label: 'Move the clock — buy the day pass',
-      route: 'home',
-      where: 'Home dashboard',
-      how: 'The clock in the top bar sells a day pass: it skips the wait to the next game day at the fee printed there, and the boundary settles rent, wages, the deals board and the market. Being there when the clock turns by itself counts too — the pass is just how you do it now.',
+      label: 'Pick the pace the clock runs at',
+      route: 'settings',
+      where: 'Settings',
+      how: 'Settings → the game-day pace → 2, 12 or 24 real hours. That one choice decides how often rent, wages, wear and the market roll. Switching it once ticks the step, and switching back if the default suits you is fine.',
       check: (since) =>
-        count("SELECT COUNT(*) c FROM activity_log WHERE datetime(created_at) > datetime(?) AND message LIKE '%Day pass%'", [since]) > 0 ||
-        count('SELECT COUNT(*) c FROM game_state WHERE id = 1 AND datetime(last_tick_at) > datetime(?)', [since]) > 0,
+        count(
+          "SELECT COUNT(*) c FROM activity_log WHERE datetime(created_at) > datetime(?) AND (message LIKE '%Game days now run%' OR message LIKE '%Day pass%')",
+          [since],
+        ) > 0,
     },
     {
       id: 'q',

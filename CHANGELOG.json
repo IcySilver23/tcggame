@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.6",
+      "date": "2026-11-24",
+      "title": "The Academy starts with the clock, not a bill",
+      "highlights": [
+        "The Academy’s first task is no longer buying a day pass — it asks you to pick the pace the clock runs at, in Settings, which costs nothing.",
+        "A new player is no longer charged a fee and handed a rent-and-wages roll on their first day just to tick a box on the first chapter.",
+        "Changing the pace or buying a pass you actually wanted both count. The step no longer ticks itself just because the clock moved."
+      ],
+      "features": [
+        "The economy chapter opened with “Move the clock — buy the day pass”, which was the wrong first task for a player who had just arrived: the pass charges a fee, and the boundary it opens rolls rent, wages, the deals board and the market before the player has earned a dollar. The chapter pays $25, so the very first lesson was a bill against an unexplored save.",
+        "The step is now “Pick the pace the clock runs at”: Settings → the game-day pace → 2, 12 or 24 real hours, with the button on the step taking you straight there. That one setting is the chapter’s actual subject, it is free, it is reversible, and every save has to make the call anyway. The check is server truth rather than a button: a pace change written to the activity log since the course started, or a day pass you chose to buy. The old check also accepted the clock’s last tick, which every state refresh moves — so the step used to tick itself before the player read it. That shortcut is gone.",
+        "To be straight about the trade: the step does ask you to change a setting. If the two-hour default suits you, switch it, tick the step, and switch back — the tick stays. The day pass is still explained in the chapter as what it is, a fee for when something has to settle now."
+      ]
+    },
+    {
       "version": "0.94.5",
       "date": "2026-11-24",
       "title": "The sidebar stops growing a bar",
       "highlights": [
-        "The sidebar no longer draws a horizontal scrollbar across its bottom when the pointer runs over a row.",
-        "Rows still step 2px to the right under the pointer — the shift now happens inside the row instead of pushing it out of the list.",
-        "The nav list scrolls one way only, so no hover state anywhere in it can bring the bar back."
+        "The sidebar no longer draws a horizontal scrollbar across its bottom when the pointer runs over a row."
       ],
       "features": [
         "Every row in the sidebar steps 2px to the right when you hover it. That shift was a `transform` on a row exactly as wide as the nav list, so the row counted as 2px of horizontal overflow — and because the list scrolls vertically, the browser had already turned its other axis into a scroller. The result was a full-width scrollbar across the bottom of the sidebar that appeared with the pointer and vanished as it left, complete with the little corner square. Measured on the sidebar: 188px of scrollable width inside 186px of list while hovering, and a 10px bar.",

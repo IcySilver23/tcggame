@@ -45,7 +45,7 @@ for (const c of academyState().chapters) {
 // time-based and yesterday's leftovers would tick the next run's steps.
 const maxActivity = (db.prepare('SELECT COALESCE(MAX(id),0) AS n FROM activity_log').get() as { n: number }).n
 const maxPull = (db.prepare('SELECT COALESCE(MAX(id),0) AS n FROM pull_history').get() as { n: number }).n
-logActivity('system', '⏭ Day pass — $8.33 to skip the wait. It is now 2026-01-01 (game day 2).', -8.33)
+logActivity('system', '📅 Game days now run 12 real hours — the daily heartbeat fires twice per real day.')
 const cardId = (db.prepare('SELECT id FROM cards LIMIT 1').get() as { id: string } | undefined)?.id
 if (!cardId) throw new Error('the scratch save has no cards to write rows against')
 const invRow = db.prepare('SELECT id, protected_at FROM inventory ORDER BY id LIMIT 1').get() as { id: number; protected_at: string | null } | undefined
