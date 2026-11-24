@@ -2,10 +2,12 @@
 # Build the TCG Life Windows installer (Inno Setup).
 #
 #   Output: dist-server/TCG-Life-Setup-<version>.exe
+#           dist-server/TCG-Life-<version>-portable-win64.zip
 #
 # Pipeline: full app build (scripts/build-exe.sh) → prune the staging folder
-# to factory-fresh (no player save, no logs) → compile installer.iss with
-# ISCC. The installer itself is per-user (no admin) and installs to
+# to factory-fresh (no player save, no logs) → zip that same tree → compile
+# installer.iss with ISCC. The zip is cut from release/ after pruning, so both
+# artifacts always carry the same game (and the same save, if one was named). The installer itself is per-user (no admin) and installs to
 # %LOCALAPPDATA%\Programs\TCG Life.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -117,7 +119,33 @@ if [ -f dist-server/ship-save.db ]; then
   echo "==> release/data/tcglife.db kept in sync with the installer payload"
 fi
 
-# 3. Compile the installer. ISCC flags start with / — stop MSYS path mangling.
+# 3. Portable zip: the tree the installer ships, zipped with its contents at
+#    the archive root (unzip into a folder, double-click TCG-Life.exe). It is
+#    cut from release/ only AFTER the staging above, so it can never carry a
+#    save the installer would not — and when TCGLIFE_SHIP_SAVE names one, both
+#    artifacts carry it. Guard anyway: a public download must not smuggle a
+#    playthrough, which is exactly what these builds once did.
+if [ -f release/data/tcglife.db ] && [ ! -f dist-server/ship-save.db ]; then
+  echo "!! release/data/tcglife.db survived staging — refusing to zip a player save into a public download."
+  exit 1
+fi
+APP_VERSION=$(node -p "require('./package.json').version")
+PORTABLE="dist-server/TCG-Life-${APP_VERSION}-portable-win64.zip"
+rm -f "$PORTABLE"
+echo "==> portable zip: $PORTABLE (factory-fresh release/)"
+# No zip/7z on a stock Windows box, and Compress-Archive inherits the PS 5.1
+# backslash-entry bug; ZipFile::CreateFromDirectory takes the folder and the
+# output name directly and keeps the layout the portable builds have always had.
+powershell -NoProfile -Command "
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  \$rel = (Resolve-Path 'release').Path
+  \$out = Join-Path (Resolve-Path 'dist-server').Path '$(basename "$PORTABLE")'
+  [System.IO.Compression.ZipFile]::CreateFromDirectory(\$rel, \$out, [System.IO.Compression.CompressionLevel]::Optimal, \$false)
+"
+[ -f "$PORTABLE" ] || { echo "!! portable zip was not produced"; exit 1; }
+echo "portable ready: $PORTABLE ($(du -h "$PORTABLE" | cut -f1))"
+
+# 4. Compile the installer. ISCC flags start with / — stop MSYS path mangling.
 ISCC="$LOCALAPPDATA/Programs/Inno Setup 6/ISCC.exe"
 [ -f "$ISCC" ] || ISCC="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 [ -f "$ISCC" ] || { echo "Inno Setup 6 not found — install it from https://jrsoftware.org/isdl.php"; exit 1; }
@@ -127,3 +155,4 @@ MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" "$ISCC" "scripts\\installer.iss"
 
 SETUP=$(ls -t dist-server/TCG-Life-Setup-*.exe | head -1)
 echo "installer ready: $SETUP ($(du -h "$SETUP" | cut -f1))"
+echo "release ready: $SETUP + $PORTABLE"
