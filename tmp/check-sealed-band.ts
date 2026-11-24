@@ -33,9 +33,10 @@ for (const r of rows) {
   if (!(d > 0)) continue
   const ref = priceOf(`${r.set_id}-booster`)
   if (!(ref.market > 0) || ref.source === 'estimated') {
-    // No real wrapper quote: the display must still be at its shelf quote.
+    // No real wrapper quote: the display is its shelf quote, except where the
+    // pull-EV floor lifts it — the floor is allowed to win, never to go below.
     const quote = shelfPriceFor(r.id)
-    if (quote && Math.abs(quote.market - d) > 0.02) over.push(`${r.id} $${d.toFixed(2)} moved off its quote $${quote.market} without a reference`)
+    if (quote && d + 0.02 < quote.market) over.push(`${r.id} $${d.toFixed(2)} is under its quote $${quote.market} without a reference`)
     untouched++
     continue
   }
@@ -66,6 +67,16 @@ const cheap = rows
   .filter((r) => r.d > 0 && r.p.market > 0 && r.p.source !== 'estimated')
   .filter((r) => r.d / 36 < r.p.market * 0.5)
 ok(cheap.length > 0, `a discounted box still exists and was not raised (${cheap.length})`)
+
+// Researched box quotes: the collector-era boxes carry PriceCharting sold values,
+// and the ones whose value disagreed with their own sales stay modelled.
+const quotedDisplays = rows.filter((r) => priceOf(r.id).source !== 'estimated').length
+ok(quotedDisplays >= 85, `most displays are priced off a quote (${quotedDisplays} of ${rows.length})`)
+ok(priceOf('base1-display').market === 40000 && priceOf('base1-display').source === 'pricecharting', `Base Set's box is its sold value ($${priceOf('base1-display').market.toFixed(2)})`)
+ok(priceOf('sm1-display').market === 1032.84, `Sun & Moon's box is its TCGplayer market ($${priceOf('sm1-display').market.toFixed(2)})`)
+ok(priceOf('bw8-display').source === 'estimated', 'Plasma Storm stays modelled: its page disagrees with its own sales')
+ok(priceOf('base6-display').source === 'estimated', 'Legendary Collection stays modelled for the same reason')
+ok(priceOf('ex1-display').source === 'estimated', 'a set with no PriceCharting box page stays modelled')
 
 // The ceiling is set from the gap in the data, not from its edge: above every
 // measured box (2.74x) and below the 6x a six-box case starts at. A thin outlier

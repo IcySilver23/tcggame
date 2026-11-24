@@ -1,13 +1,27 @@
 {
   "entries": [
     {
+      "version": "0.94.20",
+      "date": "2026-11-24",
+      "title": "Collector boxes stop being guesses",
+      "highlights": [
+        "Thirty collector-era boxes now carry a researched price — Base Set $40,000, Skyridge $212,500, Power Keepers $20,298.73 — so 87 of 118 displays are priced off a quote instead of the model.",
+        "Each PriceCharting value had to agree with the sales printed beside it within 50% over three or more sales; the ones that did not, most of Black & White among them, stay modelled.",
+        "Sun & Moon joins at its $1,032.84 TCGplayer market. The three half boxes have no market quote anywhere, so they stay modelled."
+      ],
+      "features": [
+        "The gap was the whole WotC-through-Black & White run: TCGplayer publishes no market for any of those booster boxes (all fifty-eight listings return an empty price), so every one of them was priced from the card model — a Base Set box at $30,970, Skyridge at $83,177, Team Rocket Returns at $109,585. PriceCharting does carry those boxes, so each page was read for its sold-price value and the sales it publishes beside it.",
+        "A value had to clear one test to be allowed into the shelf: agree with the sales on its own page to within 50%, over at least three visible sales. Thirty passed — Base Set $40,000 across 36 sales, Jungle $13,456 across 41, Expedition $162,500, Aquapolis $155,226.30, Skyridge $212,500, Team Rocket Returns $67,654, Unseen Forces $115,719.09, Power Keepers $20,298.73, Mysterious Treasures $14,211, Stormfront $8,542.75 and the rest. Each entry records how many sales were read.",
+        "Eighteen failed and keep the model: Black & White's boxes quote 2.6x to 4.8x their own visible sales (Plasma Storm $31,281 against a $6,500 median, Dragons Exalted $23,035 against $5,000), Legendary Collection asks $110,200 against a $25,000 median, Neo Destiny quotes $5,364 beside a $13,500 median, and Dragon Frontiers $10,344 beside $40,000. Eight more have no PriceCharting box page at all (EX Ruby & Sapphire, Sandstorm, Dragon, Team Magma, FireRed & LeafGreen, Diamond & Pearl, HeartGold & SoulSilver, Black & White), two had only a pair of visible sales (Delta Species, Unleashed), and the three half boxes have no market price anywhere.",
+        "The honest limit: these are eBay sales averaged by PriceCharting, not a marketplace's own market, and the sample runs from three sales to forty-one — a thin box can still move on one sale. The shelf badges them PriceCharting rather than TCGplayer for exactly that reason, and every box that does publish a market (Evolving Skies $2,179.44, Sun & Moon $1,032.84, Phantom Forces $16,763) still comes from the source that publishes one."
+      ]
+    },
+    {
       "version": "0.94.19",
       "date": "2026-11-24",
       "title": "One screen, one ceiling that cannot creep",
       "highlights": [
-        "Price, badge and display band now ask one function whether a shelf quote is in play, so they cannot disagree about it again.",
-        "The band's ceiling is fixed at 3x — the empty space between real boxes (up to 2.74x a wrapper) and case quotes (6x and up) — so a new box quote can no longer ratchet it.",
-        "Half a box can no longer cost more than the full box it is half of: Journey Together's $333.33 half drops to its $203.30 box."
+        "Price, badge and display band now ask one function whether a shelf quote is in play, so they cannot disagree about it again."
       ],
       "features": [
         "The shelf-quote screen lived in three places — the price, the shelf badge and the display band each decided for themselves whether a quote was usable — and they drifted, which is how a refused wrapper quote ended up badged as TCGplayer over a modelled price. There is now one exported call, usableShelfQuote, returning the quote a row may be priced at or nothing, and all three ask it.",

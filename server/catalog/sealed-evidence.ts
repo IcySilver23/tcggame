@@ -2427,10 +2427,63 @@ const MIRROR_SHELF: Readonly<Record<string, number>> = {
 // whose 2026 sales back each one (Flashfire $7,456–$11,200, Phantom Forces
 // $10,110–$22,000, BREAKpoint $2,499–$2,999).
 export const LATE_BOX_SHELF: Readonly<Record<string, { market: number; productId: number | null; product: string; page: string; asOf: string }>> = {
+  'sm1-display': { market: 1032.84, productId: 126048, product: 'Sun & Moon Booster Box', page: 'https://www.tcgplayer.com/product/126048', asOf: '2026-11-24' },
   'xy1-display': { market: 5999.99, productId: 91601, product: 'XY Booster Box', page: 'https://www.tcgplayer.com/product/91601', asOf: '2026-11-24' },
   'xy2-display': { market: 10598.42, productId: null, product: 'Flashfire Booster Box', page: 'https://www.pricecharting.com/game/pokemon-flashfire/booster-box', asOf: '2026-11-24' },
   'xy4-display': { market: 16763.04, productId: null, product: 'XY Phantom Forces Booster Box', page: 'https://www.pricecharting.com/game/pokemon-phantom-forces/booster-box', asOf: '2026-11-24' },
   'xy9-display': { market: 2499.0, productId: null, product: 'XY BREAKpoint Booster Box', page: 'https://www.pricecharting.com/game/pokemon-breakpoint/booster-box', asOf: '2026-11-24' },
+}
+
+// Collector-era boxes whose TCGplayer listing publishes no market at all — the
+// whole WotC-through-BW run — priced from PriceCharting's sold-price value instead.
+//
+// These are eBay sales averaged by PriceCharting, not a marketplace's own market
+// figure, so each one had to clear a second test before it could price a box: the
+// value the page publishes must agree with the sales it publishes beside it, to
+// within 50%, over at least three visible sales. `sales` below is how many were
+// read. Anything failing that test is absent and keeps the model — which is how
+// most of the Black & White run stays modelled, since those pages quote a value
+// 2.6x to 4.8x their own visible sales (Plasma Storm: $31,281 against a $6,500
+// median sale).
+//
+// Refused on disagreement: base3, base4, gym1, neo4, base6 (Legendary Collection,
+// $110,200 against a $25,000 median), ex13, ex15, dp4, col1, bw2, bw3, bw4, bw5,
+// bw6, bw7, bw8, bw9, bw10.
+// No PriceCharting product page at all: ex1, ex2, ex3, ex4, ex6, dp1, hgss1, bw1.
+// Mysterious Treasures is here even though TCGplayer shows an $18,000 market: its
+// own ask is $35,000 and PriceCharting's $14,211 agrees with its visible sales, so
+// the figure that agrees with its evidence is the one used.
+export const PC_BOX_SHELF: Readonly<Record<string, { market: number; sales: number; slug: string }>> = {
+  'base1-display': { market: 40000, sales: 36, slug: 'pokemon-base-set' },
+  'base2-display': { market: 13456, sales: 41, slug: 'pokemon-jungle' },
+  'base5-display': { market: 11336.53, sales: 32, slug: 'pokemon-team-rocket' },
+  'bw11-display': { market: 21251.2, sales: 39, slug: 'pokemon-legendary-treasures' },
+  'dp2-display': { market: 14211, sales: 12, slug: 'pokemon-mysterious-treasures' },
+  'dp3-display': { market: 11400, sales: 7, slug: 'pokemon-secret-wonders' },
+  'dp5-display': { market: 5900, sales: 3, slug: 'pokemon-majestic-dawn' },
+  'dp6-display': { market: 7337.38, sales: 4, slug: 'pokemon-legends-awakened' },
+  'dp7-display': { market: 8542.75, sales: 9, slug: 'pokemon-stormfront' },
+  'ecard1-display': { market: 162500, sales: 6, slug: 'pokemon-expedition' },
+  'ecard2-display': { market: 155226.3, sales: 5, slug: 'pokemon-aquapolis' },
+  'ecard3-display': { market: 212500, sales: 7, slug: 'pokemon-skyridge' },
+  'ex10-display': { market: 115719.09, sales: 4, slug: 'pokemon-unseen-forces' },
+  'ex12-display': { market: 4229.5, sales: 4, slug: 'pokemon-legend-maker' },
+  'ex14-display': { market: 27699.69, sales: 3, slug: 'pokemon-crystal-guardians' },
+  'ex16-display': { market: 20298.73, sales: 14, slug: 'pokemon-power-keepers' },
+  'ex5-display': { market: 17150, sales: 19, slug: 'pokemon-hidden-legends' },
+  'ex7-display': { market: 67654, sales: 4, slug: 'pokemon-team-rocket-returns' },
+  'ex8-display': { market: 29112.52, sales: 8, slug: 'pokemon-deoxys' },
+  'ex9-display': { market: 14051.51, sales: 5, slug: 'pokemon-emerald' },
+  'gym2-display': { market: 19538.75, sales: 23, slug: 'pokemon-gym-challenge' },
+  'hgss3-display': { market: 7710.5, sales: 4, slug: 'pokemon-undaunted' },
+  'hgss4-display': { market: 5188.71, sales: 8, slug: 'pokemon-triumphant' },
+  'neo1-display': { market: 53501, sales: 8, slug: 'pokemon-neo-genesis' },
+  'neo2-display': { market: 13475.53, sales: 9, slug: 'pokemon-neo-discovery' },
+  'neo3-display': { market: 12145.3, sales: 3, slug: 'pokemon-neo-revelation' },
+  'pl1-display': { market: 4126.82, sales: 7, slug: 'pokemon-platinum' },
+  'pl2-display': { market: 8963.62, sales: 8, slug: 'pokemon-rising-rivals' },
+  'pl3-display': { market: 14183.91, sales: 10, slug: 'pokemon-supreme-victors' },
+  'pl4-display': { market: 5743.39, sales: 9, slug: 'pokemon-arceus' },
 }
 
 /** Shelf quotes are keyed by product id; most special products have none. */
@@ -2464,6 +2517,15 @@ const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; a
   ...Object.entries(BW_BOOSTER_SHELF).map(
     ([id, q]) =>
       [id, { market: q.market, source: TCGPLAYER_SHELF(q.product, q.productId), asOf: '2026-11-08' }] as const,
+  ),
+  ...Object.entries(PC_BOX_SHELF).map(
+    ([id, q]) =>
+      [id, {
+        market: q.market,
+        source: PRICECHARTING_SHELF(`Booster Box (${id.replace('-display', '')})`, `https://www.pricecharting.com/game/${q.slug}/booster-box`),
+        asOf: '2026-11-24',
+        kind: 'pricecharting' as const,
+      }] as const,
   ),
   ...Object.entries(LATE_BOX_SHELF).map(
     ([id, q]) =>
