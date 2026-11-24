@@ -277,11 +277,20 @@ input::placeholder{color:var(--text-faint)}
 .brand .tag{font-size:9.5px;color:var(--text-faint);letter-spacing:1.6px;text-transform:uppercase}
 /* Only the nav list scrolls; the brand and the bell above it are pinned, so a
    row can never end up drawn underneath the bell. */
-.nav-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;scrollbar-gutter:stable}
+/* overflow-x is CLIP, not auto: the list only ever scrolls down. `overflow-y:auto`
+   silently promotes the other axis to auto, and a row that shifts 2px on hover
+   then counts as horizontal overflow — which put a full-width scrollbar across
+   the bottom of the nav that appeared and vanished with the pointer. Clip means
+   no x scroll container and no bar, whatever a hover state does. */
+.nav-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:clip;display:flex;flex-direction:column;gap:2px;scrollbar-gutter:stable}
 /* Pokéball mark — pure CSS, no image asset (survives the packaged exe). */
 .pokeball{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid #060c24;background:radial-gradient(circle at 50% 50%,#fff 0 3px,#060c24 3px 5px,transparent 5px),linear-gradient(180deg,var(--red-btn) 0 44%,#060c24 44% 56%,#f6f8ff 56% 100%);box-shadow:0 2px 0 rgba(0,0,0,.4)}
-.nav-item{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:12px;color:var(--text-dim);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:700;font-size:13px;letter-spacing:.2px;border:2px solid transparent;transition:background .12s,color .12s,transform .12s}
-.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;transform:translateX(2px)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:12px;color:var(--text-dim);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:700;font-size:13px;letter-spacing:.2px;border:2px solid transparent;transition:background .12s,color .12s,padding .12s}
+/* The hover nudge moves the row's CONTENTS, not the box: `transform` moved the
+   whole 186px row 2px inside a 186px scroller, which is horizontal overflow and
+   a scrollbar. Padding trades 2px across the two sides, so the icon and label
+   still step right and nothing leaves the scroller. */
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;padding-left:11px;padding-right:7px}
 .nav-item.active{background:var(--yellow);color:var(--on-yellow);font-weight:850;border-color:#060c24;box-shadow:0 3px 0 rgba(4,8,26,.7)}
 .nav-item.active:hover{background:var(--yellow);color:var(--on-yellow)}
 .nav-item .ico{width:26px;height:26px;flex:none;display:grid;place-items:center;font-size:12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);border-radius:9px;line-height:1}
