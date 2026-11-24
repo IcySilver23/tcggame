@@ -81,6 +81,27 @@ ok(priceOf('ex12-display').source === 'estimated', 'Legend Maker stays modelled:
 ok(priceOf('xy9-display').source === 'estimated', 'BREAKpoint stays modelled: its value is 6.9x its sold median')
 ok(priceOf('ex1-display').source === 'estimated', 'a set with no PriceCharting box page stays modelled')
 
+// A modelled box has to be in the right order of magnitude. These are the sold
+// medians of the pages whose quotes were refused: 23 boxes the model still prices,
+// each against what it actually sold for.
+const SOLD_MEDIAN: Record<string, number> = {
+  base3: 8800, base4: 10499, gym1: 9000, gym2: 13000, neo1: 23197, neo4: 13500,
+  ecard1: 50000, ex5: 8200, ex13: 18863, ex16: 13526, dp3: 6100, dp4: 4050, pl2: 5500,
+  bw2: 2500, bw3: 2296, bw4: 3500, bw5: 5000, bw6: 4158, bw7: 4350, bw8: 6000, bw9: 3900,
+  bw10: 3400, bw11: 4550,
+}
+let worstBoxFactor = 0
+for (const [setId, sold] of Object.entries(SOLD_MEDIAN)) {
+  const modelled = priceOf(`${setId}-display`)
+  if (modelled.source !== 'estimated') continue
+  const factor = Math.max(modelled.market / sold, sold / modelled.market)
+  worstBoxFactor = Math.max(worstBoxFactor, factor)
+  ok(factor <= 3.5, `${setId}'s modelled box is within 3.5x of its sold median ($${modelled.market.toFixed(0)} vs $${sold}, ${factor.toFixed(2)}x)`)
+}
+ok(worstBoxFactor <= 3.5, `every modelled box with a sold median is in the right order of magnitude (worst ${worstBoxFactor.toFixed(2)}x)`)
+ok(priceOf('gym2-display').market < 32000, `Gym Challenge is no longer priced above its whole set ($${priceOf('gym2-display').market.toFixed(0)} vs a $13,000 sold median)`)
+ok(priceOf('bw8-display').market > 3000, `Plasma Storm is no longer priced at a fraction of its sold median ($${priceOf('bw8-display').market.toFixed(0)} vs $6,000)`)
+
 // The ceiling is set from the gap in the data, not from its edge: above every
 // measured box (2.74x) and below the 6x a six-box case starts at. A thin outlier
 // moving by a tenth of a turn must not be able to move it.
@@ -95,19 +116,24 @@ const swsh7Full = priceOf('swsh7-display').market
 ok(swsh7Half <= swsh7Full + 0.01, `and a cheaper half is left alone ($${swsh7Half.toFixed(2)} vs $${swsh7Full.toFixed(2)})`)
 
 // The badge and the price agree: a refused quote is not cited as this row's source.
-const bw1Facts = shelfFacts('bw1-booster')
-ok(bw1Facts.source === 'estimated' && priceOf('bw1-booster').source === 'estimated', `a refused quote is not the badge either (${bw1Facts.source})`)
+const bw8Facts = shelfFacts('bw8-booster')
+ok(bw8Facts.source === 'estimated' && priceOf('bw8-booster').source === 'estimated', `a refused quote is not the badge either (${bw8Facts.source})`)
 const swsh7Facts = shelfFacts('swsh7-booster')
 ok(swsh7Facts.source === priceOf('swsh7-booster').source, `an accepted quote badges as its own source (${swsh7Facts.source})`)
 
 // A quote that cannot be a wrapper is refused before it prices anything.
-ok(!wrapperQuoteAgreesWithBox('bw1', 187.99), 'refuses the $187.99 Black & White wrapper beside a $656 box')
-ok(!wrapperQuoteAgreesWithBox('bw8', 651.13), 'refuses the $651.13 Plasma Storm wrapper beside a $1,297 box')
+// Black & White's $187.99 pack is accepted now: it was refused as "box-sized"
+// against a $656 box that the twice-charged scarcity model had made 5x too cheap,
+// and TCGplayer's own pack listing (98553) carries that market beside a $3,569 box.
+ok(wrapperQuoteAgreesWithBox('bw1', 187.99), 'accepts the $187.99 Black & White wrapper now that its box is $3,569')
+ok(!wrapperQuoteAgreesWithBox('bw8', 651.13), 'refuses the $651.13 Plasma Storm wrapper, 3.3x its box per pack')
 ok(wrapperQuoteAgreesWithBox('swsh7', 44.12), 'accepts the $44.12 Evolving Skies wrapper beside a $2,190 box')
 ok(wrapperQuoteAgreesWithBox('sv8', 9.03), 'accepts the $9.03 Surging Sparks wrapper beside a $303 box')
 ok(wrapperQuoteAgreesWithBox('xy4', 229.72), 'accepts the $229.72 Phantom Forces wrapper beside its $16,763 box')
 const bw1 = priceOf('bw1-booster')
-ok(bw1.source === 'estimated', `the refused Black & White wrapper falls back to its model ($${bw1.market.toFixed(2)} ${bw1.source})`)
+ok(bw1.source === 'tcgplayer' && Math.round(bw1.market) === 188, `the Black & White wrapper is priced at its marketplace quote ($${bw1.market.toFixed(2)} ${bw1.source})`)
+const bw8 = priceOf('bw8-booster')
+ok(bw8.source === 'estimated', `the refused Plasma Storm wrapper falls back to its model ($${bw8.market.toFixed(2)} ${bw8.source})`)
 // In-print wrappers are retail stickers, not resale quotes, and are not screened.
 const me55 = priceOf('me55-booster')
 ok(me55.source === 'tcgplayer', `an in-print wrapper keeps its shelf sticker ($${me55.market.toFixed(2)} ${me55.source})`)

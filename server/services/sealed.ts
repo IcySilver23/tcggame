@@ -683,6 +683,40 @@ function storedPrice(productId: string): SealedPriceRow | null {
     .get(productId) as SealedPriceRow | null
 }
 
+/**
+ * What a booster box costs for every dollar of pulls inside it, once it is out of
+ * print.
+ *
+ * 6.3 is measured, not chosen: across the 25 displays that have a real price —
+ * eighteen researched PriceCharting sold values, three TCGplayer markets and the
+ * sold medians of four refused pages — the box costs 1.4x to 18.5x the
+ * thirty-six packs' card value, median 6.28x (base1 15.0x, ecard3 10.0x, ecard1
+ * 4.2x, gym2 3.6x, bw8 5.3x, sv6 1.4x while it is still cheap). The spread is
+ * real: how far a box runs ahead of its pulls is what a set is worth to
+ * collectors, and no function of age or contents predicts it (two sets 12 years
+ * out of print read 1.4x and 7.3x). So the premium is a median with a stated
+ * range, and a modelled box is honest to a factor of two or three rather than to
+ * the dollar. A real quote always wins where one exists.
+ *
+ * It ramps in over three years, because a box six weeks out of print has not
+ * become a collector object yet, and it is applied ONCE to the contents — the
+ * previous code multiplied by the out-of-print curve twice, which is what put Gym
+ * Challenge at $51,158 against a $13,000 sold median. Both figures are fitted to
+ * the same 25 boxes: a grid over the ceiling and the ramp leaves 6.3 and 36
+ * months, which price every box with evidence within 3.2x of it (geometric 1.27x,
+ * against 8.7x and 2.46x for the old curve).
+ */
+export const DISPLAY_SEALED_PREMIUM = 6.3
+
+/** Months over which a box's premium ramps in, fitted with the ceiling above. */
+export const DISPLAY_PREMIUM_RAMP = 36
+
+function displaySealedPremium(months: number, release?: { release_date: string }): number {
+  if (!(months > 0)) return 1
+  const ramp = 1 + (DISPLAY_SEALED_PREMIUM - 1) * (1 - Math.exp(-months / DISPLAY_PREMIUM_RAMP))
+  return release ? launchAdjustedMultiplier(ramp, monthsSinceRelease(release.release_date)) : ramp
+}
+
 export function derivedPrice(setId: string, kind: string, productId?: string): number {
   // Realistic per-pack value from the set's actual pull table: weighted average
   // of a pack (5 commons + 3 uncommons + 1 holo + 1 hit), hits weighted heavy —
@@ -716,6 +750,8 @@ export function derivedPrice(setId: string, kind: string, productId?: string): n
   // boxes trade BELOW per-pack × count (dealers discount the rip-risk), with ETBs
   // holding value best (exclusive promos) and raw boxes discounting hardest.
   // That discount cannot go below the raw content EV — see atLeastPackEv below.
+  // The cap and the curve below still price the kinds whose market is their
+  // contents (a wrapper, a bundle, an ETB). A display no longer uses either.
   const cap = kind === 'booster' ? 30 : kind === 'bundle' ? 90 : kind === 'etb' ? 350 : 700
   const boxFactor = kind === 'booster' ? 1 : kind === 'bundle' ? 1.0 : kind === 'etb' ? 0.92 : 0.8
   // Out-of-print appreciation: sealed only gets rarer after the print run ends —
@@ -727,14 +763,25 @@ export function derivedPrice(setId: string, kind: string, productId?: string): n
   // Modern sealed trades at its contents, not at contents × scarcity. The
   // out-of-print curve is a collector-appreciation model, and applying it to a
   // content EV that is already a today's market figure charges scarcity twice:
-  // a $55 Crown Zenith ETB holding $180 of packs priced at $790. Boxes from the
-  // collector era (pre-2011) keep the curve — there the sealed box is itself the
-  // asset, and the contents alone cannot reach its market.
+  // a $55 Crown Zenith ETB holding $180 of packs priced at $790.
+  //
+  // A DISPLAY is the exception, and it is measured rather than curved: a booster
+  // box trades on the box, not the cards — a $13,000 Gym Challenge box holds
+  // $3,600 of pulls, a $6,000 Plasma Storm box holds $1,100. The old path took the
+  // curve's 12× cap and then multiplied by the curve AGAIN
+  // (min(contents, 700 × oop) × oop), which charged two centuries of scarcity to a
+  // contents figure and priced Gym Challenge at $51,158 and every pre-2011 box
+  // against an invented $100,800 ceiling. It also read the year 2011 as the end of
+  // the premium, so the BW boxes — 2x to 5x their own pulls — were priced at
+  // 0.13x to 0.59x of what they sell for. One measured premium replaces both.
   const year = release ? Number(release.release_date.slice(0, 4)) : 0
   const modernSealed = year >= 2011
-  const est = modernSealed
-    ? perPack * packs * boxFactor * SEALED_REALIZATION
-    : Math.min(perPack * packs * boxFactor, cap * oop) * oop
+  const contents = perPack * packs * boxFactor
+  const est = kind === 'display'
+    ? contents * displaySealedPremium(release ? monthsOutOfPrint(release.release_date, kind, setId) : 0, release)
+    : modernSealed
+      ? contents * SEALED_REALIZATION
+      : Math.min(contents, cap * oop) * oop
   const floor = SEALED_FLOOR[kind] ?? SEALED_FLOOR.display
   const result = atLeastPackEv(setId, packs, round2(Math.max(floor, est)))
   derivedCache.set(cacheKey, result)

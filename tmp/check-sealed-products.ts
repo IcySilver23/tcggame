@@ -29,7 +29,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { db } from '../server/lib/db'
 import { rollPack } from '../server/services/packs'
 import { planFor, expectedPackValue, HOST_SUBSETS, SUBSET_TIER_ODDS, subsetChanceFor } from '../server/services/packodds'
-import { ensureFullCatalog, sellsProduct, priceDetail, promoValueOf, SEALED_FLOOR, SEALED_REALIZATION, SUBSET_ONLY_SETS } from '../server/services/sealed'
+import { ensureFullCatalog, sellsProduct, priceDetail, promoValueOf, SEALED_FLOOR, SEALED_REALIZATION, DISPLAY_SEALED_PREMIUM, SUBSET_ONLY_SETS } from '../server/services/sealed'
 import { miniPackFor } from '../server/catalog/general-mills'
 
 const N = Number(process.env.SEALED_PACKS ?? 40)
@@ -188,9 +188,18 @@ for (const r of ripPositive) {
 // per-kind floor is the other legitimate reason to sit above contents: a $32
 // ETB minimum is a shop rule, not a scarcity curve. Contents are counted at
 // their realized value, because the floor is what selling the pulls pays.
+// A DISPLAY is the one exception, and the exception is measured rather than
+// assumed: across 25 boxes with a real price a display runs 1.4x to 18.5x its
+// thirty-six packs' card value (median 6.28x), because a booster box is bought as
+// a box. Its ceiling is therefore contents x the measured premium, which still
+// catches a runaway model — the twice-charged scarcity curve once priced Gym
+// Challenge at 18x its own pulls, far above this bar. ETBs, bundles and
+// collections are still held to their contents.
 const stacked = sold.filter((r) => {
   if (r.kind === 'special' || r.source !== 'estimated' || r.year < 2011) return false
-  const allowed = Math.max(r.productEv * SEALED_REALIZATION, SEALED_FLOOR[r.kind] ?? 0) + promoValueOf(r.id) + 0.5
+  const contents = r.productEv * (r.kind === 'display' ? 0.8 : 1)
+  const ceiling = r.kind === 'display' ? contents * DISPLAY_SEALED_PREMIUM : contents * SEALED_REALIZATION
+  const allowed = Math.max(ceiling, SEALED_FLOOR[r.kind] ?? 0) + promoValueOf(r.id) + 0.5
   if (r.market <= allowed) return false
   return priceDetail(r.id).oopMonths > 0
 })
