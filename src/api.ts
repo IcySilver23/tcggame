@@ -330,7 +330,10 @@ export const api = {
   stackQuote: (inventoryIds: number[]) =>
     post<{ ok: boolean; error?: string; count?: number; market?: number; distinctSets?: number; viewers?: number; band?: { low: number; high: number }; buylist?: { low: number; high: number } }>('/api/stream/stack/quote', { inventoryIds }),
   stackList: (inventoryIds: number[], start: number | null, reserve: number | null) =>
-    post<{ ok: boolean; error?: string; lot?: StreamLot; market?: number; ceilingBand?: { low: number; high: number }; overAsk?: boolean }>('/api/stream/stack', { inventoryIds, start, reserve }),
+    post<{ ok: boolean; error?: string; lot?: StreamLot; queued?: boolean; market?: number; ceilingBand?: { low: number; high: number }; overAsk?: boolean }>('/api/stream/stack', { inventoryIds, start, reserve }),
+  /** A spread of the whole cheap pool, not the page the picker has loaded. */
+  stackFill: (count = 20, max = 2) =>
+    req<{ ok: boolean; error?: string; ids?: number[]; count?: number; market?: number; pool?: number }>(`/api/stream/stack/fill?count=${count}&max=${max}`),
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
   breakStatus: () => req<BreakStatus>('/api/stream/break'),
   breakCreate: (productId: string, spots: number, spotPrice: number | null, packs: number) =>
@@ -2629,7 +2632,7 @@ export type StreamLot = {
   reserve: number
   currentBid: number | null
   bids: number
-  status: 'live' | 'sold' | 'passed'
+  status: 'live' | 'queued' | 'sold' | 'passed'
   soldPrice: number | null
   net: number
   fee: number
@@ -2678,7 +2681,7 @@ export type StreamChannel = {
   bestCardValue: number | null
   live: StreamLive | null
   /** The selling half of the room. */
-  lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals }
+  lots: { live: StreamLot | null; queued: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals }
   /** How many ungraded copies the binder holds — the picker loads the list itself. */
   sellableTotal: number
   contract: SponsorContract | null

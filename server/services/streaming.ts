@@ -608,6 +608,36 @@ export function forgetSellable(): void {
  * by limit. Text is what narrows the list, never a silent cutoff.
  */
 /**
+ * A spread of the whole cheap pool, not the page the picker happens to hold.
+ * `Fill 20` used to sample the loaded rows, so the pile it built was worth
+ * whatever the first screen of the list held; this walks every eligible copy
+ * and takes an even stride through them.
+ */
+export function stackFill(count = 20, max = 2) {
+  const take = Math.max(1, Math.min(40, Math.round(count) || 20))
+  const cap = max > 0 ? max : 2
+  const pool = sellableSnapshot()
+    .filter((r) => r.market > 0 && r.market <= cap)
+    .slice()
+    .sort((a, b) => a.market - b.market)
+  if (pool.length === 0) return { ok: false as const, error: 'Nothing in the binder is under the stack cap yet' }
+  const want = Math.min(take, pool.length)
+  const step = pool.length / want
+  const picked: SellableCard[] = []
+  for (let k = 0; k < want; k++) {
+    const row = pool[Math.min(pool.length - 1, Math.floor(k * step))]
+    if (!picked.some((p) => p.id === row.id)) picked.push(row)
+  }
+  return {
+    ok: true as const,
+    ids: picked.map((p) => p.id),
+    count: picked.length,
+    market: round2(picked.reduce((s, p) => s + p.market, 0)),
+    pool: pool.length,
+  }
+}
+
+/**
  * `max` flips the ranking: the picker normally offers the most valuable copies
  * first, but a stack is built from the cheap end, so a cap asks for the cards
  * that could ride in one and orders them cheapest first.
@@ -636,7 +666,9 @@ export function sellableCount(): number {
 
 export function streamLotsFor(streamId: number) {
   const live = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live' ORDER BY id DESC LIMIT 1`).get(streamId) as LotRow | undefined
-  const recent = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status != 'live' ORDER BY id DESC LIMIT 6`).all(streamId) as LotRow[]
+  // A queued lot is not history: it is the next thing on the block.
+  const queued = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'queued' ORDER BY id ASC LIMIT 1`).get(streamId) as LotRow | undefined
+  const recent = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status NOT IN ('live', 'queued') ORDER BY id DESC LIMIT 6`).all(streamId) as LotRow[]
   const row = db
     .prepare(
       `SELECT COUNT(*) AS listed,
@@ -651,6 +683,7 @@ export function streamLotsFor(streamId: number) {
   const unsold = row.unsold ?? 0
   return {
     live: live ? lotView(live) : null,
+    queued: queued ? lotView(queued) : null,
     recent: recent.map(lotView),
     totals: {
       listed: row.listed,
@@ -670,6 +703,8 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   if (!st) return { ok: false as const, error: 'Go live first — a lot needs a room.' }
   const openLot = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'live'`).get(st.id)
   if (openLot) return { ok: false as const, error: 'One thing at a time — hammer the card on camera first.' }
+  const queuedLot = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'queued'`).get(st.id)
+  if (queuedLot) return { ok: false as const, error: 'A pile is waiting for the block — let it have the hammer before a single goes up.' }
   const inv = db
     .prepare(`SELECT id, card_id, variant, quantity, cost_basis FROM inventory WHERE id = ? AND status = 'collection' AND graded_grade IS NULL`)
     .get(inventoryId) as { id: number; card_id: string; variant: string; quantity: number; cost_basis: number } | undefined
@@ -723,9 +758,38 @@ export function listStreamLot(inventoryId: number, startPrice?: number | null, r
   return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceilingBand: room, overAsk }
 }
 
+/**
+ * Put the next queued lot on camera. A queue is one deep: the pile a host builds
+ * while the current lot is being bid on takes the block the moment it settles,
+ * with a fresh clock — waiting time never eats a lot's airtime.
+ */
+function promoteQueuedLot(streamId: number): number | null {
+  const next = db
+    .prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'queued' ORDER BY id ASC LIMIT 1`)
+    .get(streamId) as LotRow | undefined
+  if (!next) return null
+  const now = Date.now()
+  db.prepare(`UPDATE stream_lots SET status = 'live', created_at = ?, ends_at = ? WHERE id = ?`).run(
+    nowIso(),
+    new Date(now + LOT_MS).toISOString(),
+    next.id,
+  )
+  const name = next.kind === 'stack' ? `${next.cards}-card stack` : cardName(next.card_id)
+  pushLotChat(next.id, [
+    { who: 'STREAM', avatar: '📣', text: `${name} is ON CAMERA — opens at $${next.start_price.toFixed(2)}, reserve $${next.reserve.toFixed(2)}` },
+  ])
+  logActivity('stream', `${name} takes the block — opens $${next.start_price.toFixed(2)}, reserve $${next.reserve.toFixed(2)}.`)
+  return next.id
+}
+
 /** Hammer one lot: sold if the room reached the reserve, otherwise it goes home. */
 function settleLot(l: LotRow): void {
-  if (l.kind === 'stack') return settleStackLot(l)
+  if (l.kind === 'stack') settleStackLot(l)
+  else settleSingleLot(l)
+  promoteQueuedLot(l.stream_id)
+}
+
+function settleSingleLot(l: LotRow): void {
   const name = cardName(l.card_id)
   const bid = l.current_bid ?? 0
   const reached = l.bids > 0 && bid >= l.reserve
@@ -763,8 +827,9 @@ function settleLot(l: LotRow): void {
 export function listStreamStack(inventoryIds: number[], startPrice?: number | null, reserve?: number | null) {
   const st = liveStream()
   if (!st) return { ok: false as const, error: 'Go live first — a stack needs a room.' }
-  const openLot = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'live'`).get(st.id)
-  if (openLot) return { ok: false as const, error: 'One thing at a time — hammer the lot on camera first.' }
+  const liveLot = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'live'`).get(st.id)
+  const waiting = db.prepare(`SELECT id FROM stream_lots WHERE stream_id = ? AND status = 'queued'`).get(st.id)
+  if (waiting) return { ok: false as const, error: 'One pile is already waiting for the hammer — the queue is one deep.' }
   const resolved = resolveStack(inventoryIds)
   if (!resolved.ok) return resolved
   const { copies, market, distinctSets } = resolved
@@ -781,10 +846,23 @@ export function listStreamStack(inventoryIds: number[], startPrice?: number | nu
   const tx = db.transaction(() => {
     const info = db
       .prepare(
-        `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, kind, cards, market, created_at, ends_at)
-         VALUES (?, NULL, ?, ?, ?, ?, ?, 'stack', ?, ?, ?, ?)`,
+        `INSERT INTO stream_lots (stream_id, inventory_id, card_id, variant, start_price, reserve, ceiling, kind, cards, market, status, created_at, ends_at)
+         VALUES (?, NULL, ?, ?, ?, ?, ?, 'stack', ?, ?, ?, ?, ?)`,
       )
-      .run(st.id, copies[0].cardId, copies[0].variant, start, floor, ceiling, copies.length, market, nowIso(), new Date(Date.now() + LOT_MS).toISOString())
+      .run(
+        st.id,
+        copies[0].cardId,
+        copies[0].variant,
+        start,
+        floor,
+        ceiling,
+        copies.length,
+        market,
+        // A pile built while something is on the block waits its turn.
+        liveLot ? 'queued' : 'live',
+        nowIso(),
+        new Date(Date.now() + LOT_MS).toISOString(),
+      )
     lotId = Number(info.lastInsertRowid)
     for (const c of copies) {
       const took = db.prepare(`UPDATE inventory SET status = 'escrowed' WHERE id = ? AND status = 'collection'`).run(c.id)
@@ -802,15 +880,29 @@ export function listStreamStack(inventoryIds: number[], startPrice?: number | nu
     {
       who: 'STREAM',
       avatar: '📣',
-      text: `${copies.length} cards hit the block as one stack — $${market.toFixed(2)} of market across ${distinctSets} set${distinctSets === 1 ? '' : 's'}, opens at $${start.toFixed(2)}`,
+      text: liveLot
+        ? `${copies.length} cards are next up — $${market.toFixed(2)} of market across ${distinctSets} set${distinctSets === 1 ? '' : 's'}, opens at $${start.toFixed(2)}. They wait for the hammer.`
+        : `${copies.length} cards hit the block as one stack — $${market.toFixed(2)} of market across ${distinctSets} set${distinctSets === 1 ? '' : 's'}, opens at $${start.toFixed(2)}`,
     },
     ...(overAsk
       ? [{ who: 'STREAM', avatar: '🤔', text: `Opening at $${start.toFixed(2)}? This room looks like a ${bandText(room)} crowd — a stack that high may just sit.` }]
       : []),
   ])
   forgetSellable()
-  logActivity('stream', `Put a ${copies.length}-card stack on the block — $${market.toFixed(2)} of market, opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`)
-  return { ok: true as const, lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow), market, ceilingBand: room, overAsk }
+  logActivity(
+    'stream',
+    liveLot
+      ? `A ${copies.length}-card stack is queued behind the live lot — $${market.toFixed(2)} of market, opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`
+      : `Put a ${copies.length}-card stack on the block — $${market.toFixed(2)} of market, opens $${start.toFixed(2)}, reserve $${floor.toFixed(2)}.`,
+  )
+  return {
+    ok: true as const,
+    lot: lotView(db.prepare('SELECT * FROM stream_lots WHERE id = ?').get(lotId) as LotRow),
+    queued: !!liveLot,
+    market,
+    ceilingBand: room,
+    overAsk,
+  }
 }
 
 /**
@@ -869,6 +961,8 @@ export function streamLotTick(): void {
   const st = liveStream()
   if (!st) return
   const lots = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live'`).all(st.id) as LotRow[]
+  // An empty block with a pile waiting means the last hammer never came round.
+  if (lots.length === 0) promoteQueuedLot(st.id)
   for (const l of lots) {
     const now = Date.now()
     const ends = new Date(l.ends_at).getTime()
@@ -895,7 +989,8 @@ export function streamLotTick(): void {
 
 /** Every live lot returns to the binder when the stream ends. */
 function returnOpenLots(streamId: number): void {
-  const lots = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status = 'live'`).all(streamId) as LotRow[]
+  // Queued lots never got their airtime, so their copies come home too.
+  const lots = db.prepare(`SELECT * FROM stream_lots WHERE stream_id = ? AND status IN ('live', 'queued')`).all(streamId) as LotRow[]
   if (lots.length > 0) forgetSellable()
   const tx = db.transaction(() => {
     for (const l of lots) {

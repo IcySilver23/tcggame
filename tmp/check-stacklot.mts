@@ -98,6 +98,47 @@ const blockedList = streaming.listStreamStack([...cheap.slice(80, 99).map((r) =>
 check('the block refuses it too', !blockedList.ok && /BidBay/i.test((blockedList as { error: string }).error), blockedList.ok ? '' : (blockedList as { error: string }).error)
 db.prepare(`DELETE FROM ebay_auctions WHERE inventory_id = ?`).run(auctioned.id)
 
+// --- the queue -------------------------------------------------------------
+const idsA = cheap.slice(100, 120).map((r) => r.id)
+const idsB = cheap.slice(120, 140).map((r) => r.id)
+const a = streaming.listStreamStack(idsA, 2.99, 2.99)
+check('the first pile goes live', a.ok && a.lot?.status === 'live', a.ok ? `status ${a.lot?.status}` : (a as { error: string }).error)
+const b = streaming.listStreamStack(idsB, 2.99, 2.99)
+check('a second pile queues behind it', b.ok && (b as { queued?: boolean }).queued === true && b.lot?.status === 'queued', b.ok ? `status ${b.lot?.status}` : (b as { error: string }).error)
+check('queued copies are already escrowed', statusOf(idsB).every((s) => s?.status === 'escrowed'), `${statusOf(idsB).filter((s) => s?.status === 'escrowed').length}/20`)
+const third = streaming.listStreamStack(cheap.slice(140, 160).map((r) => r.id), null, null)
+check('the queue is one deep', !third.ok, third.ok ? '' : (third as { error: string }).error)
+const singleWhileQueued = streaming.listStreamLot(cheap[200].id, null, null)
+check('a single cannot jump the queue', !singleWhileQueued.ok, singleWhileQueued.ok ? '' : (singleWhileQueued as { error: string }).error)
+const both = streaming.streamLotsFor(streamId)
+check('the block shows one live and one waiting', !!both.live && !!both.queued && both.recent.every((r) => r.status !== 'queued'), 'queue is not history')
+
+const aId = (a.lot as { id: number }).id
+db.prepare(`UPDATE stream_lots SET ends_at = ? WHERE id = ?`).run(new Date(Date.now() - 1000).toISOString(), aId)
+streaming.streamLotTick()
+const promoted = streaming.streamLotsFor(streamId)
+check('the queued pile takes the block when the first settles', promoted.live?.id === (b.lot as { id: number }).id && promoted.queued === null, `live ${promoted.live?.name ?? 'none'}`)
+check('a promoted lot gets a fresh clock', !!promoted.live && new Date(promoted.live.endsAt).getTime() - Date.now() > 60_000, `${Math.round((new Date(promoted.live?.endsAt ?? 0).getTime() - Date.now()) / 1000)}s left`)
+check('promotion is announced on camera', (promoted.live?.chat ?? []).some((c) => c.text.includes('ON CAMERA')), (promoted.live?.chat ?? []).at(-1)?.text ?? 'no chat')
+
+const idsC = cheap.slice(160, 180).map((r) => r.id)
+const c = streaming.listStreamStack(idsC, 2.99, 2.99)
+check('a pile can queue behind the promoted lot', c.ok && (c as { queued?: boolean }).queued === true, c.ok ? '' : (c as { error: string }).error)
+streaming.endStream()
+check('wrapping returns live and queued copies', statusOf(idsC).every((s) => s?.status === 'collection'), `${statusOf(idsC).filter((s) => s?.status === 'collection').length}/20 back`)
+streaming.goLive(product.id, 1)
+
+// --- fill draws from the whole pool ---------------------------------------
+const filled = streaming.stackFill(20, 2)
+check('fill builds a full pile', filled.ok && filled.count === 20, filled.ok ? `pool ${filled.pool}` : '')
+if (filled.ok) {
+  const byId = new Map(cheap.map((r) => [r.id, r.v]))
+  const vals = filled.ids.map((id) => byId.get(id) ?? 0).sort((x, y) => x - y)
+  check('fill draws past the picker page', filled.pool > 150, `${filled.pool} copies in the pool`)
+  check('fill spans the cheap end instead of taking the 20 cheapest', vals[vals.length - 1] - vals[0] > 1, `$${vals[0].toFixed(2)} to $${vals[vals.length - 1].toFixed(2)}`)
+  check('fill picks distinct copies', new Set(filled.ids).size === filled.ids.length, `${new Set(filled.ids).size} unique`)
+}
+
 // --- wrap ------------------------------------------------------------------
 const ended = streaming.endStream()
 check('the stream can wrap with no lot open', ended.ok !== false, ended.ok === false ? ended.error : 'ended')

@@ -1,17 +1,29 @@
 {
   "entries": [
     {
+      "version": "0.94.1",
+      "date": "2026-11-24",
+      "title": "One on the block, one in the wings",
+      "highlights": [
+        "Build the next pile while the current lot is being bid on — a queued stack takes the block the moment the hammer falls.",
+        "Fill 20 now draws from every cheap card you own instead of the page the picker happened to have loaded.",
+        "The queue is one deep, so a single card cannot jump it until the waiting pile has had the hammer."
+      ],
+      "features": [
+        "Sell live has a real queue now. With a lot on camera you can switch to A stack, pick the next pile and press Queue the stack behind this lot: its copies are escrowed straight away, it shows under the live lot as NEXT UP with its own opening ask and reserve, and the moment the current lot settles it is promoted with a fresh 75-second clock — time spent waiting never eats a lot’s airtime. The promotion is announced in the lot chat and the activity log, so the room knows what just landed.",
+        "The queue is one deep on purpose: a second queued pile is refused, and a single card cannot be put up while a pile is waiting, because the block takes one lot at a time and a hidden third row would only confuse what the room is watching. A pile that is still queued when you wrap goes back to the binder copy for copy, exactly as a live one does — nothing is charged and nothing is kept.",
+        "Fill 20 also stopped sampling the picker. It used to spread a selection across the hundred rows the page had loaded, which is why the piles it made were worth about $6; it now asks the server for an even spread across every copy you own under the $2 cap — 455 copies in a save of this size, from roughly 19¢ up to the cap — and priced the pile it builds at about $10 to $12. The page you are looking at no longer limits what the button can reach."
+      ]
+    },
+    {
       "version": "0.94.0",
       "date": "2026-11-23",
       "title": "Stacks: the dollar bin goes on the block",
       "highlights": [
-        "Put 10–40 junk cards up as one stack — one ask, one buyer, one hammer, and the whole pile settles together.",
-        "A stack earns a froth above the room’s usual heat, and the froth only exists while people are actually watching.",
-        "The sell panel quotes the pile against the buylist before you list, so you can see which one is worth the airtime.",
-        "A card in a live BidBay auction can’t be escrowed for a stream — the same copy can’t sell twice."
+        "Put 10–40 junk cards up as one stack — one ask, one buyer, one hammer, and the whole pile settles together."
       ],
       "features": [
-        "Sell live has a second mode: pick 10–40 cards from the cheap end of the binder, press Fill 20 to spread a selection across what you own under $2, and the panel prices the pile as you go. The stack goes on the block as a single lot with a single ask and one clock, and the room bids on the pile rather than the cards. The 8% platform cut is charged once on the total, and escrow is all-or-nothing: if one copy can’t be reserved, nothing is reserved.",
+        "Sell live has a second mode: pick 10–40 cards from the cheap end of the binder, press Fill 20 to spread a selection across what you own under $2, and the panel prices the pile as you go. The stack goes on the block as a single lot with a single ask and one clock, and the room bids on the pile rather than the cards. The 8% platform cut is charged once on the total, and escrow is all-or-nothing: if one copy can’t be reserved, nothing is reserved. A stack earns a froth above the room’s usual heat, and the froth only exists while people are actually watching. The sell panel quotes the pile against the buylist before you list, so you can see which one is worth the airtime. A card in a live BidBay auction can’t be escrowed for a stream — the same copy can’t sell twice.",
         "The pricing is the part that needed measuring, and it was measured — 4,000 simulated 24-card stacks drawn from a real save where 86% of the binder is worth under a dollar. A 24-card pile is about $11.53 of market across roughly 4 sets. With the ceiling held at or below market it clears $5.91 when it sells at all, which is under the buylist’s worst rate of 55%, so nobody would ever choose it. So a stack pays a froth on top of the room’s heat: up to 30% more, six points per distinct set in the pile, scaled by how many people are watching and zero when nobody is. A 400-viewer room clears the same pile for about $11.72 and a 30-viewer room for $0.62 — less than the counter, which is the honest answer. The simplification to admit: a stack can therefore sell for more than the cards are worth on paper. That is the crowd paying for a dig, not free money, and it stops the moment the room does.",
         "The rails are the same ones the single lots already had. One lot on the block at a time, a $2 per-card cap so a chase card can’t ride in through the junk door, graded slabs refused, and copies already escrowed or sitting in a bulk box or grab bag refused. A copy that is on a live BidBay auction is now refused too — the single lot had the same hole and it is closed there as well. A sale marks every copy sold and writes a sale record per card, a pass puts every copy back in the binder, and ending the stream returns a stack that is still up, exactly as it does a single."
       ]

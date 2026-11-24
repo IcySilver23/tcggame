@@ -2457,6 +2457,11 @@ app.post('/api/stream/lot', async (c) => {
   const r = streaming.listStreamLot(Number(body.inventoryId), body.start ?? null, body.reserve ?? null)
   return c.json(r, r.ok ? 200 : 400)
 })
+// Fill a stack from the whole cheap pool rather than the picker's current page.
+app.get('/api/stream/stack/fill', (c) => {
+  const r = streaming.stackFill(Number(c.req.query('count') ?? 20), Number(c.req.query('max') ?? 2))
+  return c.json(r, r.ok ? 200 : 400)
+})
 // A stack goes up as one lot: the same block, one ask, many copies.
 app.post('/api/stream/stack', async (c) => {
   const body = await c.req.json<{ inventoryIds?: number[]; start?: number | null; reserve?: number | null }>().catch(() => ({}) as { inventoryIds?: number[]; start?: number | null; reserve?: number | null })

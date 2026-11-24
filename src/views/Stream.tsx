@@ -311,7 +311,12 @@ export function StreamView() {
     try {
       const r = await api.stackList(ids, start ? Number(start) : null, reserve ? Number(reserve) : null)
       if (r.ok) {
-        toast(`A ${r.lot?.cards ?? ids.length}-card stack is on the block — reserve ${fmtUsd(r.lot?.reserve ?? 0)}`, 'good')
+        toast(
+          r.queued
+            ? `A ${r.lot?.cards ?? ids.length}-card stack is queued behind the live lot — reserve ${fmtUsd(r.lot?.reserve ?? 0)}`
+            : `A ${r.lot?.cards ?? ids.length}-card stack is on the block — reserve ${fmtUsd(r.lot?.reserve ?? 0)}`,
+          'good',
+        )
         setLotStart('')
         setLotReserve('')
         loadChannel()
@@ -838,7 +843,7 @@ export function StreamView() {
 // covered: a sale has to be earned, and an unsold lot is a normal night.
 // ---------------------------------------------------------------------------
 function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setReserve, onList, onStackList, onOpen, now }: {
-  lots: { live: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals } | null
+  lots: { live: StreamLot | null; queued: StreamLot | null; recent: StreamLot[]; totals: StreamLotTotals } | null
   busy: boolean
   pick: number | null
   setPick: (id: number | null) => void
@@ -863,6 +868,10 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
   // is what narrows the list.
   const [mode, setMode] = useState<'single' | 'stack'>('single')
   const [stackIds, setStackIds] = useState<number[]>([])
+  const queued = lots?.queued ?? null
+  // A single waits for an empty block; a stack may be built while one is being
+  // bid on, as long as nothing is already queued behind it.
+  const blocked = busy || (mode === 'single' ? !!lot || !!queued : !!queued)
   const [q, setQ] = useState('')
   const [rows, setRows] = useState<StreamSellable[]>([])
   const [total, setTotal] = useState(0)
@@ -964,13 +973,23 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
           )}
         </div>
 
+        {queued && (
+          <div className="panel" style={{ margin: 0, width: 250, textAlign: 'center' }}>
+            <div className="faint small">NEXT UP</div>
+            <div><b>{queued.name}</b></div>
+            <div className="faint small">market {fmtUsd(queued.market)}</div>
+            <div className="faint small">opens {fmtUsd(queued.start)} · reserve {fmtUsd(queued.reserve)}</div>
+            <div className="small" style={{ color: 'var(--yellow)' }}>waits for the hammer</div>
+          </div>
+        )}
+
         <div className="grow" style={{ minWidth: 260 }}>
           <div className="row" style={{ gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
             <b className="small">Put it up</b>
             <button
               type="button"
               className={mode === 'single' ? 'primary small' : 'small'}
-              disabled={busy || !!lot}
+              disabled={busy}
               onClick={() => { setMode('single'); setStackIds([]) }}
             >
               One card
@@ -978,7 +997,7 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
             <button
               type="button"
               className={mode === 'stack' ? 'primary small' : 'small'}
-              disabled={busy || !!lot}
+              disabled={busy}
               onClick={() => { setMode('stack'); setStackIds([]) }}
             >
               A stack
@@ -994,7 +1013,7 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
               value={q}
               placeholder={mode === 'stack' ? 'Search the cheap end — name, set or card id' : 'Search the binder — name, set or card id'}
               aria-label="Search your binder"
-              disabled={busy || !!lot}
+              disabled={blocked}
               onChange={(e) => setQ(e.target.value)}
             />
             <div className="lot-results" role="listbox" aria-label="Cards you can sell">
@@ -1011,7 +1030,7 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
                   role="option"
                   aria-selected={mode === 'stack' ? stackIds.includes(s.id) : pick === s.id}
                   className={`lot-row ${(mode === 'stack' ? stackIds.includes(s.id) : pick === s.id) ? 'on' : ''}`}
-                  disabled={busy || !!lot}
+                  disabled={blocked}
                   onClick={() => {
                     if (mode === 'stack') {
                       setStackIds((ids) => ids.includes(s.id) ? ids.filter((x) => x !== s.id) : ids.length >= 40 ? ids : [...ids, s.id])
@@ -1049,15 +1068,12 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
                   <button
                     type="button"
                     className="small"
-                    disabled={busy || !!lot || rows.length === 0}
-                    onClick={() => {
-                      // Spread across the visible cheap end rather than taking
-                      // the 20 cheapest: a pile of $0.19 commons is not worth
-                      // the airtime, and variety is what the froth pays for.
-                      const pool = rows.filter((r) => r.market > 0 && r.market <= 2)
-                      const n = Math.min(20, pool.length)
-                      const step = Math.max(1, Math.floor(pool.length / Math.max(1, n)))
-                      setStackIds(Array.from({ length: n }, (_, k) => pool[Math.min(pool.length - 1, k * step)].id))
+                    disabled={busy || !!queued}
+                    onClick={async () => {
+                      // The server spreads the pick across the WHOLE cheap pool,
+                      // so the pile is not limited to the page the picker holds.
+                      const r = await api.stackFill(20, 2).catch(() => null)
+                      if (r?.ok && r.ids?.length) setStackIds(r.ids)
                     }}
                   >
                     Fill 20
@@ -1080,20 +1096,22 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
           <div className="lot-form">
             <label className="lot-field">
               <span>opens at</span>
-              <input type="number" min={0.99} step={0.5} value={start} onChange={(e) => setStart(e.target.value)} disabled={busy || !!lot} />
+              <input type="number" min={0.99} step={0.5} value={start} onChange={(e) => setStart(e.target.value)} disabled={blocked} />
             </label>
             <label className="lot-field">
               <span>reserve</span>
-              <input type="number" min={0.99} step={0.5} value={reserve} onChange={(e) => setReserve(e.target.value)} disabled={busy || !!lot} />
+              <input type="number" min={0.99} step={0.5} value={reserve} onChange={(e) => setReserve(e.target.value)} disabled={blocked} />
             </label>
           </div>
           <div className="lot-actions">
-            {lot ? (
-              <span className="faint small">One lot at a time — hammer what is on camera before the next one goes up.</span>
+            {queued ? (
+              <span className="faint small">One pile is already waiting for the hammer — it takes the block when this lot settles.</span>
             ) : mode === 'stack' ? (
               <button className="primary" disabled={busy || stackIds.length < 10} onClick={() => { onStackList(stackIds, start, reserve); setStackIds([]) }}>
-                Put the stack on the block
+                {lot ? 'Queue the stack behind this lot' : 'Put the stack on the block'}
               </button>
+            ) : lot ? (
+              <span className="faint small">One lot at a time — hammer what is on camera before the next single goes up. A stack can be queued behind it.</span>
             ) : (
               <button className="primary" disabled={busy || !pick} onClick={onList}>
                 Put it on the block
