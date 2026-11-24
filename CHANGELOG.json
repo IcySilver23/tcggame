@@ -1,13 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.94.4",
+      "date": "2026-11-24",
+      "title": "One paper, one light",
+      "highlights": [
+        "Settings → Appearance has no advanced foil switch any more — every holo card shows its own paper at a fixed tilt, exactly as it did with the switch off.",
+        "The pointer sweep, the iridescent colour and the embossed relief that switch turned on are gone with it, so a card is painted once and left alone.",
+        "Cards in the binder, the shelf and a pulled card all light the same way now, because nothing in the save or the browser decides how a card is lit."
+      ],
+      "features": [
+        "The advanced foil switch is removed from Settings → Appearance, and the treatment behind it is removed from the renderer with it. What every card keeps is the paper it always had: its printing’s coverage mask and pattern, lit at a fixed neutral tilt at 60% intensity with no colour layered on top — the frame a card drew with the switch off, which was the default. The pointer-driven sweep, the iridescence and the embossed relief were only ever drawn while that switch was on, so nothing you can see is lost from a card that was already at rest.",
+        "The honest note: this removes the advanced treatment rather than repairing it. It was reported broken, and it was never the default, so it is gone rather than tuned. A browser that still holds the old `tcglife.foil` value is simply ignored now, and a card that used to sit under a half-applied highlight is back to its own paper. The dev inspector behind Shift+H is untouched: it still draws the same composite one stage at a time, with sliders, for anyone checking a printing against a source."
+      ]
+    },
+    {
       "version": "0.94.3",
       "date": "2026-11-24",
       "title": "The switch was never the problem",
       "highlights": [
-        "One card / A stack answers a click again — the press change was chasing a click that never reached the page at all.",
-        "A queued pile still stays out of the block’s totals, so the sell-through does not dip while it waits for the hammer.",
-        "The binder list stopped reserving an empty height, and the switch is disabled while a request is in flight, as it was before."
+        "One card / A stack answers a click again — the press change was chasing a click that never reached the page at all."
       ],
       "features": [
         "0.94.2 made the sell panel’s mode switch act on pointerdown as well as click, on the theory that the binder’s first page was landing under the cursor and swallowing the click. It was not. A test page that presses the switch, lets a hundred rows arrive, then releases shows the click surviving whenever the content grows BELOW the switch — which is where the binder list is — and only breaking when the growth shoves the switch down the page between the press and the release. The sell panel’s switch sits at the same pixel before and after the rows land, so its click was never in danger. The presses that did vanish arrived at the page as no mouse event at all: no press, no release, no click anywhere in the document, while the switch was still on top at the point clicked. A click that never reaches the page cannot be a handler’s fault: the input was lost somewhere above the page, where this build cannot see it, and a reload brought the same click back. What the repro proves is where the click did NOT go — the page — not what stopped it. Repeated on fresh loads, the first press of a session landed every time on a sidebar link, on the mode switch and on a card row, so nothing suggests the switch is singled out. The switch is a plain click again, it is disabled while a request is in flight, as before, and the binder list no longer reserves an empty height.",

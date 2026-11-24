@@ -9,7 +9,7 @@ type SettingsData = Awaited<ReturnType<typeof api.settings>>
 type SyncInfo = NonNullable<Awaited<ReturnType<typeof api.syncProgress>>>
 
 export function SettingsView() {
-  const { toast, refreshState, state: st, theme, setTheme, foil, setFoil } = useStore()
+  const { toast, refreshState, state: st, theme, setTheme } = useStore()
   const current = THEMES.find((t) => t.id === theme) ?? THEMES[0]
   const replayTutorial = async () => {
     await api.tutorialReplay()
@@ -573,16 +573,6 @@ export function SettingsView() {
         </div>
         <div className="faint small" style={{ marginTop: 8 }}>
           {current.label} — {current.blurb}
-        </div>
-        <div className="row" style={{ alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
-          <button className={foil ? 'ghost' : 'primary'} onClick={() => setFoil(!foil)}>
-            {foil ? 'Turn advanced foil off' : 'Turn advanced foil on'}
-          </button>
-          <span className="faint small">
-            {foil
-              ? 'Advanced on — cards show the full foil at rest, and the highlight follows the pointer across the card. The card’s own paper is always on.'
-              : 'Advanced off — every card still shows its own paper at a fixed neutral tilt. This switch only parks the pointer movement, colour and relief.'}
-          </span>
         </div>
       </div>
 

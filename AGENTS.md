@@ -245,13 +245,12 @@ light: the pattern layer writes no colour and no shape of its own.
 
 ### The dev holofoil inspector
 
-**Card foil is always on; the player switch controls the advanced treatment.**
-`useStore().foil` (persisted as `tcglife.foil`, OFF unless the player turns it on
-in Settings → Appearance) no longer gates `FoilOverlay`. Every resolved paper
-computes its mask and renders at a fixed neutral tilt at rest. The flag adds the
-advanced layer — pointer tilt, iridescence and relief — and reduced-motion users
-get the paper without the movement. Do not treat the flag as “is this card foil?”;
-ask `holoFor` / `printingFor`.
+**Card foil is always on, and there is no advanced treatment.** Every resolved
+paper computes its mask and renders at a fixed neutral tilt at rest. The pointer
+tilt, iridescence and embossed relief that Settings → Appearance used to switch on
+were removed in 0.94.4 along with the `tcglife.foil` flag, so nothing in
+`FoilOverlay` animates and nothing in the store decides how a card is lit. Ask
+`holoFor` / `printingFor` what a card's foil is; there is no flag to ask.
 
 Dev builds mount `src/foil/HoloDebug.tsx`; **Shift+H** opens it. It draws the same
 `src/foil/stages.ts` composite one stage at a time — base, pattern, pattern alpha,

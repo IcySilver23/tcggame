@@ -62,16 +62,6 @@ export function loadBrowseMode(): BrowseMode {
 }
 
 /**
- * Advanced card foil effects: pointer tilt, iridescence and embossed relief. The
- * card's basic paper is always rendered by FoilOverlay; this switch only decides
- * whether the advanced treatment joins it. Persisted per browser.
- */
-const FOIL_KEY = 'tcglife.foil'
-function loadFoil(): boolean {
-  return localStorage.getItem(FOIL_KEY) === 'on'
-}
-
-/**
  * Chrome palettes. Dark is the default; light is the paper TCG look. Ember and
  * Tide are a warm dark and a deep-sea dark; Forest, Nebula and Graphite are a
  * green, a violet and a neutral dark. Daylight and Sakura are the paper looks,
@@ -122,9 +112,6 @@ type Store = {
   toasts: Toast[]
   theme: Theme
   setTheme: (t: Theme) => void
-  /** Advanced foil treatment. Basic paper rendering is independent of this. */
-  foil: boolean
-  setFoil: (v: boolean) => void
   density: Density
   setDensity: (d: Density) => void
   browse: BrowseMode
@@ -153,11 +140,6 @@ export const useStore = create<Store>((set, get) => ({
     localStorage.setItem(THEME_KEY, t)
     applyTheme(t)
     set({ theme: t })
-  },
-  foil: loadFoil(),
-  setFoil: (v) => {
-    localStorage.setItem(FOIL_KEY, v ? 'on' : 'off')
-    set({ foil: v })
   },
   density: loadDensity(),
   setDensity: (d) => {

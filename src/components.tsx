@@ -233,8 +233,8 @@ export function CardImg({ src, alt, className, wrapProps, cardId, rarity, varian
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: state === 'ok' ? 1 : 0, transition: 'opacity 0.25s' }}
           />
         )}
-        {/* Foil sits ABOVE the scan. The card's paper renders at rest; the
-            advanced treatment takes over on hover when that switch is on. */}
+        {/* Foil sits ABOVE the scan. The card's own paper renders at rest at a
+            fixed tilt; there is no hover treatment to take over. */}
         {url && state === 'ok' && (
           <FoilOverlay wrapRef={wrapRef} src={url} cardId={cardId} rarity={rarity} variant={variant} />
         )}
