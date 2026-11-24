@@ -1,13 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.94.3",
+      "date": "2026-11-24",
+      "title": "The switch was never the problem",
+      "highlights": [
+        "One card / A stack answers a click again — the press change went looking for a bug that lives in the window, not in the sell panel.",
+        "A queued pile still stays out of the block’s totals, so the sell-through does not dip while it waits for the hammer.",
+        "The binder list stopped reserving an empty height, and the switch is disabled while a request is in flight, as it was before."
+      ],
+      "features": [
+        "0.94.2 made the sell panel’s mode switch act on pointerdown as well as click, on the theory that the binder’s first page was landing under the cursor and swallowing the click. It was not. A test page that presses the switch, lets a hundred rows arrive, then releases shows the click surviving whenever the content grows BELOW the switch — which is where the binder list is — and only breaking when the growth shoves the switch down the page between the press and the release. The sell panel’s switch sits at the same pixel before and after the rows land, so its click was never in danger. The presses that did vanish arrived at the page as no mouse event at all: no press, no release, no click anywhere in the document, while the switch was still on top at the point clicked. A click that never reaches the page cannot be a handler’s fault — the window had not taken focus yet, and any other button behaved the same until the page was reloaded. The switch is a plain click again, it is disabled while a request is in flight as before, and the binder list no longer reserves an empty height.",
+        "The queue staying out of the block’s totals is 0.94.2’s real fix and it is still in: a pile waiting behind the live lot is not a listing, so the night’s sell-through no longer dips while it waits for the hammer."
+      ]
+    },
+    {
       "version": "0.94.2",
       "date": "2026-11-24",
       "title": "The switch answers on the press",
       "highlights": [
-        "One card / A stack now flips the moment you press it, instead of waiting for a click the settling panel could swallow.",
-        "A queued pile no longer counts as a listing, so the night’s sell-through holds steady while it waits for the hammer.",
-        "The binder list reserves its own height, so the sell panel stops jumping while the first page of cards loads."
+        "A queued pile no longer counts as a listing, so the night’s sell-through holds steady while it waits for the hammer."
       ],
       "features": [
         "The mode switch only listened for a click, and a click is a promise the browser makes about two events: the press has to start and end on the same element. Right after the page loads the sell panel is still settling — the picker swaps its placeholder for a hundred rows and the list can move or gain a scrollbar under the cursor — so a press that began on One card or A stack could finish somewhere else and produce no click at all. The switch now acts on pointerdown, which cannot be lost that way, and still listens for click so a keyboard still works; switching to the mode you are already in is a no-op. The switch is also no longer disabled while a request is in flight, and the results list has a minimum height so the panel does not resize under the pointer. The simplification to admit: the swallowed press could not be reproduced at the raw event level in this build’s own harness, so this removes the two code paths that can lose a first press rather than pointing at a single proven culprit — the toggle is verified working on the first press after a fresh load, in both directions.",

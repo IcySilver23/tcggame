@@ -3076,10 +3076,7 @@ to{opacity:1;transform:none}
    a line that says how many copies exist, so a cap is never silent. */
 .lot-pick{margin-top:8px;max-width:520px;width:100%}
 .lot-search{width:100%;padding:8px 11px;font-size:13px}
-/* The list reserves its height: it swaps a placeholder for a hundred rows the
-   moment the binder arrives, and a panel that grows under the pointer can eat a
-   press aimed at the mode switch above it. */
-.lot-results{margin-top:6px;min-height:120px;max-height:216px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;background:rgba(0,0,0,.18)}
+.lot-results{margin-top:6px;max-height:216px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;background:rgba(0,0,0,.18)}
 .lot-empty{padding:10px 11px}
 .lot-row{display:flex;align-items:center;gap:9px;width:100%;padding:5px 8px;background:transparent;border:0;border-bottom:1px solid var(--border-soft);text-align:left;color:var(--text);cursor:pointer}
 .lot-row:last-child{border-bottom:0}

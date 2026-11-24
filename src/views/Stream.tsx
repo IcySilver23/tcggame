@@ -872,19 +872,6 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
   // A single waits for an empty block; a stack may be built while one is being
   // bid on, as long as nothing is already queued behind it.
   const blocked = busy || (mode === 'single' ? !!lot || !!queued : !!queued)
-
-  // THE SWITCH ACTS ON THE PRESS, NOT THE CLICK. The sell panel re-renders while
-  // the first page of the binder lands (the list swaps its placeholder for a
-  // hundred rows and can scroll under the cursor), and a click only fires when
-  // the pointer comes UP on the very node it went DOWN on — so a press during
-  // that settle was silently dropped. pointerdown cannot be lost that way. The
-  // click handler stays for keyboards and for anything that never sends a
-  // pointer event; switching twice to the same mode is a no-op.
-  const pickMode = (next: 'single' | 'stack') => {
-    if (mode === next) return
-    setMode(next)
-    setStackIds([])
-  }
   const [q, setQ] = useState('')
   const [rows, setRows] = useState<StreamSellable[]>([])
   const [total, setTotal] = useState(0)
@@ -1002,16 +989,16 @@ function LotBoard({ lots, busy, pick, setPick, start, setStart, reserve, setRese
             <button
               type="button"
               className={mode === 'single' ? 'primary small' : 'small'}
-              onPointerDown={() => pickMode('single')}
-              onClick={() => pickMode('single')}
+              disabled={busy}
+              onClick={() => { setMode('single'); setStackIds([]) }}
             >
               One card
             </button>
             <button
               type="button"
               className={mode === 'stack' ? 'primary small' : 'small'}
-              onPointerDown={() => pickMode('stack')}
-              onClick={() => pickMode('stack')}
+              disabled={busy}
+              onClick={() => { setMode('stack'); setStackIds([]) }}
             >
               A stack
             </button>

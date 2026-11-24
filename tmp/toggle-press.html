@@ -1,0 +1,132 @@
+<!doctype html>
+<!--
+  Deterministic repro for the sell panel's mode switch.
+
+  Run: npm run dev, then open http://localhost:5199/tmp/toggle-press.html and
+  press each panel's "A stack" once. The settle rides mousedown, so the release
+  lands after the hundred rows do — the press spans the settle exactly the way a
+  slow first page of cards would.
+
+    A  the real panel's shape: the list grows BELOW the switch.
+    B  a settle that grows ABOVE the switch, click only (the old path).
+    C  the same settle above, with pointerdown as well as click.
+
+  Measured: A keeps its click (the button never moves), B drops it (down target
+  was the button, the release lands 200px away and no click is fired), C switches
+  anyway. That is the whole mechanism — and why it does not apply to A.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Toggle press repro</title>
+<style>
+  body { background:#0d1220; color:#e6ecff; font:13px/1.45 system-ui, sans-serif; margin:0; padding:18px; }
+  .panel { background:#131a2c; border:1px solid #26304a; border-radius:10px; padding:10px; margin-bottom:14px; max-width:560px; }
+  .row { display:flex; align-items:center; gap:8px; }
+  .row b { font-size:12px; }
+  button { font:inherit; padding:3px 10px; border-radius:6px; border:1px solid #2c3752; background:#1b2338; color:#e6ecff; cursor:pointer; }
+  button.primary { background:#ffd700; color:#141a26; border-color:#ffd700; }
+  .hint { color:#8b97b5; font-size:11px; }
+  input { width:100%; margin-top:8px; padding:7px 10px; border-radius:8px; border:1px solid #2c3752; background:#0b0f1a; color:#e6ecff; box-sizing:border-box; }
+  .results { margin-top:6px; max-height:216px; overflow-y:auto; border:1px solid #2c3752; border-radius:9px; background:rgba(0,0,0,.18); }
+  .empty { padding:10px 11px; color:#8b97b5; font-size:11px; }
+  .r { display:flex; gap:9px; align-items:center; padding:5px 8px; border-bottom:1px solid #1d2437; font-size:12px; }
+  .r i { width:26px; height:36px; background:#22304d; border-radius:3px; flex:none; }
+  .label { font-size:11px; color:#8b97b5; margin-bottom:6px; }
+  .out { font-family:ui-monospace, monospace; font-size:11px; color:#9fe6b0; white-space:pre-wrap; }
+  .spacer { height:0; transition:none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<h3 style="font-size:13px">results</h3>
+<div class="out" id="out"></div>
+<script>
+const ROWS = 100
+window.__repro = {}
+
+// A panel shaped exactly like the real sell board: the mode row, then the
+// search box, then the list. Nothing here is a stub of the app's logic — only
+// the settle is scripted so it happens between mousedown and mouseup.
+function makePanel({ id, label, grow, bindPointerDown }) {
+  const wrap = document.createElement('div')
+  wrap.className = 'panel'
+  wrap.innerHTML = `
+    <div class="label">${label}</div>
+    <div class="spacer" id="sp-${id}"></div>
+    <div class="row" id="row-${id}">
+      <b>Put it up</b>
+      <button type="button" class="one">One card</button>
+      <button type="button" class="stack">A stack</button>
+      <span class="hint">one card, one ask</span>
+    </div>
+    <input placeholder="Search the binder" />
+    <div class="results"><div class="empty">Reading the binder…</div></div>
+  `
+  const stack = wrap.querySelector('.stack')
+  const one = wrap.querySelector('.one')
+  const hint = wrap.querySelector('.hint')
+  const results = wrap.querySelector('.results')
+  const spacer = wrap.querySelector('.spacer')
+  const rec = (window.__repro[id] = {
+    mode: 'single',
+    clicks: 0,
+    presses: 0,
+    grew: false,
+    downTarget: null,
+    upTarget: null,
+    rectBefore: null,
+    rectAfter: null,
+  })
+  const setMode = (m) => {
+    rec.mode = m
+    hint.textContent = m === 'stack' ? '10–40 cards, none over $2, sold as one pile' : 'one card, one ask'
+    one.className = m === 'single' ? 'primary' : ''
+    stack.className = m === 'stack' ? 'primary' : ''
+  }
+  const settle = () => {
+    if (rec.grew) return
+    rec.grew = true
+    const r0 = stack.getBoundingClientRect()
+    rec.rectBefore = { y: Math.round(r0.y), x: Math.round(r0.x) }
+    rec.downTarget = document.elementFromPoint(Math.round(r0.x + r0.width / 2), Math.round(r0.y + r0.height / 2))?.textContent
+    if (grow === 'above') spacer.style.height = '200px'
+    results.innerHTML =
+      '<div class="empty" style="display:none"></div>' +
+      Array.from({ length: ROWS }, (_, i) => `<div class="r"><i></i><span>Card ${i + 1}</span></div>`).join('')
+    const r1 = stack.getBoundingClientRect()
+    rec.rectAfter = { y: Math.round(r1.y), x: Math.round(r1.x) }
+  }
+  // The settle rides mousedown, so a real browser press spans it exactly the
+  // way a slow first page of cards would.
+  stack.addEventListener('mousedown', () => { settle() }, true)
+  stack.addEventListener('mouseup', () => {
+    const r = stack.getBoundingClientRect()
+    rec.upTarget = document.elementFromPoint(Math.round(r.x + r.width / 2), Math.round(r.y + r.height / 2))?.textContent
+  }, true)
+  stack.addEventListener('click', () => { rec.clicks++ }, true)
+  if (bindPointerDown) {
+    stack.addEventListener('pointerdown', () => { rec.presses++; setMode('stack') })
+    one.addEventListener('pointerdown', () => setMode('single'))
+  }
+  stack.addEventListener('click', () => { setMode('stack') })
+  one.addEventListener('click', () => { setMode('single') })
+  return wrap
+}
+
+const root = document.getElementById('root')
+root.append(
+  makePanel({ id: 'app', label: 'A — the real panel: the list grows BELOW the switch (click only, the old path)', grow: 'below', bindPointerDown: false }),
+  makePanel({ id: 'above', label: 'B — a settle that grows ABOVE the switch (click only, the old path)', grow: 'above', bindPointerDown: false }),
+  makePanel({ id: 'pd', label: 'C — the same settle above, with pointerdown as well as click', grow: 'above', bindPointerDown: true }),
+)
+
+const out = document.getElementById('out')
+setInterval(() => {
+  out.textContent = Object.entries(window.__repro)
+    .map(([k, r]) => `${k}: mode=${r.mode} clicks=${r.clicks} presses=${r.presses} grew=${r.grew} y ${r.rectBefore?.y}->${r.rectAfter?.y} down=${r.downTarget}`)
+    .join('\n')
+}, 200)
+</script>
+</body>
+</html>
