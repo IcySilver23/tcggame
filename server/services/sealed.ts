@@ -453,22 +453,22 @@ function atLeastPackEv(setId: string, packs: number | null, market: number): num
 /**
  * How much more a box may cost per wrapper than a loose wrapper of the same set.
  *
- * Measured, not picked: across the 48 displays whose set also has a loose-pack
- * quote (TCGplayer market, November 2026), a box costs 0.05x to 1.78x the loose
- * wrapper per pack up to the p95 — median 0.91x, p90 1.57x, p95 1.78x. Above that
- * sit two numbers the band is meant to trim: a half-display at 2.17x and a
- * model-priced box at 2.74x. A six-box CASE quote, the other mistake this catches,
- * runs 6-8x. So 1.8 leaves every full box a marketplace actually quotes alone; what
- * it does trim is two half-display quotes (2.17x and 2.74x their set's wrapper),
- * which price eighteen packs above what the set's own thirty-six-pack box asks per
- * pack.
+ * Measured, not picked: across the 38 displays whose set also has a loose-wrapper
+ * quote (TCGplayer market and PriceCharting sold values, November 2026), a box
+ * costs 0.22x to 2.03x the wrapper per pack — median 1.09x, p90 1.83x — and 2.03x
+ * is the widest a full thirty-six-pack box reaches (Phantom Forces: a $16,763 box
+ * against a $229.72 wrapper). Half displays go further, at 2.17x and 2.74x. A
+ * six-box CASE quote, the other mistake this catches, runs 6-8x. So the ceiling is
+ * 2.05, just past the widest real box: no full box a marketplace quotes is trimmed,
+ * and what it does trim are the half displays asking more per pack than their own
+ * set's thirty-six-pack box.
  *
  * The reference is a real loose-wrapper quote, never the pack model. Comparing a
  * real box against a modelled pack is what made an earlier 2x band cut Evolving
  * Skies' genuine $2,179 box down to $720: the box was right and the model was
  * four times under what a single sealed pack costs.
  */
-export const DISPLAY_PACK_CAP = 1.8
+export const DISPLAY_PACK_CAP = 2.05
 
 function capDisplayPerPack(setId: string, packs: number | null, market: number): number {
   const n = Math.max(1, Math.floor(packs ?? 1))
@@ -760,10 +760,14 @@ export function shelfFacts(productId: string): {
   const months = release ? monthsOutOfPrint(release.release_date, row.kind, row.set_id) : 0
   const shelf = shelfPriceFor(productId)
   const stored = storedPrice(productId)
+  // The badge has to say what the price is: a wrapper quote the screen refused is
+  // not pricing this row, so the row reports the model it is actually priced at
+  // rather than citing a quote that only appears in the evidence.
+  const shelfUsed = shelf !== null && (row.kind !== 'booster' || wrapperQuoteAgreesWithBox(row.set_id, shelf.market))
   const source = miniPackFor(productId)
     ? 'estimated'
-    : shelf
-      ? (shelf.kind ?? 'tcgplayer')
+    : shelfUsed
+      ? (shelf!.kind ?? 'tcgplayer')
       : row.kind === 'special'
         ? 'estimated'
         : stored && stored.source === 'pricecharting' && stored.market > 0

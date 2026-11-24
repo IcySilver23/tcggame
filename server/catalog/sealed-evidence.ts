@@ -2410,6 +2410,29 @@ const MIRROR_SHELF: Readonly<Record<string, number>> = {
   'sv9-half-display': 333.33,
 }
 
+// Boxes TCGplayer's own feed publishes no market for, researched elsewhere so the
+// loose-wrapper screen has evidence on both sides of a set.
+//
+// Black & White is deliberately absent, and that is the finding rather than an
+// omission: all eleven BW booster boxes return an empty marketPrice in TCGplayer's
+// feed (read 24 November 2026), a TCGplayer-derived price table says why — "sets
+// from before 2014 are left out: their sealed products sell too rarely for a
+// reliable price" — and PriceCharting's one populated BW box, Plasma Storm, quotes
+// $31,281 from sixteen sales spanning $5,800 to $38,000 at five sales a year. That
+// is not a figure to clear a $651 wrapper against, so the BW wrapper quotes stay
+// refused and the page says the price is modelled instead of citing them.
+//
+// The XY boxes are read where a figure does exist: XY's own TCGplayer market, and
+// Flashfire, Phantom Forces and BREAKpoint from PriceCharting's sold-price value,
+// whose 2026 sales back each one (Flashfire $7,456–$11,200, Phantom Forces
+// $10,110–$22,000, BREAKpoint $2,499–$2,999).
+export const LATE_BOX_SHELF: Readonly<Record<string, { market: number; productId: number | null; product: string; page: string; asOf: string }>> = {
+  'xy1-display': { market: 5999.99, productId: 91601, product: 'XY Booster Box', page: 'https://www.tcgplayer.com/product/91601', asOf: '2026-11-24' },
+  'xy2-display': { market: 10598.42, productId: null, product: 'Flashfire Booster Box', page: 'https://www.pricecharting.com/game/pokemon-flashfire/booster-box', asOf: '2026-11-24' },
+  'xy4-display': { market: 16763.04, productId: null, product: 'XY Phantom Forces Booster Box', page: 'https://www.pricecharting.com/game/pokemon-phantom-forces/booster-box', asOf: '2026-11-24' },
+  'xy9-display': { market: 2499.0, productId: null, product: 'XY BREAKpoint Booster Box', page: 'https://www.pricecharting.com/game/pokemon-breakpoint/booster-box', asOf: '2026-11-24' },
+}
+
 /** Shelf quotes are keyed by product id; most special products have none. */
 const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; asOf: string; kind?: ShelfPriceSource }>([
   ...SPECIAL_PRODUCTS.filter((p) => p.shelf).map((p) => [p.id, p.shelf!] as const),
@@ -2441,6 +2464,15 @@ const SHELF_PRICES = new Map<string, { market: number; source: EvidenceSource; a
   ...Object.entries(BW_BOOSTER_SHELF).map(
     ([id, q]) =>
       [id, { market: q.market, source: TCGPLAYER_SHELF(q.product, q.productId), asOf: '2026-11-08' }] as const,
+  ),
+  ...Object.entries(LATE_BOX_SHELF).map(
+    ([id, q]) =>
+      [id, {
+        market: q.market,
+        source: q.productId ? TCGPLAYER_SHELF(q.product, q.productId) : PRICECHARTING_SHELF(q.product, q.page),
+        asOf: q.asOf,
+        kind: q.productId ? ('tcgplayer' as const) : ('pricecharting' as const),
+      }] as const,
   ),
   ...Object.entries(LOOSE_PACK_SHELF).map(
     ([id, q]) =>

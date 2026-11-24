@@ -1,13 +1,27 @@
 {
   "entries": [
     {
+      "version": "0.94.18",
+      "date": "2026-11-24",
+      "title": "The badge says what the price is",
+      "highlights": [
+        "A product now badges the source that actually priced it: a wrapper quote the screen refused is no longer cited as the market while a model sets the price.",
+        "Black & White could not be cleared — TCGplayer publishes no market for any of its eleven booster boxes — so those wrappers stay modelled and the page says so.",
+        "Researched box quotes for XY fill the gaps: Flashfire $10,598.42, Phantom Forces $16,763.04, BREAKpoint $2,499, so those wrappers clear the screen and the band is a measured 2.05x."
+      ],
+      "features": [
+        "The shelf badge and the price came from two different places. The price screen learnt to refuse a wrapper quote that cannot be a wrapper, but the badge still read the shelf directly, so a Black & White wrapper showed the QUOTE tag and a TCGplayer citation beside a price that was the pack model. Both now ask the same screen, and a refused quote reports itself as modelled because that is what is pricing the row.",
+        "Black & White was researched and could not be settled, which is worth saying plainly. All eleven BW booster boxes return an empty market price in TCGplayer's own feed, read on 24 November 2026 — the same reason a TCGplayer-derived price table gives for leaving pre-2014 sets out: \"their sealed products sell too rarely for a reliable price\". PriceCharting does carry BW boxes, but its Plasma Storm page prices the box at $31,281 from sixteen sales spread between $5,800 and $38,000 at five sales a year, which is not a figure to clear a $651 wrapper against. Those wrappers therefore stay refused and the set keeps its model, now with no quote cited over it.",
+        "The XY sets fared better. XY's own booster box has a TCGplayer market of $5,999.99; Flashfire, Phantom Forces and BREAKpoint have PriceCharting sold-price values of $10,598.42, $16,763.04 and $2,499, each backed by 2026 sales in a narrow band (Flashfire $7,456–$11,200, Phantom Forces $10,110–$22,000, BREAKpoint $2,499–$2,999). With a box on both sides of the comparison their wrapper quotes now clear the screen — $136.67, $160.96, $229.72 and $51.35 — and the displays are priced from those boxes rather than the model, so a Flashfire box is $10,598.42 instead of the $838 the model had guessed.",
+        "The band's ceiling moved with the measurement: 1.8 was the old spread, and the new pairs (38 of them, median 1.09x, p90 1.83x) put the widest real full box at 2.03x — Phantom Forces' $16,763 against a $229.72 wrapper. The cap is now 2.05, which trims no full box a marketplace quotes and still trims the two half displays that ask more per pack than their own set's full box. The honest limit is the source mix: the PriceCharting values are sold averages from a thin market, they are badged as PriceCharting rather than TCGplayer, and a rare box with one outlier sale can still move them."
+      ]
+    },
+    {
       "version": "0.94.17",
       "date": "2026-11-24",
       "title": "A wrapper quote has to look like a wrapper",
       "highlights": [
-        "Loose-pack quotes are checked against their own box first: the Black & White wrappers asking $188 beside a $656 box, and Plasma Storm at $651.13 beside a $1,297 box, are refused.",
-        "A refused quote falls back to nothing: that set's wrapper returns to the pack model and its display gets no band. In-print wrappers are not screened — a retail sticker is not a resale quote.",
-        "Journey Together and Destined Rivals half-boxes are named as the two quoted displays the 1.8x cap actually trims, correcting the earlier claim that it leaves every quoted box alone."
+        "Loose-pack quotes are checked against their own box first: the Black & White wrappers asking $188 beside a $656 box, and Plasma Storm at $651.13 beside a $1,297 box, are refused."
       ],
       "features": [
         "The wrapper quotes came from a per-set pack table, and for the old sets some rows carry a box-sized number in the pack column: Black & White packs listed at $110, $168.87, $187.99, $275.45, $329.09, $383.04, $392.43, $396.63 and $651.13, and XY base, Flashfire and Phantom Forces at $136.67, $160.96 and $229.72. Read against their own boxes those were impossible — a wrapper at a tenth of what the box asks per pack — and letting them stand priced nine Black & White wrappers at box money. None of those sets has a box quote, so no display band was anchored on a refused number — the damage was the wrappers themselves.",

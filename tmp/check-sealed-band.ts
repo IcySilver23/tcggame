@@ -9,7 +9,7 @@
 // box is a genuine $2,190 box (1.38x a $44.12 wrapper), and the wrapper quote is
 // now what the shop charges instead of the $9.60 the card model guessed.
 import { db } from '../server/lib/db'
-import { ensureFullCatalog, priceOf, DISPLAY_PACK_CAP, SEALED_REALIZATION, wrapperQuoteAgreesWithBox } from '../server/services/sealed'
+import { ensureFullCatalog, priceOf, shelfFacts, DISPLAY_PACK_CAP, SEALED_REALIZATION, wrapperQuoteAgreesWithBox } from '../server/services/sealed'
 import { shelfPriceFor } from '../server/catalog/sealed-evidence'
 import { expectedPackValue } from '../server/services/packodds'
 
@@ -67,11 +67,18 @@ const cheap = rows
   .filter((r) => r.d / 36 < r.p.market * 0.5)
 ok(cheap.length > 0, `a discounted box still exists and was not raised (${cheap.length})`)
 
+// The badge and the price agree: a refused quote is not cited as this row's source.
+const bw1Facts = shelfFacts('bw1-booster')
+ok(bw1Facts.source === 'estimated' && priceOf('bw1-booster').source === 'estimated', `a refused quote is not the badge either (${bw1Facts.source})`)
+const swsh7Facts = shelfFacts('swsh7-booster')
+ok(swsh7Facts.source === priceOf('swsh7-booster').source, `an accepted quote badges as its own source (${swsh7Facts.source})`)
+
 // A quote that cannot be a wrapper is refused before it prices anything.
 ok(!wrapperQuoteAgreesWithBox('bw1', 187.99), 'refuses the $187.99 Black & White wrapper beside a $656 box')
 ok(!wrapperQuoteAgreesWithBox('bw8', 651.13), 'refuses the $651.13 Plasma Storm wrapper beside a $1,297 box')
 ok(wrapperQuoteAgreesWithBox('swsh7', 44.12), 'accepts the $44.12 Evolving Skies wrapper beside a $2,190 box')
 ok(wrapperQuoteAgreesWithBox('sv8', 9.03), 'accepts the $9.03 Surging Sparks wrapper beside a $303 box')
+ok(wrapperQuoteAgreesWithBox('xy4', 229.72), 'accepts the $229.72 Phantom Forces wrapper beside its $16,763 box')
 const bw1 = priceOf('bw1-booster')
 ok(bw1.source === 'estimated', `the refused Black & White wrapper falls back to its model ($${bw1.market.toFixed(2)} ${bw1.source})`)
 // In-print wrappers are retail stickers, not resale quotes, and are not screened.
