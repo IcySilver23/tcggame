@@ -2537,6 +2537,9 @@ app.get('/api/stream/products', (c) =>
 
 app.post('/api/stream/live', async (c) => {
   const body = await c.req.json<{ productId: string; packs: number }>()
+  // The queue is written from the break row here, so an old row gets its plan
+  // repaired at the moment it would otherwise cost the host seventeen packs.
+  breaks.healLegacyBreakPlans()
   const r = streaming.goLive(body.productId, body.packs)
   return c.json(r, r.ok ? 200 : 400)
 })
@@ -3108,6 +3111,10 @@ applyPromoCards()
 migratePullTableRarities()
 backfillAcquiredRefs()
 backfillNetWorthHistory()
+// A break row written before 0.94.12 stores its BOX count as the pack plan, so
+// heal it before anything reads the queue: a pending half display would otherwise
+// still rip one pack of the eighteen its host paid for.
+breaks.healLegacyBreakPlans()
 streaming.recoverOrphanStreams()
 breaks.settleOrphanBreaks()
 streaming.backfillFollowersGain()

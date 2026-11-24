@@ -1,14 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.14",
+      "date": "2026-11-24",
+      "title": "Old breaks get their packs back",
+      "highlights": [
+        "A break opened before the pack-plan fix is repaired rather than ripping one pack: a pending half display now queues all 18 packs it was bought for.",
+        "The repair runs at boot and again when you go live, so a break you already own cannot lose the packs you paid for.",
+        "A break that is already live has its queue lifted and its header corrected, and the activity log says what was repaired."
+      ],
+      "features": [
+        "Break rows written before the pack plan existed stored the box count where the pack count goes, so a half display bought at box price sat in the desk as a one-pack break. Those rows are now recognisable — the new plan records what the box holds, and a row without that figure is an old one — and they are rewritten to boxes × packs per box before anything reads the queue. One half display becomes 18 packs, a display 36, an ETB 8 or 9, a bundle 6, and a booster is unchanged at one.",
+        "A live stream riding an old row has its rip queue lifted too, as long as that many packs have not already been opened, so the header stops reading \"0 of 1 pack left\" over a display and the host can rip what they paid for. The product cost is not touched, so nobody is charged a second time, and a cancelled break still refunds exactly what was paid.",
+        "The honest edge: the repair reads the pack count from the product in the catalogue. A break whose product is no longer in the catalogue keeps its old count rather than having one guessed for it, and the repair is idempotent, so it writes each row once and never again."
+      ]
+    },
+    {
       "version": "0.94.13",
       "date": "2026-11-24",
       "title": "The desk stays open while you hold the stock",
       "highlights": [
-        "The Resale Desk no longer locks itself after your first lot: buying one keeps its tab open at any cash balance, so the stock you just paid for stays reachable.",
-        "The $400 gate still applies until you have bought in — it is the money to start with, not a balance you have to keep.",
-        "A lot now actually costs its ask: the desk checked that you could pay and then never took the money, so every purchase was free and only the activity log said otherwise.",
-        "Haggling a lot down or walking away does not count: only a completed purchase opens the desk for good, and a saved #/resale link follows the same rule."
+        "The Resale Desk no longer locks itself after your first lot: buying one keeps its tab open at any cash balance, so the stock you just paid for stays reachable."
       ],
       "features": [
         "The Resale Desk was unlocked by one thing only: $400 in cash, the amount the padlocked row tells you to save. The desk's own asks are sized around that figure, so the first serious lot took the balance under it and the tab you had just used became a 🔒 row reading 275/400 while the cards sat on your shelf — the same shape the Card Shop had, and it paid the same price for it.",

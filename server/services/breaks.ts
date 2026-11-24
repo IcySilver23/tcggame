@@ -1,6 +1,6 @@
 import { db, nowIso, logActivity } from '../lib/db'
 import { round2 } from './market'
-import { listBattlableProducts } from './packbattles'
+import { listBattlableProducts, packsInBox } from './packbattles'
 import { rollPack } from './packs'
 import { cardName, handlesFor, liveStream, pick, VIEWER_AVATARS } from './streaming'
 import { bandedCeiling, bandText } from './roomband'
@@ -10,6 +10,51 @@ import { registerBreakSettler, registerBreakLinker } from './streamlinks'
 // static import cycle back into this module.
 registerBreakSettler(settleBreak)
 registerBreakLinker(linkBreakToStream)
+
+// 0.94.12 changed what `stream_breaks.packs` means: it used to hold the BOX count
+// and now holds boxes x what the box holds. `packs_per_box` is the marker that
+// tells the two apart — NULL means the row predates the change — so a pending
+// half display bought at box price under the old rule can be rewritten instead of
+// ripping a single pack. One-time column add, safe to re-run at every boot.
+try { db.exec('ALTER TABLE stream_breaks ADD COLUMN packs_per_box INTEGER') } catch { /* already present */ }
+
+/**
+ * Rewrite break rows written before the pack plan existed. Their `packs` is the
+ * box count the host bought, so the plan they should rip is that figure times
+ * what the product's box holds. A live stream riding an old row has its queue
+ * lifted too, so the header stops reading "0 of 1 pack left" over a display.
+ */
+export function healLegacyBreakPlans(): { healed: number; packs: number } {
+  const rows = db
+    .prepare(`SELECT id, product_id, product_name, packs, stream_id FROM stream_breaks WHERE packs_per_box IS NULL`)
+    .all() as { id: number; product_id: string; product_name: string; packs: number | null; stream_id: number | null }[]
+  let healed = 0
+  let packs = 0
+  for (const r of rows) {
+    const p = db.prepare('SELECT kind, packs FROM pack_products WHERE id = ?').get(r.product_id) as
+      | { kind: string; packs: number | null }
+      | undefined
+    // A product the catalogue no longer holds cannot say what its box held; the
+    // row keeps its old count rather than guessing one.
+    if (!p) continue
+    const perBox = packsInBox(p.kind, p.packs)
+    const boxes = Math.max(1, Math.min(20, Math.round(r.packs ?? 1)))
+    const plan = boxes * perBox
+    db.prepare(`UPDATE stream_breaks SET packs = ?, packs_per_box = ? WHERE id = ?`).run(plan, perBox, r.id)
+    if (r.stream_id != null) {
+      db.prepare(`UPDATE streams SET packs_planned = ? WHERE id = ? AND packs_opened < ?`).run(plan, r.stream_id, plan)
+    }
+    if (plan !== Math.round(r.packs ?? 1)) {
+      healed++
+      packs += plan
+      logActivity(
+        'stream',
+        `🧾 Break plan repaired: ${r.product_name} was queued to rip ${Math.round(r.packs ?? 1)} pack${Math.round(r.packs ?? 1) === 1 ? '' : 's'} — a ${boxes}-box buy is ${plan} packs, and every one of them is on the queue now.`,
+      )
+    }
+  }
+  return { healed, packs }
+}
 
 // ---------------------------------------------------------------------------
 // Case breaks (Phase 5 — Empire): sell rip spots on your own channel. You buy
@@ -167,10 +212,10 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
     db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
     const info = db
       .prepare(
-        `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, heat, packs, status, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'selling', ?)`,
+        `INSERT INTO stream_breaks (product_id, product_name, set_id, spot_price, product_cost, spots_total, teams_json, heat, packs, packs_per_box, status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'selling', ?)`,
       )
-      .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), heat, packs, nowIso())
+      .run(p.id, p.name, p.set_id, spotPrice, cost, spotsTotal, JSON.stringify(roster), heat, packs, perBox, nowIso())
     return Number(info.lastInsertRowid)
   })()
 
