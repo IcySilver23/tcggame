@@ -409,19 +409,14 @@ export const XY_BOOSTER_SHELF: Readonly<Record<string, { market: number; product
 // to that model is what made the band say a $2,179 box was wrong.
 //
 // Read from TCGplayer's market for the exact single-pack listing on
-// 22 November 2026, via Pitt PokeResearch's per-set pack tables. Only sets whose
-// wrappers trade separately are here; a set with no loose-pack row keeps its
-// modelled pack and gets no band (see capDisplayPerPack).
+// 22 November 2026, via Pitt PokeResearch's per-set pack tables. Black & White and
+// XY already carry wrapper quotes in BW_BOOSTER_SHELF and XY_BOOSTER_SHELF, so the
+// rows are not repeated here. Two rules follow, and both are enforced in sealed.ts
+// rather than here: a set with no loose-pack row keeps its modelled pack and gets
+// no band (capDisplayPerPack), and a quote that disagrees wildly with its own box
+// is refused before it can price a wrapper or anchor a band
+// (wrapperQuoteAgreesWithBox).
 export const LOOSE_PACK_SHELF: Readonly<Record<string, { market: number; productId: number }>> = {
-  'bw1-booster': { market: 187.99, productId: 98553 },
-  'bw10-booster': { market: 273.56, productId: 98573 },
-  'bw11-booster': { market: 392.43, productId: 98581 },
-  'bw2-booster': { market: 121.38, productId: 98549 },
-  'bw3-booster': { market: 168.71, productId: 98570 },
-  'bw4-booster': { market: 383.04, productId: 98538 },
-  'bw5-booster': { market: 396.63, productId: 98521 },
-  'bw7-booster': { market: 246.11, productId: 98554 },
-  'bw8-booster': { market: 720.9, productId: 98526 },
   'sm1-booster': { market: 21.63, productId: 129385 },
   'sm10-booster': { market: 67.77, productId: 185718 },
   'sm2-booster': { market: 37.95, productId: 129889 },
@@ -435,14 +430,6 @@ export const LOOSE_PACK_SHELF: Readonly<Record<string, { market: number; product
   'swsh11-booster': { market: 18.64, productId: 277325 },
   'swsh12-booster': { market: 14.68, productId: 283388 },
   'swsh7-booster': { market: 44.12, productId: 244337 },
-  'xy1-booster': { market: 154.74, productId: 91602 },
-  'xy10-booster': { market: 48.75, productId: 168114 },
-  'xy12-booster': { market: 71.16, productId: 129907 },
-  'xy2-booster': { market: 164.1, productId: 91595 },
-  'xy3-booster': { market: 83.04, productId: 92169 },
-  'xy5-booster': { market: 102.71, productId: 97751 },
-  'xy6-booster': { market: 91.31, productId: 129906 },
-  'xy7-booster': { market: 153.14, productId: 100490 },
 }
 
 // Booster bundles and 36-pack displays whose TCGplayer listing publishes a

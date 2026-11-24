@@ -458,7 +458,10 @@ function atLeastPackEv(setId: string, packs: number | null, market: number): num
  * wrapper per pack up to the p95 — median 0.91x, p90 1.57x, p95 1.78x. Above that
  * sit two numbers the band is meant to trim: a half-display at 2.17x and a
  * model-priced box at 2.74x. A six-box CASE quote, the other mistake this catches,
- * runs 6-8x. So 1.8 leaves every box a marketplace actually quotes alone.
+ * runs 6-8x. So 1.8 leaves every full box a marketplace actually quotes alone; what
+ * it does trim is two half-display quotes (2.17x and 2.74x their set's wrapper),
+ * which price eighteen packs above what the set's own thirty-six-pack box asks per
+ * pack.
  *
  * The reference is a real loose-wrapper quote, never the pack model. Comparing a
  * real box against a modelled pack is what made an earlier 2x band cut Evolving
@@ -490,6 +493,40 @@ function displayQuote(setId: string, packs: number | null, market: number): numb
   // box can only ever be worth the cheaper of the two, and the floor still wins
   // where the cards really are worth more than the band allows.
   return round2(atLeastPackEv(setId, packs, capDisplayPerPack(setId, packs, round2(market))))
+}
+
+/**
+ * A wrapper quote has to look like a wrapper beside its own box.
+ *
+ * Measured on boxes a marketplace actually quotes against their own loose packs,
+ * a box costs 0.82x to 2.74x the wrapper per pack — halves and dealer discounts
+ * included. Outside a factor of three either way, one of the two numbers is not
+ * the product it claims to be: the Black & White wrapper rows read $188 against a
+ * $656 box ($18.23 a pack) and Plasma Storm read $720.90 against a $1,297 box,
+ * which is a box price in a pack row. Such a quote is refused rather than allowed
+ * to price a wrapper or anchor a display band; the set keeps its model.
+ */
+export const WRAPPER_BOX_BAND = { min: 1 / 3, max: 3 } as const
+
+export function wrapperQuoteAgreesWithBox(setId: string, quote: number): boolean {
+  if (!(quote > 0)) return false
+  // A set with no display has no box to disagree with, and an in-print wrapper is
+  // retail-priced rather than resale-priced, so neither is screened: Ascended
+  // Heroes' $9.28 wrapper is a sticker on a shelf this month, not a collector
+  // quote that can be a box price in a pack row.
+  const hasDisplay = db.prepare(`SELECT 1 AS n FROM pack_products WHERE id = ?`).get(`${setId}-display`) !== undefined
+  if (!hasDisplay) return true
+  const rel = db.prepare(`SELECT release_date FROM sets WHERE id = ?`).get(setId) as { release_date: string } | undefined
+  if (rel && monthsOutOfPrint(rel.release_date, 'display', setId) <= 0) return true
+  // A box's own quote is preferred. A modelled box is only a plausibility screen
+  // here, never a price: it is what tells us a quote is impossible, not what the
+  // wrapper sells for.
+  const quoted = shelfPriceFor(`${setId}-display`)
+  const box = quoted && quoted.market > 0 ? quoted.market : derivedPrice(setId, 'display')
+  const perPack = box / 36
+  if (!(perPack > 0)) return true
+  const r = perPack / quote
+  return r >= WRAPPER_BOX_BAND.min && r <= WRAPPER_BOX_BAND.max
 }
 
 /** The pull-EV floor for every kind; a display also gets the per-pack band. */
@@ -529,7 +566,12 @@ export function priceDetail(productId: string): {
   // marketplace, so flooring the real $19.05 three-pack would replace the truth
   // with the model.
   const shelf = shelfPriceFor(productId)
-  if (shelf) {
+  // A loose wrapper's quote is screened against its own box before it is allowed
+  // to price anything: a wrapper costing a third of a box's per-pack price, or
+  // three times it, is a different product's number wearing a pack's name. The
+  // set falls back to its model rather than taking the impossible figure.
+  const shelfUsable = shelf !== null && (row.kind !== 'booster' || wrapperQuoteAgreesWithBox(row.set_id, shelf.market))
+  if (shelf && shelfUsable) {
     const rel = db.prepare('SELECT release_date FROM sets WHERE id = ?').get(row.set_id) as { release_date: string } | undefined
     const s = rel ? monthsOutOfPrint(rel.release_date, row.kind, row.set_id) : 0
     // A DISPLAY is the one real quote that still gets the floor, because a

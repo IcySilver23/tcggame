@@ -1,18 +1,32 @@
 {
   "entries": [
     {
+      "version": "0.94.17",
+      "date": "2026-11-24",
+      "title": "A wrapper quote has to look like a wrapper",
+      "highlights": [
+        "Loose-pack quotes are checked against their own box first: the Black & White wrappers asking $188 beside a $656 box, and Plasma Storm at $651.13 beside a $1,297 box, are refused.",
+        "A refused quote falls back to nothing: that set's wrapper returns to the pack model and its display gets no band. In-print wrappers are not screened — a retail sticker is not a resale quote.",
+        "Journey Together and Destined Rivals half-boxes are named as the two quoted displays the 1.8x cap actually trims, correcting the earlier claim that it leaves every quoted box alone."
+      ],
+      "features": [
+        "The wrapper quotes came from a per-set pack table, and for the old sets some rows carry a box-sized number in the pack column: Black & White packs listed at $110, $168.87, $187.99, $275.45, $329.09, $383.04, $392.43, $396.63 and $651.13, and XY base, Flashfire and Phantom Forces at $136.67, $160.96 and $229.72. Read against their own boxes those were impossible — a wrapper at a tenth of what the box asks per pack — and letting them stand priced nine Black & White wrappers at box money. None of those sets has a box quote, so no display band was anchored on a refused number — the damage was the wrappers themselves.",
+        "A loose wrapper is now screened against its own box before it can price anything: the box's quote where the marketplace publishes one, and the modelled box where it does not, divided by the thirty-six packs a box holds. Measured on the pairs that do agree, a box costs 0.82x to 2.74x the wrapper per pack, halves and dealer discounts included, so anything outside a factor of three either way is refused. The screen only ever rejects; it never moves a price to the band.",
+        "A refused quote is dropped rather than adjusted, and the set keeps the pack model it had before the quote was read. Its display loses the band at the same time, because a set with no trustworthy wrapper quote has no reference — which is the same rule a set that never had a quote follows.",
+        "The honest limits. Where no box quote exists the screen runs against the model, so it can prove a pair is impossible but cannot tell which of the two numbers is wrong: Black & White's modelled boxes and its quoted packs disagree by 5-20x and the build refuses both rather than picking a winner. It compares every display to a thirty-six-pack box, so an eighteen-pack half is held to the full box's per-pack price. And a wrong-but-plausible pair still passes: the screen catches a box price in a pack row, not a quote that is merely stale."
+      ]
+    },
+    {
       "version": "0.94.16",
       "date": "2026-11-24",
       "title": "A box is judged against a wrapper, not a model",
       "highlights": [
-        "The display band now measures against a real loose-pack quote at the measured 1.8x ceiling, so boxes a model had been halving are back at their marketplace price: Evolving Skies returns to $2,190.20.",
-        "The same quote prices that set's packs — Evolving Skies wrappers cost $44.12, not the $9.60 the card model guessed — so a pack, a box and a break finally quote the same marketplace.",
-        "A set with no loose-pack quote keeps its display price rather than being judged against a model, and a discounted box is still never pushed up to the band."
+        "The display band now measures against a real loose-pack quote at the measured 1.8x ceiling, so boxes a model had been halving are back at their marketplace price: Evolving Skies returns to $2,190.20."
       ],
       "features": [
         "Capping real marketplace quotes against a modelled pack was backwards. The model answers a different question: what the cards inside a wrapper are worth. For an out-of-print collector set that is a fraction of the wrapper — Evolving Skies cards model at $9.60 while one sealed pack sells for $44.12 — so the band read a genuine $2,190 box as a six-times error and cut it to $720.",
         "The reference is now a loose wrapper with a quote of its own: thirty out-of-print sets priced from TCGplayer market for the exact single-pack listing, read on 22 November 2026 through Pitt PokeResearch's per-set pack tables. Those quotes also price the packs themselves, so the Pack Shop stops wrapping Evolving Skies at the card model and starts charging what the wrapper trades at.",
-        "The ceiling comes from the measurement rather than from a round number. Across the 48 displays whose set also has a loose-pack quote, a box costs 0.05x to 1.78x the wrapper per pack up to the 95th percentile — median 0.91x, p90 1.57x — while a six-box case quote, the mistake this band exists to catch, runs 6-8x. The cap is 1.8x, which leaves every box a marketplace actually asks for alone; it trims exactly two numbers today, a half-display at 2.17x and a model-priced box at 2.74x.",
+        "The ceiling comes from the measurement rather than from a round number. Across the displays whose set has a loose-pack quote, a box costs 0.05x to 1.78x the wrapper per pack up to the 95th percentile — median 0.91x, p90 1.57x — while a six-box case quote, the mistake this band exists to catch, runs 6-8x. The cap is 1.8x. It does not leave every quoted box alone, whatever this entry first said: it trims two half-display quotes, Journey Together's $333.33 for eighteen packs (2.74x its $6.76 wrapper) and Destined Rivals' $317.50 for eighteen (2.17x its $8.13 wrapper), both of which asked more per pack than their own full box.",
         "The honest limit: only sets whose wrappers trade loose get this treatment. Seventy displays still have a modelled pack and therefore no reference at all — they keep their quoted price instead of being banded against the model, so a box and its packs can still disagree on those sets until a loose-pack quote exists for them."
       ]
     },
