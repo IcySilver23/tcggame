@@ -342,7 +342,7 @@ export type GameStateResponse = {
   /** How many of your cards one trade offer may hold (server-enforced). */
   trade: { maxOfferCards: number }
   /** Play-history counters the sidebar's progressive unlocks read. */
-  progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean }
+  progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean; hasResale: boolean }
   /** Waiting-lab-result counters for badge chips — arrived auth verdicts and finished grading jobs. */
   counters?: { authVerdicts: number; gradingReady: number }
   /** Academy chapters with every step ticked and no reward claimed yet. */

@@ -521,6 +521,9 @@ app.get('/api/state', (c) => {
     salesCount: (db.prepare('SELECT COUNT(*) AS n FROM sale_history').get() as { n: number }).n,
     followers: (db.prepare('SELECT COALESCE((SELECT followers FROM stream_stats LIMIT 1), 0) AS n').get() as { n: number }).n,
     hasShop: !!db.prepare('SELECT id FROM shop WHERE id = 1').get(),
+    // Set by the first lot bought off the Resale Desk (resale.ts). The desk's
+    // cash gate is a save-up, not a condition you keep after spending it.
+    hasResale: getMeta('resale:boughtIn') === '1',
   }
 
   // The in-game day clock: a game-day is 2 real hours by default (the length is

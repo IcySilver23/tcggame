@@ -1,13 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.94.13",
+      "date": "2026-11-24",
+      "title": "The desk stays open while you hold the stock",
+      "highlights": [
+        "The Resale Desk no longer locks itself after your first lot: buying one keeps its tab open at any cash balance, so the stock you just paid for stays reachable.",
+        "The $400 gate still applies until you have bought in — it is the money to start with, not a balance you have to keep.",
+        "A lot now actually costs its ask: the desk checked that you could pay and then never took the money, so every purchase was free and only the activity log said otherwise.",
+        "Haggling a lot down or walking away does not count: only a completed purchase opens the desk for good, and a saved #/resale link follows the same rule."
+      ],
+      "features": [
+        "The Resale Desk was unlocked by one thing only: $400 in cash, the amount the padlocked row tells you to save. The desk's own asks are sized around that figure, so the first serious lot took the balance under it and the tab you had just used became a 🔒 row reading 275/400 while the cards sat on your shelf — the same shape the Card Shop had, and it paid the same price for it.",
+        "The first lot you buy now records that you are in: the tab opens on that record as well as on the cash, so the desk stays yours at any balance. It is written by a completed purchase and nothing else — haggling a price down or walking away from a lot does not count, because neither has shown the desk you can play. Selling everything you bought does not revoke it either, since the desk is not a lease you can hand back.",
+        "The purchase itself was not charging anyone. Buying a lot confirmed the ask was affordable, shelved the cards, closed the deal and wrote the spend into the activity log — but your cash never moved, so the only money the desk ever handled was the instant-sale payout coming in. The ask now leaves your wallet in the same transaction that shelves the cards and closes the deal: a lot that only partly fits is charged for what you actually carry home, and a failed insert takes neither the cash nor the cards.",
+        "A player who has never bought a lot still saves to $400 to open the desk, and the locked row keeps counting toward it. Nothing about the prices, the haggling, the stock or the ledger changed beyond the money finally leaving."
+      ]
+    },
+    {
       "version": "0.94.12",
       "date": "2026-11-24",
       "title": "A display is eighteen packs, not one",
       "highlights": [
-        "A break on a display now rips the packs inside it: the 18-pack half display queues 18 packs instead of one, and its live header counts them all.",
-        "The number in the break and go-live panels means boxes — a bundle is 6 packs, an ETB 8 or 9, a half display 18, a display 36 — and every pack inside is bought and ripped.",
-        "The same count reaches a normal stream: going live on a display queues its packs rather than paying for the box and opening one pack."
+        "A break on a display now rips the packs inside it: the 18-pack half display queues 18 packs instead of one, and its live header counts them all."
       ],
       "features": [
         "The number you typed into Open a case break was stored as the break's pack count, and the two are not the same figure: it counts boxes. One Evolving Skies Half Booster Display (18 packs) bought the box at its box price, then queued a single rip and printed \"0 of 1 pack left\" in the live header — seventeen packs paid for and never opened. The break now records what is inside the box, from the catalogue's own pack count, so one half display queues 18 packs, a display 36, an ETB 8 or 9, a bundle 6, and a booster still one.",

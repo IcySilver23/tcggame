@@ -52,7 +52,7 @@ const HoloDebugLauncher = import.meta.env.DEV
 export type ViewId =
   | 'home' | 'collection' | 'portfolio' | 'set' | 'binder' | 'market' | 'packs' | 'opening' | 'inventory' | 'grading' | 'trade' | 'forum'  | 'events'  | 'battles' | 'stream'  | 'resale' | 'shop' | 'deals' | 'settings' | 'pulls-history' | 'achievements' | 'academy'
 
-type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean } }
+type UnlockState = { cash: number; collectionValue: number; inventoryValue: number; netWorth: number; progress: { cardsOwned: number; salesCount: number; followers: number; hasShop: boolean; hasResale: boolean } }
 type NavEntry = { id: ViewId; label: string; icon: string; section: string; /** When set, the view stays locked (shown as a 🔒 hint row) until the predicate fires. */ locked?: (s: UnlockState) => boolean; hint?: string; /** One sentence of the locked screen's own guidance, shown on the lock row. */ note?: string; /** Tie-break for next-unlock sorting when two goals need the same progress. */ goal?: number }
 
 const NAV: NavEntry[] = [
@@ -89,7 +89,10 @@ const NAV: NavEntry[] = [
   // charging rent) the moment the money left. `progress.hasShop` is the row the
   // lease writes, and leasing is the only way to get one.
   { id: 'shop', label: 'Card Shop', icon: '🏪', section: '', locked: (s) => s.progress.hasShop || s.cash >= 500, hint: 'Save $500 · lease $250', note: '$6/day while stocked — fill a case and walk-ins buy.', goal: 500 },
-  { id: 'resale', label: 'Resale Desk', icon: '💼', section: '', locked: (s) => s.cash >= 400, hint: 'Save $400', note: 'Sellers leave lots priced under market — buy, then flip the cards.', goal: 400 },
+  // Same shape as the Card Shop: $400 is the save-up for a desk you have never
+  // used, and the first lot spends it. `progress.hasResale` is set by that
+  // purchase, so the tab stays open while the stock it bought is still yours.
+  { id: 'resale', label: 'Resale Desk', icon: '💼', section: '', locked: (s) => s.progress.hasResale || s.cash >= 400, hint: 'Save $400', note: 'Sellers leave lots priced under market — buy, then flip the cards.', goal: 400 },
   { id: 'battles', label: 'Pack Battles', icon: '⚔️', section: 'PLAY' },
   // Streaming EARNS the followers, so gating Stream behind five of them was a
   // deadlock on a fresh save: the one screen that grows the channel was the one

@@ -212,17 +212,29 @@ export function buyDeal(id: number) {
      VALUES (?, 'normal', ?, 1, 'collection', 'resale', ?, ?, ?)`,
   )
   const added: { inventoryId: number; cardId: string; condition: string }[] = []
+  // Cash, cards and the deal's status move together: a failed insert must not
+  // take the money and leave the lot with the seller. The charge was missing
+  // entirely until now — the desk checked that you COULD pay, then handed the
+  // cards over and only wrote "-$x" into the activity log, so every lot was
+  // free and the wallet never saw it.
   const addInv = db.transaction(() => {
+    db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(charged)
     for (const c of cards.slice(0, admitted)) {
       const res = ins.run(c.cardId, c.condition, perCard, nowIso(), `resale_deal:${d.id}`)
       added.push({ inventoryId: Number(res.lastInsertRowid), cardId: c.cardId, condition: c.condition })
     }
+    db.prepare(`UPDATE resale_deals SET status = 'bought' WHERE id = ?`).run(d.id)
   })
   addInv()
   // Dealer lots are pre-owned cardboard of unknown provenance (auth.ts).
   import('./auth').then((a) => a.stampRiskBatch(added, 'resale')).catch(() => {})
 
-  db.prepare(`UPDATE resale_deals SET status = 'bought' WHERE id = ?`).run(d.id)
+  // Bought in, permanently. The Resale Desk's other gate is $400 in cash, which
+  // a lot the size of the desk's own asks takes away the moment you pay for it:
+  // without this flag the tab locked itself after the first purchase while the
+  // stock it had just bought sat in the shelf. One lot is the entry; selling it
+  // all does not revoke it.
+  setMeta('resale:boughtIn', '1')
   const short = rawCount - admitted
   logActivity(
     'resale',
