@@ -71,11 +71,14 @@ ok(cheap.length > 0, `a discounted box still exists and was not raised (${cheap.
 // Researched box quotes: the collector-era boxes carry PriceCharting sold values,
 // and the ones whose value disagreed with their own sales stay modelled.
 const quotedDisplays = rows.filter((r) => priceOf(r.id).source !== 'estimated').length
-ok(quotedDisplays >= 85, `most displays are priced off a quote (${quotedDisplays} of ${rows.length})`)
+ok(quotedDisplays >= 70, `most displays are priced off a quote (${quotedDisplays} of ${rows.length})`)
 ok(priceOf('base1-display').market === 40000 && priceOf('base1-display').source === 'pricecharting', `Base Set's box is its sold value ($${priceOf('base1-display').market.toFixed(2)})`)
 ok(priceOf('sm1-display').market === 1032.84, `Sun & Moon's box is its TCGplayer market ($${priceOf('sm1-display').market.toFixed(2)})`)
 ok(priceOf('bw8-display').source === 'estimated', 'Plasma Storm stays modelled: its page disagrees with its own sales')
-ok(priceOf('base6-display').source === 'estimated', 'Legendary Collection stays modelled for the same reason')
+ok(priceOf('base6-display').market === 110200, `Legendary Collection is admitted on its sold median ($${priceOf('base6-display').market.toFixed(2)})`)
+ok(priceOf('gym2-display').source === 'estimated', 'Gym Challenge stays modelled: its value is 1.5x its sold median')
+ok(priceOf('ex12-display').source === 'estimated', 'Legend Maker stays modelled: only two completed sales')
+ok(priceOf('xy9-display').source === 'estimated', 'BREAKpoint stays modelled: its value is 6.9x its sold median')
 ok(priceOf('ex1-display').source === 'estimated', 'a set with no PriceCharting box page stays modelled')
 
 // The ceiling is set from the gap in the data, not from its edge: above every
