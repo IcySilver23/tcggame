@@ -83,7 +83,12 @@ const NAV: NavEntry[] = [
   // for the cards and the roof over them. The capacity strip and every saved
   // #/storage link still open that mode.
   { id: 'inventory', label: 'Inventory', icon: '🗃', section: 'BUSINESS' },
-  { id: 'shop', label: 'Card Shop', icon: '🏪', section: '', locked: (s) => s.cash >= 500, hint: 'Save $500 · lease $250', note: '$6/day while stocked — fill a case and walk-ins buy.', goal: 500 },
+  // $500 is the SAVE-UP gate for a shop you do not have yet. Once the lease is
+  // signed the door has to stay open: the deposit itself takes you under $500,
+  // so a cash-only gate re-locked the shop you had just paid for (and kept
+  // charging rent) the moment the money left. `progress.hasShop` is the row the
+  // lease writes, and leasing is the only way to get one.
+  { id: 'shop', label: 'Card Shop', icon: '🏪', section: '', locked: (s) => s.progress.hasShop || s.cash >= 500, hint: 'Save $500 · lease $250', note: '$6/day while stocked — fill a case and walk-ins buy.', goal: 500 },
   { id: 'resale', label: 'Resale Desk', icon: '💼', section: '', locked: (s) => s.cash >= 400, hint: 'Save $400', note: 'Sellers leave lots priced under market — buy, then flip the cards.', goal: 400 },
   { id: 'battles', label: 'Pack Battles', icon: '⚔️', section: 'PLAY' },
   // Streaming EARNS the followers, so gating Stream behind five of them was a

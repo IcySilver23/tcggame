@@ -1,14 +1,25 @@
 {
   "entries": [
     {
+      "version": "0.94.11",
+      "date": "2026-11-24",
+      "title": "The shop you paid for stays open",
+      "highlights": [
+        "Leasing a Card Shop no longer locks its own tab: the deposit used to drop you under the $500 save-up gate and turn the row back into a padlock with a countdown.",
+        "The Card Shop door recognises the shop you already run, so it stays open at any cash balance, the deposit included.",
+        "Nothing about the shop itself changed — the lease, the rent and the stock are as they were."
+      ],
+      "features": [
+        "The Card Shop tab was unlocked by one thing only: at least $500 in cash, the amount the locked row tells you to save. That is the right gate for a shop you do not have yet and the wrong one for a shop you just signed, because the $250 hole-in-the-wall deposit takes the balance under it — the tab you had just opened became a padlocked row reading 275/500 while the rent kept coming out. The door now also opens on the shop itself, the record the lease writes, so after the deposit is paid the tab stays yours at any balance. Deep links into the shop read the same guard, so they no longer bounce you home either.",
+        "The money gate still does its job for a player with no shop: close your shop and you are saving for a fresh deposit again. The lease, the rent, the cases and the counter prices are untouched."
+      ]
+    },
+    {
       "version": "0.94.10",
       "date": "2026-11-24",
       "title": "The packs quote their own odds",
       "highlights": [
-        "Generations boxes no longer promise a Rare BREAK or a Rare ACE SPEC: the pack panel lists only tiers a set prints, so its rates add up to the 8.5% its wrapper deals.",
-        "Ascended Heroes' Mega Attack Rare (1 in 29 packs) had slipped out of its own panel, and its illustration rares still quoted the era's 9% instead of the 11.25% the packs deal.",
-        "The release gate now compares every set's ladder with its pull table and fails the build if a dealt tier is unquoted, a quoted tier has no card, or the totals disagree.",
-        "Nothing about opening changed — the pull tables were already right, so this fixes the numbers the panels printed, not the pull."
+        "Generations boxes no longer promise a Rare BREAK or a Rare ACE SPEC: the pack panel lists only tiers a set prints, so its rates add up to the 8.5% its wrapper deals."
       ],
       "features": [
         "The hit ladder is written per era, and an era is not a set. The XY ladder carries Rare BREAK at 9.1% and Rare ACE SPEC at 5%, plus rainbow at 1.2% and secret at 1.8% — none of which Generations ever printed; it prints Rare Holo EX and Rare Ultra and nothing above them. The panel and the pack-contents list quoted all six tiers, so their odds added up to 25.6% against the 8.5% the pull table deals, and a box advertised a BREAK in one pack in eleven that could never arrive.",
