@@ -6,8 +6,8 @@ import { mixedPackSpec, sealedEvidenceFor } from '../catalog/sealed-evidence'
 import * as dailydeals from './dailydeals'
 import * as vault from './vault'
 import { rollMiniPack } from './gmpacks'
-import { planFor, profileFor, eraOf, SET_UPGRADE_OVERRIDE, SET_SIR_OVERRIDE, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, subsetMiss, SUBSET_TIER_ODDS, HOST_SUBSETS, tierKey, type SecondSlotOutcome } from './packodds'
-import { rareVariantFor } from './finish-odds'
+import { planFor, profileFor, eraOf, SET_UPGRADE_OVERRIDE, SET_SIR_OVERRIDE, invalidatePackOdds, isAllSubset, weightedAvg, rareSlotValue, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, subsetMiss, SUBSET_TIER_ODDS, HOST_SUBSETS, tierKey, type SecondSlotOutcome } from './packodds'
+import { isFoilRare, rareVariantFor } from './finish-odds'
 import { ascendedVariantFor } from '../../src/foil/ball-stamps'
 import {
   BALL_VARIANTS,
@@ -474,7 +474,12 @@ export function estimatePackValue(setId: string): PackEstimate {
       : 'normal'
   const loadPool = (slot: string, variant?: string) =>
     (db.prepare(`SELECT card_id, weight FROM pack_product_cards WHERE pack_product_id = ? AND slot = ?`).all(`${setId}-booster`, slot) as { card_id: string; weight: number }[])
-      .map((r) => ({ ...r, v: valueOf(r.card_id, variant ?? finishVariant(slot, r.card_id)) }))
+      .map((r) => ({
+        ...r,
+        v: valueOf(r.card_id, variant ?? finishVariant(slot, r.card_id)),
+        // Which side of the era's rare split the card sits on — see rareSlotValue.
+        holo: isFoilRare(setId, cardMeta(r.card_id).rarity),
+      }))
   // The same plan the roll uses: the era's ten game cards — commons, 3
   // uncommons, reverse holo(s), and one rare-or-hit that upgrades at the era's
   // real odds. A subset-only blueprint still adds its subset slot.
@@ -590,8 +595,10 @@ export function estimatePackValue(setId: string): PackEstimate {
   const slotEv = (slot: string) => {
     if (slot === 'reverse') return slotValue('first')
     if (slot === 'reverse2') return slotValue('second')
-    // The rare slot upgrades at the set's odds, else it is the plain/holo rare.
-    if (slot === 'hit') return chance * weightedAvg(hitPool) + (1 - chance) * weightedAvg(loadPool('holo'))
+    // The rare slot upgrades at the set's odds, else it is the plain/holo rare
+    // at the era's holo rate — the same function the sealed EV uses, so the
+    // Shop's estimate and the shop price cannot disagree about the rate.
+    if (slot === 'hit') return chance * weightedAvg(hitPool) + (1 - chance) * rareSlotValue(setId, loadPool('holo'))
     // A subset card occupies the reverse-holo position at the set's own rate —
     // or, in a pack with no reverse printing (Celebrations), the plain foil rare.
     if (slot === 'subset') {

@@ -2,7 +2,7 @@ import { db } from '../lib/db'
 import { onDerivedDataChanged } from '../lib/derived-cache'
 import { valueOf, round2 } from './market'
 import { ascendedVariantFor } from '../../src/foil/ball-stamps'
-import { holoFinishFor, rareVariantFor } from './finish-odds'
+import { holoFinishFor, isFoilRare, rareVariantFor } from './finish-odds'
 import type { FinishId } from '../../src/foil/finishes'
 import { BALL_VARIANTS, ballEligible, isSpecialSet, specialSlotChancesFor } from './special-reverse'
 
@@ -993,6 +993,35 @@ function weightedAvg(rows: { weight: number; v: number }[]): number {
 export { weightedAvg }
 
 /**
+ * The rare slot, priced at its era's holo rate.
+ *
+ * A pre-2011 pack holds exactly one rare, and how often that rare is the HOLO
+ * printing is a counted property of the era, not a property of the card pool: 1
+ * in 3 packs in the Wizards and EX years (pokegym's box study), 34-38% in the
+ * eras that carry an estimate. buildPullTable writes that split into the pool's
+ * weights — `rare.plain / n` on each plain rare, `rare.holo / n` on each holo
+ * rare — and those weights sum to 1, so a normalised average happens to return
+ * the right figure today. Relying on that is the trap: normalising throws the
+ * rate away the moment a set prints only one kind of rare, or a profile number
+ * is edited, and the slot silently becomes one flat pool again (which reads 25%
+ * to 50% high on these sets — Base Set's rare slot is $69 at its 1-in-3 rate and
+ * $97 as a flat pool of the same 32 cards). So the rate is applied explicitly
+ * here, from the profile, and the pools are only used for their own averages.
+ */
+export function rareSlotValue(setId: string, rows: { weight: number; v: number; holo: boolean }[]): number {
+  const holos = rows.filter((r) => r.holo)
+  const plains = rows.filter((r) => !r.holo)
+  const avgHolo = holos.length > 0 ? weightedAvg(holos) : null
+  const avgPlain = plains.length > 0 ? weightedAvg(plains) : null
+  if (avgHolo == null) return avgPlain ?? 0
+  // A set that prints no plain rare has a holo rate of 1 by necessity: the rare
+  // in its packs cannot be anything else.
+  if (avgPlain == null) return avgHolo
+  const rate = Math.min(1, Math.max(0, profileFor(setId).rare.holo))
+  return rate * avgHolo + (1 - rate) * avgPlain
+}
+
+/**
  * Expected cash value of one booster pack, using the same structure and odds
  * the roller uses: the final card is an upgrade with `upgradeChance`, else a
  * basic Energy (or a second reverse holo when the set prints no Energy).
@@ -1015,6 +1044,9 @@ export function expectedPackValue(setId: string, cardsPerPack = 10): number {
       .map((r) => ({
         weight: r.weight,
         v: valueOf(r.card_id, variant ?? (slot === 'holo' || slot === 'hit' ? rareVariantFor(setId, r.rarity) : 'normal')),
+        // Which side of the era's rare split this card sits on, so the rare slot
+        // can be priced at the holo rate instead of as one pool (rareSlotValue).
+        holo: isFoilRare(setId, r.rarity),
       }))
   const common = withValue('common')
   const uncommon = withValue('uncommon')
@@ -1076,12 +1108,13 @@ export function expectedPackValue(setId: string, cardsPerPack = 10): number {
   // The rare slot upgrades at those odds and otherwise draws the plain/holo
   // rare the era's split describes — one card, not two.
   const chance = Math.min(0.85, hitPool.reduce((a, r) => a + Math.max(0, r.weight), 0))
-  const finalValue = chance * weightedAvg(hitPool) + (1 - chance) * weightedAvg(withValue('holo'))
+  const rarePool = withValue('holo')
+  const finalValue = chance * weightedAvg(hitPool) + (1 - chance) * rareSlotValue(setId, rarePool)
   let total = 0
   for (const s of planFor(setId, cardsPerPack)) {
     if (s.slot === 'common') total += s.count * weightedAvg(common)
     else if (s.slot === 'uncommon') total += s.count * weightedAvg(uncommon)
-    else if (s.slot === 'holo') total += s.count * weightedAvg(withValue('holo'))
+    else if (s.slot === 'holo') total += s.count * weightedAvg(rarePool)
     else if (s.slot === 'reverse') total += s.count * firstSlotValue()
     else if (s.slot === 'reverse2') total += s.count * secondSlotValue()
     else if (s.slot === 'hit') total += s.count * finalValue
