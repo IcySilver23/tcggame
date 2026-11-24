@@ -5,13 +5,16 @@
       "date": "2026-11-24",
       "title": "The packs quote their own odds",
       "highlights": [
-        "Generations boxes no longer promise a Rare BREAK or a Rare ACE SPEC: the pack panel lists only the tiers a set actually prints, so its rates add up to what the wrapper deals — 8.5% of packs upgrade.",
-        "Every set got the same treatment: a tier with no card in the catalogue is no longer quoted as a pull rate.",
+        "Generations boxes no longer promise a Rare BREAK or a Rare ACE SPEC: the pack panel lists only tiers a set prints, so its rates add up to the 8.5% its wrapper deals.",
+        "Ascended Heroes' Mega Attack Rare (1 in 29 packs) had slipped out of its own panel, and its illustration rares still quoted the era's 9% instead of the 11.25% the packs deal.",
+        "The release gate now compares every set's ladder with its pull table and fails the build if a dealt tier is unquoted, a quoted tier has no card, or the totals disagree.",
         "Nothing about opening changed — the pull tables were already right, so this fixes the numbers the panels printed, not the pull."
       ],
       "features": [
         "The hit ladder is written per era, and an era is not a set. The XY ladder carries Rare BREAK at 9.1% and Rare ACE SPEC at 5%, plus rainbow at 1.2% and secret at 1.8% — none of which Generations ever printed; it prints Rare Holo EX and Rare Ultra and nothing above them. The panel and the pack-contents list quoted all six tiers, so their odds added up to 25.6% against the 8.5% the pull table deals, and a box advertised a BREAK in one pack in eleven that could never arrive.",
-        "The ladder is now cut to the tiers the catalogue actually holds for the set, so the shelf, the pack-contents manifest and the roller quote one set of numbers. Across the 178 sets with a pull table, 107 used to disagree with their own table and 83 of those now agree exactly; the ones left are sets whose illustration-rare tiers ride in the second reverse slot, where the two figures measure different slots on purpose.",
+        "The ladder is now cut to the tiers the catalogue actually holds for the set, so the shelf, the pack-contents manifest and the roller quote one set of numbers. Of the sets whose ladder used to disagree with their table, most were never wrong: their illustration rares ride the second reverse slot, so the ladder adds up to the hit pool plus that slot, not to the hit pool alone.",
+        "One set really was wrong, and this is the part worth admitting. Ascended Heroes prints a Mega Attack Rare in 1 pack in 29, and the cut compared tier names letter for letter, so the catalogue's raw MEGA_ATTACK_RARE was treated as a tier the set never printed and dropped from its panel — the panel added up to 36.8% against the 41.1% the packs deal. The same panel also still quoted the era's 9% Illustration Rare and 2.8% Special Illustration Rare, where the measured second reverse slot deals 11.25% and 1.44%. The cut now compares names the way the roller does, and a measured slot rate outranks the era's estimate.",
+        "The release gate gained a step for exactly this: every set with a pull table must quote each tier it deals out of the hit or second slot at the rate it deals it, quote no tier the catalogue cannot print, and add up to the table's own total. Run against the code before this fix it reports four problems on Ascended Heroes; given a ladder with a phantom Rare BREAK it reports five on Generations.",
         "The honest limit: this is a display fix. The roller always dealt from the pull table, so no pack got easier or harder — the rates were simply being printed wrong. And they remain era-typical models, not measured samples: Generations’ two tiers are the XY era’s estimate, which the panel still says."
       ]
     },

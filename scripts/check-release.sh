@@ -8,6 +8,7 @@
 #   npm run check:promo-badge   the shelf's promo tag: no clipping, no price collision
 #   tmp/check-academy-steps.ts  every Academy step, plus the legacy-waiver edge
 #   tmp/check-generations.ts    the fifteen Generations boxes: packs, promos, art, price
+#   tmp/check-hit-ladders.ts    every set's hit ladder against the pull table it deals
 #   tmp/check-bulk.ts           quantity buys and bulk rips, wrapper by wrapper
 #
 # Called by scripts/build-installer.sh BEFORE anything is built, so a red check
@@ -31,12 +32,12 @@ mkdir -p "$TMP/reports"
 step() { echo; echo "==> $1"; }
 
 # 1. Static and instant: fail here before a single save is copied.
-step "release gate 1/7: changelog rules"
+step "release gate 1/8: changelog rules"
 npm run --silent check:changelog
 
 # 2. Also static: a three-promo shelf tag must show every name and stay clear of
 #    the price label. It reads src/styles.css and src/views/Packs.tsx.
-step "release gate 2/7: promo badge layout"
+step "release gate 2/8: promo badge layout"
 npm run --silent check:promo-badge
 
 # 3. The sealed audit resolves its own isolated home (a copy of data/tcglife.db,
@@ -45,7 +46,7 @@ npm run --silent check:promo-badge
 #    Its reports go to tmp/ as well: refreshing the tracked reports/ copies stays
 #    a deliberate act (`npm run check:sealed` by hand), so a release build never
 #    leaves the working tree dirty mid-release.
-step "release gate 3/7: sealed audit"
+step "release gate 3/8: sealed audit"
 SEALED_AUDIT_REPORT_DIR="$PWD/$TMP/reports" npm run --silent check:sealed
 
 # 4. Whatever that just resolved is what the remaining checks copy: already
@@ -65,7 +66,7 @@ echo "gate save: $SAVE"
 
 # 5. The hit-odds check on its own name, against that save. Its report goes to
 #    tmp/ so a release build never rewrites the tracked reports/ copies.
-step "release gate 4/7: hit odds"
+step "release gate 4/8: hit odds"
 TCGLIFE_HOME="$SOURCE_HOME" HIT_ODDS_REPORT_DIR="$PWD/$TMP/reports" npm run --silent check:odds
 
 # A scratch home: the save plus the schema the services expect to find beside it.
@@ -105,16 +106,22 @@ fi
 # never opened.
 node -e 'const db=require("better-sqlite3")(process.argv[1]);const r=db.prepare("SELECT cash FROM game_state WHERE id=1").get();if(r&&r.cash<200){db.prepare("UPDATE game_state SET cash=200 WHERE id=1").run();console.log("gate: scratch cash",r.cash,"-> 200")}db.close()' "$BULK/data/tcglife.db"
 
-# 5/6. The two proofs that live in tmp/ rather than in package.json.
+# 5-8. The proofs that live in tmp/ rather than in package.json.
 TSX=./node_modules/tsx/dist/cli.mjs
-step "release gate 5/7: Academy steps"
+
+# The ladder is what the panels quote and the pull table is what the roller
+# deals; nothing compared them until 0.94.10 got the first one wrong.
+step "release gate 5/8: hit ladders"
+TCGLIFE_HOME="$SOURCE_HOME" node "$TSX" tmp/check-hit-ladders.ts | tail -3
+
+step "release gate 6/8: Academy steps"
 TCGLIFE_HOME="$ACADEMY" node "$TSX" tmp/check-academy-steps.ts | tail -3
 
-step "release gate 6/7: Generations boxes"
+step "release gate 7/8: Generations boxes"
 TCGLIFE_HOME="$GENERATIONS" node "$TSX" tmp/check-generations.ts | tail -3
 
-step "release gate 7/7: bulk buy and rip"
+step "release gate 8/8: bulk buy and rip"
 TCGLIFE_HOME="$BULK" node "$TSX" tmp/check-bulk.ts | tail -4
 
 echo
-echo "release gate passed: changelog, promo badge, sealed audit, hit odds, Academy steps, Generations boxes, bulk rip"
+echo "release gate passed: changelog, promo badge, sealed audit, hit odds, hit ladders, Academy steps, Generations boxes, bulk rip"

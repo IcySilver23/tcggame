@@ -6,7 +6,7 @@ import { mixedPackSpec, sealedEvidenceFor } from '../catalog/sealed-evidence'
 import * as dailydeals from './dailydeals'
 import * as vault from './vault'
 import { rollMiniPack } from './gmpacks'
-import { planFor, profileFor, eraOf, SET_UPGRADE_OVERRIDE, SET_SIR_OVERRIDE, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, subsetMiss, SUBSET_TIER_ODDS, HOST_SUBSETS, type SecondSlotOutcome } from './packodds'
+import { planFor, profileFor, eraOf, SET_UPGRADE_OVERRIDE, SET_SIR_OVERRIDE, invalidatePackOdds, isAllSubset, weightedAvg, secondSlotOdds, secondSlotUpgradeOdds, isSecondSlotRarity, subsetChanceFor, subsetMiss, SUBSET_TIER_ODDS, HOST_SUBSETS, tierKey, type SecondSlotOutcome } from './packodds'
 import { rareVariantFor } from './finish-odds'
 import { ascendedVariantFor } from '../../src/foil/ball-stamps'
 import {
@@ -206,9 +206,6 @@ export const TIER_ODDS: Record<string, number> = {
   'Rare ACE': 0.02, 'ACE SPEC Rare': 0.02, 'Amazing Rare': 0.05, 'Radiant Rare': 0.05,
   'Trainer Gallery Rare Holo': 0.10,
 }
-
-/** A tier name with case and separators flattened, for label matching. */
-const tierKey = (s: string) => s.toLowerCase().replace(/[^a-z]+/g, ' ').trim()
 
 /**
  * The per-pack odds a set deals a hit tier at, and where the figure comes from.

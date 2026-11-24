@@ -826,13 +826,18 @@ export function upgradeOdds(setId: string): Record<string, number> {
   const odds = { ...profileFor(setId).upgrade, ...SET_UPGRADE_OVERRIDE[setId] }
   const sir = SET_SIR_OVERRIDE[setId]
   if (sir !== undefined && 'Special Illustration Rare' in odds) odds['Special Illustration Rare'] = sir
+  // A measured second slot outranks the era's ladder for the tiers it covers:
+  // Ascended Heroes' slot was counted (11.25% Illustration Rare, 1.44% Special
+  // Illustration Rare), and the roller deals those figures, so the panels have to
+  // quote them rather than the era's 9% and 2.8%.
+  for (const u of specialSlotChancesFor(setId, 'second')?.upgrades ?? []) odds[u.rarity] = u.odds
   // A ladder belongs to the ERA, not to the set. Generations is an XY set and the
   // XY ladder carries Rare BREAK and Rare ACE SPEC, neither of which Generations
   // ever printed: the pack panel listed all six tiers, their odds added to 25.6%
   // against the 8.5% the pull table actually deals, and it promised a BREAK in
   // 9.1% of packs that could not arrive. A tier with no card in the catalogue
   // cannot be pulled, so it is not a rate this set has — and the figures that stay
-  // are the same ones the table was built from, which is why the two now agree.
+  // are the ones the table was built from, which is why the two now agree.
   for (const name of Object.keys(odds)) if (!setPrintsTier(setId, name)) delete odds[name]
   return odds
 }
@@ -876,16 +881,33 @@ export function isSecondSlotRarity(rarity: string | null | undefined): boolean {
  * printing. Returns null for an era that has no second slot.
  */
 const secondCache = new Map<string, { outcome: SecondSlotOutcome; odds: number }[] | null>()
-const tierCache = new Map<string, boolean>()
+const printedCache = new Map<string, Set<string>>()
+
+/**
+ * The way a rarity name is compared everywhere a tier table meets the catalogue.
+ * The roller has always matched names this way (`Rare ACE SPEC` ≡ `Rare ACE`,
+ * `MEGA_ATTACK_RARE` ≡ `Mega Attack Rare`); the ladder filter below has to use
+ * the same rule, or it drops a tier the set really prints. Ascended Heroes'
+ * raw `MEGA_ATTACK_RARE` was exactly that: 1 in 29 packs, and an exact-match
+ * filter hid it from every panel.
+ */
+export const tierKey = (s: string) => s.toLowerCase().replace(/[^a-z]+/g, ' ').trim()
+
+/** Every tier the catalogue actually holds for this set, keyed by `tierKey`. */
+function printedTierKeys(setId: string): Set<string> {
+  const hit = printedCache.get(setId)
+  if (hit) return hit
+  const rows = db
+    .prepare('SELECT DISTINCT rarity FROM cards WHERE set_id = ? AND rarity IS NOT NULL')
+    .all(setId) as { rarity: string }[]
+  const keys = new Set(rows.map((r) => tierKey(r.rarity)))
+  printedCache.set(setId, keys)
+  return keys
+}
 
 /** Whether the catalogue actually holds a card of this rarity for the set. */
 function setPrintsTier(setId: string, rarity: string): boolean {
-  const key = `${setId}:${rarity.toLowerCase()}`
-  const hit = tierCache.get(key)
-  if (hit !== undefined) return hit
-  const row = db.prepare(`SELECT 1 AS ok FROM cards WHERE set_id = ? AND lower(rarity) = lower(?) LIMIT 1`).get(setId, rarity)
-  tierCache.set(key, !!row)
-  return !!row
+  return printedTierKeys(setId).has(tierKey(rarity))
 }
 
 export function secondSlotOdds(setId: string): { outcome: SecondSlotOutcome; odds: number }[] | null {
@@ -945,14 +967,14 @@ export function invalidatePackOdds(setId?: string) {
     yearCache.delete(setId)
     secondCache.delete(setId)
     basicEnergyCache.delete(setId)
-    for (const key of [...tierCache.keys()]) if (key.startsWith(`${setId}:`)) tierCache.delete(key)
+    printedCache.delete(setId)
     for (const key of [...slotCache.keys()]) if (key.startsWith(`${setId}:`)) slotCache.delete(key)
   } else {
     evCache.clear()
     yearCache.clear()
     secondCache.clear()
     basicEnergyCache.clear()
-    tierCache.clear()
+    printedCache.clear()
     slotCache.clear()
   }
 }
