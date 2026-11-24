@@ -1,13 +1,26 @@
 {
   "entries": [
     {
+      "version": "0.94.12",
+      "date": "2026-11-24",
+      "title": "A display is eighteen packs, not one",
+      "highlights": [
+        "A break on a display now rips the packs inside it: the 18-pack half display queues 18 packs instead of one, and its live header counts them all.",
+        "The number in the break and go-live panels means boxes — a bundle is 6 packs, an ETB 8 or 9, a half display 18, a display 36 — and every pack inside is bought and ripped.",
+        "The same count reaches a normal stream: going live on a display queues its packs rather than paying for the box and opening one pack."
+      ],
+      "features": [
+        "The number you typed into Open a case break was stored as the break's pack count, and the two are not the same figure: it counts boxes. One Evolving Skies Half Booster Display (18 packs) bought the box at its box price, then queued a single rip and printed \"0 of 1 pack left\" in the live header — seventeen packs paid for and never opened. The break now records what is inside the box, from the catalogue's own pack count, so one half display queues 18 packs, a display 36, an ETB 8 or 9, a bundle 6, and a booster still one.",
+        "The money side is unchanged on purpose: a box still costs its box price and the even split and suggested ask are still measured on what the host spent. What grows is the rip queue, which is what the host was buying. A 36-pack display used to be clipped to a 20-pack ceiling on its way into the stream; it keeps all 36 slots now.",
+        "A normal stream had the same conflation — it bought boxes and queued one pack each — so going live now queues the packs inside the boxes too. The panels say boxes and show the pack total beside the price, and the pack count is whatever the product says it holds, which is the same figure the shop and Pack Battles use for the same wrapper."
+      ]
+    },
+    {
       "version": "0.94.11",
       "date": "2026-11-24",
       "title": "The shop you paid for stays open",
       "highlights": [
-        "Leasing a Card Shop no longer locks its own tab: the deposit used to drop you under the $500 save-up gate and turn the row back into a padlock with a countdown.",
-        "The Card Shop door recognises the shop you already run, so it stays open at any cash balance, the deposit included.",
-        "Nothing about the shop itself changed — the lease, the rent and the stock are as they were."
+        "Leasing a Card Shop no longer locks its own tab: the deposit used to drop you under the $500 save-up gate and turn the row back into a padlock with a countdown."
       ],
       "features": [
         "The Card Shop tab was unlocked by one thing only: at least $500 in cash, the amount the locked row tells you to save. That is the right gate for a shop you do not have yet and the wrong one for a shop you just signed, because the $250 hole-in-the-wall deposit takes the balance under it — the tab you had just opened became a padlocked row reading 275/500 while the rent kept coming out. The door now also opens on the shop itself, the record the lease writes, so after the deposit is paid the tab stays yours at any balance. Deep links into the shop read the same guard, so they no longer bounce you home either.",

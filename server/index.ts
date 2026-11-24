@@ -2526,7 +2526,10 @@ app.get('/api/stream/sellable', (c) => {
 app.get('/api/stream/products', (c) =>
   // The stream setup only picks a product and shows its price. Sending the
   // battle product's art, set, pool and release date doubles this payload.
-  c.json(streaming.listStreamProducts().map((p) => ({ id: p.id, name: p.name, market_price: p.market_price, msrp: p.msrp }))),
+  // `packs` is what is inside one box (bundle 6, ETB 9, half display 18, display
+  // 36): the setup panels buy boxes and queue that many packs, so the number has
+  // to reach the client or the panel can only call a display "1 pack".
+  c.json(streaming.listStreamProducts().map((p) => ({ id: p.id, name: p.name, market_price: p.market_price, msrp: p.msrp, packs: p.packs }))),
 )
 
 app.post('/api/stream/live', async (c) => {

@@ -133,18 +133,21 @@ export function goLive(productId: string, packs: number) {
     | { id: number; product_id: string; product_name: string; spots_total: number; product_cost: number; packs: number | null }
     | undefined
   const planned = pendingBreakRow
-    ? Math.max(1, Math.min(20, Math.round(pendingBreakRow.packs ?? 1)))
-    : Math.max(1, Math.min(20, Math.round(packs)))
+    ? Math.max(1, Math.round(pendingBreakRow.packs ?? 1))
+    : Math.max(1, Math.min(20, Math.round(packs))) * Math.max(1, p.packs)
   if (pendingBreakRow && productId !== pendingBreakRow.product_id) {
     return { ok: false as const, error: `A break is pending for ${pendingBreakRow.product_name} — break that, or cancel it first` }
   }
 
   // The break bought all of its packs when it opened; a normal stream buys its
-  // packs here.
-  const cost = pendingBreakRow ? 0 : round2(price * planned)
+  // packs here. A box is not always one pack (bundle 6, ETB 9, half display 18,
+  // display 36), so what is bought is boxes and what is queued is the packs
+  // inside them — the same split the break and the shop already use.
+  const units = Math.max(1, Math.min(20, Math.round(packs)))
+  const cost = pendingBreakRow ? 0 : round2(price * units)
   const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
   if (state.cash < cost) {
-    return { ok: false as const, error: `Streaming ${planned} × ${p.name} costs $${cost.toFixed(2)} — not enough cash` }
+    return { ok: false as const, error: `Streaming ${units} × ${p.name} (${planned} packs) costs $${cost.toFixed(2)} — not enough cash` }
   }
 
   if (cost > 0) db.prepare('UPDATE game_state SET cash = cash - ? WHERE id = 1').run(cost)
@@ -176,8 +179,8 @@ export function goLive(productId: string, packs: number) {
   logActivity('stream', pendingBreakRow
     ? `Went live with the ${p.name} break — ${pendingBreakRow.spots_total} spots on sale, ${planned} pack${planned === 1 ? '' : 's'} to rip ($${round2(price * planned).toFixed(2)} all in). ${boostedBase} viewers for the rip.`
     : sponsorActive
-      ? `Went live opening ${planned} × ${p.name} — sponsor promo pulled in a bigger room (${boostedBase} viewers). Cost $${cost.toFixed(2)}.`
-      : `Went live opening ${planned} × ${p.name} — ${base} viewers showed up. Cost $${cost.toFixed(2)}.`,
+      ? `Went live opening ${units} × ${p.name} (${planned} pack${planned === 1 ? '' : 's'}) — sponsor promo pulled in a bigger room (${boostedBase} viewers). Cost $${cost.toFixed(2)}.`
+      : `Went live opening ${units} × ${p.name} (${planned} pack${planned === 1 ? '' : 's'}) — ${base} viewers showed up. Cost $${cost.toFixed(2)}.`,
     cost > 0 ? -cost : undefined)
 
   return { ok: true as const, live: liveState() }

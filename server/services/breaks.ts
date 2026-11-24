@@ -129,13 +129,23 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
 
   // The packs are bought HERE, not at go-live. A break that priced its spots off
   // one pack and then ripped six sold out at a sixth of what the host spent.
-  const packs = Math.max(1, Math.min(20, Math.round(packsInput ?? 1)))
-  if (packsInput != null && packsInput !== packs) return { ok: false as const, error: 'A break rips 1–20 packs' }
+  //
+  // The panel's number counts BOXES, and a box is not one pack: a bundle holds
+  // six, an ETB nine, a half display eighteen, a display thirty-six. That count
+  // was being stored AS the pack count, so a host who bought an 18-pack display
+  // ripped one pack and the live header read "0 of 1 pack left" over a product
+  // named "(18 packs)" — seventeen packs paid for and never opened. Boxes bought
+  // and packs to rip are two numbers now; the products list already says what a
+  // box holds (`packsInBox`), the same figure the shop and Pack Battles use.
+  const boxes = Math.max(1, Math.min(20, Math.round(packsInput ?? 1)))
+  if (packsInput != null && Math.round(packsInput) !== boxes) return { ok: false as const, error: 'A break buys 1–20 boxes' }
+  const perBox = Math.max(1, p.packs)
+  const packs = boxes * perBox
   const unit = round2(p.market_price ?? p.msrp)
-  const cost = round2(unit * packs)
+  const cost = round2(unit * boxes)
   const state = db.prepare('SELECT cash FROM game_state WHERE id = 1').get() as { cash: number }
   if (state.cash < cost) {
-    return { ok: false as const, error: `A ${packs}-pack ${p.name} break costs $${cost.toFixed(2)} — not enough cash` }
+    return { ok: false as const, error: `A ${boxes}-box ${p.name} break costs $${cost.toFixed(2)} — not enough cash` }
   }
 
   // The team board comes from the set itself — every sold spot can actually hit.
@@ -166,11 +176,11 @@ export function createBreak(productId: string, spots: number, spotPriceInput: nu
 
   logActivity(
     'stream',
-    `📦 Break opened: selling ${spotsTotal} team spots at $${spotPrice.toFixed(2)} for ${packs} × ${p.name} ($${cost.toFixed(2)} out of pocket). Board: ${roster.map((t) => t.team).join(', ')}. Full sellout = $${round2(spotsTotal * spotPrice).toFixed(2)} gross; unsold spots stay with the house.`,
+    `📦 Break opened: selling ${spotsTotal} team spots at $${spotPrice.toFixed(2)} for ${boxes} × ${p.name} (${packs} pack${packs === 1 ? '' : 's'}, $${cost.toFixed(2)} out of pocket). Board: ${roster.map((t) => t.team).join(', ')}. Full sellout = $${round2(spotsTotal * spotPrice).toFixed(2)} gross; unsold spots stay with the house.`,
     -cost,
   )
 
-  return { ok: true as const, breakId, suggested, spotPrice, spotsTotal, productCost: cost, evenSplit: r2(evenSplit), packs, unitPrice: unit }
+  return { ok: true as const, breakId, suggested, spotPrice, spotsTotal, productCost: cost, evenSplit: r2(evenSplit), packs, boxes, unitPrice: unit }
 }
 
 /** The pending break (created, stream not started yet). */

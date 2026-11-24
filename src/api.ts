@@ -344,7 +344,7 @@ export const api = {
   streamEnd: () => post<StreamEndResult>('/api/stream/end'),
   breakStatus: () => req<BreakStatus>('/api/stream/break'),
   breakCreate: (productId: string, spots: number, spotPrice: number | null, packs: number) =>
-    post<{ ok: boolean; error?: string; breakId?: number; suggested?: number; spotPrice?: number; spotsTotal?: number; productCost?: number; evenSplit?: number; packs?: number; unitPrice?: number }>('/api/stream/breaks', { productId, spots, spotPrice, packs }),
+    post<{ ok: boolean; error?: string; breakId?: number; suggested?: number; spotPrice?: number; spotsTotal?: number; productCost?: number; evenSplit?: number; packs?: number; boxes?: number; unitPrice?: number }>('/api/stream/breaks', { productId, spots, spotPrice, packs }),
   breakCancel: (id: number) => post<{ ok: boolean; error?: string }>(`/api/stream/breaks/${id}/cancel`, {}),
   breakBuy: (id: number, team: string) =>
     post<{ ok: boolean; error?: string; holder?: string; spotsSold?: number; spotsTotal?: number; chat?: { who: string; avatar: string; text: string } }>(`/api/stream/breaks/${id}/buy`, { team }),
@@ -2503,7 +2503,7 @@ export type BattleProduct = {
 }
 
 /** The stream setup picker only needs the label and shelf price. */
-export type StreamProduct = Pick<BattleProduct, 'id' | 'name' | 'market_price' | 'msrp'>
+export type StreamProduct = Pick<BattleProduct, 'id' | 'name' | 'market_price' | 'msrp' | 'packs'>
 
 export type BattleCard = { cardId: string; name: string; value: number; isHit: boolean }
 

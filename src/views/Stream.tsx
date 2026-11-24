@@ -620,6 +620,10 @@ export function StreamView() {
   const breakWaiting = breakState && breakState.status === 'selling' && !breakState.live
   const cost = breakWaiting ? 0 : Math.round(price * packs * 100) / 100
   const breakCost = Math.round(price * breakPacks * 100) / 100
+  // What one box holds: bundle 6, ETB 9, half display 18, display 36. The panels
+  // below buy BOXES; the break and the stream queue the packs inside them, which
+  // is why an 18-pack display now reads "18 packs to rip" instead of "1".
+  const selPerBox = Math.max(1, product?.packs ?? 1)
 
   return (
     <div>
@@ -718,11 +722,11 @@ export function StreamView() {
                 style={{ width: 60 }}
               />
             </label>
-            <label className="small" title="Packs are bought now — the suggested ask splits the whole product across the board">
-              packs{' '}
+            <label className="small" title="Boxes are bought now — a bundle holds 6 packs, an ETB 9, a half display 18, a display 36, and the break rips every pack inside. The suggested ask splits the whole box across the board">
+              boxes{' '}
               <input
                 type="number"
-                aria-label="Break packs"
+                aria-label="Break boxes"
                 min={1}
                 max={20}
                 value={breakPacks}
@@ -755,14 +759,14 @@ export function StreamView() {
                 (products.find((p) => p.id === selProduct)?.market_price ?? products.find((p) => p.id === selProduct)?.msrp ?? 0) *
                   breakPacks,
               )}{' '}
-              for {breakPacks} pack{breakPacks === 1 ? '' : 's'}
+              for {breakPacks} box{breakPacks === 1 ? '' : 'es'} — {breakPacks * selPerBox} pack{breakPacks * selPerBox === 1 ? '' : 's'}
             </span>
           </div>
         )}
         {confirm === 'break' && (
           <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span className="small">
-              This spends <b>{fmtUsd(breakCost)}</b> on {breakPacks} pack{breakPacks === 1 ? '' : 's'} — {pctOfCash(breakCost)}% of your cash.
+              This spends <b>{fmtUsd(breakCost)}</b> on {breakPacks} box{breakPacks === 1 ? '' : 'es'} ({breakPacks * selPerBox} packs) — {pctOfCash(breakCost)}% of your cash.
             </span>
             <button className="primary small" disabled={busy} onClick={() => { void createBreak(true) }}>Yes, buy the packs</button>
             <button className="small" onClick={() => setConfirm(null)}>Not now</button>
@@ -789,10 +793,11 @@ export function StreamView() {
                 packs <b>{breakState.packs}</b> — bought with the break
               </span>
             ) : (
-              <label className="small">
-                packs{' '}
+              <label className="small" title="Boxes, not packs — a display of 36 queued to rip all 36">
+                boxes{' '}
                 <input
                   type="number"
+                  aria-label="Stream boxes"
                   min={1}
                   max={20}
                   value={packs}
@@ -801,7 +806,9 @@ export function StreamView() {
                 />
               </label>
             )}
-            <span className="faint small">cost {fmtUsd(cost)}</span>
+            <span className="faint small">
+              cost {fmtUsd(cost)}{breakWaiting ? '' : ` for ${packs * selPerBox} pack${packs * selPerBox === 1 ? '' : 's'}`}
+            </span>
             <button className="primary" disabled={busy || !selProduct} onClick={() => { void goLive() }}>
               {busy ? 'Starting…' : breakState && breakState.status === 'selling' ? '🔴 Go live — open the break' : '🔴 Go live'}
             </button>
@@ -813,7 +820,7 @@ export function StreamView() {
         {confirm === 'live' && (
           <div className="row mt10" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span className="small">
-              Going live spends <b>{fmtUsd(cost)}</b> on {packs} packs — {pctOfCash(cost)}% of your cash.
+              Going live spends <b>{fmtUsd(cost)}</b> on {packs} box{packs === 1 ? '' : 'es'} ({packs * selPerBox} packs) — {pctOfCash(cost)}% of your cash.
             </span>
             <button className="primary small" disabled={busy} onClick={() => { void goLive(true) }}>Yes, go live</button>
             <button className="small" onClick={() => setConfirm(null)}>Not now</button>
