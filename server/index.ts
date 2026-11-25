@@ -51,7 +51,7 @@ import * as buylist from './services/buylist'
 import * as pawn from './services/pawn'
 import * as yardsale from './services/yardsale'
 import * as estatebuyout from './services/estatebuyout'
-import { applyLocalReleases } from './services/localcatalog'
+import { applyLocalReleases, applyRegionalReleases } from './services/localcatalog'
 import * as forum from './services/forum'
 import * as wishlistAgents from './services/wishlistagents'
 import * as psarush from './services/psarush'
@@ -3105,6 +3105,9 @@ repairBlackWhiteRarities()
 repairCelebrationsSecrets()
 import { applyPromoCards } from './catalog/promo-cards'
 applyLocalReleases()
+// Regional products the English catalogue never carries (the Simplified Chinese
+// Gem Pack line). Same loader, its own applied marker, additive and idempotent.
+applyRegionalReleases()
 // Two SVP promos the upstream catalogue has not published yet: without rows the
 // Black Bolt and White Flare ETB rows cannot resolve the card that was inside.
 applyPromoCards()

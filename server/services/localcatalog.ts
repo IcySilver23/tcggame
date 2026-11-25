@@ -1,4 +1,5 @@
 import localReleases from '../catalog/local-releases.json'
+import regionalReleases from '../catalog/regional-releases.json'
 import { db, getMeta, setMeta, nowIso, logActivity } from '../lib/db'
 import { markCatalogChanged } from '../lib/derived-cache'
 import * as packs from './packs'
@@ -26,6 +27,10 @@ import * as sealed from './sealed'
 // crashed the exe before the API could boot.
 const APPLIED_META = 'catalog:localReleases'
 
+// A separate marker, because the two files are applied independently: a save can
+// hold the Delta Reign wave without the Chinese Gem Pack, or the other way round.
+const REGIONAL_APPLIED_META = 'catalog:regionalReleases'
+
 type LocalSet = {
   id: string
   name: string
@@ -40,6 +45,8 @@ type LocalSet = {
 
 type LocalCard = {
   id: string
+  /** Printed tier (Gem C/U/R/RR/RRR), used only to weight the pull table. */
+  tier?: string
   set_id: string
   name: string
   supertype: string
@@ -69,7 +76,120 @@ type LocalProduct = {
   description: string | null
 }
 
-type LocalReleases = { release: string; note?: string; sets: LocalSet[]; cards: LocalCard[]; products: LocalProduct[] }
+type LocalReleases = {
+  release: string
+  note?: string
+  sets: LocalSet[]
+  cards: LocalCard[]
+  products: LocalProduct[]
+  /**
+   * Sets whose whole population is one foil pool, so the pack deals from all of
+   * it: Gem Pack prints no commons and no reverse holos, and the era table's
+   * common/uncommon/reverse slots have nothing to fill. Flattening the table is
+   * described where the set's plan is declared (packodds BLUEPRINTS).
+   */
+  uniformPoolSets?: string[]
+  /**
+   * Each printed tier's share of the whole print run, which is the form the Gem
+   * Pack line publishes it in: ★ 17.39%, ★★ 5.80%, ★★★ 1.81%, with ● and ◆ taking
+   * the remainder. Carried as shares of cards rather than weights, because a
+   * weight is not a number anyone can check against a source; the loader turns
+   * each share into a per-card weight over the cards that print at that tier.
+   */
+  tierShares?: Record<string, number>
+  /**
+   * A pack whose slots are filled from rarity groups at published rates, rather
+   * than one pool or an era template. Black Bolt and White Flare's spec sheet
+   * prints each group's share of all cards dealt — 13.23% Poké Ball holos and
+   * Rares, 6.04% RR/AR/Master Ball, 0.73% SR/SAR/BWR, with C and U making up the
+   * other 80% — so the group shares ARE the weights once each is divided by the
+   * cards it holds. Keyed by set id, in the order the slots are filled.
+   */
+  ladderPacks?: Record<string, { slot: string; share: number; rarities: string[] }[]>
+}
+
+/**
+ * Rewrite a set's booster table as one slot over every card.
+ *
+ * The generated table sorts cards into commons, uncommons, holos, hits and the
+ * two parallel slots, which is the right shape for a pack that prints those
+ * tiers. A product where every card is the same finish has no tiers to sort, and
+ * a plan asking for a slot the set cannot fill deals a short pack — this is what
+ * stops a four-card Gem Pack from arriving with three cards in it.
+ *
+ * Weighting is how the ladder stays a ladder. Drawing all 196 cards evenly made
+ * an art rare turn up in almost every other Gem Pack and priced a ¥10 wrapper at
+ * $9.71, because 28 of the set's cards are art rares. The publisher prints the
+ * share of the run each tier makes up, so a card of tier t carries weight
+ * `share(t) / count(t)`: every other weight in the table is then a number a
+ * reader can check against that table and the set's own card counts. Tiers the
+ * published table does not name (● and ◆) split its remainder evenly, which is
+ * what the printed counts show anyway — 56 of each in a 196-card volume.
+ */
+function flattenLadder(setId: string, groups: { slot: string; share: number; rarities: string[] }[]) {
+  const pid = `${setId}-booster`
+  const cards = db.prepare('SELECT id, rarity FROM cards WHERE set_id = ?').all(setId) as { id: string; rarity: string | null }[]
+  if (cards.length === 0) return
+  const taken = new Set<string>()
+  const rows: { id: string; slot: string; weight: number }[] = []
+  for (const g of groups) {
+    const ids = cards.filter((c) => !taken.has(c.id) && g.rarities.includes(c.rarity ?? ''))
+    for (const c of ids) taken.add(c.id)
+    const weight = Math.round((g.share / Math.max(1, ids.length)) * 1e6) / 1e6
+    for (const c of ids) rows.push({ id: c.id, slot: g.slot, weight: Math.max(0.000001, weight) })
+  }
+  // A rarity the sheet does not name would otherwise be undrawable: the card is
+  // real and in the set, so it goes in the last group's slot rather than vanish.
+  const left = cards.filter((c) => !taken.has(c.id))
+  if (left.length > 0) {
+    const last = groups[groups.length - 1]
+    console.warn(`[catalog] ${setId}: ${left.length} card(s) outside the published rate table, added to ${last.slot}`)
+    for (const c of left) rows.push({ id: c.id, slot: last.slot, weight: 0.000001 })
+  }
+  const clear = db.prepare('DELETE FROM pack_product_cards WHERE pack_product_id = ?')
+  const insert = db.prepare('INSERT OR IGNORE INTO pack_product_cards (pack_product_id, card_id, slot, weight) VALUES (?, ?, ?, ?)')
+  db.transaction(() => {
+    clear.run(pid)
+    for (const r of rows) insert.run(pid, r.id, r.slot, r.weight)
+  })()
+}
+
+function flattenPullTable(setId: string, tierShares?: Record<string, number>, tiers?: Map<string, string>) {
+  const pid = `${setId}-booster`
+  const cards = db.prepare('SELECT id, rarity FROM cards WHERE set_id = ?').all(setId) as { id: string; rarity: string | null }[]
+  if (cards.length === 0) return
+  const byTier = new Map<string, string[]>()
+  for (const c of cards) {
+    const tier = tiers?.get(c.id) ?? (/Illustration Rare|Art Rare/i.test(c.rarity ?? '') ? 'Gem RRR' : 'Gem C')
+    if (!byTier.has(tier)) byTier.set(tier, [])
+    byTier.get(tier)!.push(c.id)
+  }
+  const shares = new Map<string, number>()
+  if (tierShares) {
+    let named = 0
+    for (const [tier, share] of Object.entries(tierShares)) {
+      if (byTier.has(tier) && share > 0) {
+        shares.set(tier, share)
+        named += share
+      }
+    }
+    // ● and ◆ are printed as a remainder, not a rate: split what is left between
+    // the tiers the table does not name, by the cards each actually has.
+    const rest = byTier.size - shares.size
+    const left = Math.max(0, 1 - named)
+    const unnamed = [...byTier.keys()].filter((t) => !shares.has(t))
+    if (rest > 0) for (const t of unnamed) shares.set(t, left / rest)
+  }
+  const clear = db.prepare('DELETE FROM pack_product_cards WHERE pack_product_id = ?')
+  const insert = db.prepare('INSERT OR IGNORE INTO pack_product_cards (pack_product_id, card_id, slot, weight) VALUES (?, ?, ?, ?)')
+  db.transaction(() => {
+    clear.run(pid)
+    for (const [tier, ids] of byTier) {
+      const weight = shares.has(tier) ? Math.round((shares.get(tier)! / ids.length) * 1e6) / 1e6 : 1
+      for (const id of ids) insert.run(pid, id, 'holo', Math.max(0.000001, weight))
+    }
+  })()
+}
 
 export type LocalReleaseResult = {
   applied: boolean
@@ -125,8 +245,19 @@ const productUpsert = db.prepare(`
     description=excluded.description
 `)
 
-function load(): LocalReleases | null {
+function load(): LocalReleases {
   return localReleases as LocalReleases
+}
+
+/**
+ * Products the English catalogue has no row for at all — not a release it has not
+ * reached yet, but a line it will never carry: a booster sold only in mainland
+ * China, printed in Simplified Chinese. They go through the same tables and the
+ * same upserts as the release above, under their own applied marker, so loading
+ * one can never claim the other has been loaded.
+ */
+function loadRegional(): LocalReleases {
+  return regionalReleases as LocalReleases
 }
 
 /**
@@ -134,8 +265,20 @@ function load(): LocalReleases | null {
  * boot: it inserts once, then only refreshes fields and prices that are absent.
  */
 export function applyLocalReleases(): LocalReleaseResult {
-  const data = load()
-  if (!data) return { applied: false, release: null, sets: 0, cards: 0, prices: 0, products: 0, rebuilt: [], reason: 'no local release file' }
+  return applyRelease(load(), APPLIED_META)
+}
+
+/**
+ * Upsert the regional catalogue. Identical work to a local release — the file
+ * carries the same shape — with its own marker, so a save that already took the
+ * Gem Pack still applies the next Delta Reign wave and the other way round.
+ */
+export function applyRegionalReleases(): LocalReleaseResult {
+  return applyRelease(loadRegional(), REGIONAL_APPLIED_META)
+}
+
+function applyRelease(data: LocalReleases, metaKey: string): LocalReleaseResult {
+  if (!data) return { applied: false, release: null, sets: 0, cards: 0, prices: 0, products: 0, rebuilt: [], reason: 'no release file' }
 
   const now = nowIso()
 
@@ -185,6 +328,20 @@ export function applyLocalReleases(): LocalReleaseResult {
   // same seeder the sync does, then ensure this set has a pull table.
   sealed.ensureFullCatalog()
 
+  // The seeder above has just written this file's products over with the era
+  // template: a Simplified Chinese pack holds four cards and costs ¥10, not the
+  // ten cards and $4.49 an English 2026 booster deals, and the box holds fifteen
+  // packs rather than thirty-six. This file's rows are the authority, so they are
+  // written once more after the seeder. (Products whose set is missing stay
+  // skipped, exactly as above.)
+  const reapplyProducts = db.transaction(() => {
+    for (const p of data.products) {
+      if (!setExists.get(p.set_id)) continue
+      productUpsert.run(p)
+    }
+  })
+  reapplyProducts()
+
   // These sets exist here because the catalogue API has no rows for them, and
   // the full sync walks every set in the database. Marking them done stops it
   // retrying an upstream that cannot answer on every launch; the weekly delta
@@ -198,7 +355,7 @@ export function applyLocalReleases(): LocalReleaseResult {
     /* a corrupt checkpoint is repaired by the sync itself */
   }
 
-  const previously = getMeta(APPLIED_META)
+  const previously = getMeta(metaKey)
   const firstTime = previously !== data.release
   if (prices > 0 || products > 0 || firstTime) markCatalogChanged()
   const rebuilt: string[] = []
@@ -207,12 +364,20 @@ export function applyLocalReleases(): LocalReleaseResult {
       const hasBooster = db.prepare('SELECT 1 FROM pack_products WHERE id = ?').get(`${s.id}-booster`)
       if (!hasBooster) continue
       packs.buildPullTable(s.id)
+      const ladder = data.ladderPacks?.[s.id]
+      if (ladder) flattenLadder(s.id, ladder)
+      else if ((data.uniformPoolSets ?? []).includes(s.id)) {
+        const tiers = new Map(
+          data.cards.filter((c) => c.set_id === s.id && c.tier).map((c) => [c.id, c.tier as string] as const),
+        )
+        flattenPullTable(s.id, data.tierShares, tiers)
+      }
       rebuilt.push(s.id)
     }
     // The subset wrapper a box holds (the 30th UPC's Classic Collection pack)
     // has no product row, so the loop above skips it.
     packs.buildInBoxSubsetTables()
-    setMeta(APPLIED_META, data.release)
+    setMeta(metaKey, data.release)
     logActivity('release', `New release: ${data.sets.map((s) => s.name).join(', ')} — ${data.cards.length} card${data.cards.length === 1 ? '' : 's'} added to the catalog`, undefined, `#/set/${data.sets[0]?.id ?? ''}`)
     const wave = data.products.filter((p) => p.kind === 'special')
     if (wave.length > 0) {
@@ -228,4 +393,10 @@ export function applyLocalReleases(): LocalReleaseResult {
 export function localReleaseStatus(): { release: string | null; applied: boolean } {
   const data = load()
   return { release: data?.release ?? null, applied: data != null && getMeta(APPLIED_META) === data.release }
+}
+
+/** What the running save knows about the regional catalogue. */
+export function regionalReleaseStatus(): { release: string | null; applied: boolean } {
+  const data = loadRegional()
+  return { release: data?.release ?? null, applied: data != null && getMeta(REGIONAL_APPLIED_META) === data.release }
 }

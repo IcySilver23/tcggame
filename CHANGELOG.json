@@ -1,13 +1,155 @@
 {
   "entries": [
     {
+      "version": "0.94.33",
+      "date": "2026-11-25",
+      "title": "Every pack, its own words",
+      "highlights": [
+        "Subset packs have their wording back: the Classic Collection pack reads “Classic Collection”, the 30th Anniversary subset “Subset cards” — the new “Any card” label had swallowed both.",
+        "Dragon Vault’s five Holofoil cards still read “Holofoil”, and a four-card pool with no rares now says every card is a common or uncommon instead of “0%”.",
+        "Every pack blueprint’s drawer text was swept: 18 set-specific plans and the era default, no blank labels, no pack claiming zero."
+      ],
+      "features": [
+        "The “Any card” label added in the last update keyed off a wrapper whose plan is a single slot, which is true of the subset packs too — so the Classic Collection pack and the 30th Anniversary’s three-card Classic Collection wrapper lost the wording they already had. Subset slots are now excluded from that path and keep their own labels: “Classic Collection” where the host set names it, “Subset cards” for the standalone subset products.",
+        "Dragon Vault had the same problem one set at a time: its five Holofoil cards were relabelled “Any card”. It keeps “Holofoil”, with the line “every card in a Dragon Vault pack is Holofoil”.",
+        "A pool with nothing above uncommon would have printed “0% of the cards it deals are Rare or better”, which is a true and useless sentence; it now says every card it deals is a common or uncommon. That covers the McDonald’s four-card packs.",
+        "The whole drawer was then swept rather than spot-checked: every set with its own pack blueprint, plus sets on the era default, read back through the same function the shop uses. Twenty packs in all — 151’s five “Any card”, Black Bolt’s and White Flare’s four commons and one “Rare or better”, the Gem Packs’ four “Any card”, Dragon Vault’s five “Holofoil”, the Classic Collection and Trainer Gallery subsets, the two-reverse Scarlet & Violet shapes, and the 30th Celebration’s guaranteed Pikachu — with no blank label, no empty detail and no drawer whose count disagreed with the plan it deals."
+      ]
+    },
+    {
+      "version": "0.94.32",
+      "date": "2026-11-25",
+      "title": "What the wrapper holds",
+      "highlights": [
+        "The pack drawer no longer calls Collection 151 five rares: its slot reads “Any card”, with 9.5% of the cards it deals Rare or better."
+      ],
+      "features": [
+        "The shop’s pack drawer described Collection 151 as “Rare ×5”, which was wrong twice over: the wrapper deals one pool of every card in the set, and nine in ten of those are commons and uncommons. A wrapper whose whole plan is a single slot now labels that slot “Any card”, and its detail line is computed from the pull table itself — 9.5% of the cards it deals are Rare or better, the rest commons and uncommons.",
+        "The same fault one tier down is fixed: a slot whose pool holds more than plain rares is labelled “Rare or better” rather than “Rare”. Black Bolt’s and White Flare’s fifth card can be a Poké Ball holo, a Rare, an art rare or a Black White Rare, so “Rare” understated it. Era packs, whose rare slot really is a rare or better, keep the label they had.",
+        "Gem Packs read “Any card” too — the four-card wrapper draws from the whole 196-card pool and every card in it is foil — with the line “every card in the set is foil, at the rates the line prints” instead of a rarity that does not apply.",
+        "Nothing was re-priced. The two Chinese emitters had grown their own copies of the same anchor and scaling maths, one summing a single draw and the other all five slots, so they now share one implementation: cheapest plain listing for a card’s value, the same card in the English print then the same name and rarity for its anchor, and a pack valued slot by slot before the set is scaled to 85% of its sticker. Re-emitting all ten sets through the shared code reproduced the catalogue byte for byte, which is the check that the merge changed no prices."
+      ]
+    },
+    {
+      "version": "0.94.31",
+      "date": "2026-11-25",
+      "title": "Collect 151",
+      "highlights": [
+        "Collection 151 is stocked: 192 Simplified Chinese cards of the Kanto Pokédex, including the four China-only Pikachu art rares at 170–173/151."
+      ],
+      "features": [
+        "Collection 151 is the Simplified Chinese take on 151: the same Kanto Pokédex in order, but rebuilt. Bulbapedia lists 192 cards — every Trainer removed, the Japanese set’s 18 art rares dropped, 18 shiny reprints added, three shiny ultra rares and a Mew ex special illustration rare added from Shiny Treasure ex, and four Pikachu art rares by Oswaldo KATO that exist in no other language.",
+        "The count was not a given, and the lists disagree. Bulbapedia’s full list runs 001–192/151; an April 2025 (Hope) card list counts 186, because the last two boosters — Scare and Gather — added three more Pikachu art rares and the three SARs (Alakazam ex 189, Zapdos ex 190, Mew ex 191) that Bulbapedia’s own booster notes name; and Pokécottage’s 465 counts every reverse, Poké Ball and Master Ball variant of the same cards rather than cards. The set ships as the 192 through Gather, and the release note records the other two figures.",
+        "It shipped in four phased boosters — Journey (17 January 2025), Hope (18 April), Scare (18 July), Gather (17 October) — each with a different card pool and its own Pikachu art rare, and all four sit in one set here, numbered where the cards print.",
+        "The wrapper is five cards at ¥10 and the slim box fifteen of them at $21.15, the same shape as Black Bolt: PokiPair, PokeUnlimited, Keef’s and Collectors Kingdom all list 5 cards × 15 packs. The 20-card ¥50 jumbo pack and its six-pack box are real and not stocked, exactly as for Black Bolt.",
+        "No spec sheet for this line has been published, so the pull table does not pretend to one. The only numbers are a third-party count — about 90% commons and uncommons, 8% Rares and Double Rares, 1.5% higher — and they are carried as the ladder’s shares, labelled an estimate in the release note. The wrapper’s own wording, that one card is a reverse holo or Rare or better, is not modelled as a separate slot, because that count treats a reverse holo of a common as a common.",
+        "Cards are valued against their English printings, as the other Chinese lines are, then scaled ×0.589 so a pack is worth 85% of its ¥10 sticker: Zapdos ex SAR $53.29, Mew ex SAR $45.37, Alakazam ex SAR $31.25, each China-only Pikachu art rare $26.35, and Bulbasaur at 17 cents. The pack sits at $1.41 and the box at $21.15.",
+        "Checked on a factory-fresh save: the set loads with 192 cards, every one priced, each pack opens five, the pull table draws 90.3% commons and uncommons, 5.5% Rares, 2.9% Double Rares and art rares and 1.3% higher across 3,000 packs, and the pack and box price at their sticker. There are no scans of this set in the image service, so the cards carry names, numbers, rarities and values but no artwork."
+      ]
+    },
+    {
+      "version": "0.94.30",
+      "date": "2026-11-25",
+      "title": "Numbered as they print",
+      "highlights": [
+        "N’s Plan and Hilda now sit at the 173/086 they print at, Zekrom ex and Reshiram ex close the sets at 174/086, and the Victini Black White Rare that only Bulbapedia lists is gone."
+      ],
+      "features": [
+        "The two China-only Special Illustration Rares are numbered where the cards print. N’s Plan and Hilda both carry 173/086 — the slot the Japanese alternate arts occupy — and Zekrom ex and Reshiram ex close Black Bolt and White Flare at 174/086. Both readings come from the card scans (Bill’s Archive numbers both exclusives at 173/086, Collectors Kingdom prints Reshiram ex’s Black White Rare at 174/086), and Bulbapedia’s tail is two numbers early because its list is the English print’s, which turned two illustration cards into promos.",
+        "Victini’s Black White Rare is dropped from both sets. Bulbapedia lists two BWR cards a set, but every source that counts the rarities gives one — Zekrom ex in Black Bolt, Reshiram ex in White Flare — and no scan shows a Victini BWR, so the row goes rather than shipping a second BWR to match a list that disagrees with the cards.",
+        "The numbers Bulbapedia used for those three slots are left empty rather than filled with a guess: Black Bolt skips 170 to 172 and White Flare skips 171 and 172, which is why Black Bolt holds 171 cards and White Flare 172 against the Chinese release’s 174. The two cards the English print made into promos are still missing, and the release note says so.",
+        "Both sets are re-priced off the new totals, since one $75 card leaving changes what a wrapper is worth: Black Bolt’s cards are scaled ×0.226 and White Flare’s ×0.272 of their English printings, which puts N’s Plan at $8.99, Hilda at $8.67, Zekrom ex at $124.48, Reshiram ex at $73.47 and the commons at a cent.",
+        "Checked on a factory-fresh save: both sets load (171 and 172 cards, every one priced), each pack opens five cards, the pack sits at its ¥10 sticker of $1.41 and the box at $21.15, and 3,000 packs a set measure 80.0% commons and uncommons, 13% Rares, 6% RR or AR and 0.77% SR or better. That last figure is one SR, SAR or BWR every 25 packs, which is what the publisher’s spec sheet says the wrapper does."
+      ]
+    },
+    {
+      "version": "0.94.29",
+      "date": "2026-11-25",
+      "title": "Three stars and two sets",
+      "highlights": [
+        "Gem Pack packs now draw on the line’s three printed star tiers — ★ 17.39%, ★★ 5.80%, ★★★ 1.81% — so a three-star card turns up in about one pack in fourteen."
+      ],
+      "features": [
+        "The Gem Pack pull table is no longer one pool with one chase weight. Each printed grade carries the share of the print run the publisher gives it — ★ 17.39%, ★★ 5.80%, ★★★ 1.81% — and every card’s weight is that share divided by how many cards print at its grade, so the ladder can be recomputed from the note and the set. ● and ◆ are printed as a remainder rather than a rate, and split it evenly, which is what their counts show anyway: 56 of each in a 196-card volume. Measured on a fresh save, the seven volumes now draw ★ 17.39%, ★★ 5.80% and ★★★ 1.81%, against the single flat pool before.",
+        "A pack of Gem still opens four cards and still sits at its ¥10 sticker, with the star tiers now weighted inside that draw: a ★★★ arrives in about 7% of packs, one per box, which is what the line’s selling copy describes.",
+        "Black Bolt (CSV10.5C) and White Flare (CSV10.6C) are the Simplified Chinese prints of the Unova pair, released together on 6 November 2026. Both are stocked as a five-card ¥10 pack ($1.41) and a fifteen-pack slim box ($21.15) — PokiPair, PokéZentrum, Collectors Kingdom, Northwest Card Co and Poke Texas all list that shape. The 20-card ¥50 jumbo pack and its six-pack box exist and are not stocked yet.",
+        "The card lists are Bulbapedia’s, both sets in one table: 172 cards for Black Bolt and 173 for White Flare, sorted into their printed rarities (39/31/10/6/69/8/7/2 and 38/32/10/6/70/8/7/2), with supertypes, types, HP and artists read off the same card in the English print. Where Bulbapedia prints a name without the “ex” suffix the English name is used, so “Serperior” is the set’s Serperior ex and not a second copy of the plain card.",
+        "Both China-exclusive Special Illustration Rares are in — N’s Plan (Black Bolt) and Hilda (White Flare), artist credits Iwamoto05 and Ligton from the scans. They are numbered where Bulbapedia numbers them (170/086 and 171/086); the cards themselves print at 173/086, and the release note records that instead of silently renumbering the set.",
+        "Two cards short of the Chinese print, and that is stated rather than hidden: the Chinese release is 174 cards a set (86 plus 88 secret rares), while Bulbapedia carries the 172/173-card list the English print used after two illustration cards became promos. No list this build can read has the two missing cards, so they are not invented.",
+        "The five-card wrapper is the physical shape: four cards from the common/uncommon body and one from a holo ladder, with the publisher’s own spec sheet as the weights — 13.23% Poké Ball holos and Rares, 6.04% RR/AR/Master Ball, 0.73% SR/SAR/BWR of all cards dealt, and the remaining 80% commons and uncommons. Three thousand packs opened on a fresh save measure 80.0% C/U, 13.2% Rare, 6.0% RR/AR and 0.8% SR+, which is one SR or better every twenty-five packs.",
+        "Their card values are scaled to that wrapper. No Chinese copy of either set has a recorded sale, so every card carries its English printing’s value — cheapest plain listing, not the dearest variant — but English singles cannot be taken at face value here: this product deals an AR or RR in three packs out of ten, so at English prices a ¥10 wrapper would hold eight dollars of cards. The set keeps each card’s worth relative to the others and is scaled until a pack is worth 85% of its sticker (×0.20 and ×0.22 for the two sets): Zekrom’s Black White Rare is $110 and Snivy is a cent, and the pack and box sit at $1.41 and $21.15."
+      ]
+    },
+    {
+      "version": "0.94.28",
+      "date": "2026-11-25",
+      "title": "Every Gem Pack",
+      "highlights": [
+        "Gem Pack Vol. 1 to Vol. 6 are in the game — 979 foil cards sold only in mainland China, from Captain Pikachu to the Eeveelutions to Applin."
+      ],
+      "features": [
+        "The other six Gem Packs are stocked. Vol. 1 (17 January 2025, 115 cards), Vol. 2 (16 May 2025, 140), Vol. 3 (26 September 2025, 136), Vol. 4 (6 February 2026, 196), Vol. 5 (24 April 2026, 196) and Vol. 6 (7 August 2026, 196) are all in the shop with their own four-card pack and box, beside the Vol. 7 that landed with Misty’s Psyduck.",
+        "Every card comes from a printed checklist, not from a pattern. Names, numbers and rarities are Bulbapedia’s card lists, cross-checked print for print against artofpkm: the two agree on the card count of five of the six volumes, and where they disagree — Vol. 1’s Crocalor prints as 04 01/08 on one and 04 01/09 on the other — the entry uses Bulbapedia and says so rather than picking silently.",
+        "The line’s rarities are its own: Gem C, U, R, RR and RRR. The catalogue only distinguishes foil from chase, so the first four are carried as Rare Holo and Gem RRR as the Illustration Rare tier — every card in every one of these products is foil, and the RRR is the illustration card.",
+        "The chase rate is published, which is the part Vol. 7 could not have. The Pokémon China product page prints the production shares for these volumes: ★★★ cards 1.81% of the run, ★★ 5.80%, ★ 17.39%. At 1.81% a four-card pack holds a three-star about 7% of the time, roughly one per box — the same figure the line’s selling copy gives. The drawer is modelled as four independent cards at that share rather than as the guaranteed fourth-slot card the copy describes, and that is the simplification to know about.",
+        "Card values are unchanged in method and honest about what they are: no Gem Pack card has a recorded sale in any language, so each one is anchored to the cheapest ordinary printing of the Pokémon it reprints, the chase tier to the art it reprints, and names that have only ever been printed as chase cards to the set’s bulk floor. One name in six volumes found no ordinary printing of its own — Captain Pikachu — and it takes the floor rather than a borrowed promo price.",
+        "Box size is not constant down this line, and finding that out corrected Vol. 7. Volumes 1 to 3 ship fifteen four-card packs to a box; Volumes 4 to 7 ship eighteen, which four independent listings state as 18 packs and 72 cards. Vol. 7’s box has been corrected from fifteen packs to eighteen and from $21.13 to $25.38, and no box sticker was read for the line, so a box is priced as its packs at ¥10 each.",
+        "As with Vol. 7, no scan of any of these sets is in the catalogue’s image service, so the cards carry names, numbers, rarities and values but no artwork."
+      ]
+    },
+    {
+      "version": "0.94.27",
+      "date": "2026-11-25",
+      "title": "The rest of the shelf",
+      "highlights": [
+        "Nine more displays are priced from their own sold boxes: Neo Genesis $53,501, Expedition $112,500, Plasma Storm $31,994, Base Set 2 $21,733."
+      ],
+      "features": [
+        "Nine displays had a sold median to stand on and were still running on the model. They are priced now, by the same reading the earlier seven used: the median of the three most recent factory-sealed sales on the box's own PriceCharting page, with rows that are not that product dropped.",
+        "One exclusion is new, and it is why the Wizards-era boxes were so far out. Those pages list 1st Edition and unlimited boxes in one table, and they are different products: Gym Challenge's 1st Edition sales run $38,750 to $42,500 against unlimited sales of $19,100 to $32,278. The catalogue's display is the unlimited box the set shipped in, so the 1st Edition rows are dropped, and the page's guide — which averages both — is the reason these were refused in the first place. The same applies to Gym Heroes and Fossil.",
+        "What moved: Neo Genesis $16,736 to $53,501, Expedition $66,114 to $112,500, Plasma Storm $7,668 to $31,994, Base Set 2 $11,716 to $21,733, Gym Heroes $17,814 to $18,750, Gym Challenge $26,910 to $19,385, Fossil $11,685 to $13,499.70, Power Keepers $14,816 to $13,526, Emerging Powers $3,711 to $11,099. Six up, three down. The model was reading a collector premium into boxes that sell on volume, and on the Black & White run it was also simply years behind the market.",
+        "Two packs moved with their boxes. Plasma Storm's $651.13 wrapper was refused for being 3.3x a modelled box; with the box on its $31,994 sold median the wrapper is 0.73x the box per pack, so the quote is accepted and the pack is priced from it rather than from the model. Emerging Powers' pack is priced at its $110.00 marketplace quote the same way. A screen judged against a model inherits the model's error, which is why the box has to be real first.",
+        "The limits are in the entry as usual. Expedition's three sales span $50,000 to $212,500 — a 4.25x spread, the widest of any box priced here, on a page that sells one a year — and the median is the middle sale rather than a forecast. Power Keepers' median is two boxes that sold for exactly $13,526 on consecutive days in September 2025, with a $46,500 sale in March 2026 that the median rejects. Neo Genesis sold three boxes in seven weeks at $53,401 to $57,500 after a $23,196.60 sale in April 2025, so that figure describes October 2026 and nothing earlier.",
+        "What is still modelled: the seven Black & White displays whose pages were refused in the earlier pass and have not been re-read yet — Noble Victories, Next Destinies, Dark Explorers, Dragons Exalted, Boundaries Crossed, Plasma Freeze and Plasma Blast — plus the sets with no PriceCharting box page at all (the first five EX sets, Diamond & Pearl, HGSS Unleashed, Black & White itself), the pages that have only one or two completed sales, and the three half displays, whose half box has no page of its own. Every one of those keeps its model and is labelled as an estimate."
+      ]
+    },
+    {
+      "version": "0.94.26",
+      "date": "2026-11-25",
+      "title": "A pack from China",
+      "highlights": [
+        "Gem Pack Vol. 7 is in the game: 196 foil cards, four to a pack, from a booster line sold only in mainland China."
+      ],
+      "features": [
+        "Gem Pack (宝石包) has no English or Japanese equivalent: a Simplified-Chinese-only line of four-card foil packs at ¥10, running since January 2025. Volume 7 went on sale on 6 November 2026 with 196 cards — 28 Pokémon, each printed as five holo versions of its regular art, a sixth carrying the Gem Pack stamp and a seventh Illustration Rare. The shop carries a four-card pack and the eighteen-pack box Vol. 7 ships, priced as its packs, and none of the products an English 2026 set takes for granted: no bundle, no Elite Trainer Box, no 36-pack display.",
+        "The art rare of Misty’s Psyduck is the reason the pack exists in this build. It was drawn for China by Cona Nitanda and has been printed in no other language; the card is 0307/07, the seventh version of the set’s third Pokémon.",
+        "What it costs, and why: no Gem Pack card has a recorded completed sale in any language, so every card is valued against the reprint it copies rather than a number nobody paid. The six regular versions of each Pokémon take the cheapest ordinary printing of that Pokémon; the seven art rares take the art they reprint; and the eight Pokémon whose only printing anywhere is a chase card — Misty’s Lapras, Ethan’s Typhlosion and Team Rocket’s Meowth among them — take the set’s own bulk floor, because a ¥10 wrapper cannot hold eight $22 cards. Nothing here is priced from a Chinese sale, because none exists.",
+        "A pack opens four cards from the set with the chase tier at the share the publisher prints for it: the Pokémon China product page puts the ★★★ cards at 1.81% of the print run (★★ 5.80%, ★ 17.39%), so a four-card pack holds one about 7% of the time — roughly one per box, which is what the line’s own selling copy says. That is what puts the pack on its ¥10 sticker ($1.41) and the box on its eighteen packs ($25.38), instead of the $9.71 and $145.59 that pricing every card at an English art-rare value produced. The rate is the publisher’s; the anchor values are this build’s, and the entry says which is which.",
+        "No scan of the set is in the catalogue’s image service yet, so these cards carry no artwork. That is a limitation of the source, not a design choice, and the cards are readable by name, number and rarity in the meantime.",
+        "This is the first regional catalogue in the game — a second file beside the English one, loaded through the same tables, so a line the English catalogue will never carry can be stocked, ripped and priced. Next is Simplified Chinese Black Bolt and White Flare with their own exclusive art rares of N’s Plan and Hilda."
+      ]
+    },
+    {
+      "version": "0.94.25",
+      "date": "2026-11-25",
+      "title": "What the last three boxes sold for",
+      "highlights": [
+        "Seven collector boxes price from the median of their last three sealed-box sales: Hidden Legends, Legendary Treasures, Rising Rivals, Neo Destiny, Great Encounters, Holon Phantoms, Secret Wonders."
+      ],
+      "features": [
+        "These seven boxes were the last of the collector era still priced by the model that values a box at 6.3 times the cards inside it, and each one was off its own sold evidence by 2.2 to 2.9 times. They now take the median of the three most recent factory-sealed boxes that actually sold on their page, read on 25 November 2026, so the shelf price is a sale rather than an estimate.",
+        "The reason the old quotes were refused turned out to be the pages themselves. A price guide’s average is dragged by every sale in its table, and four of these tables carry rows that are not boxes: Neo Destiny lists two EMPTY boxes at $28.70 and $73.64, Great Encounters an empty one at $85, Holon Phantoms one at $75.96, and Hidden Legends lists two OPENED boxes at $8,000 and $7,500 among the sealed ones. That is why the guide read $5,364 for a Neo Destiny box whose sealed copies sell for $13,500, and $2,025 for a Great Encounters box that sells for $4,050. Empty and opened rows are dropped, and the price is the median of what shipped sealed.",
+        "Per box: Hidden Legends $23,455 → $20,000 (sales of $20,000, $21,000 and $19,100) · Legendary Treasures $12,729 → $21,500 ($20,000, $33,500, $21,500) · Rising Rivals $15,338 → $8,995 ($8,995, $8,995, $4,250) · Neo Destiny $33,947 → $13,500 ($10,700, $16,000, $13,500) · Great Encounters $9,121 → $4,050 ($7,000, $4,050, $3,550.01) · Holon Phantoms $41,916 → $18,863 ($12,436.71, $18,862.66, $22,000) · Secret Wonders $13,425 → $11,400 ($13,600, $11,400, $5,210). Six of the seven came down: the model was reading a collector premium into boxes that sell on volume. Legendary Treasures is the exception, because its model was under the market rather than over it.",
+        "What is still modelled, honestly: the collector-era boxes with no sealed sale to stand on keep the 6.3x model and say so. That includes Base Set 2, Gym Heroes and Gym Challenge, Expedition, Neo Genesis, Power Keepers, and the Black & White boxes whose pages were refused because the guide disagreed with their own sales. They stay badge-estimated until a page carries three sealed sales of the box itself.",
+        "The limits of the new numbers, stated rather than hidden: three sales is thin, nothing here is graded, no sale is younger than eight months on four of the seven pages, and Rising Rivals has not sold a box since March 2025. Holon Phantoms has only ever sold three sealed boxes and they spread 1.8 times apart, which is why its price is a median and not a forecast."
+      ]
+    },
+    {
       "version": "0.94.24",
       "date": "2026-11-24",
       "title": "The portable download returns",
       "highlights": [
-        "The portable download is back: unpack the zip into any folder and start the game by double-clicking TCG-Life.exe — no installer, no admin prompt, nothing added to your Start menu.",
-        "The installer and the zip are now cut from the same factory-fresh folder in one build, so the two downloads cannot drift into different games.",
-        "Neither download carries a save unless the build names one, and the pipeline now refuses to build a zip that has one inside it."
+        "The portable download is back: unpack the zip into any folder and start the game by double-clicking TCG-Life.exe — no installer, no admin prompt, nothing added to your Start menu."
       ],
       "features": [
         "The pipeline had stopped making the portable download. The zip players used to grab was a leftover file from an earlier build, and nothing in the build scripts wrote that name any more, so the last twenty releases would have shipped an installer and nothing else. Building a release now produces both artifacts — TCG-Life-Setup-<version>.exe and TCG-Life-<version>-portable-win64.zip — and the build fails outright when the zip is not there rather than quietly returning an installer only.",

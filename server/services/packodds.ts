@@ -376,6 +376,51 @@ export const BLUEPRINTS: Record<string, SlotPlan[]> = {
   ],
   me55c: [{ slot: 'subset', count: 10 }],
   cel25c: [{ slot: 'subset', count: 10 }],
+  // Gem Pack Vol. 7 is a Simplified Chinese wrapper holding FOUR cards, and every
+  // one of them is foil: 28 Pokémon, each printed as five holo versions of its
+  // regular art, a sixth with the Gem Pack stamp and a seventh Illustration Rare.
+  // The era plan is a ten-card English shape and asks for commons this set does
+  // not print, and it prints no reverse holos at all. So it is declared here as
+  // four cards drawn from the set's whole 196-card pool — every card in the
+  // product is foil, so the pool is uniform (see `uniformPoolSets` in
+  // catalog/regional-releases.json, which is what tells the loader to flatten the
+  // table into one slot). A flat draw over 196 cards would put an art rare in one
+  // pack in seven, because 28 of the cards are art rares; the pool is therefore
+  // weighted by the publisher's own ratios, ★ 17.39%, ★★ 5.80% and ★★★ 1.81% of
+  // the print run, which lands the art rare at about one pack in fourteen
+  // (`tierShares` in the release file, applied by the loader).
+  cbb7: [{ slot: 'holo', count: 4 }],
+  // Vols. 1-6 are the same product: four foil cards from one pool, no commons and
+  // no reverse holos. Their card counts differ (115, 140, 136 then 196 three
+  // times), which is why they are listed rather than derived.
+  cbb1: [{ slot: 'holo', count: 4 }],
+  cbb2: [{ slot: 'holo', count: 4 }],
+  cbb3: [{ slot: 'holo', count: 4 }],
+  cbb4: [{ slot: 'holo', count: 4 }],
+  cbb5: [{ slot: 'holo', count: 4 }],
+  cbb6: [{ slot: 'holo', count: 4 }],
+  // Black Bolt and White Flare are those sets' Simplified Chinese printing: five
+  // cards to a wrapper, one of them always a foil. The spec sheet gives each
+  // rarity group's share of all cards dealt, so this is the physical shape — four
+  // cards from the common/uncommon body and one drawn from the holo ladder, where
+  // the published shares of 13.23%, 6.04% and 0.73% are the weights
+  // (`ladderPacks` in the release file, applied by the loader).
+  csv10pt5: [
+    { slot: 'common', count: 4 },
+    { slot: 'holo', count: 1 },
+  ],
+  csv10pt6: [
+    { slot: 'common', count: 4 },
+    { slot: 'holo', count: 1 },
+  ],
+  // Collection 151 is the other Simplified Chinese five-card wrapper, and its
+  // line publishes no spec sheet: the only rates are a third-party count (~90%
+  // commons and uncommons, ~8% Rares and Double Rares, 1.5% higher), so the draw
+  // is one pool of five cards weighted by those shares (`ladderPacks` in the
+  // release file). The wrapper's own wording — one card is a reverse holo or Rare
+  // or better — is not modelled as a separate slot, because the estimate counts
+  // reverse holos of common cards as commons.
+  csv151c: [{ slot: 'holo', count: 5 }],
   // Celebrations' real pack is four cards, all foil, in a fixed order: two
   // main-set cards, a third that is a Classic Collection reprint in two packs
   // of five (else a main-set card), and a fourth that is a main-set card or the
@@ -705,6 +750,39 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
   // The same rule the roller deals: no reverse slot in the plan means no
   // reverse printing to fall back to.
   const printsReverse = plan.some((s) => s.slot === 'reverse' || s.slot === 'reverse2')
+  // A wrapper that deals its whole set from one weighted pool is not "five
+  // rares". The Chinese five- and four-card lines are exactly that: one slot
+  // holding every card in the set, commons included, weighted by the published
+  // rates. Naming that slot after its rarity label told a Collection 151 buyer
+  // the wrapper was five Rare cards when nine in ten are commons and uncommons.
+  // A subset-only wrapper (the Classic Collection packs, the 30th Anniversary's
+  // subset) is one slot too, but it already has wording of its own — "Classic
+  // Collection", "Subset cards" — and it is not an any-card pool, so it is
+  // excluded from this path rather than relabelled by it.
+  const singlePool = plan.length === 1 && plan[0].count === cardsPerPack && plan[0].slot !== 'subset'
+  // The same problem one tier down: a slot whose pool holds more than plain
+  // rares (Black Bolt's foil card can be a Rare, an art rare or a Black White
+  // Rare) is not a "Rare" slot either.
+  const slotRarities = (slot: string) =>
+    (
+      db
+        .prepare(
+          `SELECT DISTINCT c.rarity AS r FROM pack_product_cards ppc JOIN cards c ON c.id = ppc.card_id
+           WHERE ppc.pack_product_id = ? AND ppc.slot = ? AND c.rarity IS NOT NULL`,
+        )
+        .all(`${setId}-booster`, slot) as { r: string }[]
+    ).map((x) => x.r)
+  const poolShares = () => {
+    const rows = db
+      .prepare(
+        `SELECT c.rarity AS r, SUM(ppc.weight) AS w FROM pack_product_cards ppc JOIN cards c ON c.id = ppc.card_id
+         WHERE ppc.pack_product_id = ? GROUP BY c.rarity`,
+      )
+      .all(`${setId}-booster`) as { r: string | null; w: number }[]
+    const total = rows.reduce((a, b) => a + (b.w ?? 0), 0)
+    const ordinary = rows.filter((x) => /^(Common|Uncommon)$/.test(x.r ?? '')).reduce((a, b) => a + (b.w ?? 0), 0)
+    return total > 0 ? { total, ordinary } : null
+  }
   const out = plan.map(({ slot, count }): PackSlotInfo => {
     let detail: string
     switch (slot) {
@@ -727,9 +805,16 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
       case 'hit':
         detail = chance > 0 ? `upgrades to a hit in ${pct(chance)} of packs, else the ${paper} rare` : `the ${paper} rare`
         break
-      case 'holo':
-        detail = setId === 'dv1' ? 'every card in a Dragon Vault pack is Holofoil' : `the ${paper} rare`
+      case 'holo': {
+        const mixed = slotRarities('holo').some((r) => !/^(Rare|Rare Holo)$/.test(r))
+        detail =
+          setId === 'dv1'
+            ? 'every card in a Dragon Vault pack is Holofoil'
+            : mixed
+              ? 'a Rare or better card, at the rates the set prints'
+              : `the ${paper} rare`
         break
+      }
       case 'energy':
         detail = 'one Basic Energy'
         break
@@ -753,10 +838,26 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
       default:
         detail = ''
     }
+    if (singlePool) {
+      const shares = poolShares()
+      const rareShare = shares && shares.total > 0 ? 1 - shares.ordinary / shares.total : 0
+      // Dragon Vault already has its own wording for a wrapper that is five
+      // Holofoil cards, and it says more than "any card" does.
+      if (setId === 'dv1') return { slot, count, label: 'Holofoil', detail: 'every card in a Dragon Vault pack is Holofoil' }
+      const detail =
+        shares && shares.ordinary > 0
+          ? rareShare > 0
+            ? `${pct(rareShare)} of the cards it deals are Rare or better; the rest are commons and uncommons`
+            : 'every card it deals is a common or uncommon'
+          : 'every card in the set is foil, at the rates the line prints'
+      return { slot, count, label: 'Any card', detail }
+    }
     // A card-by-card subset pack is not "guaranteed classic" — Shiny Vault and
     // the galleries are not reprints — so the label follows the shape.
     const label = setId === 'dv1' && slot === 'holo'
       ? 'Holofoil'
+      : slot === 'holo' && slotRarities('holo').some((r) => !/^(Rare|Rare Holo)$/.test(r))
+        ? 'Rare or better'
       : slot === 'subset'
         ? setId === 'cel25' ? 'Classic Collection' : hostSubsetName ? 'Bonus subset' : count > 1 ? 'Subset cards' : SLOT_LABEL[slot]
         : SLOT_LABEL[slot]
