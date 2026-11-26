@@ -15,6 +15,7 @@
 // the file as it stands; this script owns Vols. 1-6.
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
+import { RELEASE, applyGemArt, assignArt } from './regional-shared.mjs'
 
 const db = new Database('data/tcglife.db', { readonly: true })
 const bulba = JSON.parse(fs.readFileSync('tmp/gems/bulba.json', 'utf8'))
@@ -54,6 +55,11 @@ const newestArt = (name) =>
   )
 
 const pad = (n) => String(n).padStart(2, '0')
+
+// Only a file that is actually in the build is referenced: a missing wrapper must
+// fall back to the mark, and a missing mark to nothing, never to a broken image.
+const shipped = (name) => (fs.existsSync(`public/catalog-art/cbb/${name}`) ? `/catalog-art/cbb/${name}` : null)
+
 const sets = []
 const cards = []
 const products = []
@@ -81,8 +87,17 @@ for (const v of VOLUMES) {
     total: src.cards.length,
     ptcgo_code: v.code,
     release_date: v.date,
-    symbol_url: null,
-    logo_url: null,
+    // Shipped with the build: Bulbagarden's own file set for the volume, pulled
+    // through a readable proxy (its media host refuses direct requests here).
+    // Vol. 4 is the one volume with no logo file, so its mark stands in.
+    symbol_url: shipped(`cbb${v.vol}-symbol.webp`),
+    // The volume's face, best first: its logo, else its set symbol, else its own
+    // wrapper — all pictures of this volume, so a product without a wrapper of its
+    // own (the box) still shows the volume rather than an empty box.
+    logo_url:
+      shipped(`cbb${v.vol}-logo.webp`) ??
+      shipped(`cbb${v.vol}-symbol.webp`) ??
+      shipped(`cbb${v.vol}-pack.webp`),
   })
   src.cards
     .slice()
@@ -128,6 +143,9 @@ for (const v of VOLUMES) {
       packs: 1,
       cards_per_pack: 4,
       release_date: v.date,
+      // The volume's own wrapper, as published — the shelf draws this instead of a
+      // box, and the pack screen the same picture.
+      image_url: shipped(`cbb${v.vol}-pack.webp`),
       description: `Four foil cards from the ${src.cards.length}-card Gem Pack Vol. ${v.vol} pool, ¥10 in mainland China.`,
     },
     {
@@ -140,15 +158,27 @@ for (const v of VOLUMES) {
       packs: v.packs,
       cards_per_pack: 4,
       release_date: v.date,
+      // No box was photographed in this build's reach, so the box keeps no wrapper
+      // of its own and falls back to the volume's mark.
       description: `${v.packs} four-card Gem Pack packs, ¥10 a pack in mainland China.`,
     },
   )
 }
 
+// Art: these sets have no scans anywhere, so each card wears the artwork of an
+// English printing of the same Pokémon — the same rarity where the catalogue has
+// one, newest set first — and a printing is used once per set, so the nine
+// Sprigatito treatments get nine different arts instead of one repeated nine
+// times. A card whose name appears in no English print keeps the placeholder.
+const art = assignArt(db, cards)
+console.log(`art: ${art.exact} same print · ${art.sibling} sibling set · ${art.other} English printing of the name · ${art.none} without`)
+// Captain Pikachu exists in no English printing, so those rows wear their own scan.
+console.log(`art: ${applyGemArt(cards)} rows carry the Simplified Chinese scan`)
+
 // Sets carry `id`, cards and products carry `set_id`.
 const keep = (rows) => rows.filter((r) => (r.set_id ?? r.id) === 'cbb7')
 const out = {
-  release: 'Gem Pack Vol. 1-7 (Simplified Chinese)',
+  release: RELEASE,
   note:
     'Products the English catalogue cannot carry: the Gem Pack booster line, sold only in mainland China. ' +
     'Volumes 1-7 (CBB1C-CBB7C) run from 17 January 2025 to 6 November 2026 on a four-card all-foil pack at ¥10: Vols. 1-3 ship fifteen packs to a box and Vols. 4-7 ship eighteen, so a box costs its packs and no separate box sticker is claimed. ' +
@@ -158,7 +188,9 @@ const out = {
     'No Gem Pack card has a recorded sale in any language, so every card is valued against the reprint it copies: the six regular versions take the cheapest ordinary printing of ' +
     'the Pokémon, the chase tier takes the art it reprints, and the Pokémon whose only printing anywhere is a chase card take the set\'s bulk floor, because a ¥10 wrapper cannot ' +
     'hold eight $22 cards. The catalogue distinguishes foil from chase, so the printed Gem C/U/R/RR tiers are carried as Rare Holo and Gem RRR as the Illustration Rare tier. ' +
-    'No scan of these sets is in the catalogue\'s image service, so the cards carry no artwork. ' +
+    'No Simplified Chinese set is in the catalogue\'s image service, so no card carries its own scan: each one wears the artwork of an English printing of the same Pokémon, the same rarity where one exists and the newest set first, and a printing is used once per set so the nine Sprigatito treatments get nine different arts rather than one repeated. ' +
+    'Captain Pikachu is the exception, because it has no English printing at all — Bulbapedia records it as not yet released in English — so its fourteen rows (Vol. 1 0701-0709 and Vol. 5 0101-0107) carry the Simplified Chinese card itself: twelve from the product scans on simplifiedcollector.com\'s per-volume card lists and the two chase treatments 0709 and 0107 from Bulbapedia\'s card images. ' +
+    'Each volume also ships its published packaging and marks, all Bulbagarden\'s own files for that volume: the booster wrapper as the pack\'s picture (Vols. 6 and 7 checked against the publisher\'s page, which shows the same wrapper), the set symbol, and the logo — Vol. 4 publishes no logo, so its symbol stands in. The box carries the volume\'s mark rather than a wrapper, because no box photograph was reachable. ' +
     'A pack opens four cards drawn from the whole set, and the draw is weighted by the publisher\'s own ratio table: ★ 17.39% of the print run, ★★ 5.80%, ★★★ 1.81%, with ● and ◆ taking the remainder. Those shares are printed for Vols. 6 and 7; Vols. 1-5 carry the same ladder as the line\'s figure, corroborated by the one-three-star-per-box the selling copy describes. Every weight in the pull table is therefore share ÷ card count, so the ladder can be recomputed from the note and the set. At these anchors the packs sit at their ¥10 sticker.',
   sets: [...sets, ...keep(existing.sets)],
   cards: [...cards, ...keep(existing.cards)],

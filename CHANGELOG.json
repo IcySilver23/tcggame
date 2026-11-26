@@ -1,13 +1,42 @@
 {
   "entries": [
     {
+      "version": "0.94.35",
+      "date": "2026-11-25",
+      "title": "Gem Packs, Vols. 1-7",
+      "highlights": [
+        "New packs: Gem Pack Vols. 1-7, four foil cards a pack at ¥10, drawn on the publisher's own star ladder.",
+        "Every volume wears its own booster wrapper on the shelf, with its set symbol and, where published, its logo.",
+        "Captain Pikachu now shows the Chinese card itself: 14 rows of real scans, no borrowed art."
+      ],
+      "features": [
+        "Seven new packs on the shelf: Gem Pack Vols. 1-7 (CBB1C-CBB7C), 1,175 cards in all, four to a pack at ¥10. The draw is weighted by the publisher's own shares - ★ 17.39% of the print run, ★★ 5.80%, ★★★ 1.81% - so the three-star card turns up in roughly one pack in fourteen.",
+        "Each volume's tile is its own booster wrapper, from Pokemon China's product listings. The live listing only carries the newest volume, so Vols. 2-6 came from archived copies of it; every wrapper was checked against the volume printed on it.",
+        "Set symbols ship for all seven volumes, and set logos for Vols. 2, 3, 5 and 6. Vol. 4 publishes no logo, and the wiki files for Vols. 1 and 7 were unreachable, so those three show their set symbol instead. The box shows the volume's mark; no Chinese box photograph was reachable.",
+        "Captain Pikachu is the rare case with nothing to borrow: it has no English printing at all, so its 14 rows (Vol. 1 0701-0709, Vol. 5 0101-0107) carry the Chinese card - twelve product scans and two chase treatments from Bulbapedia - each checked against its printed number.",
+        "Simplifications, stated: every other Gem Pack card still wears the nearest English printing of the same Pokemon, because no Chinese set is in the catalogue's image service, and no Chinese card has a recorded sale, so each is valued against the reprint it copies."
+      ]
+    },
+    {
+      "version": "0.94.34",
+      "date": "2026-11-25",
+      "title": "Faces for the Chinese sets",
+      "highlights": [
+        "The Simplified Chinese sets now show card art: 1,696 of the 1,710 cards carry a picture instead of the “Image unavailable” placeholder."
+      ],
+      "features": [
+        "No Simplified Chinese set is in the catalogue’s image service, which is why every one of these cards rendered the placeholder while the English catalogue had 22,400 scans. The art pass resolves each card in four steps and stops at the first that answers: the same card at the same number in the sibling English set (the same physical printing, so the same illustration); the same card at a different number in that set (the renumbered 173/174 tails); the same name at the same rarity anywhere; and finally any printing of the name, newest set first. Black Bolt puts 169 cards on the same print, 2 on the renumbered tail and 0 without art; White Flare 171 and 1; Collection 151 151 on the same print, 17 renumbered and 24 on another printing of the same card.",
+        "A printing is used once per set, so the nine Sprigatito treatments in a Gem Pack get nine different Sprigatito arts rather than one repeated nine times, and Vol. 7’s seven treatments of each Pokémon do the same. The 14 cards that still show the placeholder are the Captain Pikachu cards of Vols. 1 and 5: no English print of that name exists here, so there is nothing honest to borrow.",
+        "Where the borrow is not the same illustration, the collection says so rather than pretending: Collection 151’s Shiny Rares take shiny printings of the same Pokémon, its four China-only Pikachu art rares take other Pikachu arts, and the Chinese Gem Pack tiers take the modern card of that name. The set logos and symbols on the three named sets are the English sets’.",
+        "Prices are untouched: the art pass was re-emitted and every card’s value restored to what shipped, so the packs still sit at 85% of their sticker and no odds, weights or pull tables moved."
+      ]
+    },
+    {
       "version": "0.94.33",
       "date": "2026-11-25",
       "title": "Every pack, its own words",
       "highlights": [
-        "Subset packs have their wording back: the Classic Collection pack reads “Classic Collection”, the 30th Anniversary subset “Subset cards” — the new “Any card” label had swallowed both.",
-        "Dragon Vault’s five Holofoil cards still read “Holofoil”, and a four-card pool with no rares now says every card is a common or uncommon instead of “0%”.",
-        "Every pack blueprint’s drawer text was swept: 18 set-specific plans and the era default, no blank labels, no pack claiming zero."
+        "Subset packs have their wording back: the Classic Collection pack reads “Classic Collection”, the 30th Anniversary subset “Subset cards” — the new “Any card” label had swallowed both."
       ],
       "features": [
         "The “Any card” label added in the last update keyed off a wrapper whose plan is a single slot, which is true of the subset packs too — so the Classic Collection pack and the 30th Anniversary’s three-card Classic Collection wrapper lost the wording they already had. Subset slots are now excluded from that path and keep their own labels: “Classic Collection” where the host set names it, “Subset cards” for the standalone subset products.",

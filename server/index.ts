@@ -371,6 +371,23 @@ app.get('/api/art/:setId/:file', async (c) => {
     .get(cardId) as { image_large: string | null; image_small: string | null } | undefined
   const source = row?.image_large ?? row?.image_small ?? null
   if (!source) return c.text('not found', 404)
+  // Some rows point at artwork shipped with the build (`/catalog-art/...`, the
+  // Simplified Chinese scans and Gem Pack wrappers no CDN hosts). Those are files
+  // on this machine, not a URL this process can fetch: in dev the browser loads
+  // them from Vite, and the API is a separate origin.
+  if (source.startsWith('/')) {
+    const rel = source.replace(/^\/+/, '')
+    if (rel.includes('..')) return c.text('bad request', 400)
+    const roots = [process.cwd(), APP_ROOT].flatMap((root) => [
+      path.join(root, 'public', rel),
+      path.join(root, 'dist', rel),
+    ])
+    const file = roots.find((p) => fs.existsSync(p))
+    if (!file) return c.text('not found', 404)
+    const ext = path.extname(file).toLowerCase()
+    const type = ext === '.webp' ? 'image/webp' : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'image/png'
+    return c.body(fs.readFileSync(file), 200, { 'content-type': type, 'cache-control': 'public, max-age=86400' })
+  }
   const image = await fetch(source).catch(() => null)
   if (!image || !image.ok) return c.text('not found', 404)
   const bytes = new Uint8Array(await image.arrayBuffer())

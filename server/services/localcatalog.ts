@@ -74,6 +74,8 @@ type LocalProduct = {
   cards_per_pack: number
   release_date: string
   description: string | null
+  /** A published picture of the product itself, when one exists (Gem Pack wrappers). */
+  image_url?: string | null
 }
 
 type LocalReleases = {
@@ -221,8 +223,12 @@ const setUpsert = db.prepare(`
   ON CONFLICT(id) DO UPDATE SET
     name=excluded.name, series=excluded.series, printed_total=excluded.printed_total,
     total=excluded.total, ptcgo_code=excluded.ptcgo_code, release_date=excluded.release_date,
-    symbol_url=COALESCE(sets.symbol_url, excluded.symbol_url),
-    logo_url=COALESCE(sets.logo_url, excluded.logo_url)
+    -- This file is the authority for its own sets: no catalog API has a row for
+    -- them, so a mark shipped here (the Gem Packs' published logos and symbols)
+    -- must be able to replace an earlier placeholder rather than only fill a gap.
+    -- A null in the file still leaves whatever is there alone.
+    symbol_url=COALESCE(excluded.symbol_url, sets.symbol_url),
+    logo_url=COALESCE(excluded.logo_url, sets.logo_url)
 `)
 
 // A price is only ever seeded where none exists: a later sync (or the daily
@@ -244,6 +250,14 @@ const productUpsert = db.prepare(`
     cards_per_pack=excluded.cards_per_pack, release_date=excluded.release_date,
     description=excluded.description
 `)
+
+// Product art is a separate, additive write: the generic seeder and the API both
+// own `pack_products.image_url`, so this file only ever fills the gap. The Gem
+// Packs are the case that needs it — their wrappers are published pictures of the
+// product itself and no CDN carries them.
+const productArt = db.prepare(
+  "UPDATE pack_products SET image_url = ? WHERE id = ? AND (image_url IS NULL OR image_url = '')",
+)
 
 function load(): LocalReleases {
   return localReleases as LocalReleases
@@ -316,6 +330,7 @@ function applyRelease(data: LocalReleases, metaKey: string): LocalReleaseResult 
     for (const p of data.products) {
       if (!setExists.get(p.set_id)) { skippedProducts++; continue }
       productUpsert.run(p)
+      if (p.image_url) productArt.run(p.image_url, p.id)
     }
   })
   tx()
@@ -338,6 +353,7 @@ function applyRelease(data: LocalReleases, metaKey: string): LocalReleaseResult 
     for (const p of data.products) {
       if (!setExists.get(p.set_id)) continue
       productUpsert.run(p)
+      if (p.image_url) productArt.run(p.image_url, p.id)
     }
   })
   reapplyProducts()

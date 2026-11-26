@@ -17,8 +17,12 @@
 // a ¥10 pack like a case.
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
+import { assignArt } from './regional-shared.mjs'
 
 const db = new Database('data/tcglife.db', { readonly: true })
+
+// Reference a shipped file only: a missing wrapper falls back to the mark.
+const shipped = (name) => (fs.existsSync(`public/catalog-art/cbb/${name}`) ? `/catalog-art/cbb/${name}` : null)
 
 const POKEMON = [
   "Team Rocket's Raticate", "Team Rocket's Meowth", "Misty's Psyduck", 'Rapidash',
@@ -75,8 +79,10 @@ const set = {
   total: 196,
   ptcgo_code: 'CBB7C',
   release_date: '2026/11/06',
-  symbol_url: null,
-  logo_url: null,
+  // Shipped with the build from Bulbagarden's own file set for the volume; the
+  // publisher's product page shows the same wrapper.
+  symbol_url: shipped('cbb7-symbol.webp'),
+  logo_url: shipped('cbb7-logo.webp') ?? shipped('cbb7-symbol.webp') ?? shipped('cbb7-pack.webp'),
 }
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -135,6 +141,7 @@ const products = [
     packs: 1,
     cards_per_pack: 4,
     release_date: '2026/11/06',
+    image_url: shipped('cbb7-pack.webp'),
     description: 'Four foil cards from the 196-card Gem Pack Vol. 7 pool, ¥10 in mainland China.',
   },
   {
@@ -163,7 +170,7 @@ const out = {
     'take the cheapest ordinary printing of that Pokémon, the seven art rares take the art they reprint, and the eight Pokémon whose only printing anywhere is a chase card take the ' +
     'set\'s bulk floor instead — the cheapest anchor found in the line — because a ¥10 wrapper cannot hold eight $22 cards. Misty\'s Psyduck is the one China-only artwork (Cona Nitanda) ' +
     'and its art rare is valued at the Destined Rivals card it reprints. ' +
-    'No scan of this set is in the catalogue\'s image service, so the cards carry no artwork yet. ' +
+    'No scan of this set is in the catalogue\'s image service, so each card wears the artwork of the newest English printing of its name, and the volume\'s own wrapper, set symbol and logo ship with the build. ' +
     'The set ships its own two products — a four-card pack at ¥10 and an eighteen-pack box, priced as its packs — and none of the era products ' +
     'an English 2026 set would receive: no bundle, no Elite Trainer Box, no 36-pack display. A pack opens four cards drawn from the whole set and weighted by the publisher\'s ' +
     'ratio table — ★ 17.39% of the print run, ★★ 5.80%, ★★★ 1.81% — so a three-star card turns up in about 7% of packs, roughly one per box. At these anchors the pack sits at ' +
@@ -176,6 +183,13 @@ const out = {
   uniformPoolSets: ['cbb7'],
   tierShares: { 'Gem R': 0.1739, 'Gem RR': 0.058, 'Gem RRR': 0.0181 },
 }
+
+// Art: Vol. 7 reprints 2026 sets, so each card wears the artwork of the newest
+// English printing of its name — the art it copies where that set is in English,
+// the modern card of the same Pokémon where it is not. A printing is used once
+// per card group, so the seven treatments of one Pokémon get seven different arts.
+const art = assignArt(db, cards)
+console.log(`art: ${art.exact} same print · ${art.other} English printing of the name · ${art.none} without`)
 
 fs.writeFileSync('server/catalog/regional-releases.json', JSON.stringify(out, null, 1) + '\n')
 console.log(`cards ${cards.length} · sets ${out.sets.length} · products ${products.length}`)

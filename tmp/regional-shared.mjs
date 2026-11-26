@@ -69,6 +69,112 @@ export function anchorFor(db, { english, name, rarity }) {
 }
 
 /**
+ * Card art for the lines this catalogue has no scans for.
+ *
+ * images.pokemontcg.io has no Simplified Chinese sets, so every picture these
+ * cards can honestly show is an English print's. Four tiers, in order:
+ *
+ *   1. the same card at the same number in the sibling English set — the same
+ *      physical printing, so the same illustration (Black Bolt, White Flare, the
+ *      151 base set);
+ *   2. the same card at a different number in that set (the renumbered tails);
+ *   3. the same name at the same rarity anywhere — this is what gives the
+ *      China-only Shiny Rares a shiny print rather than the plain art;
+ *   4. any printing of the name, newest set first.
+ *
+ * A printing is used once per set, so nine Sprigatito treatments in a Gem Pack get
+ * nine different Sprigatito arts rather than one repeated. Where the catalogue has
+ * fewer printings than the line has treatments, the extra rows share the last one;
+ * where it has none, the card keeps no image and renders the placeholder.
+ */
+export function assignArt(db, cards, { siblingSetId = null } = {}) {
+  const q = db.prepare(`
+    SELECT c.id, c.set_id, c.position, c.rarity, c.image_small, c.image_large,
+           COALESCE(s.release_date, '') AS rel
+      FROM cards c LEFT JOIN sets s ON s.id = c.set_id
+     WHERE c.name = @name AND c.image_small IS NOT NULL AND c.image_small <> ''
+     ORDER BY (c.set_id = @sibling AND c.position = @pos) DESC,
+              (c.set_id = @sibling) DESC,
+              (c.rarity = @rarity) DESC,
+              rel DESC, c.position ASC`)
+  const used = new Set()
+  const stats = { exact: 0, sibling: 0, other: 0, none: 0 }
+  for (const card of cards) {
+    const list = q.all({ name: card.name, sibling: siblingSetId ?? '\u0000', pos: card.position, rarity: card.rarity })
+    const hit = list.find((c) => !used.has(c.id)) ?? list[0] ?? null
+    if (!hit) {
+      card.image_small = null
+      card.image_large = null
+      stats.none++
+      continue
+    }
+    used.add(hit.id)
+    card.image_small = hit.image_small
+    card.image_large = hit.image_large
+    if (hit.set_id === siblingSetId && hit.position === card.position) stats.exact++
+    else if (hit.set_id === siblingSetId) stats.sibling++
+    else stats.other++
+  }
+  return stats
+}
+
+/**
+ * Real scans for the Gem Pack line.
+ *
+ * No CDN hosts a Simplified Chinese card, so these rows would otherwise wear an
+ * English printing of the same Pokémon. Captain Pikachu (Gem Pack Vol. 1 0701-0709
+ * and Vol. 5 0101-0107) has no English printing at all — Bulbapedia: "has not yet
+ * been officially released in English" — so the card that is actually in the pack
+ * is the only honest art. Twelve are the Simplified Chinese product scans on
+ * simplifiedcollector.com's per-volume card lists; the two chase treatments those
+ * lists do not cover (0709 and 0107) are Bulbapedia's own card images, fetched
+ * from the Wayback Machine because the wiki's media host refuses this build.
+ * Every file was opened and checked against the printed number before shipping.
+ */
+export const GEM_CARD_ART = {
+  'cbb1-0701': '/catalog-art/cbb/cbb1-0701.webp',
+  'cbb1-0702': '/catalog-art/cbb/cbb1-0702.webp',
+  'cbb1-0703': '/catalog-art/cbb/cbb1-0703.webp',
+  'cbb1-0704': '/catalog-art/cbb/cbb1-0704.webp',
+  'cbb1-0705': '/catalog-art/cbb/cbb1-0705.webp',
+  'cbb1-0707': '/catalog-art/cbb/cbb1-0707.webp',
+  'cbb1-0709': '/catalog-art/cbb/cbb1-0709.webp',
+  'cbb5-0101': '/catalog-art/cbb/cbb5-0101.webp',
+  'cbb5-0102': '/catalog-art/cbb/cbb5-0102.webp',
+  'cbb5-0103': '/catalog-art/cbb/cbb5-0103.webp',
+  'cbb5-0104': '/catalog-art/cbb/cbb5-0104.webp',
+  'cbb5-0105': '/catalog-art/cbb/cbb5-0105.webp',
+  'cbb5-0106': '/catalog-art/cbb/cbb5-0106.webp',
+  'cbb5-0107': '/catalog-art/cbb/cbb5-0107.webp',
+}
+
+/** Overwrite the borrowed art with the real scan wherever one is recorded. */
+export function applyGemArt(cards) {
+  let real = 0
+  for (const card of cards) {
+    const art = GEM_CARD_ART[card.id]
+    if (!art) continue
+    card.image_small = art
+    card.image_large = art
+    real++
+  }
+  return real
+}
+
+/** A sibling English set's own logo and symbol, for the shelf to show. */
+export function setArt(db, setId) {
+  const row = pick(db, `SELECT logo_url, symbol_url FROM sets WHERE id = ?`, setId)
+  return { logo_url: row?.logo_url ?? null, symbol_url: row?.symbol_url ?? null }
+}
+
+/**
+ * The release string is the applied-marker: a save re-applies the file when this
+ * text changes, which is how a save that already took the catalogue picks up a
+ * later pass over it (the upserts are idempotent).
+ */
+export const RELEASE = 'Gem Pack Vol. 1-7, Black Bolt / White Flare and Collection 151 (Simplified Chinese) · art 4'
+
+/**
  * Scale a set to the wrapper it ships in and write each card's price.
  *
  * `ladder` groups the set's rarities into slots with their published shares;
