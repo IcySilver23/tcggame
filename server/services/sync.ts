@@ -3,6 +3,7 @@ import { markCatalogChanged, markPricesChanged } from '../lib/derived-cache'
 import { fetchJson } from '../lib/http'
 import * as sealed from './sealed'
 import * as packs from './packs'
+import { reapplyLadderTables } from './localcatalog'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -648,6 +649,9 @@ export async function runCatalogDelta(): Promise<CatalogDeltaRun> {
           .map((t) => t.row.id)
           .filter((id) => db.prepare('SELECT 1 FROM pack_products WHERE id = ?').get(`${id}-booster`))
         for (const id of withBooster) packs.buildPullTable(id)
+        // A rebuild regroups by rarity; the wrappers whose table is a published
+        // ladder go back on top of it here.
+        reapplyLadderTables(withBooster)
         setMeta('pullTablesBuiltAt', nowIso())
         if (addedProducts > 0 || withBooster.length > 0) {
           console.log(`[sync] delta: ${addedProducts} new sealed product(s), ${withBooster.length} pull table(s) rebuilt`)

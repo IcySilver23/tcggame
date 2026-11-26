@@ -900,8 +900,12 @@ export function rollPack(setId: string, sessionId: string, productKind = 'booste
   const reverse2HitPool = pool('reverse2hit')
   const energyPool = pool('energy')
   // A pack's upgrade chance IS the sum of its pool's per-pack weights, so a
-  // tier this set never prints cannot inflate the tiers it does print.
-  const hitChance = Math.min(0.85, hitPool.reduce((a, r) => a + Math.max(0, r.weight), 0))
+  // tier this set never prints cannot inflate the tiers it does print. The sum
+  // may reach 1 — a Gem Pack's hit slot is a fixed slot, and its three tiers
+  // carry the printed shares over their own total — so the ceiling is 1, not a
+  // house 85%: capping below it dealt a common in 15% of packs and pulled the
+  // star ladder down with it.
+  const hitChance = Math.min(1, hitPool.reduce((a, r) => a + Math.max(0, r.weight), 0))
 
   // Structure comes from the set's blueprint (30C closes on a guaranteed
   // Pikachu, Classic Collection is all subset) or the era's ten game cards:

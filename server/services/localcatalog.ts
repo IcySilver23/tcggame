@@ -292,6 +292,32 @@ export function applyLocalReleases(): LocalReleaseResult {
 }
 
 /**
+ * Put the released ladders back on top of a freshly rebuilt pull table.
+ *
+ * `buildPullTable` regroups a set by rarity, which is right for the ten-card
+ * English shape and wrong for any wrapper whose table is a published ladder — a
+ * Gem Pack becomes a one-slot pool of 196 cards, and a first install (which
+ * rebuilds every table after seeding the catalog) dealt exactly that while an
+ * updated save kept the ladder. So every global rebuild calls this afterwards;
+ * with `setIds` it only touches the sets that rebuild named.
+ */
+export function reapplyLadderTables(setIds?: string[]): number {
+  let rebuilt = 0
+  for (const data of [load(), loadRegional()]) {
+    for (const [setId, ladder] of Object.entries(data.ladderPacks ?? {})) {
+      if (setIds && !setIds.includes(setId)) continue
+      if (!db.prepare('SELECT 1 FROM pack_products WHERE id = ?').get(`${setId}-booster`)) continue
+      const tiers = new Map(
+        data.cards.filter((c) => c.set_id === setId && c.tier).map((c) => [c.id, c.tier as string] as const),
+      )
+      flattenLadder(setId, ladder, tiers)
+      rebuilt++
+    }
+  }
+  return rebuilt
+}
+
+/**
  * Upsert the regional catalogue. Identical work to a local release — the file
  * carries the same shape — with its own marker, so a save that already took the
  * Gem Pack still applies the next Delta Reign wave and the other way round.

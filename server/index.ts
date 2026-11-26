@@ -51,7 +51,7 @@ import * as buylist from './services/buylist'
 import * as pawn from './services/pawn'
 import * as yardsale from './services/yardsale'
 import * as estatebuyout from './services/estatebuyout'
-import { applyLocalReleases, applyRegionalReleases } from './services/localcatalog'
+import { applyLocalReleases, applyRegionalReleases, reapplyLadderTables } from './services/localcatalog'
 import * as forum from './services/forum'
 import * as wishlistAgents from './services/wishlistagents'
 import * as psarush from './services/psarush'
@@ -315,6 +315,10 @@ function maybeRebuildPullTables() {
   const cardsSynced = getMeta('cardsLastSyncedAt')
   if (!builtAt || (cardsSynced && cardsSynced > builtAt)) rebuildPullTables()
   buildMissingPullTables()
+  // Rebuilding a table regroups it by rarity, which is not how a wrapper with a
+  // published ladder is collated. The released ladders go back on top every boot,
+  // so a first install and an updated save deal the same packs.
+  reapplyLadderTables()
 }
 
 // ---------------------------------------------------------------------------
