@@ -107,11 +107,11 @@ type LocalReleases = {
    * other 80% — so the group shares ARE the weights once each is divided by the
    * cards it holds. Keyed by set id, in the order the slots are filled.
    */
-  ladderPacks?: Record<string, { slot: string; share: number; rarities: string[] }[]>
+  ladderPacks?: Record<string, { slot: string; share: number; rarities?: string[]; tiers?: string[] }[]>
 }
 
 /**
- * Rewrite a set's booster table as one slot over every card.
+ * Rewrite a set's booster table from the tiers the wrapper is printed with.
  *
  * The generated table sorts cards into commons, uncommons, holos, hits and the
  * two parallel slots, which is the right shape for a pack that prints those
@@ -124,18 +124,27 @@ type LocalReleases = {
  * $9.71, because 28 of the set's cards are art rares. The publisher prints the
  * share of the run each tier makes up, so a card of tier t carries weight
  * `share(t) / count(t)`: every other weight in the table is then a number a
- * reader can check against that table and the set's own card counts. Tiers the
- * published table does not name (● and ◆) split its remainder evenly, which is
- * what the printed counts show anyway — 56 of each in a 196-card volume.
+ * reader can check against that table and the set's own card counts.
+ *
+ * A group names either the catalog's own `rarities` or, where several printed
+ * tiers share one rarity in the catalog (`tiers`, which the Gem Packs do — ●, ◆,
+ * ★ and ★★ are all Rare Holo), the printed tier. Two groups may carry the same
+ * slot and different shares: that is how a hit slot's ★/★★/★★★ shares divide it.
  */
-function flattenLadder(setId: string, groups: { slot: string; share: number; rarities: string[] }[]) {
+function flattenLadder(
+  setId: string,
+  groups: { slot: string; share: number; rarities?: string[]; tiers?: string[] }[],
+  tiers?: Map<string, string>,
+) {
   const pid = `${setId}-booster`
   const cards = db.prepare('SELECT id, rarity FROM cards WHERE set_id = ?').all(setId) as { id: string; rarity: string | null }[]
   if (cards.length === 0) return
   const taken = new Set<string>()
   const rows: { id: string; slot: string; weight: number }[] = []
   for (const g of groups) {
-    const ids = cards.filter((c) => !taken.has(c.id) && g.rarities.includes(c.rarity ?? ''))
+    const inGroup = (c: { id: string; rarity: string | null }) =>
+      g.tiers && tiers ? g.tiers.includes(tiers.get(c.id) ?? '') : (g.rarities ?? []).includes(c.rarity ?? '')
+    const ids = cards.filter((c) => !taken.has(c.id) && inGroup(c))
     for (const c of ids) taken.add(c.id)
     const weight = Math.round((g.share / Math.max(1, ids.length)) * 1e6) / 1e6
     for (const c of ids) rows.push({ id: c.id, slot: g.slot, weight: Math.max(0.000001, weight) })
@@ -381,13 +390,11 @@ function applyRelease(data: LocalReleases, metaKey: string): LocalReleaseResult 
       if (!hasBooster) continue
       packs.buildPullTable(s.id)
       const ladder = data.ladderPacks?.[s.id]
-      if (ladder) flattenLadder(s.id, ladder)
-      else if ((data.uniformPoolSets ?? []).includes(s.id)) {
-        const tiers = new Map(
-          data.cards.filter((c) => c.set_id === s.id && c.tier).map((c) => [c.id, c.tier as string] as const),
-        )
-        flattenPullTable(s.id, data.tierShares, tiers)
-      }
+      const tiers = new Map(
+        data.cards.filter((c) => c.set_id === s.id && c.tier).map((c) => [c.id, c.tier as string] as const),
+      )
+      if (ladder) flattenLadder(s.id, ladder, tiers)
+      else if ((data.uniformPoolSets ?? []).includes(s.id)) flattenPullTable(s.id, data.tierShares, tiers)
       rebuilt.push(s.id)
     }
     // The subset wrapper a box holds (the 30th UPC's Classic Collection pack)

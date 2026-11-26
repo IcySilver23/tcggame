@@ -1,12 +1,12 @@
 # Hit-odds audit
 
-118 sets carry a hit pool; 433 rarity rows sit in a hit slot. Every one is classified by where its odds come from: **set** (a measured row for that set), **era** (the era profile) or **table** (the legacy fallback table, which is real but not this set's own figure).
+125 sets carry a hit pool; 447 rarity rows sit in a hit slot. Every one is classified by where its odds come from: **set** (a measured row for that set), **era** (the era profile) or **table** (the legacy fallback table, which is real but not this set's own figure).
 
 **No rarity falls through to the generic 1-in-50 weight**, which is the defect this check exists to catch: the Mega Hyper Rare tier had no row anywhere, so six sets dealt their gold cards at a flat 1 in 50 — 11x too often at Ascended Heroes, about 20-25x at the one-in-a-thousand sets, and 36x at Perfect Order.
 
 **No hit tier rests on the legacy table either**: every rarity is dealt at a figure counted for its set or named for its era, so no set is running on a value someone picked for a different era.
 
-- Sets with a measured per-set row: 31
+- Sets with a measured per-set row: 38
 - Sets relying on a fallback table row: 0
 - Stored weights that disagree with the current code: 0
 
@@ -390,6 +390,8 @@ The last sweep of every set pinned the tiers that were resting on the legacy tab
 | Surging Sparks (sv8) | 2024/11/08 | hit | Hyper Rare | 6 | 0.011 | 0.011 | era |
 | Surging Sparks (sv8) | 2024/11/08 | reverse2hit | Illustration Rare | 23 | 0.09 | 0.09 | set |
 | Surging Sparks (sv8) | 2024/11/08 | reverse2hit | Special Illustration Rare | 11 | 0.0118 | 0.0118 | set |
+| Gem Pack Vol. 1 (cbb1) | 2025/01/17 | hit | Rare Holo | 42 | 0.9132 | 0.9132 | set |
+| Gem Pack Vol. 1 (cbb1) | 2025/01/17 | hit | Illustration Rare | 18 | 0.0868 | 0.0868 | set |
 | Prismatic Evolutions (sv8pt5) | 2025/01/17 | hit | Double Rare | 25 | 0.1651 | 0.1651 | set |
 | Prismatic Evolutions (sv8pt5) | 2025/01/17 | hit | Ultra Rare | 12 | 0.0746 | 0.0746 | set |
 | Prismatic Evolutions (sv8pt5) | 2025/01/17 | hit | ACE SPEC Rare | 6 | 0.0468 | 0.0468 | set |
@@ -400,6 +402,8 @@ The last sweep of every set pinned the tiers that were resting on the legacy tab
 | Journey Together (sv9) | 2025/03/28 | hit | Hyper Rare | 3 | 0.011 | 0.011 | era |
 | Journey Together (sv9) | 2025/03/28 | reverse2hit | Illustration Rare | 11 | 0.09 | 0.09 | set |
 | Journey Together (sv9) | 2025/03/28 | reverse2hit | Special Illustration Rare | 6 | 0.028 | 0.028 | set |
+| Gem Pack Vol. 2 (cbb2) | 2025/05/16 | hit | Rare Holo | 48 | 0.9132 | 0.9132 | set |
+| Gem Pack Vol. 2 (cbb2) | 2025/05/16 | hit | Illustration Rare | 20 | 0.0868 | 0.0868 | set |
 | Destined Rivals (sv10) | 2025/05/30 | hit | Double Rare | 17 | 0.2 | 0.2 | era |
 | Destined Rivals (sv10) | 2025/05/30 | hit | Ultra Rare | 22 | 0.11 | 0.11 | era |
 | Destined Rivals (sv10) | 2025/05/30 | hit | Hyper Rare | 6 | 0.011 | 0.011 | era |
@@ -415,6 +419,8 @@ The last sweep of every set pinned the tiers that were resting on the legacy tab
 | Black Bolt (zsv10pt5) | 2025/07/18 | hit | Black White Rare | 2 | 0.002 | 0.002 | set |
 | Black Bolt (zsv10pt5) | 2025/07/18 | reverse2hit | Illustration Rare | 69 | 0.1639 | 0.1639 | set |
 | Black Bolt (zsv10pt5) | 2025/07/18 | reverse2hit | Special Illustration Rare | 7 | 0.0125 | 0.0125 | set |
+| Gem Pack Vol. 3 (cbb3) | 2025/09/26 | hit | Rare Holo | 48 | 0.9276 | 0.9276 | set |
+| Gem Pack Vol. 3 (cbb3) | 2025/09/26 | hit | Illustration Rare | 16 | 0.0724 | 0.0724 | set |
 | Mega Evolution (me1) | 2025/09/26 | hit | Double Rare | 10 | 0.2 | 0.2 | era |
 | Mega Evolution (me1) | 2025/09/26 | hit | Ultra Rare | 22 | 0.11 | 0.11 | era |
 | Mega Evolution (me1) | 2025/09/26 | hit | Mega Hyper Rare | 2 | 0.0008 | 0.0008 | set |
@@ -431,11 +437,15 @@ The last sweep of every set pinned the tiers that were resting on the legacy tab
 | Ascended Heroes (me2pt5) | 2026/01/30 | hit | Mega Hyper Rare | 2 | 0.0019 | 0.0019 | set |
 | Ascended Heroes (me2pt5) | 2026/01/30 | reverse2hit | Illustration Rare | 33 | 0.1125 | 0.1125 | set |
 | Ascended Heroes (me2pt5) | 2026/01/30 | reverse2hit | Special Illustration Rare | 22 | 0.0144 | 0.0144 | set |
+| Gem Pack Vol. 4 (cbb4) | 2026/02/06 | hit | Rare Holo | 56 | 0.9276 | 0.9276 | set |
+| Gem Pack Vol. 4 (cbb4) | 2026/02/06 | hit | Illustration Rare | 28 | 0.0724 | 0.0724 | set |
 | Perfect Order (me3) | 2026/03/27 | hit | Double Rare | 9 | 0.2 | 0.2 | era |
 | Perfect Order (me3) | 2026/03/27 | hit | Ultra Rare | 18 | 0.11 | 0.11 | era |
 | Perfect Order (me3) | 2026/03/27 | hit | Mega Hyper Rare | 1 | 0.0006 | 0.0006 | set |
 | Perfect Order (me3) | 2026/03/27 | reverse2hit | Illustration Rare | 11 | 0.09 | 0.09 | set |
 | Perfect Order (me3) | 2026/03/27 | reverse2hit | Special Illustration Rare | 6 | 0.028 | 0.028 | set |
+| Gem Pack Vol. 5 (cbb5) | 2026/04/24 | hit | Rare Holo | 56 | 0.9276 | 0.9276 | set |
+| Gem Pack Vol. 5 (cbb5) | 2026/04/24 | hit | Illustration Rare | 28 | 0.0724 | 0.0724 | set |
 | Chaos Rising (me4) | 2026/05/22 | hit | Double Rare | 10 | 0.2 | 0.2 | era |
 | Chaos Rising (me4) | 2026/05/22 | hit | Ultra Rare | 18 | 0.11 | 0.11 | era |
 | Chaos Rising (me4) | 2026/05/22 | hit | Mega Hyper Rare | 1 | 0.001 | 0.001 | set |
@@ -446,10 +456,14 @@ The last sweep of every set pinned the tiers that were resting on the legacy tab
 | Pitch Black (me5) | 2026/07/17 | hit | Mega Hyper Rare | 1 | 0.0009 | 0.0009 | set |
 | Pitch Black (me5) | 2026/07/17 | reverse2hit | Illustration Rare | 11 | 0.09 | 0.09 | set |
 | Pitch Black (me5) | 2026/07/17 | reverse2hit | Special Illustration Rare | 6 | 0.028 | 0.028 | set |
+| Gem Pack Vol. 6 (cbb6) | 2026/08/07 | hit | Rare Holo | 56 | 0.9276 | 0.9276 | set |
+| Gem Pack Vol. 6 (cbb6) | 2026/08/07 | hit | Illustration Rare | 28 | 0.0724 | 0.0724 | set |
 | 30th Celebration (me55) | 2026/09/16 | hit | Double Rare | 12 | 0.2 | 0.2 | era |
 | 30th Celebration (me55) | 2026/09/16 | hit | Futuristic Rare | 2 | 0.008 | 0.008 | set |
 | 30th Celebration (me55) | 2026/09/16 | reverse2hit | Illustration Rare | 18 | 0.09 | 0.09 | set |
 | 30th Celebration (me55) | 2026/09/16 | reverse2hit | Special Illustration Rare | 10 | 0.028 | 0.028 | set |
+| Gem Pack Vol. 7 (cbb7) | 2026/11/06 | hit | Rare Holo | 56 | 0.9276 | 0.9276 | set |
+| Gem Pack Vol. 7 (cbb7) | 2026/11/06 | hit | Illustration Rare | 28 | 0.0724 | 0.0724 | set |
 | Delta Reign (me6) | 2026/11/06 | hit | Double Rare | 10 | 0.2 | 0.2 | set |
 | Delta Reign (me6) | 2026/11/06 | hit | Ultra Rare | 17 | 0.0833 | 0.0833 | set |
 | Delta Reign (me6) | 2026/11/06 | hit | Mega Hyper Rare | 1 | 0.001 | 0.001 | set |

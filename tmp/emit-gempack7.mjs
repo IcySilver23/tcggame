@@ -17,7 +17,7 @@
 // a ¥10 pack like a case.
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
-import { assignArt } from './regional-shared.mjs'
+import { applyGemArt, assignArt } from './regional-shared.mjs'
 
 const db = new Database('data/tcglife.db', { readonly: true })
 
@@ -170,18 +170,28 @@ const out = {
     'take the cheapest ordinary printing of that Pokémon, the seven art rares take the art they reprint, and the eight Pokémon whose only printing anywhere is a chase card take the ' +
     'set\'s bulk floor instead — the cheapest anchor found in the line — because a ¥10 wrapper cannot hold eight $22 cards. Misty\'s Psyduck is the one China-only artwork (Cona Nitanda) ' +
     'and its art rare is valued at the Destined Rivals card it reprints. ' +
-    'No scan of this set is in the catalogue\'s image service, so each card wears the artwork of the newest English printing of its name, and the volume\'s own wrapper, set symbol and logo ship with the build. ' +
+    'Every card carries its own Simplified Chinese scan, from the product scans on simplifiedcollector.com\'s Vol. 7 card list, shipped at 260px wide; the volume\'s own wrapper, set symbol and logo ship with it. ' +
     'The set ships its own two products — a four-card pack at ¥10 and an eighteen-pack box, priced as its packs — and none of the era products ' +
-    'an English 2026 set would receive: no bundle, no Elite Trainer Box, no 36-pack display. A pack opens four cards drawn from the whole set and weighted by the publisher\'s ' +
-    'ratio table — ★ 17.39% of the print run, ★★ 5.80%, ★★★ 1.81% — so a three-star card turns up in about 7% of packs, roughly one per box. At these anchors the pack sits at ' +
+    'an English 2026 set would receive: no bundle, no Elite Trainer Box, no 36-pack display. A pack is the wrapper as printed — two ●, one ◆ and one hit — and the hit divides by the volume\'s own ' +
+    'ratio table (★ 17.39%, ★★ 5.80%, ★★★ 1.81% of the print run), so the art rare lands in 7.24% of packs, about one and a third in an eighteen-pack box. At these anchors the pack sits at ' +
     'its ¥10 sticker and the box at its packs, and neither is a number borrowed from another market.',
   sets: [set],
   cards,
   products,
-  // Every card in this product is foil, so the pack draws from the whole pool —
-  // but not evenly: each printed tier keeps its published share of the print run.
-  uniformPoolSets: ['cbb7'],
-  tierShares: { 'Gem R': 0.1739, 'Gem RR': 0.058, 'Gem RRR': 0.0181 },
+  // The wrapper as printed: two ●, one ◆ and one hit, the hit divided by the
+  // volume's published shares of the print run (★ 17.39%, ★★ 5.80%, ★★★ 1.81%).
+  ladderPacks: {
+    cbb7: [
+      { slot: 'common', share: 1, tiers: ['Gem C'] },
+      { slot: 'uncommon', share: 1, tiers: ['Gem U'] },
+      // The printed shares (17.39 / 5.80 / 1.81) over their own total, so the
+      // slot's weights sum to one hit per pack — the dealer reads the sum as the
+      // chance the slot lands at all, and 25 would deal a hit in 85% of packs.
+      { slot: 'hit', share: 17.39 / 25, tiers: ['Gem R'] },
+      { slot: 'hit', share: 5.8 / 25, tiers: ['Gem RR'] },
+      { slot: 'hit', share: 1.81 / 25, tiers: ['Gem RRR'] },
+    ],
+  },
 }
 
 // Art: Vol. 7 reprints 2026 sets, so each card wears the artwork of the newest
@@ -190,6 +200,7 @@ const out = {
 // per card group, so the seven treatments of one Pokémon get seven different arts.
 const art = assignArt(db, cards)
 console.log(`art: ${art.exact} same print · ${art.other} English printing of the name · ${art.none} without`)
+console.log(`art: ${applyGemArt(cards)} rows carry the Simplified Chinese scan`)
 
 fs.writeFileSync('server/catalog/regional-releases.json', JSON.stringify(out, null, 1) + '\n')
 console.log(`cards ${cards.length} · sets ${out.sets.length} · products ${products.length}`)

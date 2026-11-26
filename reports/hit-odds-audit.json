@@ -1,6 +1,6 @@
 {
-  "sets": 118,
-  "rows": 433,
+  "sets": 125,
+  "rows": 447,
   "generic": 0,
   "stale": 0,
   "setsWithMeasuredOdds": [
@@ -22,18 +22,25 @@
     "sv6pt5",
     "sv7",
     "sv8",
+    "cbb1",
     "sv8pt5",
     "sv9",
+    "cbb2",
     "sv10",
     "rsv10pt5",
     "zsv10pt5",
+    "cbb3",
     "me1",
     "me2",
     "me2pt5",
+    "cbb4",
     "me3",
+    "cbb5",
     "me4",
     "me5",
+    "cbb6",
     "me55",
+    "cbb7",
     "me6"
   ],
   "setsWithFallbackRows": [],
@@ -4455,6 +4462,30 @@
       "stale": false
     },
     {
+      "setId": "cbb1",
+      "setName": "Gem Pack Vol. 1",
+      "released": "2025/01/17",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 42,
+      "storedOdds": 0.9132,
+      "codeOdds": 0.9132,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb1",
+      "setName": "Gem Pack Vol. 1",
+      "released": "2025/01/17",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 18,
+      "storedOdds": 0.0868,
+      "codeOdds": 0.0868,
+      "kind": "set",
+      "stale": false
+    },
+    {
       "setId": "sv8pt5",
       "setName": "Prismatic Evolutions",
       "released": "2025/01/17",
@@ -4571,6 +4602,30 @@
       "cards": 6,
       "storedOdds": 0.028,
       "codeOdds": 0.028,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb2",
+      "setName": "Gem Pack Vol. 2",
+      "released": "2025/05/16",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 48,
+      "storedOdds": 0.9132,
+      "codeOdds": 0.9132,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb2",
+      "setName": "Gem Pack Vol. 2",
+      "released": "2025/05/16",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 20,
+      "storedOdds": 0.0868,
+      "codeOdds": 0.0868,
       "kind": "set",
       "stale": false
     },
@@ -4751,6 +4806,30 @@
       "cards": 7,
       "storedOdds": 0.0125,
       "codeOdds": 0.0125,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb3",
+      "setName": "Gem Pack Vol. 3",
+      "released": "2025/09/26",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 48,
+      "storedOdds": 0.9276,
+      "codeOdds": 0.9276,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb3",
+      "setName": "Gem Pack Vol. 3",
+      "released": "2025/09/26",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 16,
+      "storedOdds": 0.0724,
+      "codeOdds": 0.0724,
       "kind": "set",
       "stale": false
     },
@@ -4947,6 +5026,30 @@
       "stale": false
     },
     {
+      "setId": "cbb4",
+      "setName": "Gem Pack Vol. 4",
+      "released": "2026/02/06",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 56,
+      "storedOdds": 0.9276,
+      "codeOdds": 0.9276,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb4",
+      "setName": "Gem Pack Vol. 4",
+      "released": "2026/02/06",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 28,
+      "storedOdds": 0.0724,
+      "codeOdds": 0.0724,
+      "kind": "set",
+      "stale": false
+    },
+    {
       "setId": "me3",
       "setName": "Perfect Order",
       "released": "2026/03/27",
@@ -5003,6 +5106,30 @@
       "cards": 6,
       "storedOdds": 0.028,
       "codeOdds": 0.028,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb5",
+      "setName": "Gem Pack Vol. 5",
+      "released": "2026/04/24",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 56,
+      "storedOdds": 0.9276,
+      "codeOdds": 0.9276,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb5",
+      "setName": "Gem Pack Vol. 5",
+      "released": "2026/04/24",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 28,
+      "storedOdds": 0.0724,
+      "codeOdds": 0.0724,
       "kind": "set",
       "stale": false
     },
@@ -5127,6 +5254,30 @@
       "stale": false
     },
     {
+      "setId": "cbb6",
+      "setName": "Gem Pack Vol. 6",
+      "released": "2026/08/07",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 56,
+      "storedOdds": 0.9276,
+      "codeOdds": 0.9276,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb6",
+      "setName": "Gem Pack Vol. 6",
+      "released": "2026/08/07",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 28,
+      "storedOdds": 0.0724,
+      "codeOdds": 0.0724,
+      "kind": "set",
+      "stale": false
+    },
+    {
       "setId": "me55",
       "setName": "30th Celebration",
       "released": "2026/09/16",
@@ -5171,6 +5322,30 @@
       "cards": 10,
       "storedOdds": 0.028,
       "codeOdds": 0.028,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb7",
+      "setName": "Gem Pack Vol. 7",
+      "released": "2026/11/06",
+      "slot": "hit",
+      "rarity": "Rare Holo",
+      "cards": 56,
+      "storedOdds": 0.9276,
+      "codeOdds": 0.9276,
+      "kind": "set",
+      "stale": false
+    },
+    {
+      "setId": "cbb7",
+      "setName": "Gem Pack Vol. 7",
+      "released": "2026/11/06",
+      "slot": "hit",
+      "rarity": "Illustration Rare",
+      "cards": 28,
+      "storedOdds": 0.0724,
+      "codeOdds": 0.0724,
       "kind": "set",
       "stale": false
     },

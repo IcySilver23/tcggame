@@ -224,6 +224,21 @@ export const SET_UPGRADE_OVERRIDE: Record<string, Record<string, number>> = {
     // "Mew (Secret)", Rarity=Secret Rare, and that is the label its row carries.
     'Secret Rare': 1 / 150,
   },
+  // The Gem Packs print their own ratio table on the box, so their hit slot's
+  // per-rarity odds are the publisher's figures rather than an estimate: the
+  // ★★ and ★★★ shares over the hit slot's total, which is what a card lands at
+  // once the two ● and the ◆ are fixed. Vols. 4-7 print ★ 17.39% / ★★ 5.80% /
+  // ★★★ 1.81% (69.56 / 23.20 / 7.24 of the slot); Vol. 2 prints 18.13 / 4.70 /
+  // 2.17 (72.52 / 18.80 / 8.68) and Vol. 1 prints 17.90 / 4.93 / 2.17 (71.60 /
+  // 19.72 / 8.68), Vol. 3 18.42 / 4.77 / 1.81 (73.68 / 19.08 / 7.24). The
+  // catalogue files ★ and ★★ as Rare Holo, so those two share one row.
+  cbb1: { 'Rare Holo': 0.9132, 'Illustration Rare': 0.0868 },
+  cbb2: { 'Rare Holo': 0.9132, 'Illustration Rare': 0.0868 },
+  cbb3: { 'Rare Holo': 0.9276, 'Illustration Rare': 0.0724 },
+  cbb4: { 'Rare Holo': 0.9276, 'Illustration Rare': 0.0724 },
+  cbb5: { 'Rare Holo': 0.9276, 'Illustration Rare': 0.0724 },
+  cbb6: { 'Rare Holo': 0.9276, 'Illustration Rare': 0.0724 },
+  cbb7: { 'Rare Holo': 0.9276, 'Illustration Rare': 0.0724 },
   sv4pt5: {
     'Double Rare': 0.1589,
     'Ultra Rare': 0.0661,
@@ -336,6 +351,13 @@ const MAX_UPGRADE_CHANCE = 0.85
 export type PackSlot = 'common' | 'uncommon' | 'holo' | 'hit' | 'reverse' | 'reverse2' | 'energy' | 'subset' | 'phantom'
 export type SlotPlan = { slot: PackSlot; count: number }
 
+/** The fixed collation of a Gem Pack: two ●, one ◆ and one hit from ★/★★/★★★. */
+const GEM_PACK: SlotPlan[] = [
+  { slot: 'common', count: 2 },
+  { slot: 'uncommon', count: 1 },
+  { slot: 'hit', count: 1 },
+]
+
 /**
  * Documented pack structures that are not the standard ten-card shape:
  * 30th Celebration (2 commons + 1 flex + 1 rare + a guaranteed Pikachu + a
@@ -376,29 +398,27 @@ export const BLUEPRINTS: Record<string, SlotPlan[]> = {
   ],
   me55c: [{ slot: 'subset', count: 10 }],
   cel25c: [{ slot: 'subset', count: 10 }],
-  // Gem Pack Vol. 7 is a Simplified Chinese wrapper holding FOUR cards, and every
-  // one of them is foil: 28 Pokémon, each printed as five holo versions of its
-  // regular art, a sixth with the Gem Pack stamp and a seventh Illustration Rare.
-  // The era plan is a ten-card English shape and asks for commons this set does
-  // not print, and it prints no reverse holos at all. So it is declared here as
-  // four cards drawn from the set's whole 196-card pool — every card in the
-  // product is foil, so the pool is uniform (see `uniformPoolSets` in
-  // catalog/regional-releases.json, which is what tells the loader to flatten the
-  // table into one slot). A flat draw over 196 cards would put an art rare in one
-  // pack in seven, because 28 of the cards are art rares; the pool is therefore
-  // weighted by the publisher's own ratios, ★ 17.39%, ★★ 5.80% and ★★★ 1.81% of
-  // the print run, which lands the art rare at about one pack in fourteen
-  // (`tierShares` in the release file, applied by the loader).
-  cbb7: [{ slot: 'holo', count: 4 }],
-  // Vols. 1-6 are the same product: four foil cards from one pool, no commons and
-  // no reverse holos. Their card counts differ (115, 140, 136 then 196 three
-  // times), which is why they are listed rather than derived.
-  cbb1: [{ slot: 'holo', count: 4 }],
-  cbb2: [{ slot: 'holo', count: 4 }],
-  cbb3: [{ slot: 'holo', count: 4 }],
-  cbb4: [{ slot: 'holo', count: 4 }],
-  cbb5: [{ slot: 'holo', count: 4 }],
-  cbb6: [{ slot: 'holo', count: 4 }],
+  // Every Gem Pack is one physical wrapper: FOUR cards, collated as two ●, one ◆
+  // and one hit from ★/★★/★★★ — the publisher's "每包含有 4张闪卡" line, and
+  // 52poke's summary of the line: "3张是●或◆…另外1张是★或★★或★★★". A Gem Pack is
+  // therefore not four draws from one pool: a pack has never held three commons or
+  // two art rares, and drawing it as a pool let it hold either.
+  //
+  // The hit slot is divided by the publisher's printed shares of the print run,
+  // ★ 17.39% / ★★ 5.80% / ★★★ 1.81% for Vols. 4-7 and 17.90% / 4.93% / 2.17%,
+  // 18.13% / 4.70% / 2.17% and 18.42% / 4.77% / 1.81% for Vols. 1, 2 and 3 — a
+  // Vol. 7 hit is 69.6% ★, 23.2% ★★ and 7.24% ★★★, one art rare per 13.8 packs,
+  // which is what "1.81% of production, 4 cards a pack" works out to. Vols. 1-7
+  // hold 115, 140, 136 then 196 cards, so each volume is listed rather than
+  // derived; the shares live per set in `ladderPacks` in
+  // catalog/regional-releases.json, applied by the loader as share ÷ cards-at-tier.
+  cbb1: GEM_PACK,
+  cbb2: GEM_PACK,
+  cbb3: GEM_PACK,
+  cbb4: GEM_PACK,
+  cbb5: GEM_PACK,
+  cbb6: GEM_PACK,
+  cbb7: GEM_PACK,
   // Black Bolt and White Flare are those sets' Simplified Chinese printing: five
   // cards to a wrapper, one of them always a foil. The spec sheet gives each
   // rarity group's share of all cards dealt, so this is the physical shape — four
@@ -785,12 +805,13 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
   }
   const out = plan.map(({ slot, count }): PackSlotInfo => {
     let detail: string
+    const gemPack = setId.startsWith('cbb')
     switch (slot) {
       case 'common':
-        detail = 'the body of the pack'
+        detail = gemPack ? 'two ● holo cards, the low rarity a Gem Pack opens with' : 'the body of the pack'
         break
       case 'uncommon':
-        detail = 'three in every pack'
+        detail = gemPack ? 'one ◆ holo card' : 'three in every pack'
         break
       case 'reverse':
         detail = era === 'sv' ? 'first parallel' : 'a reverse printing of a common, uncommon or rare'
@@ -803,7 +824,11 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
         break
       }
       case 'hit':
-        detail = chance > 0 ? `upgrades to a hit in ${pct(chance)} of packs, else the ${paper} rare` : `the ${paper} rare`
+        detail = gemPack
+          ? 'the hit slot: ★ Master Ball, ★★ Gem Pack stamp or ★★★ art illustration, at the volume\u2019s printed shares'
+          : chance > 0
+            ? `upgrades to a hit in ${pct(chance)} of packs, else the ${paper} rare`
+            : `the ${paper} rare`
         break
       case 'holo': {
         const mixed = slotRarities('holo').some((r) => !/^(Rare|Rare Holo)$/.test(r))
@@ -854,7 +879,9 @@ export function packSlots(setId: string, cardsPerPack = 10): PackSlotInfo[] {
     }
     // A card-by-card subset pack is not "guaranteed classic" — Shiny Vault and
     // the galleries are not reprints — so the label follows the shape.
-    const label = setId === 'dv1' && slot === 'holo'
+    const label = gemPack
+      ? slot === 'common' ? 'Two ●' : slot === 'uncommon' ? 'One ◆' : '★ / ★★ / ★★★'
+      : setId === 'dv1' && slot === 'holo'
       ? 'Holofoil'
       : slot === 'holo' && slotRarities('holo').some((r) => !/^(Rare|Rare Holo)$/.test(r))
         ? 'Rare or better'

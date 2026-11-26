@@ -1,13 +1,28 @@
 {
   "entries": [
     {
+      "version": "0.94.36",
+      "date": "2026-11-26",
+      "title": "Gem Packs, dealt as printed",
+      "highlights": [
+        "Gem Packs now deal the wrapper Pokémon China prints — two ●, one ◆ and a hit — instead of four weighted draws from one pool.",
+        "Each volume uses its own printed ratio table, so a Vol. 7 pack is 69.6% ★, 23.2% ★★ and 7.24% ★★★.",
+        "The cards are the Chinese cards: every one of the 1,175 Gem Pack rows now carries its own Simplified Chinese scan."
+      ],
+      "features": [
+        "A Gem Pack used to be four cards drawn from the whole set with tier weights, which no wrapper is shaped like: a pack could hold three commons or two art rares. It is now collated as printed — two ●, one ◆ and one hit from ★, ★★ or ★★★ — so the pack always holds exactly what the box describes.",
+        "The hit slot divides by each volume's own table rather than one figure for the line: ★ / ★★ / ★★★ at 17.39% / 5.80% / 1.81% for Vols. 4-7, 18.42% / 4.77% / 1.81% for Vol. 3, 18.13% / 4.70% / 2.17% for Vol. 2 and 17.90% / 4.93% / 2.17% for Vol. 1. A Vol. 7 hit is 69.6% ★, 23.2% ★★ and 7.24% ★★★ — one art rare in 13.8 packs, about one and a third in an eighteen-pack box.",
+        "● and ◆ are no longer a guessed remainder: the printed table names them at 50.00% and 25.00%, and the pull table carries all five tiers. The odds audit now reads these sets' printed figures instead of a 1-in-50 fallback, and it reports no stale or generic rows anywhere.",
+        "Every Gem Pack card shows the Simplified Chinese card itself — 1,175 rows, taken from the product scans on simplifiedcollector.com's per-volume card lists and shipped at 260px wide rather than at print size, with Captain Pikachu keeping the scans it already had.",
+        "The catalogue note states the box's own arithmetic — the collation, each volume's ratios, the 13.8-pack art rare — and the three places the source lists needed a hand, so the ladder can be recomputed from the note and the set."
+      ]
+    },
+    {
       "version": "0.94.35",
       "date": "2026-11-25",
       "title": "Gem Packs, Vols. 1-7",
       "highlights": [
-        "New packs: Gem Pack Vols. 1-7, four foil cards a pack at ¥10, drawn on the publisher's own star ladder.",
-        "Every volume wears its own booster wrapper on the shelf, with its set symbol and, where published, its logo.",
-        "Captain Pikachu now shows the Chinese card itself: 14 rows of real scans, no borrowed art."
+        "New packs: Gem Pack Vols. 1-7, four foil cards a pack at ¥10, with each volume's own wrapper and the Chinese cards themselves."
       ],
       "features": [
         "Seven new packs on the shelf: Gem Pack Vols. 1-7 (CBB1C-CBB7C), 1,175 cards in all, four to a pack at ¥10. The draw is weighted by the publisher's own shares - ★ 17.39% of the print run, ★★ 5.80%, ★★★ 1.81% - so the three-star card turns up in roughly one pack in fourteen.",

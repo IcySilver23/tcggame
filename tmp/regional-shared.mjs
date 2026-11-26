@@ -20,6 +20,8 @@
 // while Collection 151 multiplied by its five slots. A pack is every slot it
 // deals, so the shared version sums per slot — the group's share of THAT slot,
 // times the slot's count, times the group's average value.
+import { readdirSync } from 'node:fs'
+
 import Database from 'better-sqlite3'
 
 export function openCatalog(dbPath = 'data/tcglife.db') {
@@ -121,15 +123,20 @@ export function assignArt(db, cards, { siblingSetId = null } = {}) {
 /**
  * Real scans for the Gem Pack line.
  *
- * No CDN hosts a Simplified Chinese card, so these rows would otherwise wear an
- * English printing of the same Pokémon. Captain Pikachu (Gem Pack Vol. 1 0701-0709
- * and Vol. 5 0101-0107) has no English printing at all — Bulbapedia: "has not yet
- * been officially released in English" — so the card that is actually in the pack
- * is the only honest art. Twelve are the Simplified Chinese product scans on
- * simplifiedcollector.com's per-volume card lists; the two chase treatments those
- * lists do not cover (0709 and 0107) are Bulbapedia's own card images, fetched
- * from the Wayback Machine because the wiki's media host refuses this build.
- * Every file was opened and checked against the printed number before shipping.
+ * No CDN hosts a Simplified Chinese card, so a Gem Pack row that has no scan of
+ * its own would wear an English printing of the same Pokémon. Every card whose
+ * volume's card list publishes a scan now ships that scan (public/catalog-art/cbb/
+ * cards, named by card id, downloaded by `tmp/gem-art-scrape.py` from
+ * simplifiedcollector.com's per-volume lists); `applyGemArt` picks those files up
+ * by name, so re-running the scraper is all a new volume needs.
+ *
+ * The map below is for the rows that predate that directory and were checked one
+ * at a time: Captain Pikachu, which has no English printing at all — Bulbapedia:
+ * "has not yet been officially released in English" — so the card in the pack is
+ * the only honest art. Twelve are the product scans on simplifiedcollector.com's
+ * lists; the two chase treatments those lists do not carry (0709 and 0107) are
+ * Bulbapedia's own card images, fetched through the Wayback Machine because the
+ * wiki's media host refuses this build.
  */
 export const GEM_CARD_ART = {
   'cbb1-0701': '/catalog-art/cbb/cbb1-0701.webp',
@@ -148,14 +155,42 @@ export const GEM_CARD_ART = {
   'cbb5-0107': '/catalog-art/cbb/cbb5-0107.webp',
 }
 
+// Card files are named by card id: `<setId>-<group><treatment>.webp`. The two
+// directories are the scraper's output and the older hand-checked set.
+const GEM_ART_DIRS = [
+  ['public/catalog-art/cbb', '/catalog-art/cbb'],
+  ['public/catalog-art/cbb/cards', '/catalog-art/cbb/cards'],
+]
+const GEM_ART_FILE = /^cbb\d-\d{4}\.webp$/
+
+/** Card id → shipped scan, for every scan the build actually carries. */
+export function gemArtMap() {
+  const map = { ...GEM_CARD_ART }
+  for (const [dir, url] of GEM_ART_DIRS) {
+    let files = []
+    try {
+      files = readdirSync(dir)
+    } catch {
+      continue
+    }
+    for (const file of files) {
+      if (!GEM_ART_FILE.test(file)) continue
+      const id = file.slice(0, -5)
+      map[id] ??= `${url}/${file}`
+    }
+  }
+  return map
+}
+
 /** Overwrite the borrowed art with the real scan wherever one is recorded. */
 export function applyGemArt(cards) {
+  const art = gemArtMap()
   let real = 0
   for (const card of cards) {
-    const art = GEM_CARD_ART[card.id]
-    if (!art) continue
-    card.image_small = art
-    card.image_large = art
+    const scan = art[card.id]
+    if (!scan) continue
+    card.image_small = scan
+    card.image_large = scan
     real++
   }
   return real
@@ -172,7 +207,7 @@ export function setArt(db, setId) {
  * text changes, which is how a save that already took the catalogue picks up a
  * later pass over it (the upserts are idempotent).
  */
-export const RELEASE = 'Gem Pack Vol. 1-7, Black Bolt / White Flare and Collection 151 (Simplified Chinese) · art 4'
+export const RELEASE = 'Gem Pack Vol. 1-7, Black Bolt / White Flare and Collection 151 (Simplified Chinese) · art 5'
 
 /**
  * Scale a set to the wrapper it ships in and write each card's price.

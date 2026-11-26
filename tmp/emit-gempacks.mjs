@@ -26,6 +26,45 @@ const existing = JSON.parse(fs.readFileSync('server/catalog/regional-releases.js
 // retailers) and Vols. 4-7 ship 18 (PokiPair, Cardnado, Maya TCG and Keef's all
 // print 18 packs / 72 cards for 4-7). tcgguy says "18, the same as Vol 3 to 6",
 // which contradicts the Vol. 3 listing; the direct product listing is followed.
+// Each volume's printed ratio table, as the back of its box carries it: the share
+// of the whole print run that each printed tier makes up. ● 50.00% and ◆ 25.00%
+// are the same in all seven; the three hit tiers move. 52poke transcribes the
+// table for every volume (Vol. 7 also appears on the publisher's own page, and
+// Vols. 5 and 6 agree with it), and the counts in this catalogue double as a
+// check: Vol. 1 prints 32/23/23/19/18, which is the ratio table's shape.
+const SHARES = {
+  1: { R: 17.9, RR: 4.93, RRR: 2.17 },
+  2: { R: 18.13, RR: 4.7, RRR: 2.17 },
+  3: { R: 18.42, RR: 4.77, RRR: 1.81 },
+  4: { R: 17.39, RR: 5.8, RRR: 1.81 },
+  5: { R: 17.39, RR: 5.8, RRR: 1.81 },
+  6: { R: 17.39, RR: 5.8, RRR: 1.81 },
+  7: { R: 17.39, RR: 5.8, RRR: 1.81 },
+}
+
+// A pack is two ●, one ◆ and one hit; the hit slot's three tiers divide by their
+// printed shares, which is why ★, ★★ and ★★★ share the 'hit' slot here. The three
+// are scaled to sum to 1, because a slot's weights are read as per-pack chances
+// too: a hit slot summing to 25 would deal an 85% hit and pad the other 15% of
+// packs from the reverse pool. Printed shares stay in the note; these are the
+// same numbers over their own total.
+const gemHit = (v) => {
+  const s = SHARES[v]
+  const total = s.R + s.RR + s.RRR
+  return { R: s.R / total, RR: s.RR / total, RRR: s.RRR / total }
+}
+
+const gemLadder = (v) => {
+  const hit = gemHit(v)
+  return [
+    { slot: 'common', share: 1, tiers: ['Gem C'] },
+    { slot: 'uncommon', share: 1, tiers: ['Gem U'] },
+    { slot: 'hit', share: hit.R, tiers: ['Gem R'] },
+    { slot: 'hit', share: hit.RR, tiers: ['Gem RR'] },
+    { slot: 'hit', share: hit.RRR, tiers: ['Gem RRR'] },
+  ]
+}
+
 const VOLUMES = [
   { vol: 1, code: 'CBB1C', date: '2025/01/17', packs: 15 },
   { vol: 2, code: 'CBB2C', date: '2025/05/16', packs: 15 },
@@ -188,17 +227,15 @@ const out = {
     'No Gem Pack card has a recorded sale in any language, so every card is valued against the reprint it copies: the six regular versions take the cheapest ordinary printing of ' +
     'the Pokémon, the chase tier takes the art it reprints, and the Pokémon whose only printing anywhere is a chase card take the set\'s bulk floor, because a ¥10 wrapper cannot ' +
     'hold eight $22 cards. The catalogue distinguishes foil from chase, so the printed Gem C/U/R/RR tiers are carried as Rare Holo and Gem RRR as the Illustration Rare tier. ' +
-    'No Simplified Chinese set is in the catalogue\'s image service, so no card carries its own scan: each one wears the artwork of an English printing of the same Pokémon, the same rarity where one exists and the newest set first, and a printing is used once per set so the nine Sprigatito treatments get nine different arts rather than one repeated. ' +
-    'Captain Pikachu is the exception, because it has no English printing at all — Bulbapedia records it as not yet released in English — so its fourteen rows (Vol. 1 0701-0709 and Vol. 5 0101-0107) carry the Simplified Chinese card itself: twelve from the product scans on simplifiedcollector.com\'s per-volume card lists and the two chase treatments 0709 and 0107 from Bulbapedia\'s card images. ' +
+    'Every card carries the Simplified Chinese card itself, all 1,175 of them: the product scans on simplifiedcollector.com\'s per-volume card lists, downscaled to 260px wide rather than shipped at print size. Fourteen of those (Captain Pikachu, Vol. 1 0701-0709 and Vol. 5 0101-0107) had no English printing to borrow in the first place — Bulbapedia records it as not yet released in English — and its two chase treatments 0709 and 0107 come from Bulbapedia\'s own card images. Three spots on the source lists needed a hand, all checked against the printed number: Vol. 1 18 01/06 (Basic Grass Energy) is filed there under a group number its card does not print, and Vol. 4\'s Pinsir and Chatot are filed with a duplicate suffix and an alt text that omits their numbers. ' +
     'Each volume also ships its published packaging and marks, all Bulbagarden\'s own files for that volume: the booster wrapper as the pack\'s picture (Vols. 6 and 7 checked against the publisher\'s page, which shows the same wrapper), the set symbol, and the logo — Vol. 4 publishes no logo, so its symbol stands in. The box carries the volume\'s mark rather than a wrapper, because no box photograph was reachable. ' +
-    'A pack opens four cards drawn from the whole set, and the draw is weighted by the publisher\'s own ratio table: ★ 17.39% of the print run, ★★ 5.80%, ★★★ 1.81%, with ● and ◆ taking the remainder. Those shares are printed for Vols. 6 and 7; Vols. 1-5 carry the same ladder as the line\'s figure, corroborated by the one-three-star-per-box the selling copy describes. Every weight in the pull table is therefore share ÷ card count, so the ladder can be recomputed from the note and the set. At these anchors the packs sit at their ¥10 sticker.',
+    'A pack is the wrapper the publisher prints: four cards, collated as two ●, one ◆ and one hit drawn from ★ or ★★ or ★★★, so no pack holds three commons or two art rares. The hit is divided by the volume\'s own printed ratio table — ● 50.00% and ◆ 25.00% in every volume, then ★ / ★★ / ★★★ at 17.90% / 4.93% / 2.17% (Vol. 1), 18.13% / 4.70% / 2.17% (Vol. 2), 18.42% / 4.77% / 1.81% (Vol. 3) and 17.39% / 5.80% / 1.81% (Vols. 4-7) — which makes a Vol. 4-7 hit 69.6% ★, 23.2% ★★ and 7.24% ★★★: one art rare in 13.8 packs, about one and a third in an eighteen-pack box. Every weight in the pull table is share ÷ cards at that tier, so the ladder can be recomputed from this note and the set. At these anchors the packs sit at their ¥10 sticker.',
   sets: [...sets, ...keep(existing.sets)],
   cards: [...cards, ...keep(existing.cards)],
   products: [...products, ...keep(existing.products)],
-  uniformPoolSets: ['cbb1', 'cbb2', 'cbb3', 'cbb4', 'cbb5', 'cbb6', 'cbb7'],
-  // Share of the PRINT RUN, straight from the publisher's ratio table. ● and ◆
-  // are not named there; they take the remainder, and the loader splits it.
-  tierShares: { 'Gem R': 0.1739, 'Gem RR': 0.058, 'Gem RRR': 0.0181 },
+  // Vol. 7's table is emitted by its own pass, which runs before this one; this
+  // keeps the key present so a rebuild of Vols. 1-6 leaves Vol. 7's ladder intact.
+  ladderPacks: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((v) => [`cbb${v}`, gemLadder(v)])),
 }
 
 fs.writeFileSync('server/catalog/regional-releases.json', JSON.stringify(out, null, 1) + '\n')
